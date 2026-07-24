@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
+import { Stagger, Item } from "@/components/nest/motion";
 import {
   members,
   expenses,
@@ -65,38 +66,38 @@ function Dashboard() {
   return (
     <AppShell greeting={<Greeting />}>
       {/* Summary cards */}
-      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <BalanceCard
+      <Stagger className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Item><BalanceCard
           label="You owe"
           value={fmtUSD(iOwe)}
           hint={iOwe > 0 ? "Tap to settle" : "All clear"}
           icon={<ArrowUpRight className="h-4 w-4" />}
           accent="brand"
           to="/app/settle"
-        />
-        <BalanceCard
+        /></Item>
+        <Item><BalanceCard
           label="You're owed"
           value={fmtUSD(owedToMe)}
           hint="From roommates"
           icon={<ArrowDownRight className="h-4 w-4" />}
           accent="success"
-        />
-        <BalanceCard
+        /></Item>
+        <Item><BalanceCard
           label="Wallet"
           value={`${walletBalance.toFixed(2)}`}
           suffix="USDC"
           hint="On Arc"
           icon={<Wallet className="h-4 w-4" />}
           accent="dark"
-        />
-        <BalanceCard
+        /></Item>
+        <Item><BalanceCard
           label="This month"
           value={fmtUSD(monthlySpend)}
           hint="Household total"
           icon={<TrendingUp className="h-4 w-4" />}
           accent="soft"
-        />
-      </section>
+        /></Item>
+      </Stagger>
 
       {/* Roommates + Quick actions */}
       <section className="mt-6 grid gap-5 lg:grid-cols-3">
@@ -259,7 +260,7 @@ function BalanceCard({ label, value, hint, icon, accent, suffix, to }: {
     soft: "bg-indigo-50 text-indigo-600",
   }[accent];
   const inner = (
-    <div className={`relative overflow-hidden rounded-3xl p-4 shadow-card transition hover:scale-[1.015] ${styles}`}>
+    <div className={`relative overflow-hidden rounded-[20px] p-4 shadow-card transition hover:scale-[1.015] ${styles}`}>
       <div className="flex items-start justify-between">
         <span className={`text-[11px] font-semibold uppercase tracking-wider opacity-80`}>{label}</span>
         <span className={`grid h-8 w-8 place-items-center rounded-full ${iconBg}`}>{icon}</span>
