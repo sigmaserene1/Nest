@@ -140,13 +140,24 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
             transition={{ type: "spring", stiffness: 400, damping: 22 }}
             className="relative -mt-8 mx-1"
           >
-            <Link
-              to="/app/settle"
-              className="grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-brand animate-pulse-brand"
-              aria-label="Settle up"
-            >
-              <Plus className="h-6 w-6" strokeWidth={2.5} />
-            </Link>
+            {onFabClick ? (
+              <button
+                onClick={onFabClick}
+                className="grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-brand animate-pulse-brand"
+                aria-label="Quick action"
+              >
+                <Plus className="h-6 w-6" strokeWidth={2.5} />
+              </button>
+            ) : (
+              <Link
+                to="/app/settle"
+                className="grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-brand animate-pulse-brand"
+                aria-label="Settle up"
+              >
+                <Plus className="h-6 w-6" strokeWidth={2.5} />
+              </Link>
+            )}
+
           </motion.div>
           <BottomTab to="/app/activity" label="Activity" icon={Activity} />
           <BottomTab to="/app/analytics" label="Insights" icon={PieChart} />
