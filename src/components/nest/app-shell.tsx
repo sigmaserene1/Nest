@@ -99,7 +99,9 @@ export function AppShell({ children, greeting }: { children: ReactNode; greeting
         {greeting && (
           <div className="px-4 pt-5 sm:px-6 lg:px-8 lg:pt-8">{greeting}</div>
         )}
-        <main className="mx-auto max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">{children}</main>
+        <main className="mx-auto max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">
+          <PageTransition>{children}</PageTransition>
+        </main>
       </div>
 
       {/* Mobile bottom nav */}
@@ -107,13 +109,20 @@ export function AppShell({ children, greeting }: { children: ReactNode; greeting
         <div className="glass-strong relative flex items-center rounded-[28px] px-2 py-1">
           <BottomTab to="/app" label="Home" icon={Home} exact />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
-          <Link
-            to="/app/settle"
-            className="relative -mt-8 mx-1 grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-brand animate-pulse-brand"
-            aria-label="Settle up"
+          <motion.div
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+            className="relative -mt-8 mx-1"
           >
-            <Plus className="h-6 w-6" strokeWidth={2.5} />
-          </Link>
+            <Link
+              to="/app/settle"
+              className="grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-brand animate-pulse-brand"
+              aria-label="Settle up"
+            >
+              <Plus className="h-6 w-6" strokeWidth={2.5} />
+            </Link>
+          </motion.div>
           <BottomTab to="/app/activity" label="Activity" icon={Activity} />
           <BottomTab to="/app/analytics" label="Insights" icon={PieChart} />
         </div>
@@ -125,7 +134,7 @@ export function AppShell({ children, greeting }: { children: ReactNode; greeting
 export function Card({ children, className = "", as: As = "div", ...rest }: { children: ReactNode; className?: string; as?: any; [k: string]: any }) {
   return (
     <As
-      className={`rounded-3xl bg-card p-5 shadow-card ring-1 ring-black/[0.03] ${className}`}
+      className={`rounded-[20px] bg-card p-5 shadow-card ring-1 ring-black/[0.03] ${className}`}
       {...rest}
     >
       {children}
