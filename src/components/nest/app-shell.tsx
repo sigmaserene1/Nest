@@ -68,7 +68,7 @@ function BottomTab({
   );
 }
 
-export function AppShell({ children, greeting }: { children: ReactNode; greeting?: ReactNode }) {
+export function AppShell({ children, greeting, onFabClick }: { children: ReactNode; greeting?: ReactNode; onFabClick?: () => void }) {
   const me = getMember(currentUserId);
 
   return (
