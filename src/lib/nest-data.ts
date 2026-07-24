@@ -1,22 +1,23 @@
 // Mock data for Nest — realistic household expense scenario.
-// Replace with Lovable Cloud reads in the backend wiring pass.
 
 export type Member = {
   id: string;
   name: string;
   handle: string;
   color: string;
+  gradient: string;
   wallet?: string;
+  emoji: string;
 };
 
 export type Expense = {
   id: string;
   title: string;
-  category: "Rent" | "Groceries" | "Electricity" | "Internet" | "Other";
-  amount: number; // USD
+  category: "Rent" | "Groceries" | "Utilities" | "Internet" | "Dining" | "Other";
+  amount: number;
   payerId: string;
-  splitAmong: string[]; // member ids
-  date: string; // ISO
+  splitAmong: string[];
+  date: string;
   note?: string;
 };
 
@@ -37,28 +38,30 @@ export type ActivityEvent = {
   text: string;
   date: string;
   amount?: number;
+  category?: Expense["category"];
 };
 
 export const currentUserId = "u1";
 
 export const members: Member[] = [
-  { id: "u1", name: "You", handle: "@you", color: "#E41E26", wallet: "0x8f2c…41Ae" },
-  { id: "u2", name: "Alex Chen", handle: "@alex", color: "#F59E0B", wallet: "0x21a9…88b2" },
-  { id: "u3", name: "Priya Shah", handle: "@priya", color: "#10B981", wallet: "0x9c33…12df" },
-  { id: "u4", name: "Marcus Lee", handle: "@marcus", color: "#3B82F6", wallet: "0x44e1…7a90" },
+  { id: "u1", name: "Arjun Mehta", handle: "@arjun", color: "#E53935", gradient: "linear-gradient(135deg,#ff6a5b,#e53935)", wallet: "0x8f2c…41Ae", emoji: "🦊" },
+  { id: "u2", name: "Alex Chen", handle: "@alex", color: "#F59E0B", gradient: "linear-gradient(135deg,#fcd34d,#f59e0b)", wallet: "0x21a9…88b2", emoji: "🐼" },
+  { id: "u3", name: "Priya Shah", handle: "@priya", color: "#10B981", gradient: "linear-gradient(135deg,#6ee7b7,#059669)", wallet: "0x9c33…12df", emoji: "🌿" },
+  { id: "u4", name: "Marcus Lee", handle: "@marcus", color: "#6366F1", gradient: "linear-gradient(135deg,#a5b4fc,#6366f1)", wallet: "0x44e1…7a90", emoji: "🎧" },
 ];
 
 const allIds = members.map((m) => m.id);
 
 export const expenses: Expense[] = [
-  { id: "e1", title: "November Rent", category: "Rent", amount: 3200, payerId: "u2", splitAmong: allIds, date: "2026-07-01", note: "Landlord — Chase transfer" },
+  { id: "e1", title: "November Rent", category: "Rent", amount: 3200, payerId: "u2", splitAmong: allIds, date: "2026-07-01", note: "Landlord transfer" },
   { id: "e2", title: "Costco run", category: "Groceries", amount: 184.52, payerId: "u1", splitAmong: allIds, date: "2026-07-05" },
-  { id: "e3", title: "Con Edison — July", category: "Electricity", amount: 142.18, payerId: "u3", splitAmong: allIds, date: "2026-07-08" },
+  { id: "e3", title: "Con Edison — July", category: "Utilities", amount: 142.18, payerId: "u3", splitAmong: allIds, date: "2026-07-08" },
   { id: "e4", title: "Verizon Fios", category: "Internet", amount: 89.99, payerId: "u4", splitAmong: allIds, date: "2026-07-10" },
   { id: "e5", title: "Trader Joe's", category: "Groceries", amount: 96.4, payerId: "u1", splitAmong: allIds, date: "2026-07-14" },
   { id: "e6", title: "Cleaning supplies", category: "Other", amount: 42.15, payerId: "u2", splitAmong: allIds, date: "2026-07-16" },
   { id: "e7", title: "Farmers market", category: "Groceries", amount: 58.9, payerId: "u3", splitAmong: allIds, date: "2026-07-19" },
-  { id: "e8", title: "Dinner delivery", category: "Other", amount: 74.2, payerId: "u1", splitAmong: allIds, date: "2026-07-21" },
+  { id: "e8", title: "Sushi night", category: "Dining", amount: 128.2, payerId: "u1", splitAmong: allIds, date: "2026-07-21", note: "Sugarfish takeout" },
+  { id: "e9", title: "Movie & popcorn", category: "Dining", amount: 62.5, payerId: "u4", splitAmong: allIds, date: "2026-07-22" },
 ];
 
 export const settlements: Settlement[] = [
@@ -68,20 +71,20 @@ export const settlements: Settlement[] = [
 ];
 
 export const activity: ActivityEvent[] = [
-  { id: "a1", kind: "expense", actorId: "u1", text: "added Dinner delivery", amount: 74.2, date: "2026-07-21T20:14:00Z" },
-  { id: "a2", kind: "expense", actorId: "u3", text: "added Farmers market", amount: 58.9, date: "2026-07-19T11:02:00Z" },
-  { id: "a3", kind: "expense", actorId: "u2", text: "added Cleaning supplies", amount: 42.15, date: "2026-07-16T09:30:00Z" },
-  { id: "a4", kind: "settlement", actorId: "u3", text: "settled with You", amount: 35.62, date: "2026-07-15T14:22:00Z" },
-  { id: "a5", kind: "expense", actorId: "u1", text: "added Trader Joe's", amount: 96.4, date: "2026-07-14T18:41:00Z" },
-  { id: "a6", kind: "expense", actorId: "u4", text: "added Verizon Fios", amount: 89.99, date: "2026-07-10T10:00:00Z" },
-  { id: "a7", kind: "member", actorId: "u4", text: "joined the home", date: "2026-06-28T15:00:00Z" },
+  { id: "a1", kind: "expense", actorId: "u1", text: "added Sushi night", amount: 128.2, category: "Dining", date: "2026-07-21T20:14:00Z" },
+  { id: "a2", kind: "expense", actorId: "u4", text: "added Movie & popcorn", amount: 62.5, category: "Dining", date: "2026-07-22T22:00:00Z" },
+  { id: "a3", kind: "expense", actorId: "u3", text: "added Farmers market", amount: 58.9, category: "Groceries", date: "2026-07-19T11:02:00Z" },
+  { id: "a4", kind: "expense", actorId: "u2", text: "added Cleaning supplies", amount: 42.15, category: "Other", date: "2026-07-16T09:30:00Z" },
+  { id: "a5", kind: "settlement", actorId: "u3", text: "settled with you", amount: 35.62, date: "2026-07-15T14:22:00Z" },
+  { id: "a6", kind: "expense", actorId: "u1", text: "added Trader Joe's", amount: 96.4, category: "Groceries", date: "2026-07-14T18:41:00Z" },
+  { id: "a7", kind: "expense", actorId: "u4", text: "added Verizon Fios", amount: 89.99, category: "Internet", date: "2026-07-10T10:00:00Z" },
+  { id: "a8", kind: "member", actorId: "u4", text: "joined Bedford Loft", date: "2026-06-28T15:00:00Z" },
 ];
 
 export function getMember(id: string): Member {
   return members.find((m) => m.id === id) ?? members[0];
 }
 
-// Simplified debt graph — who owes whom, net.
 export type Debt = { fromId: string; toId: string; amount: number };
 
 export function computeBalances(): { net: Record<string, number>; debts: Debt[] } {
@@ -95,7 +98,6 @@ export function computeBalances(): { net: Record<string, number>; debts: Debt[] 
     net[s.fromId] += s.amount;
     net[s.toId] -= s.amount;
   }
-  // Greedy debt simplification
   const creditors = Object.entries(net).filter(([, v]) => v > 0.01).map(([id, v]) => ({ id, v }));
   const debtors = Object.entries(net).filter(([, v]) => v < -0.01).map(([id, v]) => ({ id, v: -v }));
   creditors.sort((a, b) => b.v - a.v);
@@ -114,7 +116,7 @@ export function computeBalances(): { net: Record<string, number>; debts: Debt[] 
 }
 
 export function fmtUSD(n: number): string {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
 }
 
 export function fmtRelative(iso: string): string {
@@ -130,3 +132,14 @@ export function fmtRelative(iso: string): string {
   if (d < 30) return `${d}d ago`;
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
+
+export const walletBalance = 245.75;
+
+export const categoryMeta: Record<Expense["category"], { icon: string; color: string; bg: string }> = {
+  Rent: { icon: "🏠", color: "#e53935", bg: "#ffe9e8" },
+  Groceries: { icon: "🛒", color: "#f59e0b", bg: "#fff4e0" },
+  Utilities: { icon: "⚡", color: "#6366f1", bg: "#eceffe" },
+  Internet: { icon: "📶", color: "#3b82f6", bg: "#e5eefe" },
+  Dining: { icon: "🍜", color: "#ec4899", bg: "#fde7f1" },
+  Other: { icon: "✨", color: "#10b981", bg: "#dcf7ec" },
+};

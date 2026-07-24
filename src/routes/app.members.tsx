@@ -1,65 +1,74 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/nest/app-shell";
+import { useState } from "react";
+import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { computeBalances, fmtUSD, members } from "@/lib/nest-data";
-import { Copy, UserPlus, Crown } from "lucide-react";
+import { members, computeBalances, currentUserId, fmtUSD } from "@/lib/nest-data";
+import { Copy, Check, UserPlus, MoreHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/app/members")({
-  head: () => ({
-    meta: [
-      { title: "Members · Nest" },
-      { name: "description", content: "Manage roommates in your household, invite new members, and view connected wallets." },
-      { property: "og:title", content: "Members · Nest" },
-      { property: "og:description", content: "Household members and invites." },
-    ],
-  }),
   component: MembersPage,
+  head: () => ({ meta: [{ title: "Members · Nest" }, { name: "description", content: "Your household roommates." }] }),
 });
 
 function MembersPage() {
   const { net } = computeBalances();
-  return (
-    <AppShell
-      title="Members"
-      action={
-        <button className="inline-flex items-center gap-1.5 rounded-lg bg-brand px-3 py-2 text-sm font-medium text-brand-foreground shadow-brand hover:-translate-y-0.5 transition-transform">
-          <UserPlus className="h-4 w-4" /> Invite
-        </button>
-      }
-    >
-      <div className="rounded-2xl border border-border bg-surface p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h3 className="text-sm font-semibold">Invite link</h3>
-            <p className="text-xs text-muted-foreground">Anyone with this link can join Bedford Loft.</p>
-          </div>
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm">
-            <span className="font-mono text-xs">nest.app/join/BEDFORD-LOFT-4G7</span>
-            <button className="text-muted-foreground hover:text-foreground"><Copy className="h-3.5 w-3.5" /></button>
-          </div>
-        </div>
-      </div>
+  const [copied, setCopied] = useState(false);
+  const invite = "nest.app/join/bedford-loft-8fJ2";
 
-      <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-background">
-        {members.map((m, i) => {
-          const bal = net[m.id];
+  const copy = async () => {
+    try { await navigator.clipboard?.writeText(invite); } catch {}
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1600);
+  };
+
+  return (
+    <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">Bedford Loft</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Members</h1></div>}>
+      <Card className="mt-6 !p-6 bg-gradient-to-br from-brand to-orange-500 text-white ring-0">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-white/70">Invite roommate</div>
+            <div className="mt-1 text-lg font-bold">Send a magic link</div>
+            <div className="text-xs text-white/80">They'll be able to add expenses and settle in USDC.</div>
+          </div>
+          <button onClick={copy} className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25">
+            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+            {copied ? "Copied" : invite}
+          </button>
+        </div>
+      </Card>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {members.map((m) => {
+          const bal = net[m.id] ?? 0;
+          const positive = bal >= 0;
+          const isMe = m.id === currentUserId;
           return (
-            <div key={m.id} className={`flex items-center gap-4 px-5 py-4 ${i > 0 ? "border-t border-border" : ""}`}>
-              <MemberAvatar member={m} size={44} />
-              <div className="flex-1">
-                <div className="flex items-center gap-1.5 text-sm font-medium">
-                  {m.name}
-                  {i === 0 && <span className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-1.5 py-0.5 text-[10px] font-medium text-brand"><Crown className="h-2.5 w-2.5" /> Admin</span>}
+            <Card key={m.id} className="!p-5">
+              <div className="flex items-start gap-4">
+                <MemberAvatar member={m} size={56} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="truncate text-base font-bold">{m.name}</div>
+                    {isMe && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">You</span>}
+                  </div>
+                  <div className="text-xs text-muted-foreground">{m.handle}</div>
+                  <div className="mt-1 text-[11px] text-muted-foreground tabular-nums">{m.wallet}</div>
                 </div>
-                <div className="text-xs text-muted-foreground">{m.handle} · {m.wallet}</div>
+                <button className="grid h-8 w-8 place-items-center rounded-full bg-muted"><MoreHorizontal className="h-4 w-4" /></button>
               </div>
-              <div className={`text-sm font-semibold ${bal >= 0 ? "text-[oklch(0.55_0.16_155)]" : "text-brand"}`}>
-                {bal >= 0 ? "+" : "-"}{fmtUSD(Math.abs(bal))}
+              <div className="mt-4 flex items-center justify-between rounded-2xl bg-muted/60 p-3">
+                <span className="text-xs text-muted-foreground">Net balance</span>
+                <span className={`text-sm font-bold tabular-nums ${positive ? "text-emerald-600" : "text-brand"}`}>
+                  {positive ? "+" : ""}{fmtUSD(bal)}
+                </span>
               </div>
-              <button className="rounded-md border border-border px-2.5 py-1 text-xs text-muted-foreground hover:bg-surface">Manage</button>
-            </div>
+            </Card>
           );
         })}
+
+        <button className="flex items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-border p-5 text-sm font-semibold text-muted-foreground transition hover:border-brand hover:text-brand">
+          <UserPlus className="h-4 w-4" /> Invite roommate
+        </button>
       </div>
     </AppShell>
   );
