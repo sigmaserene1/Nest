@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppShell, Card } from "@/components/nest/app-shell";
-import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
-import { Stagger, Item } from "@/components/nest/motion";
+import { motion } from "framer-motion";
+import { AppShell } from "@/components/nest/app-shell";
+import { MemberAvatar } from "@/components/nest/avatar";
+import { Stagger, Item, Tap } from "@/components/nest/motion";
 import {
   members,
-  expenses,
   activity,
+  expenses,
   computeBalances,
   currentUserId,
   getMember,
@@ -16,20 +17,24 @@ import {
 } from "@/lib/nest-data";
 import {
   ArrowUpRight,
-  ArrowDownRight,
-  Wallet,
-  TrendingUp,
+  Send,
+  Download,
+  Split,
+  QrCode,
   Plus,
-  ArrowLeftRight,
-  UserPlus,
+  ArrowRight,
   Sparkles,
   Bell,
+  TrendingUp,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
   head: () => ({
-    meta: [{ title: "Home · Nest" }, { name: "description", content: "Your household at a glance." }],
+    meta: [
+      { title: "Home · Nest" },
+      { name: "description", content: "Your Nest wallet on Arc Testnet." },
+    ],
   }),
 });
 
@@ -40,11 +45,9 @@ function Greeting() {
   const first = me.name.split(" ")[0];
   return (
     <div className="flex items-center justify-between">
-      <div>
-        <div className="text-sm font-medium text-muted-foreground">
-          {greet}, {first}
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Welcome home 👋</h1>
+      <div className="min-w-0">
+        <div className="text-sm font-medium text-muted-foreground">{greet},</div>
+        <h1 className="truncate text-2xl font-bold tracking-tight sm:text-[28px]">{first} 👋</h1>
       </div>
       <div className="flex items-center gap-2">
         <button className="glass grid h-11 w-11 place-items-center rounded-2xl" aria-label="Notifications">
@@ -60,311 +63,233 @@ function Greeting() {
 
 function Dashboard() {
   const { net, debts } = computeBalances();
-  const myNet = net[currentUserId] ?? 0;
   const iOwe = debts.filter((d) => d.fromId === currentUserId).reduce((s, d) => s + d.amount, 0);
-  const owedToMe = debts.filter((d) => d.toId === currentUserId).reduce((s, d) => s + d.amount, 0);
   const monthlySpend = expenses.reduce((s, e) => s + e.amount, 0);
-
-  const byCat = expenses.reduce<Record<string, number>>((acc, e) => {
-    acc[e.category] = (acc[e.category] ?? 0) + e.amount;
-    return acc;
-  }, {});
-  const catEntries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
-  const totalCat = catEntries.reduce((s, [, v]) => s + v, 0);
+  const myShare = expenses.reduce((s, e) => s + e.amount / e.splitAmong.length, 0);
+  const topCat = Object.entries(
+    expenses.reduce<Record<string, number>>((acc, e) => {
+      acc[e.category] = (acc[e.category] ?? 0) + e.amount;
+      return acc;
+    }, {}),
+  ).sort((a, b) => b[1] - a[1])[0];
 
   return (
     <AppShell greeting={<Greeting />}>
-      {/* Summary cards */}
-      <Stagger className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Item>
-          <BalanceCard
-            label="You owe"
-            value={fmtUSD(iOwe)}
-            hint={iOwe > 0 ? "Tap to settle" : "All clear"}
-            icon={<ArrowUpRight className="h-4 w-4" />}
-            accent="brand"
-            to="/app/settle"
-          />
-        </Item>
-        <Item>
-          <BalanceCard
-            label="You're owed"
-            value={fmtUSD(owedToMe)}
-            hint="From roommates"
-            icon={<ArrowDownRight className="h-4 w-4" />}
-            accent="success"
-          />
-        </Item>
-        <Item>
-          <BalanceCard
-            label="Wallet"
-            value={`${walletBalance.toFixed(2)}`}
-            suffix="USDC"
-            hint="On Arc"
-            icon={<Wallet className="h-4 w-4" />}
-            accent="dark"
-          />
-        </Item>
-        <Item>
-          <BalanceCard
-            label="This month"
-            value={fmtUSD(monthlySpend)}
-            hint="Household total"
-            icon={<TrendingUp className="h-4 w-4" />}
-            accent="soft"
-          />
-        </Item>
+      {/* Hero wallet card */}
+      <motion.section
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="mt-6"
+      >
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-6 text-background shadow-2xl">
+          {/* decorative blobs */}
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/40 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
+
+          <div className="relative flex items-center justify-between">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
+              Arc Testnet · Connected
+            </span>
+            <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold backdrop-blur">
+              Bedford Loft
+            </span>
+          </div>
+
+          <div className="relative mt-8">
+            <div className="text-[11px] uppercase tracking-widest text-background/60">Available balance</div>
+            <div className="mt-1 flex items-baseline gap-2">
+              <div className="text-5xl font-bold tracking-tight tabular-nums">{walletBalance.toFixed(2)}</div>
+              <div className="text-sm font-semibold text-background/70">USDC</div>
+            </div>
+            <div className="mt-1 text-xs text-background/60">≈ {fmtUSD(walletBalance)}</div>
+          </div>
+
+          <div className="relative mt-7 flex items-center gap-3">
+            <Link
+              to="/app/settle"
+              className="group flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110"
+            >
+              Settle Up
+              {iOwe > 0 && (
+                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">{fmtUSD(iOwe)}</span>
+              )}
+              <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </Link>
+            <button className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition hover:bg-white/20" aria-label="Top up">
+              <Plus className="h-5 w-5" strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Quick action pills */}
+      <Stagger className="mt-5 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <QuickPill to="/app/settle" label="Send" icon={<Send className="h-[18px] w-[18px]" />} tint="bg-brand/10 text-brand" />
+        <QuickPill to="/app/settle" label="Request" icon={<Download className="h-[18px] w-[18px]" />} tint="bg-emerald-500/10 text-emerald-600" />
+        <QuickPill to="/app/expenses" label="Split" icon={<Split className="h-[18px] w-[18px]" />} tint="bg-indigo-500/10 text-indigo-600" />
+        <QuickPill to="/app/settle" label="Scan QR" icon={<QrCode className="h-[18px] w-[18px]" />} tint="bg-amber-500/10 text-amber-600" />
       </Stagger>
 
-      {/* Roommates + Quick actions */}
-      <section className="mt-6 grid gap-5 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold">Your home</h2>
-              <p className="text-xs text-muted-foreground">Bedford Loft · 4 members</p>
-            </div>
-            <Link to="/app/members" className="text-xs font-semibold text-brand">
-              Manage
-            </Link>
-          </div>
-          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {members.map((m) => {
-              const balance = net[m.id] ?? 0;
-              const positive = balance >= 0;
-              return (
-                <div
-                  key={m.id}
-                  className="flex flex-col items-center rounded-2xl bg-muted/50 p-4 text-center transition hover:scale-[1.02]"
-                >
-                  <MemberAvatar member={m} size={52} />
-                  <div className="mt-3 text-sm font-semibold">{m.name.split(" ")[0]}</div>
-                  <div className={`mt-1 text-[11px] font-semibold ${positive ? "text-emerald-600" : "text-brand"}`}>
+      {/* Roommate carousel */}
+      <section className="mt-7">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold">Roommates</h2>
+          <Link to="/app/members" className="text-xs font-semibold text-brand">
+            View all
+          </Link>
+        </div>
+        <div className="mt-3 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {members.map((m) => {
+            const balance = net[m.id] ?? 0;
+            const positive = balance >= 0;
+            const isMe = m.id === currentUserId;
+            return (
+              <Tap key={m.id} className="snap-start">
+                <div className="flex w-[128px] flex-col items-center rounded-3xl bg-white p-4 shadow-card ring-1 ring-black/[0.03]">
+                  <div className="relative">
+                    <MemberAvatar member={m} size={58} />
+                    <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-white text-xs shadow-sm ring-1 ring-black/5">
+                      {m.emoji}
+                    </span>
+                  </div>
+                  <div className="mt-3 truncate text-sm font-semibold">{isMe ? "You" : m.name.split(" ")[0]}</div>
+                  <div
+                    className={`mt-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                      positive ? "bg-emerald-50 text-emerald-600" : "bg-brand/10 text-brand"
+                    }`}
+                  >
                     {positive ? "+" : ""}
                     {fmtUSD(balance)}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        </Card>
-
-        <Card>
-          <h2 className="text-base font-bold">Quick actions</h2>
-          <div className="mt-4 space-y-2">
-            <QuickAction
-              to="/app/expenses"
-              icon={<Plus className="h-4 w-4" />}
-              label="Add expense"
-              desc="Split with roommates"
-              primary
-            />
-            <QuickAction
-              to="/app/settle"
-              icon={<ArrowLeftRight className="h-4 w-4" />}
-              label="Settle up"
-              desc={`${fmtUSD(iOwe)} to pay`}
-            />
-            <QuickAction
+              </Tap>
+            );
+          })}
+          <Tap className="snap-start">
+            <Link
               to="/app/members"
-              icon={<UserPlus className="h-4 w-4" />}
-              label="Invite roommate"
-              desc="Share invite link"
-            />
-          </div>
-        </Card>
+              className="flex h-full w-[128px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-muted-foreground/25 p-4 text-muted-foreground transition hover:border-brand hover:text-brand"
+            >
+              <div className="grid h-[58px] w-[58px] place-items-center rounded-full bg-muted/60">
+                <Plus className="h-5 w-5" />
+              </div>
+              <div className="mt-3 text-xs font-semibold">Invite</div>
+            </Link>
+          </Tap>
+        </div>
       </section>
 
-      {/* Spending + Recent */}
-      <section className="mt-5 grid gap-5 lg:grid-cols-5">
-        <Card className="lg:col-span-3">
+      {/* Monthly insight */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.15, duration: 0.5 }}
+        className="mt-6"
+      >
+        <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 p-5 text-white shadow-lg">
+          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold">Spending this month</h2>
-              <p className="text-xs text-muted-foreground">
-                {fmtUSD(totalCat)} across {catEntries.length} categories
-              </p>
-            </div>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
-              <Sparkles className="h-3 w-3" /> On track
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
+              <Sparkles className="h-3 w-3" /> Monthly insight
             </span>
+            <TrendingUp className="h-4 w-4 opacity-80" />
           </div>
-          <div className="mt-5 space-y-3">
-            {catEntries.map(([cat, val]) => {
-              const meta = categoryMeta[cat as keyof typeof categoryMeta];
-              const pct = (val / totalCat) * 100;
-              return (
-                <div key={cat}>
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2.5">
-                      <span className="grid h-8 w-8 place-items-center rounded-xl" style={{ background: meta.bg }}>
-                        <span className="text-base">{meta.icon}</span>
-                      </span>
-                      <span className="font-semibold">{cat}</span>
-                    </div>
-                    <span className="text-sm font-semibold tabular-nums">{fmtUSD(val)}</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${pct}%`, background: meta.color }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-5">
+            <div className="text-[11px] uppercase tracking-widest text-white/70">You spent this month</div>
+            <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">{fmtUSD(myShare)}</div>
+            <div className="mt-1 text-xs text-white/80">
+              Household total {fmtUSD(monthlySpend)} · Most on {topCat?.[0] ?? "—"} {topCat ? categoryMeta[topCat[0] as keyof typeof categoryMeta]?.icon : ""}
+            </div>
           </div>
-        </Card>
+          <Link
+            to="/app/analytics"
+            className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
+          >
+            See insights <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </motion.section>
 
-        <Card className="lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold">Recent activity</h2>
-            <Link to="/app/activity" className="text-xs font-semibold text-brand">
-              See all
-            </Link>
-          </div>
-          <ul className="mt-4 space-y-2">
-            {activity.slice(0, 5).map((a) => {
-              const m = getMember(a.actorId);
-              const meta = a.category ? categoryMeta[a.category] : null;
-              return (
-                <li key={a.id} className="flex items-center gap-3 rounded-2xl p-2 transition hover:bg-muted/60">
-                  <div className="relative">
-                    <MemberAvatar member={m} size={38} />
-                    {meta && (
-                      <span className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-white text-[10px] shadow-sm ring-1 ring-black/5">
-                        {meta.icon}
-                      </span>
+      {/* Recent activity */}
+      <section className="mt-7">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold">Recent activity</h2>
+          <Link to="/app/activity" className="text-xs font-semibold text-brand">
+            See all
+          </Link>
+        </div>
+        <Stagger className="mt-3 space-y-2.5">
+          {activity.slice(0, 5).map((a) => {
+            const m = getMember(a.actorId);
+            const meta = a.category ? categoryMeta[a.category] : null;
+            const isIncoming = a.kind === "settlement";
+            return (
+              <Item key={a.id}>
+                <Tap>
+                  <div className="flex items-center gap-3 rounded-[20px] bg-white p-3.5 shadow-card ring-1 ring-black/[0.03] transition hover:-translate-y-0.5">
+                    <div className="relative shrink-0">
+                      <MemberAvatar member={m} size={42} />
+                      {meta && (
+                        <span
+                          className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full text-[10px] ring-2 ring-white"
+                          style={{ background: meta.bg }}
+                        >
+                          {meta.icon}
+                        </span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm">
+                        <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
+                        <span className="text-muted-foreground">{a.text}</span>
+                      </div>
+                      <div className="text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
+                    </div>
+                    {a.amount != null && (
+                      <div
+                        className={`shrink-0 text-sm font-bold tabular-nums ${
+                          isIncoming ? "text-emerald-600" : "text-foreground"
+                        }`}
+                      >
+                        {isIncoming ? "+" : ""}
+                        {fmtUSD(a.amount)}
+                      </div>
                     )}
                   </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm">
-                      <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
-                      <span className="text-muted-foreground">{a.text}</span>
-                    </div>
-                    <div className="text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
-                  </div>
-                  {a.amount != null && <div className="text-sm font-semibold tabular-nums">{fmtUSD(a.amount)}</div>}
-                </li>
-              );
-            })}
-          </ul>
-        </Card>
-      </section>
-
-      {/* Debt graph */}
-      <section className="mt-5">
-        <Card>
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold">Who owes whom</h2>
-              <p className="text-xs text-muted-foreground">
-                Simplified — {debts.length} transfers to settle everything
-              </p>
-            </div>
-            <AvatarStack members={members} />
-          </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            {debts.map((d, i) => {
-              const from = getMember(d.fromId);
-              const to = getMember(d.toId);
-              return (
-                <div key={i} className="flex items-center justify-between rounded-2xl bg-muted/50 p-3">
-                  <div className="flex items-center gap-3">
-                    <MemberAvatar member={from} size={36} />
-                    <ArrowLeftRight className="h-3.5 w-3.5 text-muted-foreground" />
-                    <MemberAvatar member={to} size={36} />
-                    <div className="text-sm">
-                      <div className="font-semibold">
-                        {from.name.split(" ")[0]} → {to.name.split(" ")[0]}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-sm font-bold tabular-nums">{fmtUSD(d.amount)}</div>
-                </div>
-              );
-            })}
-          </div>
-        </Card>
+                </Tap>
+              </Item>
+            );
+          })}
+        </Stagger>
       </section>
     </AppShell>
   );
 }
 
-function BalanceCard({
-  label,
-  value,
-  hint,
-  icon,
-  accent,
-  suffix,
+function QuickPill({
   to,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  icon: React.ReactNode;
-  suffix?: string;
-  accent: "brand" | "success" | "dark" | "soft";
-  to?: string;
-}) {
-  const styles = {
-    brand: "bg-gradient-to-br from-brand to-orange-500 text-white",
-    success: "bg-card ring-1 ring-black/[0.04]",
-    dark: "bg-gradient-to-br from-foreground to-slate-800 text-background",
-    soft: "bg-card ring-1 ring-black/[0.04]",
-  }[accent];
-  const iconBg = {
-    brand: "bg-white/20 text-white",
-    success: "bg-emerald-50 text-emerald-600",
-    dark: "bg-white/15 text-white",
-    soft: "bg-indigo-50 text-indigo-600",
-  }[accent];
-  const inner = (
-    <div className={`relative overflow-hidden rounded-[20px] p-4 shadow-card transition hover:scale-[1.015] ${styles}`}>
-      <div className="flex items-start justify-between">
-        <span className={`text-[11px] font-semibold uppercase tracking-wider opacity-80`}>{label}</span>
-        <span className={`grid h-8 w-8 place-items-center rounded-full ${iconBg}`}>{icon}</span>
-      </div>
-      <div className="mt-4 flex items-baseline gap-1.5">
-        <div className="text-2xl font-bold tracking-tight tabular-nums">{value}</div>
-        {suffix && <span className="text-xs font-semibold opacity-70">{suffix}</span>}
-      </div>
-      <div className="mt-1 text-[11px] opacity-70">{hint}</div>
-    </div>
-  );
-  return to ? <Link to={to}>{inner}</Link> : inner;
-}
-
-function QuickAction({
-  to,
-  icon,
   label,
-  desc,
-  primary = false,
+  icon,
+  tint,
 }: {
   to: string;
-  icon: React.ReactNode;
   label: string;
-  desc: string;
-  primary?: boolean;
+  icon: React.ReactNode;
+  tint: string;
 }) {
   return (
-    <Link
-      to={to}
-      className={`flex items-center gap-3 rounded-2xl p-3 transition hover:scale-[1.01] ${
-        primary ? "bg-foreground text-background" : "bg-muted/60"
-      }`}
-    >
-      <span
-        className={`grid h-10 w-10 place-items-center rounded-xl ${primary ? "bg-brand text-white" : "bg-white text-foreground shadow-sm"}`}
-      >
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold">{label}</div>
-        <div className={`text-[11px] ${primary ? "text-background/60" : "text-muted-foreground"}`}>{desc}</div>
-      </div>
-    </Link>
+    <Item className="snap-start">
+      <Tap>
+        <Link
+          to={to}
+          className="flex min-w-[104px] flex-col items-center gap-2 rounded-2xl bg-white p-3.5 shadow-card ring-1 ring-black/[0.03]"
+        >
+          <span className={`grid h-11 w-11 place-items-center rounded-xl ${tint}`}>{icon}</span>
+          <span className="text-xs font-semibold">{label}</span>
+        </Link>
+      </Tap>
+    </Item>
   );
 }
