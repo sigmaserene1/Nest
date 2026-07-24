@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap } from "@/components/nest/motion";
+import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import {
   members,
   activity,
@@ -26,7 +27,9 @@ import {
   Sparkles,
   Bell,
   TrendingUp,
+  Home as HomeIcon,
 } from "lucide-react";
+
 
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
