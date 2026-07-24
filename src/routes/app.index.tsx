@@ -112,8 +112,8 @@ function Dashboard() {
           </div>
 
           <div className="relative mt-7 flex items-center gap-3">
-            <Link
-              to="/app/settle"
+            <button
+              onClick={() => action.open("settle")}
               className="group flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110"
             >
               Settle Up
@@ -121,8 +121,8 @@ function Dashboard() {
                 <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">{fmtUSD(iOwe)}</span>
               )}
               <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Link>
-            <button className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition hover:bg-white/20" aria-label="Top up">
+            </button>
+            <button onClick={() => action.open("send")} className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition hover:bg-white/20" aria-label="Send">
               <Plus className="h-5 w-5" strokeWidth={2.5} />
             </button>
           </div>
@@ -131,10 +131,12 @@ function Dashboard() {
 
       {/* Quick action pills */}
       <Stagger className="mt-5 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <QuickPill to="/app/settle" label="Send" icon={<Send className="h-[18px] w-[18px]" />} tint="bg-brand/10 text-brand" />
-        <QuickPill to="/app/settle" label="Request" icon={<Download className="h-[18px] w-[18px]" />} tint="bg-emerald-500/10 text-emerald-600" />
-        <QuickPill to="/app/expenses" label="Split" icon={<Split className="h-[18px] w-[18px]" />} tint="bg-indigo-500/10 text-indigo-600" />
-        <QuickPill to="/app/settle" label="Scan QR" icon={<QrCode className="h-[18px] w-[18px]" />} tint="bg-amber-500/10 text-amber-600" />
+        <QuickPill onClick={() => action.open("send")} label="Send" icon={<Send className="h-[18px] w-[18px]" />} tint="bg-brand/10 text-brand" />
+        <QuickPill onClick={() => action.open("request")} label="Request" icon={<Download className="h-[18px] w-[18px]" />} tint="bg-emerald-500/10 text-emerald-600" />
+        <QuickPill onClick={() => action.open("split")} label="Split" icon={<Split className="h-[18px] w-[18px]" />} tint="bg-indigo-500/10 text-indigo-600" />
+        <QuickPill onClick={() => action.open("rent")} label="Pay Rent" icon={<HomeIcon className="h-[18px] w-[18px]" />} tint="bg-rose-500/10 text-rose-600" />
+        <QuickPill onClick={() => action.open("scan")} label="Scan QR" icon={<QrCode className="h-[18px] w-[18px]" />} tint="bg-amber-500/10 text-amber-600" />
+
       </Stagger>
 
       {/* Roommate carousel */}
