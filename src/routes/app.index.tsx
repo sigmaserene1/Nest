@@ -14,15 +14,22 @@ import {
   walletBalance,
   categoryMeta,
 } from "@/lib/nest-data";
-import { ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, Plus, ArrowLeftRight, UserPlus, Sparkles, Bell } from "lucide-react";
+import {
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet,
+  TrendingUp,
+  Plus,
+  ArrowLeftRight,
+  UserPlus,
+  Sparkles,
+  Bell,
+} from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
   head: () => ({
-    meta: [
-      { title: "Home · Nest" },
-      { name: "description", content: "Your household at a glance." },
-    ],
+    meta: [{ title: "Home · Nest" }, { name: "description", content: "Your household at a glance." }],
   }),
 });
 
@@ -34,7 +41,9 @@ function Greeting() {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <div className="text-sm font-medium text-muted-foreground">{greet}, {first}</div>
+        <div className="text-sm font-medium text-muted-foreground">
+          {greet}, {first}
+        </div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Welcome home 👋</h1>
       </div>
       <div className="flex items-center gap-2">
@@ -67,36 +76,44 @@ function Dashboard() {
     <AppShell greeting={<Greeting />}>
       {/* Summary cards */}
       <Stagger className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Item><BalanceCard
-          label="You owe"
-          value={fmtUSD(iOwe)}
-          hint={iOwe > 0 ? "Tap to settle" : "All clear"}
-          icon={<ArrowUpRight className="h-4 w-4" />}
-          accent="brand"
-          to="/app/settle"
-        /></Item>
-        <Item><BalanceCard
-          label="You're owed"
-          value={fmtUSD(owedToMe)}
-          hint="From roommates"
-          icon={<ArrowDownRight className="h-4 w-4" />}
-          accent="success"
-        /></Item>
-        <Item><BalanceCard
-          label="Wallet"
-          value={`${walletBalance.toFixed(2)}`}
-          suffix="USDC"
-          hint="On Arc"
-          icon={<Wallet className="h-4 w-4" />}
-          accent="dark"
-        /></Item>
-        <Item><BalanceCard
-          label="This month"
-          value={fmtUSD(monthlySpend)}
-          hint="Household total"
-          icon={<TrendingUp className="h-4 w-4" />}
-          accent="soft"
-        /></Item>
+        <Item>
+          <BalanceCard
+            label="You owe"
+            value={fmtUSD(iOwe)}
+            hint={iOwe > 0 ? "Tap to settle" : "All clear"}
+            icon={<ArrowUpRight className="h-4 w-4" />}
+            accent="brand"
+            to="/app/settle"
+          />
+        </Item>
+        <Item>
+          <BalanceCard
+            label="You're owed"
+            value={fmtUSD(owedToMe)}
+            hint="From roommates"
+            icon={<ArrowDownRight className="h-4 w-4" />}
+            accent="success"
+          />
+        </Item>
+        <Item>
+          <BalanceCard
+            label="Wallet"
+            value={`${walletBalance.toFixed(2)}`}
+            suffix="USDC"
+            hint="On Arc"
+            icon={<Wallet className="h-4 w-4" />}
+            accent="dark"
+          />
+        </Item>
+        <Item>
+          <BalanceCard
+            label="This month"
+            value={fmtUSD(monthlySpend)}
+            hint="Household total"
+            icon={<TrendingUp className="h-4 w-4" />}
+            accent="soft"
+          />
+        </Item>
       </Stagger>
 
       {/* Roommates + Quick actions */}
@@ -107,18 +124,24 @@ function Dashboard() {
               <h2 className="text-base font-bold">Your home</h2>
               <p className="text-xs text-muted-foreground">Bedford Loft · 4 members</p>
             </div>
-            <Link to="/app/members" className="text-xs font-semibold text-brand">Manage</Link>
+            <Link to="/app/members" className="text-xs font-semibold text-brand">
+              Manage
+            </Link>
           </div>
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             {members.map((m) => {
               const balance = net[m.id] ?? 0;
               const positive = balance >= 0;
               return (
-                <div key={m.id} className="flex flex-col items-center rounded-2xl bg-muted/50 p-4 text-center transition hover:scale-[1.02]">
+                <div
+                  key={m.id}
+                  className="flex flex-col items-center rounded-2xl bg-muted/50 p-4 text-center transition hover:scale-[1.02]"
+                >
                   <MemberAvatar member={m} size={52} />
                   <div className="mt-3 text-sm font-semibold">{m.name.split(" ")[0]}</div>
                   <div className={`mt-1 text-[11px] font-semibold ${positive ? "text-emerald-600" : "text-brand"}`}>
-                    {positive ? "+" : ""}{fmtUSD(balance)}
+                    {positive ? "+" : ""}
+                    {fmtUSD(balance)}
                   </div>
                 </div>
               );
@@ -129,9 +152,25 @@ function Dashboard() {
         <Card>
           <h2 className="text-base font-bold">Quick actions</h2>
           <div className="mt-4 space-y-2">
-            <QuickAction to="/app/expenses" icon={<Plus className="h-4 w-4" />} label="Add expense" desc="Split with roommates" primary />
-            <QuickAction to="/app/settle" icon={<ArrowLeftRight className="h-4 w-4" />} label="Settle up" desc={`${fmtUSD(iOwe)} to pay`} />
-            <QuickAction to="/app/members" icon={<UserPlus className="h-4 w-4" />} label="Invite roommate" desc="Share invite link" />
+            <QuickAction
+              to="/app/expenses"
+              icon={<Plus className="h-4 w-4" />}
+              label="Add expense"
+              desc="Split with roommates"
+              primary
+            />
+            <QuickAction
+              to="/app/settle"
+              icon={<ArrowLeftRight className="h-4 w-4" />}
+              label="Settle up"
+              desc={`${fmtUSD(iOwe)} to pay`}
+            />
+            <QuickAction
+              to="/app/members"
+              icon={<UserPlus className="h-4 w-4" />}
+              label="Invite roommate"
+              desc="Share invite link"
+            />
           </div>
         </Card>
       </section>
@@ -142,7 +181,9 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold">Spending this month</h2>
-              <p className="text-xs text-muted-foreground">{fmtUSD(totalCat)} across {catEntries.length} categories</p>
+              <p className="text-xs text-muted-foreground">
+                {fmtUSD(totalCat)} across {catEntries.length} categories
+              </p>
             </div>
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">
               <Sparkles className="h-3 w-3" /> On track
@@ -164,7 +205,10 @@ function Dashboard() {
                     <span className="text-sm font-semibold tabular-nums">{fmtUSD(val)}</span>
                   </div>
                   <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: meta.color }} />
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{ width: `${pct}%`, background: meta.color }}
+                    />
                   </div>
                 </div>
               );
@@ -175,7 +219,9 @@ function Dashboard() {
         <Card className="lg:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-bold">Recent activity</h2>
-            <Link to="/app/activity" className="text-xs font-semibold text-brand">See all</Link>
+            <Link to="/app/activity" className="text-xs font-semibold text-brand">
+              See all
+            </Link>
           </div>
           <ul className="mt-4 space-y-2">
             {activity.slice(0, 5).map((a) => {
@@ -198,9 +244,7 @@ function Dashboard() {
                     </div>
                     <div className="text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
                   </div>
-                  {a.amount != null && (
-                    <div className="text-sm font-semibold tabular-nums">{fmtUSD(a.amount)}</div>
-                  )}
+                  {a.amount != null && <div className="text-sm font-semibold tabular-nums">{fmtUSD(a.amount)}</div>}
                 </li>
               );
             })}
@@ -214,7 +258,9 @@ function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold">Who owes whom</h2>
-              <p className="text-xs text-muted-foreground">Simplified — {debts.length} transfers to settle everything</p>
+              <p className="text-xs text-muted-foreground">
+                Simplified — {debts.length} transfers to settle everything
+              </p>
             </div>
             <AvatarStack members={members} />
           </div>
@@ -229,7 +275,9 @@ function Dashboard() {
                     <ArrowLeftRight className="h-3.5 w-3.5 text-muted-foreground" />
                     <MemberAvatar member={to} size={36} />
                     <div className="text-sm">
-                      <div className="font-semibold">{from.name.split(" ")[0]} → {to.name.split(" ")[0]}</div>
+                      <div className="font-semibold">
+                        {from.name.split(" ")[0]} → {to.name.split(" ")[0]}
+                      </div>
                     </div>
                   </div>
                   <div className="text-sm font-bold tabular-nums">{fmtUSD(d.amount)}</div>
@@ -243,9 +291,22 @@ function Dashboard() {
   );
 }
 
-function BalanceCard({ label, value, hint, icon, accent, suffix, to }: {
-  label: string; value: string; hint: string; icon: React.ReactNode; suffix?: string;
-  accent: "brand" | "success" | "dark" | "soft"; to?: string;
+function BalanceCard({
+  label,
+  value,
+  hint,
+  icon,
+  accent,
+  suffix,
+  to,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  icon: React.ReactNode;
+  suffix?: string;
+  accent: "brand" | "success" | "dark" | "soft";
+  to?: string;
 }) {
   const styles = {
     brand: "bg-gradient-to-br from-brand to-orange-500 text-white",
@@ -275,8 +336,18 @@ function BalanceCard({ label, value, hint, icon, accent, suffix, to }: {
   return to ? <Link to={to}>{inner}</Link> : inner;
 }
 
-function QuickAction({ to, icon, label, desc, primary = false }: {
-  to: string; icon: React.ReactNode; label: string; desc: string; primary?: boolean;
+function QuickAction({
+  to,
+  icon,
+  label,
+  desc,
+  primary = false,
+}: {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  desc: string;
+  primary?: boolean;
 }) {
   return (
     <Link
@@ -285,7 +356,11 @@ function QuickAction({ to, icon, label, desc, primary = false }: {
         primary ? "bg-foreground text-background" : "bg-muted/60"
       }`}
     >
-      <span className={`grid h-10 w-10 place-items-center rounded-xl ${primary ? "bg-brand text-white" : "bg-white text-foreground shadow-sm"}`}>{icon}</span>
+      <span
+        className={`grid h-10 w-10 place-items-center rounded-xl ${primary ? "bg-brand text-white" : "bg-white text-foreground shadow-sm"}`}
+      >
+        {icon}
+      </span>
       <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold">{label}</div>
         <div className={`text-[11px] ${primary ? "text-background/60" : "text-muted-foreground"}`}>{desc}</div>
