@@ -271,17 +271,18 @@ function Dashboard() {
           })}
         </Stagger>
       </section>
+      <action.Modal />
     </AppShell>
   );
 }
 
 function QuickPill({
-  to,
+  onClick,
   label,
   icon,
   tint,
 }: {
-  to: string;
+  onClick: () => void;
   label: string;
   icon: React.ReactNode;
   tint: string;
@@ -289,13 +290,18 @@ function QuickPill({
   return (
     <Item className="snap-start">
       <Tap>
-        <Link
-          to={to}
+        <button
+          onClick={onClick}
           className="flex min-w-[104px] flex-col items-center gap-2 rounded-2xl bg-white p-3.5 shadow-card ring-1 ring-black/[0.03]"
         >
           <span className={`grid h-11 w-11 place-items-center rounded-xl ${tint}`}>{icon}</span>
           <span className="text-xs font-semibold">{label}</span>
-        </Link>
+        </button>
+      </Tap>
+    </Item>
+  );
+}
+
       </Tap>
     </Item>
   );
