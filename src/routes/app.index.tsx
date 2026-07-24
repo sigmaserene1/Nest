@@ -260,7 +260,7 @@ function BalanceCard({ label, value, hint, icon, accent, suffix, to }: {
     soft: "bg-indigo-50 text-indigo-600",
   }[accent];
   const inner = (
-    <div className={`relative overflow-hidden rounded-3xl p-4 shadow-card transition hover:scale-[1.015] ${styles}`}>
+    <div className={`relative overflow-hidden rounded-[20px] p-4 shadow-card transition hover:scale-[1.015] ${styles}`}>
       <div className="flex items-start justify-between">
         <span className={`text-[11px] font-semibold uppercase tracking-wider opacity-80`}>{label}</span>
         <span className={`grid h-8 w-8 place-items-center rounded-full ${iconBg}`}>{icon}</span>
