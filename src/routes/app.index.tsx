@@ -75,9 +75,11 @@ function Dashboard() {
       return acc;
     }, {}),
   ).sort((a, b) => b[1] - a[1])[0];
+  const action = useActionModal();
 
   return (
-    <AppShell greeting={<Greeting />}>
+    <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
+
       {/* Hero wallet card */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
