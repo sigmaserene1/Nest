@@ -66,38 +66,38 @@ function Dashboard() {
   return (
     <AppShell greeting={<Greeting />}>
       {/* Summary cards */}
-      <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <BalanceCard
+      <Stagger className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Item><BalanceCard
           label="You owe"
           value={fmtUSD(iOwe)}
           hint={iOwe > 0 ? "Tap to settle" : "All clear"}
           icon={<ArrowUpRight className="h-4 w-4" />}
           accent="brand"
           to="/app/settle"
-        />
-        <BalanceCard
+        /></Item>
+        <Item><BalanceCard
           label="You're owed"
           value={fmtUSD(owedToMe)}
           hint="From roommates"
           icon={<ArrowDownRight className="h-4 w-4" />}
           accent="success"
-        />
-        <BalanceCard
+        /></Item>
+        <Item><BalanceCard
           label="Wallet"
           value={`${walletBalance.toFixed(2)}`}
           suffix="USDC"
           hint="On Arc"
           icon={<Wallet className="h-4 w-4" />}
           accent="dark"
-        />
-        <BalanceCard
+        /></Item>
+        <Item><BalanceCard
           label="This month"
           value={fmtUSD(monthlySpend)}
           hint="Household total"
           icon={<TrendingUp className="h-4 w-4" />}
           accent="soft"
-        />
-      </section>
+        /></Item>
+      </Stagger>
 
       {/* Roommates + Quick actions */}
       <section className="mt-6 grid gap-5 lg:grid-cols-3">
