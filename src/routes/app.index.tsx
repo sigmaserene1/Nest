@@ -302,7 +302,4 @@ function QuickPill({
   );
 }
 
-      </Tap>
-    </Item>
-  );
-}
+
