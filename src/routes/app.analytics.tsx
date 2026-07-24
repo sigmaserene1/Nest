@@ -1,167 +1,141 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppShell } from "@/components/nest/app-shell";
-import { expenses, fmtUSD, getMember, members } from "@/lib/nest-data";
+import { AppShell, Card } from "@/components/nest/app-shell";
+import { expenses, members, getMember, fmtUSD, categoryMeta } from "@/lib/nest-data";
 
 export const Route = createFileRoute("/app/analytics")({
-  head: () => ({
-    meta: [
-      { title: "Analytics · Nest" },
-      { name: "description", content: "Monthly spending trends, category breakdowns, and top contributors for your household." },
-      { property: "og:title", content: "Analytics · Nest" },
-      { property: "og:description", content: "Household spending analytics." },
-    ],
-  }),
   component: Analytics,
+  head: () => ({ meta: [{ title: "Insights · Nest" }, { name: "description", content: "See where your home spends money." }] }),
 });
-
-const CATEGORY_COLORS: Record<string, string> = {
-  Rent: "oklch(0.585 0.222 27.3)",
-  Groceries: "oklch(0.65 0.16 155)",
-  Electricity: "oklch(0.78 0.16 75)",
-  Internet: "oklch(0.55 0.16 260)",
-  Other: "oklch(0.7 0.02 260)",
-};
 
 function Analytics() {
   const total = expenses.reduce((s, e) => s + e.amount, 0);
-  const byCat = expenses.reduce<Record<string, number>>((acc, e) => {
-    acc[e.category] = (acc[e.category] ?? 0) + e.amount;
-    return acc;
-  }, {});
-  const cats = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+  const byCat = expenses.reduce<Record<string, number>>((a, e) => ((a[e.category] = (a[e.category] ?? 0) + e.amount), a), {});
+  const catEntries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
 
-  const byPayer = members.map((m) => ({
-    id: m.id,
-    name: m.name,
-    color: m.color,
-    total: expenses.filter((e) => e.payerId === m.id).reduce((s, e) => s + e.amount, 0),
-  })).sort((a, b) => b.total - a.total);
+  const byPayer = expenses.reduce<Record<string, number>>((a, e) => ((a[e.payerId] = (a[e.payerId] ?? 0) + e.amount), a), {});
+  const maxPayer = Math.max(...Object.values(byPayer));
 
-  // Fake monthly trend
-  const trend = [
-    { m: "Feb", v: 2420 },
-    { m: "Mar", v: 3180 },
-    { m: "Apr", v: 2895 },
-    { m: "May", v: 3410 },
-    { m: "Jun", v: 3020 },
-    { m: "Jul", v: total },
-  ];
-  const maxT = Math.max(...trend.map((t) => t.v));
+  // Donut
+  const R = 62;
+  const C = 2 * Math.PI * R;
+  let acc = 0;
 
   return (
-    <AppShell title="Analytics">
-      <div className="grid gap-3 md:grid-cols-3">
-        <StatBig label="July total" value={fmtUSD(total)} sub="+12% vs June" />
-        <StatBig label="Avg / member" value={fmtUSD(total / members.length)} sub="This month" />
-        <StatBig label="Largest expense" value={fmtUSD(Math.max(...expenses.map((e) => e.amount)))} sub="November Rent" />
-      </div>
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-5">
-        {/* Donut */}
-        <div className="rounded-2xl border border-border bg-background p-5 lg:col-span-2">
-          <h3 className="text-sm font-semibold">By category</h3>
-          <div className="mt-6 flex items-center gap-6">
-            <Donut segments={cats.map(([k, v]) => ({ value: v, color: CATEGORY_COLORS[k] ?? CATEGORY_COLORS.Other }))} total={total} />
-            <ul className="flex-1 space-y-2 text-sm">
-              {cats.map(([k, v]) => (
-                <li key={k} className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-sm" style={{ background: CATEGORY_COLORS[k] ?? CATEGORY_COLORS.Other }} />
-                  <span className="flex-1">{k}</span>
-                  <span className="text-muted-foreground text-xs">{Math.round((v / total) * 100)}%</span>
-                  <span className="font-medium">{fmtUSD(v)}</span>
-                </li>
-              ))}
+    <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">This month</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Insights</h1></div>}>
+      <div className="mt-6 grid gap-5 lg:grid-cols-5">
+        <Card className="lg:col-span-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold">By category</h2>
+              <p className="text-xs text-muted-foreground">Total household spending</p>
+            </div>
+            <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-600">↓ 8% vs last</span>
+          </div>
+          <div className="mt-6 flex flex-col items-center gap-6 sm:flex-row">
+            <svg viewBox="0 0 160 160" className="h-44 w-44 -rotate-90">
+              <circle cx="80" cy="80" r={R} strokeWidth="18" stroke="#f1f2f6" fill="none" />
+              {catEntries.map(([cat, v]) => {
+                const meta = categoryMeta[cat as keyof typeof categoryMeta];
+                const len = (v / total) * C;
+                const off = C - acc;
+                acc += len;
+                return (
+                  <circle
+                    key={cat}
+                    cx="80" cy="80" r={R}
+                    strokeWidth="18"
+                    stroke={meta.color}
+                    strokeDasharray={`${len} ${C - len}`}
+                    strokeDashoffset={off}
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                );
+              })}
+              <text x="80" y="76" textAnchor="middle" className="rotate-90 fill-foreground" style={{ transformOrigin: "80px 80px" }} fontSize="14" fontWeight="700">Total</text>
+              <text x="80" y="94" textAnchor="middle" className="rotate-90 fill-foreground" style={{ transformOrigin: "80px 80px" }} fontSize="18" fontWeight="800">{fmtUSD(total).replace(".00", "")}</text>
+            </svg>
+            <ul className="flex-1 space-y-2">
+              {catEntries.map(([cat, v]) => {
+                const meta = categoryMeta[cat as keyof typeof categoryMeta];
+                const pct = ((v / total) * 100).toFixed(0);
+                return (
+                  <li key={cat} className="flex items-center gap-3 rounded-2xl bg-muted/50 p-2.5">
+                    <span className="grid h-9 w-9 place-items-center rounded-xl text-base" style={{ background: meta.bg }}>{meta.icon}</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold">{cat}</div>
+                      <div className="text-[11px] text-muted-foreground">{pct}% of total</div>
+                    </div>
+                    <div className="text-sm font-bold tabular-nums">{fmtUSD(v)}</div>
+                  </li>
+                );
+              })}
             </ul>
           </div>
-        </div>
+        </Card>
 
-        {/* Trend */}
-        <div className="rounded-2xl border border-border bg-background p-5 lg:col-span-3">
-          <h3 className="text-sm font-semibold">Spending over time</h3>
-          <div className="mt-6 flex h-48 items-end gap-3">
-            {trend.map((t) => (
-              <div key={t.m} className="flex flex-1 flex-col items-center gap-2">
-                <div className="flex w-full flex-1 items-end">
-                  <div
-                    className="w-full rounded-t-md bg-brand transition-all"
-                    style={{ height: `${(t.v / maxT) * 100}%`, opacity: t.m === "Jul" ? 1 : 0.35 }}
-                    title={fmtUSD(t.v)}
-                  />
-                </div>
-                <div className="text-[11px] text-muted-foreground">{t.m}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Card className="lg:col-span-2">
+          <h2 className="text-base font-bold">Top contributors</h2>
+          <p className="text-xs text-muted-foreground">Who paid for the home</p>
+          <ul className="mt-5 space-y-4">
+            {members.map((m) => {
+              const v = byPayer[m.id] ?? 0;
+              const pct = maxPayer ? (v / maxPayer) * 100 : 0;
+              return (
+                <li key={m.id}>
+                  <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center gap-2.5">
+                      <span className="h-8 w-8"><MemberAvatar32 id={m.id} /></span>
+                      <span className="font-semibold">{m.name.split(" ")[0]}</span>
+                    </div>
+                    <span className="tabular-nums font-semibold">{fmtUSD(v)}</span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: m.gradient }} />
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </Card>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-border bg-background p-5">
-        <h3 className="text-sm font-semibold">Top spenders this month</h3>
-        <div className="mt-4 space-y-3">
-          {byPayer.map((p) => {
-            const pct = (p.total / total) * 100;
+      <Card className="mt-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold">Monthly trend</h2>
+            <p className="text-xs text-muted-foreground">Last 6 months</p>
+          </div>
+        </div>
+        <div className="mt-6 flex h-40 items-end justify-between gap-3">
+          {[
+            { m: "Feb", v: 0.55 }, { m: "Mar", v: 0.7 }, { m: "Apr", v: 0.62 },
+            { m: "May", v: 0.85 }, { m: "Jun", v: 0.72 }, { m: "Jul", v: 1.0 },
+          ].map((b, i, arr) => {
+            const isLast = i === arr.length - 1;
             return (
-              <div key={p.id}>
-                <div className="mb-1.5 flex items-center justify-between text-sm">
-                  <span>{p.name}</span>
-                  <span className="font-medium">{fmtUSD(p.total)} <span className="text-muted-foreground text-xs">({Math.round(pct)}%)</span></span>
+              <div key={b.m} className="flex flex-1 flex-col items-center gap-2">
+                <div className="relative w-full flex-1 rounded-2xl bg-muted/60">
+                  <div
+                    className={`absolute bottom-0 left-0 right-0 rounded-2xl transition-all ${isLast ? "bg-gradient-to-t from-brand to-orange-400" : "bg-foreground/80"}`}
+                    style={{ height: `${b.v * 100}%` }}
+                  />
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-surface">
-                  <div className="h-full rounded-full" style={{ width: `${pct}%`, background: p.color }} />
-                </div>
+                <div className={`text-[11px] font-semibold ${isLast ? "text-brand" : "text-muted-foreground"}`}>{b.m}</div>
               </div>
             );
           })}
         </div>
-      </div>
+      </Card>
     </AppShell>
   );
 }
 
-function StatBig({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function MemberAvatar32({ id }: { id: string }) {
+  const m = getMember(id);
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5">
-      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight">{value}</div>
-      {sub && <div className="mt-0.5 text-xs text-muted-foreground">{sub}</div>}
-    </div>
-  );
-}
-
-function Donut({ segments, total }: { segments: { value: number; color: string }[]; total: number }) {
-  const R = 46;
-  const C = 2 * Math.PI * R;
-  let offset = 0;
-  return (
-    <div className="relative" style={{ width: 132, height: 132 }}>
-      <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
-        <circle cx="60" cy="60" r={R} fill="none" stroke="var(--color-surface)" strokeWidth="16" />
-        {segments.map((s, i) => {
-          const len = (s.value / total) * C;
-          const el = (
-            <circle
-              key={i}
-              cx="60"
-              cy="60"
-              r={R}
-              fill="none"
-              stroke={s.color}
-              strokeWidth="16"
-              strokeDasharray={`${len} ${C - len}`}
-              strokeDashoffset={-offset}
-              strokeLinecap="butt"
-            />
-          );
-          offset += len;
-          return el;
-        })}
-      </svg>
-      <div className="absolute inset-0 grid place-items-center text-center">
-        <div>
-          <div className="text-[10px] uppercase text-muted-foreground">Total</div>
-          <div className="text-sm font-semibold">{fmtUSD(total)}</div>
-        </div>
-      </div>
-    </div>
+    <span className="inline-grid h-8 w-8 place-items-center rounded-full text-[11px] font-semibold text-white" style={{ background: m.gradient }}>
+      {m.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
+    </span>
   );
 }

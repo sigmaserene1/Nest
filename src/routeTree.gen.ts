@@ -13,9 +13,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettleRouteImport } from './routes/app.settle'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
 import { Route as AppMembersRouteImport } from './routes/app.members'
-import { Route as AppHistoryRouteImport } from './routes/app.history'
 import { Route as AppExpensesRouteImport } from './routes/app.expenses'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
@@ -40,19 +38,9 @@ const AppSettleRoute = AppSettleRouteImport.update({
   path: '/settle',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppMembersRoute = AppMembersRouteImport.update({
   id: '/members',
   path: '/members',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppHistoryRoute = AppHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
   getParentRoute: () => AppRoute,
 } as any)
 const AppExpensesRoute = AppExpensesRouteImport.update({
@@ -77,9 +65,7 @@ export interface FileRoutesByFullPath {
   '/app/activity': typeof AppActivityRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
-  '/app/history': typeof AppHistoryRoute
   '/app/members': typeof AppMembersRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/settle': typeof AppSettleRoute
   '/app/': typeof AppIndexRoute
 }
@@ -88,9 +74,7 @@ export interface FileRoutesByTo {
   '/app/activity': typeof AppActivityRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
-  '/app/history': typeof AppHistoryRoute
   '/app/members': typeof AppMembersRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/settle': typeof AppSettleRoute
   '/app': typeof AppIndexRoute
 }
@@ -101,9 +85,7 @@ export interface FileRoutesById {
   '/app/activity': typeof AppActivityRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
-  '/app/history': typeof AppHistoryRoute
   '/app/members': typeof AppMembersRoute
-  '/app/settings': typeof AppSettingsRoute
   '/app/settle': typeof AppSettleRoute
   '/app/': typeof AppIndexRoute
 }
@@ -115,9 +97,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/analytics'
     | '/app/expenses'
-    | '/app/history'
     | '/app/members'
-    | '/app/settings'
     | '/app/settle'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -126,9 +106,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/analytics'
     | '/app/expenses'
-    | '/app/history'
     | '/app/members'
-    | '/app/settings'
     | '/app/settle'
     | '/app'
   id:
@@ -138,9 +116,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/analytics'
     | '/app/expenses'
-    | '/app/history'
     | '/app/members'
-    | '/app/settings'
     | '/app/settle'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -180,25 +156,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettleRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/members': {
       id: '/app/members'
       path: '/members'
       fullPath: '/app/members'
       preLoaderRoute: typeof AppMembersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/history': {
-      id: '/app/history'
-      path: '/history'
-      fullPath: '/app/history'
-      preLoaderRoute: typeof AppHistoryRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/expenses': {
@@ -229,9 +191,7 @@ interface AppRouteChildren {
   AppActivityRoute: typeof AppActivityRoute
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppExpensesRoute: typeof AppExpensesRoute
-  AppHistoryRoute: typeof AppHistoryRoute
   AppMembersRoute: typeof AppMembersRoute
-  AppSettingsRoute: typeof AppSettingsRoute
   AppSettleRoute: typeof AppSettleRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -240,9 +200,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppActivityRoute: AppActivityRoute,
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppExpensesRoute: AppExpensesRoute,
-  AppHistoryRoute: AppHistoryRoute,
   AppMembersRoute: AppMembersRoute,
-  AppSettingsRoute: AppSettingsRoute,
   AppSettleRoute: AppSettleRoute,
   AppIndexRoute: AppIndexRoute,
 }
