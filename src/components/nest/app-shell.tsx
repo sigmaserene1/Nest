@@ -1,8 +1,10 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Bell, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
+import { PageTransition } from "./motion";
 import { getMember, currentUserId } from "@/lib/nest-data";
 
 const primary = [
