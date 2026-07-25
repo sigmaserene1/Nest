@@ -257,7 +257,10 @@ function Dashboard() {
                         <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
                         <span className="text-muted-foreground">{a.text}</span>
                       </div>
-                      <div className="text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
+                      <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <span>{fmtRelative(a.date)}</span>
+                        {isIncoming && <TxHashPill hash={mockTxHash(a.id)} />}
+                      </div>
                     </div>
                     {a.amount != null && (
                       <div
