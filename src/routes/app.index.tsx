@@ -79,6 +79,7 @@ function Dashboard() {
     }, {}),
   ).sort((a, b) => b[1] - a[1])[0];
   const action = useActionModal();
+  const wallet = useArcWallet();
 
   return (
     <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
