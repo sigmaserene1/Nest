@@ -76,6 +76,13 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
       if (status === "confirmed") {
         setStage("done");
         wallet.refetchBalance();
+        onSuccess?.({
+          hash: txHash,
+          amount: parseFloat(amount) || 0,
+          recipientId: recipientId || undefined,
+          toAddress,
+          mode: mode!,
+        });
       } else {
         setError("Transaction reverted onchain.");
         setStage("failed");
@@ -85,7 +92,8 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
       setError(receipt.error?.message ?? "Failed to confirm transaction.");
       setStage("failed");
     }
-  }, [receipt.isSuccess, receipt.isError, receipt.data?.status, txHash, receipt.error, wallet]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [receipt.isSuccess, receipt.isError, receipt.data?.status, txHash]);
 
   if (!mode) return null;
   const meta = META[mode];
