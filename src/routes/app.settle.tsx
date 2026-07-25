@@ -115,9 +115,12 @@ function PayModal({ state, total, onClose }: { state: "confirming" | "pending" |
           {state === "done" ? `You paid ${fmtUSD(total)} in USDC.` : "Sub-second finality — hang tight."}
         </p>
         {state === "done" && (
-          <button onClick={onClose} className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background">
-            Done <ArrowRight className="h-4 w-4" />
-          </button>
+          <>
+            <div className="mt-4 flex justify-center"><TxHashPill hash={mockTxHash(`settle-${total}`)} /></div>
+            <button onClick={onClose} className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background">
+              Done <ArrowRight className="h-4 w-4" />
+            </button>
+          </>
         )}
       </div>
     </div>
