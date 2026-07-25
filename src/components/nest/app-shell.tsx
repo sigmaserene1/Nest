@@ -6,6 +6,7 @@ import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
 import { ArcBadge, UsdcBadge, WalletChip } from "./chain";
+import { WalletHeader } from "./wallet-header";
 import { getMember, currentUserId, myWallet } from "@/lib/nest-data";
 
 const primary = [
@@ -130,7 +131,10 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
 
       {/* Main area */}
       <div className="lg:pl-72">
-        {greeting && <div className="px-4 pt-5 sm:px-6 lg:px-8 lg:pt-8">{greeting}</div>}
+        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+          <WalletHeader />
+        </div>
+        {greeting && <div className="px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>}
         <main className="mx-auto max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">
           <PageTransition>{children}</PageTransition>
         </main>
