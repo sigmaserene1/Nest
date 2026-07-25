@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
+import { UsdcBadge } from "@/components/nest/chain";
 import { expenses, members, getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
 import { Search, Plus, X } from "lucide-react";
 
@@ -81,8 +82,11 @@ function Expenses() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm font-bold tabular-nums">{fmtUSD(e.amount)}</div>
-                        <div className="mt-1"><AvatarStack members={split} size={18} max={4} /></div>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <div className="text-sm font-bold tabular-nums">{fmtUSD(e.amount)}</div>
+                          <UsdcBadge />
+                        </div>
+                        <div className="mt-1 flex justify-end"><AvatarStack members={split} size={18} max={4} /></div>
                       </div>
                     </li>
                   );
