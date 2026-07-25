@@ -118,12 +118,30 @@ function Header({ onAdd }: { onAdd: () => void }) {
 }
 
 function AddExpenseSheet({ onClose }: { onClose: () => void }) {
+  const [title, setTitle] = useState("");
+  const [amount, setAmount] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set(members.map((m) => m.id)));
   const toggle = (id: string) => {
     const next = new Set(selected);
     next.has(id) ? next.delete(id) : next.add(id);
     setSelected(next);
   };
+
+  const amt = parseFloat(amount) || 0;
+  const canSave = title.trim().length > 0 && amt > 0 && selected.size > 0;
+
+  const save = () => {
+    if (!canSave) return;
+    addExpense({
+      title: title.trim(),
+      amount: amt,
+      category: "Other",
+      payerId: currentUserId,
+      splitAmong: Array.from(selected),
+    });
+    onClose();
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center">
       <div className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px] animate-pop-in">
@@ -133,12 +151,12 @@ function AddExpenseSheet({ onClose }: { onClose: () => void }) {
         </div>
         <div className="mt-6 space-y-4">
           <Field label="What">
-            <input placeholder="e.g. Trader Joe's" className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand" />
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Trader Joe's" className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand" />
           </Field>
           <Field label="Amount">
             <div className="flex items-center rounded-2xl bg-muted/60 px-4 py-3 focus-within:ring-2 focus-within:ring-brand">
               <span className="text-lg font-bold text-muted-foreground">$</span>
-              <input type="number" inputMode="decimal" placeholder="0.00" className="ml-2 w-full bg-transparent text-2xl font-bold tabular-nums outline-none" />
+              <input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" inputMode="decimal" placeholder="0.00" className="ml-2 w-full bg-transparent text-2xl font-bold tabular-nums outline-none" />
               <span className="text-xs font-semibold text-muted-foreground">USDC</span>
             </div>
           </Field>
@@ -160,7 +178,7 @@ function AddExpenseSheet({ onClose }: { onClose: () => void }) {
             </div>
           </Field>
         </div>
-        <button onClick={onClose} className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]">
+        <button onClick={save} disabled={!canSave} className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-40">
           Add expense
         </button>
       </div>
