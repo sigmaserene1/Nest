@@ -3,7 +3,8 @@ import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { WalletChip, ArcBadge } from "@/components/nest/chain";
-import { members, computeBalances, currentUserId, fmtUSD } from "@/lib/nest-data";
+import { members, currentUserId, fmtUSD } from "@/lib/nest-data";
+import { useComputedBalances } from "@/lib/nest-store";
 import { Copy, Check, UserPlus, MoreHorizontal } from "lucide-react";
 
 export const Route = createFileRoute("/app/members")({
@@ -12,7 +13,7 @@ export const Route = createFileRoute("/app/members")({
 });
 
 function MembersPage() {
-  const { net } = computeBalances();
+  const { net } = useComputedBalances();
   const [copied, setCopied] = useState(false);
   const invite = "nest.app/join/bedford-loft-8fJ2";
 
