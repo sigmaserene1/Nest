@@ -1,19 +1,24 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
-import { Check, Loader2, X, ArrowRight, QrCode, Home as HomeIcon } from "lucide-react";
+import { Check, Loader2, X, ArrowRight, QrCode, Home as HomeIcon, AlertTriangle, ExternalLink } from "lucide-react";
+import { isAddress, parseUnits } from "viem";
+import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { MemberAvatar } from "./avatar";
-import { TxHashPill } from "./chain";
-import { members, currentUserId, getMember, fmtUSD, mockTxHash, type Member } from "@/lib/nest-data";
+import { members, currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
+import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, explorerTxUrl } from "@/lib/wagmi";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { txStore } from "@/lib/tx-store";
+import type { ActionMode } from "./action-modal-types";
 
-export type ActionMode = "send" | "request" | "split" | "scan" | "rent" | "settle";
+export type { ActionMode };
 
 const META: Record<ActionMode, { title: string; verb: string; cta: (a: number) => string; accent: string }> = {
-  send:    { title: "Send USDC",      verb: "sent",      cta: (a) => `Send ${fmtUSD(a)}`,     accent: "bg-brand text-white shadow-brand" },
-  request: { title: "Request USDC",   verb: "requested", cta: (a) => `Request ${fmtUSD(a)}`,  accent: "bg-emerald-600 text-white" },
-  split:   { title: "Split an expense", verb: "split",   cta: (a) => `Split ${fmtUSD(a)}`,     accent: "bg-indigo-600 text-white" },
-  scan:    { title: "Scan to pay",    verb: "sent",      cta: (a) => `Pay ${fmtUSD(a)}`,       accent: "bg-brand text-white shadow-brand" },
-  rent:    { title: "Pay rent",       verb: "paid rent", cta: (a) => `Pay rent · ${fmtUSD(a)}`,accent: "bg-brand text-white shadow-brand" },
-  settle:  { title: "Settle up",      verb: "settled",   cta: (a) => `Settle ${fmtUSD(a)}`,    accent: "bg-brand text-white shadow-brand" },
+  send:    { title: "Send USDC",        verb: "sent",      cta: (a) => `Send ${fmtUSD(a)}`,      accent: "bg-brand text-white shadow-brand" },
+  request: { title: "Request USDC",     verb: "requested", cta: (a) => `Request ${fmtUSD(a)}`,   accent: "bg-emerald-600 text-white" },
+  split:   { title: "Split an expense", verb: "split",     cta: (a) => `Send ${fmtUSD(a)}`,      accent: "bg-indigo-600 text-white" },
+  scan:    { title: "Scan to pay",      verb: "sent",      cta: (a) => `Pay ${fmtUSD(a)}`,       accent: "bg-brand text-white shadow-brand" },
+  rent:    { title: "Pay rent",         verb: "paid rent", cta: (a) => `Pay ${fmtUSD(a)}`,       accent: "bg-brand text-white shadow-brand" },
+  settle:  { title: "Settle up",        verb: "settled",   cta: (a) => `Settle ${fmtUSD(a)}`,    accent: "bg-brand text-white shadow-brand" },
 };
 
 type Props = {
@@ -21,43 +26,136 @@ type Props = {
   onClose: () => void;
   defaultAmount?: number;
   defaultRecipientId?: string;
+  defaultToAddress?: string;
 };
 
-export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }: Props) {
+export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress }: Props) {
   const others = useMemo(() => members.filter((m) => m.id !== currentUserId), []);
+  const wallet = useArcWallet();
+  const { writeContractAsync, reset: resetWrite } = useWriteContract();
+
   const [amount, setAmount] = useState<string>("");
   const [note, setNote] = useState("");
-  const [recipients, setRecipients] = useState<string[]>([]);
-  const [stage, setStage] = useState<"form" | "confirming" | "pending" | "done">("form");
+  const [recipientId, setRecipientId] = useState<string>("");
+  const [toAddress, setToAddress] = useState<string>("");
+  const [stage, setStage] = useState<"form" | "confirming" | "pending" | "done" | "failed">("form");
+  const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
+  const [error, setError] = useState<string>("");
 
+  const receipt = useWaitForTransactionReceipt({
+    hash: txHash,
+    chainId: arcTestnet.id,
+    query: { enabled: !!txHash },
+  });
+
+  // Reset on open
   useEffect(() => {
-    if (mode) {
-      setStage("form");
-      setNote("");
-      setAmount(defaultAmount ? String(defaultAmount) : mode === "rent" ? "800" : "");
-      if (mode === "split") setRecipients(others.map((m) => m.id));
-      else if (defaultRecipientId) setRecipients([defaultRecipientId]);
-      else setRecipients(mode === "rent" ? [others[0]?.id].filter(Boolean) as string[] : []);
+    if (!mode) return;
+    setStage("form");
+    setNote("");
+    setError("");
+    setTxHash(undefined);
+    resetWrite();
+    setAmount(defaultAmount ? String(defaultAmount) : mode === "rent" ? "800" : "");
+    const rid = defaultRecipientId ?? (mode === "rent" ? others[0]?.id ?? "" : "");
+    setRecipientId(rid);
+    const seedAddr = defaultToAddress ?? (rid ? getMember(rid).wallet ?? "" : "");
+    setToAddress(seedAddr);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  // React to receipt result
+  useEffect(() => {
+    if (!txHash) return;
+    if (receipt.isSuccess) {
+      const status = receipt.data?.status === "success" ? "confirmed" : "failed";
+      txStore.update(txHash, { status });
+      if (status === "confirmed") {
+        setStage("done");
+        wallet.refetchBalance();
+      } else {
+        setError("Transaction reverted onchain.");
+        setStage("failed");
+      }
+    } else if (receipt.isError) {
+      txStore.update(txHash, { status: "failed", error: receipt.error?.message });
+      setError(receipt.error?.message ?? "Failed to confirm transaction.");
+      setStage("failed");
     }
-  }, [mode, defaultAmount, defaultRecipientId, others]);
+  }, [receipt.isSuccess, receipt.isError, receipt.data?.status, txHash, receipt.error, wallet]);
 
   if (!mode) return null;
   const meta = META[mode];
   const amt = parseFloat(amount) || 0;
-  const perPerson = mode === "split" && recipients.length > 0 ? amt / (recipients.length + 1) : amt;
-  const canSubmit = amt > 0 && (mode === "scan" || recipients.length > 0);
 
-  const toggle = (id: string) => {
-    if (mode === "send" || mode === "request" || mode === "rent") setRecipients([id]);
-    else setRecipients((r) => (r.includes(id) ? r.filter((x) => x !== id) : [...r, id]));
+  const isTransferMode = mode !== "request"; // request doesn't move funds
+  const needsAddress = isTransferMode && mode !== "scan";
+  const validAddress = !needsAddress || isAddress(toAddress);
+  const hasFunds = !isTransferMode || amt <= wallet.usdcBalance;
+
+  const canSubmit =
+    amt > 0 &&
+    (!isTransferMode ||
+      (wallet.isConnected && wallet.isOnArc && validAddress && hasFunds));
+
+  const pickRecipient = (id: string) => {
+    setRecipientId(id);
+    const w = getMember(id).wallet ?? "";
+    setToAddress(w);
   };
 
-  const submit = () => {
+  const submit = async () => {
     if (!canSubmit) return;
-    setStage("confirming");
-    setTimeout(() => setStage("pending"), 700);
-    setTimeout(() => setStage("done"), 1900);
+    setError("");
+
+    // Request-only: no chain action, just show a confirmation
+    if (mode === "request") {
+      setStage("done");
+      return;
+    }
+
+    // Scan is a demo QR flow — need a real address before proceeding
+    if (mode === "scan" && !isAddress(toAddress)) {
+      setError("Enter a valid recipient address to complete payment.");
+      return;
+    }
+
+    try {
+      setStage("confirming");
+      const value = parseUnits(amount, USDC_DECIMALS);
+      const hash = await writeContractAsync({
+        chainId: arcTestnet.id,
+        address: USDC_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: "transfer",
+        args: [toAddress as `0x${string}`, value],
+      });
+      setTxHash(hash);
+      txStore.add({
+        hash,
+        from: wallet.address ?? "",
+        to: toAddress,
+        amount: amt,
+        mode,
+        note: note || undefined,
+        recipientName: recipientId ? getMember(recipientId).name : undefined,
+        createdAt: new Date().toISOString(),
+        status: "pending",
+      });
+      setStage("pending");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Transaction failed";
+      // User rejection: return to form silently
+      if (/user rejected|denied/i.test(msg)) {
+        setStage("form");
+        return;
+      }
+      setError(msg);
+      setStage("failed");
+    }
   };
+
+  const stageIsBusy = stage === "confirming" || stage === "pending";
 
   return (
     <AnimatePresence>
@@ -66,7 +164,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/50 backdrop-blur-sm sm:items-center"
-        onClick={onClose}
+        onClick={stageIsBusy ? undefined : onClose}
       >
         <motion.div
           initial={{ y: 40, opacity: 0, scale: 0.98 }}
@@ -88,7 +186,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
               {mode === "scan" && (
                 <div className="mt-5 grid place-items-center rounded-[24px] bg-muted/60 p-8">
                   <QrCode className="h-24 w-24 text-foreground/70" strokeWidth={1.2} />
-                  <div className="mt-3 text-xs text-muted-foreground">Point at a Nest QR to pay instantly</div>
+                  <div className="mt-3 text-xs text-muted-foreground">Paste a wallet address or QR result below</div>
                 </div>
               )}
 
@@ -99,8 +197,31 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
                 </div>
               )}
 
+              {isTransferMode && !wallet.isConnected && (
+                <div className="mt-4 flex items-start gap-2 rounded-2xl bg-amber-50 p-3 text-xs text-amber-900 ring-1 ring-amber-200">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                  <span>Connect your wallet in the top-right to send onchain payments.</span>
+                </div>
+              )}
+              {isTransferMode && wallet.isConnected && !wallet.isOnArc && (
+                <button
+                  onClick={wallet.switchToArc}
+                  className="mt-4 flex w-full items-center justify-between rounded-2xl bg-amber-50 px-4 py-3 text-xs ring-1 ring-amber-200 hover:bg-amber-100"
+                >
+                  <span className="font-semibold text-amber-900">Switch to Arc Testnet</span>
+                  <span className="rounded-full bg-amber-600 px-3 py-1 font-bold text-white">Switch</span>
+                </button>
+              )}
+
               <div className="mt-5">
-                <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Amount</div>
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Amount</div>
+                  {wallet.isConnected && wallet.isOnArc && (
+                    <div className="text-[11px] text-muted-foreground">
+                      Balance <span className="font-bold text-foreground tabular-nums">{wallet.usdcBalance.toFixed(2)}</span> USDC
+                    </div>
+                  )}
+                </div>
                 <div className="mt-2 flex items-baseline gap-2 rounded-2xl bg-muted/50 px-4 py-4">
                   <span className="text-2xl font-bold text-muted-foreground">$</span>
                   <input
@@ -114,20 +235,23 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
                   />
                   <span className="text-sm font-semibold text-muted-foreground">USDC</span>
                 </div>
+                {isTransferMode && wallet.isConnected && wallet.isOnArc && amt > 0 && !hasFunds && (
+                  <div className="mt-2 text-[11px] font-semibold text-brand">Insufficient USDC balance on Arc Testnet.</div>
+                )}
               </div>
 
               {mode !== "scan" && (
                 <div className="mt-5">
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                    {mode === "split" ? "Split with" : mode === "request" ? "Request from" : "To"}
+                    {mode === "request" ? "Request from" : "To roommate"}
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {others.map((m) => {
-                      const active = recipients.includes(m.id);
+                      const active = recipientId === m.id;
                       return (
                         <button
                           key={m.id}
-                          onClick={() => toggle(m.id)}
+                          onClick={() => pickRecipient(m.id)}
                           className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${
                             active ? "border-brand bg-brand/10 text-brand" : "border-border bg-white text-foreground"
                           }`}
@@ -138,12 +262,34 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
                       );
                     })}
                   </div>
-                  {mode === "split" && recipients.length > 0 && amt > 0 && (
-                    <div className="mt-3 rounded-2xl bg-muted/50 px-4 py-3 text-xs text-muted-foreground">
-                      Each of {recipients.length + 1} pays{" "}
-                      <span className="font-bold text-foreground">{fmtUSD(perPerson)}</span>
-                    </div>
+                </div>
+              )}
+
+              {needsAddress && (
+                <div className="mt-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recipient address</div>
+                  <input
+                    value={toAddress}
+                    onChange={(e) => setToAddress(e.target.value)}
+                    placeholder="0x…"
+                    spellCheck={false}
+                    className="mt-2 w-full rounded-2xl bg-muted/50 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-brand/30"
+                  />
+                  {toAddress && !validAddress && (
+                    <div className="mt-2 text-[11px] font-semibold text-brand">Not a valid EVM address.</div>
                   )}
+                </div>
+              )}
+              {mode === "scan" && (
+                <div className="mt-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recipient address</div>
+                  <input
+                    value={toAddress}
+                    onChange={(e) => setToAddress(e.target.value)}
+                    placeholder="0x…"
+                    spellCheck={false}
+                    className="mt-2 w-full rounded-2xl bg-muted/50 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-brand/30"
+                  />
                 </div>
               )}
 
@@ -156,6 +302,10 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
                 />
               </div>
 
+              {error && (
+                <div className="mt-3 rounded-2xl bg-brand/10 px-3 py-2 text-xs font-semibold text-brand">{error}</div>
+              )}
+
               <button
                 disabled={!canSubmit}
                 onClick={submit}
@@ -164,18 +314,24 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
                 {meta.cta(amt)}
               </button>
               <div className="mt-3 text-center text-[11px] text-muted-foreground">
-                Instant on Arc Testnet · ~$0.001 fee
+                {isTransferMode ? "Onchain USDC transfer · Arc Testnet" : "Sends a request notification"}
               </div>
             </>
           )}
 
           {stage !== "form" && (
             <div className="py-6 text-center">
-              <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-brand-soft">
+              <div
+                className={`mx-auto grid h-20 w-20 place-items-center rounded-full ${
+                  stage === "failed" ? "bg-brand/10" : "bg-brand-soft"
+                }`}
+              >
                 {stage === "done" ? (
                   <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}>
                     <Check className="h-10 w-10 text-brand" strokeWidth={2.5} />
                   </motion.div>
+                ) : stage === "failed" ? (
+                  <AlertTriangle className="h-10 w-10 text-brand" />
                 ) : (
                   <Loader2 className="h-10 w-10 animate-spin text-brand" />
                 )}
@@ -183,27 +339,46 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
               <h3 className="mt-5 text-xl font-bold">
                 {stage === "confirming" && "Confirm in your wallet"}
                 {stage === "pending" && "Broadcasting on Arc…"}
-                {stage === "done" && `You ${meta.verb} ${fmtUSD(amt)} 🎉`}
+                {stage === "done" && (mode === "request" ? "Request sent" : `You ${meta.verb} ${fmtUSD(amt)} 🎉`)}
+                {stage === "failed" && "Transaction failed"}
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                {stage === "done"
-                  ? recipients.length > 0
-                    ? `${recipients.map((r) => getMember(r).name.split(" ")[0]).join(", ")} ${
-                        mode === "request" ? "will be notified" : "received a notification"
-                      }`
-                    : "Payment complete"
-                  : "Sub-second finality — hang tight."}
+                {stage === "confirming" && "Approve the USDC transfer in your wallet."}
+                {stage === "pending" && "Waiting for onchain confirmation…"}
+                {stage === "done" && mode === "request" &&
+                  (recipientId ? `${getMember(recipientId).name.split(" ")[0]} will be notified.` : "Notification sent.")}
+                {stage === "done" && mode !== "request" && "Confirmed on Arc Testnet."}
+                {stage === "failed" && (error || "Something went wrong.")}
               </p>
-              {stage === "done" && (
-                <>
-                  <div className="mt-4 flex justify-center"><TxHashPill hash={mockTxHash(`${mode}-${amt}-${recipients.join()}`)} /></div>
-                  <button
-                    onClick={onClose}
-                    className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background"
+
+              {txHash && (
+                <div className="mt-4 space-y-2">
+                  <div className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px]">
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        stage === "done" ? "bg-emerald-500" : stage === "failed" ? "bg-brand" : "bg-amber-400 animate-pulse"
+                      }`}
+                    />
+                    {txHash.slice(0, 10)}…{txHash.slice(-8)}
+                  </div>
+                  <a
+                    href={explorerTxUrl(txHash)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mx-auto inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
                   >
-                    Done <ArrowRight className="h-4 w-4" />
-                  </button>
-                </>
+                    View on Arcscan <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+              )}
+
+              {(stage === "done" || stage === "failed") && (
+                <button
+                  onClick={onClose}
+                  className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background"
+                >
+                  Done <ArrowRight className="h-4 w-4" />
+                </button>
               )}
             </div>
           )}
