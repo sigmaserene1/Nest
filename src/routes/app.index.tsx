@@ -5,6 +5,7 @@ import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap } from "@/components/nest/motion";
 import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/components/nest/chain";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
 import {
   members,
   activity,
