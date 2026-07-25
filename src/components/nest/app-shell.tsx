@@ -119,10 +119,10 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
           </nav>
 
           <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
-            <MemberAvatar member={me} size={38} />
+            <MemberAvatar member={me} size={38} ring />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold">{me.name}</div>
-              <div className="truncate text-[11px] text-muted-foreground">{me.wallet}</div>
+              <div className="mt-0.5"><WalletChip address={myWallet} /></div>
             </div>
           </div>
         </div>
