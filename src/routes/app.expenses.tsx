@@ -3,7 +3,8 @@ import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
 import { UsdcBadge } from "@/components/nest/chain";
-import { expenses, members, getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
+import { members, getMember, fmtUSD, categoryMeta, currentUserId, type Expense } from "@/lib/nest-data";
+import { useExpenses, addExpense } from "@/lib/nest-store";
 import { Search, Plus, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/expenses")({
@@ -14,14 +15,14 @@ export const Route = createFileRoute("/app/expenses")({
 const cats = ["All", "Rent", "Groceries", "Utilities", "Internet", "Dining", "Other"] as const;
 
 function Expenses() {
+  const allExpenses = useExpenses();
   const [cat, setCat] = useState<(typeof cats)[number]>("All");
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
 
-  const filtered = expenses
+  const filtered = allExpenses
     .filter((e) => cat === "All" || e.category === cat)
-    .filter((e) => e.title.toLowerCase().includes(q.toLowerCase()))
-    .sort((a, b) => b.date.localeCompare(a.date));
+    .filter((e) => e.title.toLowerCase().includes(q.toLowerCase()));
 
   const grouped = filtered.reduce<Record<string, Expense[]>>((acc, e) => {
     const key = new Date(e.date).toLocaleDateString("en-US", { month: "long", day: "numeric" });
