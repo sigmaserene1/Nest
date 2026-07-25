@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -117,10 +117,10 @@ export function TxHashPill({
 export function BlockTicker() {
   // Mock ever-incrementing block height for hackathon polish.
   const [n, setN] = useState(8_421_337);
-  useState(() => {
+  useEffect(() => {
     const id = setInterval(() => setN((v) => v + 1), 1200);
     return () => clearInterval(id);
-  });
+  }, []);
   return (
     <motion.span
       key={n}
