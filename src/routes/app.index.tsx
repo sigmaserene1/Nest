@@ -5,6 +5,7 @@ import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap } from "@/components/nest/motion";
 import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/components/nest/chain";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
 import {
   members,
   activity,
@@ -79,6 +80,7 @@ function Dashboard() {
     }, {}),
   ).sort((a, b) => b[1] - a[1])[0];
   const action = useActionModal();
+  const wallet = useArcWallet();
 
   return (
     <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
@@ -106,12 +108,22 @@ function Dashboard() {
           <div className="relative mt-8">
             <div className="text-[11px] uppercase tracking-widest text-background/60">Available balance</div>
             <div className="mt-1 flex items-baseline gap-2">
-              <div className="text-5xl font-bold tracking-tight tabular-nums">{walletBalance.toFixed(2)}</div>
+              <div className="text-5xl font-bold tracking-tight tabular-nums">
+                {wallet.isConnected && wallet.isOnArc
+                  ? wallet.usdcBalance.toFixed(2)
+                  : walletBalance.toFixed(2)}
+              </div>
               <div className="text-sm font-semibold text-background/70">USDC</div>
             </div>
             <div className="mt-2 flex items-center gap-2 text-xs text-background/60">
-              <WalletChip address={myWallet} variant="dark" />
-              <span>≈ {fmtUSD(walletBalance)}</span>
+              <WalletChip address={wallet.address ?? myWallet} variant="dark" />
+              <span>
+                {wallet.isConnected
+                  ? wallet.isOnArc
+                    ? "Live on Arc Testnet"
+                    : "Wrong network"
+                  : "Demo balance — connect wallet for live data"}
+              </span>
             </div>
           </div>
 
