@@ -87,14 +87,17 @@ export function getMember(id: string): Member {
 
 export type Debt = { fromId: string; toId: string; amount: number };
 
-export function computeBalances(): { net: Record<string, number>; debts: Debt[] } {
+export function computeBalances(
+  expensesList: Expense[] = expenses,
+  settlementsList: Settlement[] = settlements,
+): { net: Record<string, number>; debts: Debt[] } {
   const net: Record<string, number> = Object.fromEntries(members.map((m) => [m.id, 0]));
-  for (const e of expenses) {
+  for (const e of expensesList) {
     const share = e.amount / e.splitAmong.length;
     net[e.payerId] += e.amount;
     for (const uid of e.splitAmong) net[uid] -= share;
   }
-  for (const s of settlements) {
+  for (const s of settlementsList) {
     net[s.fromId] += s.amount;
     net[s.toId] -= s.amount;
   }
