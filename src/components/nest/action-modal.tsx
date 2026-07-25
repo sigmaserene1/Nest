@@ -32,7 +32,7 @@ type Props = {
   onSuccess?: (info: { hash: string; amount: number; recipientId?: string; toAddress: string; mode: ActionMode }) => void;
 };
 
-export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress }: Props) {
+export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress, lockRecipient, lockAmount, onSuccess }: Props) {
   const others = useMemo(() => members.filter((m) => m.id !== currentUserId), []);
   const wallet = useArcWallet();
   const { writeContractAsync, reset: resetWrite } = useWriteContract();
