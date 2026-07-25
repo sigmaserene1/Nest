@@ -19,6 +19,7 @@ const filters = ["All", "Onchain", "Expenses", "Payments", "Members"] as const;
 function ActivityPage() {
   const [f, setF] = useState<(typeof filters)[number]>("All");
   const txs = useTxHistory();
+  const activity = useHouseholdActivity();
 
   const filtered = activity.filter((a) => {
     if (f === "All" || f === "Onchain") return f === "All";
