@@ -27,6 +27,9 @@ type Props = {
   defaultAmount?: number;
   defaultRecipientId?: string;
   defaultToAddress?: string;
+  lockRecipient?: boolean;
+  lockAmount?: boolean;
+  onSuccess?: (info: { hash: string; amount: number; recipientId?: string; toAddress: string; mode: ActionMode }) => void;
 };
 
 export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress }: Props) {
