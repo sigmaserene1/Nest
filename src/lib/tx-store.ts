@@ -58,7 +58,12 @@ export const txStore = {
   subscribe(fn: () => void) {
     listeners.add(fn);
     if (typeof window !== "undefined") {
-      const onStorage = (e: StorageEvent) => e.key === KEY && fn();
+      const onStorage = (e: StorageEvent) => {
+        if (e.key === KEY) {
+          cache = null;
+          fn();
+        }
+      };
       window.addEventListener("storage", onStorage);
       return () => {
         listeners.delete(fn);
