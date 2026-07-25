@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, Card } from "@/components/nest/app-shell";
-import { expenses, members, getMember, fmtUSD, categoryMeta } from "@/lib/nest-data";
+import { members, getMember, fmtUSD, categoryMeta } from "@/lib/nest-data";
+import { useExpenses } from "@/lib/nest-store";
 
 export const Route = createFileRoute("/app/analytics")({
   component: Analytics,
@@ -8,6 +9,7 @@ export const Route = createFileRoute("/app/analytics")({
 });
 
 function Analytics() {
+  const expenses = useExpenses();
   const total = expenses.reduce((s, e) => s + e.amount, 0);
   const byCat = expenses.reduce<Record<string, number>>((a, e) => ((a[e.category] = (a[e.category] ?? 0) + e.amount), a), {});
   const catEntries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);

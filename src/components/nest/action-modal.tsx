@@ -27,9 +27,12 @@ type Props = {
   defaultAmount?: number;
   defaultRecipientId?: string;
   defaultToAddress?: string;
+  lockRecipient?: boolean;
+  lockAmount?: boolean;
+  onSuccess?: (info: { hash: string; amount: number; recipientId?: string; toAddress: string; mode: ActionMode }) => void;
 };
 
-export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress }: Props) {
+export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress, lockRecipient, lockAmount, onSuccess }: Props) {
   const others = useMemo(() => members.filter((m) => m.id !== currentUserId), []);
   const wallet = useArcWallet();
   const { writeContractAsync, reset: resetWrite } = useWriteContract();
@@ -73,6 +76,13 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
       if (status === "confirmed") {
         setStage("done");
         wallet.refetchBalance();
+        onSuccess?.({
+          hash: txHash,
+          amount: parseFloat(amount) || 0,
+          recipientId: recipientId || undefined,
+          toAddress,
+          mode: mode!,
+        });
       } else {
         setError("Transaction reverted onchain.");
         setStage("failed");
@@ -82,7 +92,8 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
       setError(receipt.error?.message ?? "Failed to confirm transaction.");
       setStage("failed");
     }
-  }, [receipt.isSuccess, receipt.isError, receipt.data?.status, txHash, receipt.error, wallet]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [receipt.isSuccess, receipt.isError, receipt.data?.status, txHash]);
 
   if (!mode) return null;
   const meta = META[mode];
@@ -230,7 +241,8 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.00"
-                    autoFocus
+                    readOnly={lockAmount}
+                    autoFocus={!lockAmount}
                     className="w-full bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
                   />
                   <span className="text-sm font-semibold text-muted-foreground">USDC</span>
@@ -240,7 +252,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                 )}
               </div>
 
-              {mode !== "scan" && (
+              {mode !== "scan" && !lockRecipient && (
                 <div className="mt-5">
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                     {mode === "request" ? "Request from" : "To roommate"}
@@ -261,6 +273,17 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+              {lockRecipient && recipientId && (
+                <div className="mt-5 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+                  <MemberAvatar member={getMember(recipientId)} size={36} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {mode === "request" ? "Requesting from" : "Paying"}
+                    </div>
+                    <div className="truncate text-sm font-semibold">{getMember(recipientId).name}</div>
                   </div>
                 </div>
               )}

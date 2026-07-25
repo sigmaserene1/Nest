@@ -3,7 +3,8 @@ import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { TxHashPill, shortAddr } from "@/components/nest/chain";
-import { activity, getMember, fmtUSD, fmtRelative, categoryMeta, mockTxHash } from "@/lib/nest-data";
+import { getMember, fmtUSD, fmtRelative, categoryMeta, mockTxHash } from "@/lib/nest-data";
+import { useHouseholdActivity } from "@/lib/nest-store";
 import { useTxHistory } from "@/lib/tx-store";
 import { explorerTxUrl } from "@/lib/wagmi";
 import { ArrowLeftRight, UserPlus, ExternalLink, Loader2, AlertTriangle, Check } from "lucide-react";
@@ -18,6 +19,7 @@ const filters = ["All", "Onchain", "Expenses", "Payments", "Members"] as const;
 function ActivityPage() {
   const [f, setF] = useState<(typeof filters)[number]>("All");
   const txs = useTxHistory();
+  const activity = useHouseholdActivity();
 
   const filtered = activity.filter((a) => {
     if (f === "All" || f === "Onchain") return f === "All";

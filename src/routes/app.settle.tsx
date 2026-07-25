@@ -1,10 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { TxHashPill, UsdcBadge, WalletChip } from "@/components/nest/chain";
-import { computeBalances, currentUserId, getMember, fmtUSD, mockTxHash } from "@/lib/nest-data";
-import { Check, Loader2, ArrowRight, Shield, Zap } from "lucide-react";
+import { UsdcBadge, WalletChip } from "@/components/nest/chain";
+import { currentUserId, getMember, fmtUSD, type Debt } from "@/lib/nest-data";
+import { useComputedBalances, recordSettlement } from "@/lib/nest-store";
+import { ActionModal } from "@/components/nest/action-modal";
+import { Shield, Zap, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/app/settle")({
   component: Settle,
@@ -12,16 +14,10 @@ export const Route = createFileRoute("/app/settle")({
 });
 
 function Settle() {
-  const { debts } = computeBalances();
-  const mine = debts.filter((d) => d.fromId === currentUserId);
+  const { debts } = useComputedBalances();
+  const mine = useMemo(() => debts.filter((d) => d.fromId === currentUserId), [debts]);
   const total = mine.reduce((s, d) => s + d.amount, 0);
-  const [state, setState] = useState<"idle" | "confirming" | "pending" | "done">("idle");
-
-  const start = () => {
-    setState("confirming");
-    setTimeout(() => setState("pending"), 900);
-    setTimeout(() => setState("done"), 2300);
-  };
+  const [active, setActive] = useState<Debt | null>(null);
 
   return (
     <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">One-tap settle</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Settle up</h1></div>}>
@@ -37,11 +33,11 @@ function Settle() {
               <Zap className="h-3.5 w-3.5 text-brand" /> Instant on Arc · ~$0.001 fee
             </div>
             <button
-              disabled={total === 0 || state !== "idle"}
-              onClick={start}
+              disabled={mine.length === 0}
+              onClick={() => mine[0] && setActive(mine[0])}
               className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-50"
             >
-              {total === 0 ? "You're all settled" : `Pay all ${fmtUSD(total)}`}
+              {mine.length === 0 ? "You're all settled" : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
             </button>
           </Card>
 
@@ -61,6 +57,12 @@ function Settle() {
                       <div className="text-sm font-bold tabular-nums">{fmtUSD(d.amount)}</div>
                       <div className="mt-0.5"><UsdcBadge /></div>
                     </div>
+                    <button
+                      onClick={() => setActive(d)}
+                      className="ml-2 inline-flex items-center gap-1 rounded-full bg-brand px-3 py-2 text-xs font-bold text-white shadow-brand hover:brightness-110"
+                    >
+                      Pay <ArrowRight className="h-3 w-3" />
+                    </button>
                   </li>
                 );
               })}
@@ -73,9 +75,9 @@ function Settle() {
           <h3 className="text-sm font-bold">How settlement works</h3>
           <ol className="mt-4 space-y-4">
             {[
-              { t: "One transaction", d: "We batch all debts into a single USDC transfer." },
+              { t: "Exact amount", d: "We send the precise USDC you owe — nothing more." },
               { t: "Confirmed in ~1s", d: "Arc's sub-second finality means no waiting." },
-              { t: "Everyone paid", d: "Your roommates get notified instantly." },
+              { t: "Balances update", d: "Debts are cleared the moment the tx confirms." },
             ].map((s, i) => (
               <li key={i} className="flex gap-3">
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">{i + 1}</span>
@@ -92,37 +94,24 @@ function Settle() {
         </Card>
       </div>
 
-      {state !== "idle" && <PayModal state={state} total={total} onClose={() => setState("idle")} />}
+      <ActionModal
+        mode={active ? "settle" : null}
+        onClose={() => setActive(null)}
+        defaultAmount={active?.amount}
+        defaultRecipientId={active?.toId}
+        defaultToAddress={active ? getMember(active.toId).wallet : undefined}
+        lockRecipient
+        lockAmount
+        onSuccess={({ hash, amount, recipientId }) => {
+          if (!recipientId) return;
+          recordSettlement({
+            fromId: currentUserId,
+            toId: recipientId,
+            amount,
+            txHash: hash,
+          });
+        }}
+      />
     </AppShell>
-  );
-}
-
-function PayModal({ state, total, onClose }: { state: "confirming" | "pending" | "done"; total: number; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-foreground/50 backdrop-blur-sm p-4">
-      <div className="glass-strong w-full max-w-sm rounded-[32px] p-8 text-center animate-pop-in">
-        <div className="mx-auto grid h-20 w-20 place-items-center rounded-full bg-brand-soft">
-          {state === "done"
-            ? <Check className="h-10 w-10 text-brand" strokeWidth={2.5} />
-            : <Loader2 className="h-10 w-10 animate-spin text-brand" />}
-        </div>
-        <h3 className="mt-5 text-xl font-bold">
-          {state === "confirming" && "Confirm in your wallet"}
-          {state === "pending" && "Settling on Arc…"}
-          {state === "done" && "All settled 🎉"}
-        </h3>
-        <p className="mt-2 text-sm text-muted-foreground">
-          {state === "done" ? `You paid ${fmtUSD(total)} in USDC.` : "Sub-second finality — hang tight."}
-        </p>
-        {state === "done" && (
-          <>
-            <div className="mt-4 flex justify-center"><TxHashPill hash={mockTxHash(`settle-${total}`)} /></div>
-            <button onClick={onClose} className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background">
-              Done <ArrowRight className="h-4 w-4" />
-            </button>
-          </>
-        )}
-      </div>
-    </div>
   );
 }
