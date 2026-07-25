@@ -1,13 +1,20 @@
-import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { useAccount } from "wagmi";
 
 export const Route = createFileRoute("/app")({
-  beforeLoad: async ({ location }) => {
-    if (typeof window === "undefined") return;
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) {
-      throw redirect({ to: "/auth", search: { redirect: location.href } });
-    }
-  },
-  component: () => <Outlet />,
+  component: AppLayout,
 });
+
+function AppLayout() {
+  const { isConnected, isConnecting, isReconnecting } = useAccount();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isConnected && !isConnecting && !isReconnecting) {
+      navigate({ to: "/auth" });
+    }
+  }, [isConnected, isConnecting, isReconnecting, navigate]);
+
+  return <Outlet />;
+}
