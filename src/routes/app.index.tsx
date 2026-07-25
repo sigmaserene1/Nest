@@ -8,9 +8,6 @@ import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/comp
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import {
   members,
-  activity,
-  expenses,
-  computeBalances,
   currentUserId,
   getMember,
   fmtUSD,
@@ -20,6 +17,7 @@ import {
   mockTxHash,
   myWallet,
 } from "@/lib/nest-data";
+import { useExpenses, useComputedBalances, useHouseholdActivity } from "@/lib/nest-store";
 import {
   ArrowUpRight,
   Send,
