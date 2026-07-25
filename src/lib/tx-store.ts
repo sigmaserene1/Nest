@@ -21,18 +21,25 @@ export type StoredTx = {
 
 const KEY = "nest.tx.v1";
 const listeners = new Set<() => void>();
+let cache: StoredTx[] | null = null;
 
 function read(): StoredTx[] {
-  if (typeof window === "undefined") return [];
+  if (cache) return cache;
+  if (typeof window === "undefined") {
+    cache = [];
+    return cache;
+  }
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as StoredTx[]) : [];
+    cache = raw ? (JSON.parse(raw) as StoredTx[]) : [];
   } catch {
-    return [];
+    cache = [];
   }
+  return cache;
 }
 
 function write(list: StoredTx[]) {
+  cache = list;
   if (typeof window === "undefined") return;
   localStorage.setItem(KEY, JSON.stringify(list));
   listeners.forEach((l) => l());
