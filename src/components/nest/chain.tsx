@@ -101,7 +101,7 @@ export function TxHashPill({
         {copied ? <Check className="h-2.5 w-2.5 text-emerald-500" /> : <Copy className="h-2.5 w-2.5" />}
       </button>
       <a
-        href={`https://explorer.arc.network/tx/${hash}`}
+        href={`https://testnet.arcscan.app/tx/${hash}`}
         target="_blank"
         rel="noreferrer"
         onClick={(e) => e.stopPropagation()}

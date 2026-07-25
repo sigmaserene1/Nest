@@ -44,10 +44,10 @@ export type ActivityEvent = {
 export const currentUserId = "u1";
 
 export const members: Member[] = [
-  { id: "u1", name: "Arjun Mehta", handle: "@arjun", color: "#E53935", gradient: "linear-gradient(135deg,#ff6a5b,#e53935)", wallet: "0x8f2c…41Ae", emoji: "🦊" },
-  { id: "u2", name: "Alex Chen", handle: "@alex", color: "#F59E0B", gradient: "linear-gradient(135deg,#fcd34d,#f59e0b)", wallet: "0x21a9…88b2", emoji: "🐼" },
-  { id: "u3", name: "Priya Shah", handle: "@priya", color: "#10B981", gradient: "linear-gradient(135deg,#6ee7b7,#059669)", wallet: "0x9c33…12df", emoji: "🌿" },
-  { id: "u4", name: "Marcus Lee", handle: "@marcus", color: "#6366F1", gradient: "linear-gradient(135deg,#a5b4fc,#6366f1)", wallet: "0x44e1…7a90", emoji: "🎧" },
+  { id: "u1", name: "Arjun Mehta", handle: "@arjun", color: "#E53935", gradient: "linear-gradient(135deg,#ff6a5b,#e53935)", wallet: "0x8f2c9d1e4b7a3f52c68e19d0f7b641aE4d20c9B1", emoji: "🦊" },
+  { id: "u2", name: "Alex Chen", handle: "@alex", color: "#F59E0B", gradient: "linear-gradient(135deg,#fcd34d,#f59e0b)", wallet: "0x21a9c78b3D5f19E4a6b8c72e88b23F1a90cD6E88", emoji: "🐼" },
+  { id: "u3", name: "Priya Shah", handle: "@priya", color: "#10B981", gradient: "linear-gradient(135deg,#6ee7b7,#059669)", wallet: "0x9c33e5B7A1F84dc2b91e07f012Df6A8c34Eb7A21", emoji: "🌿" },
+  { id: "u4", name: "Marcus Lee", handle: "@marcus", color: "#6366F1", gradient: "linear-gradient(135deg,#a5b4fc,#6366f1)", wallet: "0x44e1B7c980A3f256d81a90CB2f3E7a9014D6bC12", emoji: "🎧" },
 ];
 
 const allIds = members.map((m) => m.id);
