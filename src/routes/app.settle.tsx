@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { computeBalances, currentUserId, getMember, fmtUSD } from "@/lib/nest-data";
+import { TxHashPill, UsdcBadge, WalletChip } from "@/components/nest/chain";
+import { computeBalances, currentUserId, getMember, fmtUSD, mockTxHash } from "@/lib/nest-data";
 import { Check, Loader2, ArrowRight, Shield, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/app/settle")({
@@ -51,12 +52,15 @@ function Settle() {
                 const to = getMember(d.toId);
                 return (
                   <li key={i} className="flex items-center gap-3 rounded-2xl bg-muted/50 p-3">
-                    <MemberAvatar member={to} size={40} />
+                    <MemberAvatar member={to} size={40} ring />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold">{to.name}</div>
-                      <div className="text-[11px] text-muted-foreground">{to.wallet}</div>
+                      <div className="mt-0.5">{to.wallet && <WalletChip address={to.wallet} />}</div>
                     </div>
-                    <div className="text-sm font-bold tabular-nums">{fmtUSD(d.amount)}</div>
+                    <div className="text-right">
+                      <div className="text-sm font-bold tabular-nums">{fmtUSD(d.amount)}</div>
+                      <div className="mt-0.5"><UsdcBadge /></div>
+                    </div>
                   </li>
                 );
               })}
