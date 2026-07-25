@@ -241,7 +241,8 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.00"
-                    autoFocus
+                    readOnly={lockAmount}
+                    autoFocus={!lockAmount}
                     className="w-full bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
                   />
                   <span className="text-sm font-semibold text-muted-foreground">USDC</span>
