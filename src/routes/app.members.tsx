@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
+import { WalletChip, ArcBadge } from "@/components/nest/chain";
 import { members, computeBalances, currentUserId, fmtUSD } from "@/lib/nest-data";
 import { Copy, Check, UserPlus, MoreHorizontal } from "lucide-react";
 
@@ -45,14 +46,17 @@ function MembersPage() {
           return (
             <Card key={m.id} className="!p-5">
               <div className="flex items-start gap-4">
-                <MemberAvatar member={m} size={56} />
+                <MemberAvatar member={m} size={56} ring />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <div className="truncate text-base font-bold">{m.name}</div>
                     {isMe && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">You</span>}
                   </div>
                   <div className="text-xs text-muted-foreground">{m.handle}</div>
-                  <div className="mt-1 text-[11px] text-muted-foreground tabular-nums">{m.wallet}</div>
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    {m.wallet && <WalletChip address={m.wallet} />}
+                    <ArcBadge />
+                  </div>
                 </div>
                 <button className="grid h-8 w-8 place-items-center rounded-full bg-muted"><MoreHorizontal className="h-4 w-4" /></button>
               </div>

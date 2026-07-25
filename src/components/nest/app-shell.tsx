@@ -5,7 +5,8 @@ import { motion } from "framer-motion";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
-import { getMember, currentUserId } from "@/lib/nest-data";
+import { ArcBadge, UsdcBadge, WalletChip } from "./chain";
+import { getMember, currentUserId, myWallet } from "@/lib/nest-data";
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
@@ -86,16 +87,22 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
             </button>
           </div>
 
-          <div className="mt-6 rounded-2xl bg-gradient-to-br from-foreground to-foreground/85 p-4 text-background shadow-lg">
-            <div className="text-[11px] uppercase tracking-widest text-background/60">Bedford Loft</div>
-            <div className="mt-2 flex items-end justify-between">
-              <div>
-                <div className="text-[11px] text-background/60">Wallet balance</div>
-                <div className="text-2xl font-bold tracking-tight">
-                  245.75 <span className="text-xs font-medium text-background/60">USDC</span>
-                </div>
+          <div className="relative mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-4 text-background shadow-lg">
+            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand/40 blur-2xl" />
+            <div className="pointer-events-none absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-indigo-500/30 blur-2xl" />
+            <div className="relative flex items-center justify-between">
+              <ArcBadge variant="light" />
+              <UsdcBadge />
+            </div>
+            <div className="relative mt-4">
+              <div className="text-[11px] text-background/60">Wallet balance</div>
+              <div className="mt-1 flex items-baseline gap-1.5">
+                <div className="text-2xl font-bold tracking-tight tabular-nums">245.75</div>
+                <span className="text-xs font-medium text-background/60">USDC</span>
               </div>
-              <span className="rounded-full bg-brand px-2.5 py-1 text-[10px] font-semibold">on Arc</span>
+            </div>
+            <div className="relative mt-3">
+              <WalletChip address={myWallet} variant="dark" />
             </div>
           </div>
 
@@ -112,10 +119,10 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
           </nav>
 
           <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
-            <MemberAvatar member={me} size={38} />
+            <MemberAvatar member={me} size={38} ring />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold">{me.name}</div>
-              <div className="truncate text-[11px] text-muted-foreground">{me.wallet}</div>
+              <div className="mt-0.5"><WalletChip address={myWallet} /></div>
             </div>
           </div>
         </div>

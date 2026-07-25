@@ -134,6 +134,14 @@ export function fmtRelative(iso: string): string {
 }
 
 export const walletBalance = 245.75;
+export const myWallet = "0x8f2c9d1e4b7a3f52c68e19d0f7b641Ae";
+
+export function mockTxHash(seed: string): string {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  const hex = (h.toString(16) + "abcdef1234567890").padEnd(40, "0");
+  return `0x${hex.slice(0, 40)}`;
+}
 
 export const categoryMeta: Record<Expense["category"], { icon: string; color: string; bg: string }> = {
   Rent: { icon: "🏠", color: "#e53935", bg: "#ffe9e8" },

@@ -2,7 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { activity, getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
+import { TxHashPill } from "@/components/nest/chain";
+import { activity, getMember, fmtUSD, fmtRelative, categoryMeta, mockTxHash } from "@/lib/nest-data";
 import { ArrowLeftRight, UserPlus } from "lucide-react";
 
 export const Route = createFileRoute("/app/activity")({
@@ -59,7 +60,10 @@ function ActivityPage() {
                     <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
                     <span className="text-muted-foreground">{a.text}</span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
+                  <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                    <span>{fmtRelative(a.date)}</span>
+                    {a.kind === "settlement" && <TxHashPill hash={mockTxHash(a.id)} />}
+                  </div>
                 </div>
                 {a.amount != null && (
                   <div className={`text-sm font-bold tabular-nums ${a.kind === "settlement" ? "text-emerald-600" : ""}`}>

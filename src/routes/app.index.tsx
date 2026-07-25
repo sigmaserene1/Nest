@@ -4,6 +4,7 @@ import { AppShell } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap } from "@/components/nest/motion";
 import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
+import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/components/nest/chain";
 import {
   members,
   activity,
@@ -15,6 +16,8 @@ import {
   fmtRelative,
   walletBalance,
   categoryMeta,
+  mockTxHash,
+  myWallet,
 } from "@/lib/nest-data";
 import {
   ArrowUpRight,
@@ -93,13 +96,11 @@ function Dashboard() {
           <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
 
           <div className="relative flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-              Arc Testnet · Connected
-            </span>
-            <span className="rounded-full bg-white/10 px-2.5 py-1 text-[10px] font-semibold backdrop-blur">
-              Bedford Loft
-            </span>
+            <ArcBadge variant="light" />
+            <div className="flex items-center gap-2">
+              <BlockTicker />
+              <UsdcBadge />
+            </div>
           </div>
 
           <div className="relative mt-8">
@@ -108,7 +109,10 @@ function Dashboard() {
               <div className="text-5xl font-bold tracking-tight tabular-nums">{walletBalance.toFixed(2)}</div>
               <div className="text-sm font-semibold text-background/70">USDC</div>
             </div>
-            <div className="mt-1 text-xs text-background/60">≈ {fmtUSD(walletBalance)}</div>
+            <div className="mt-2 flex items-center gap-2 text-xs text-background/60">
+              <WalletChip address={myWallet} variant="dark" />
+              <span>≈ {fmtUSD(walletBalance)}</span>
+            </div>
           </div>
 
           <div className="relative mt-7 flex items-center gap-3">
@@ -252,7 +256,10 @@ function Dashboard() {
                         <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
                         <span className="text-muted-foreground">{a.text}</span>
                       </div>
-                      <div className="text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
+                      <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
+                        <span>{fmtRelative(a.date)}</span>
+                        {isIncoming && <TxHashPill hash={mockTxHash(a.id)} />}
+                      </div>
                     </div>
                     {a.amount != null && (
                       <div

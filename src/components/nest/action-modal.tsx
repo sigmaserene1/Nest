@@ -2,7 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Loader2, X, ArrowRight, QrCode, Home as HomeIcon } from "lucide-react";
 import { MemberAvatar } from "./avatar";
-import { members, currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
+import { TxHashPill } from "./chain";
+import { members, currentUserId, getMember, fmtUSD, mockTxHash, type Member } from "@/lib/nest-data";
 
 export type ActionMode = "send" | "request" | "split" | "scan" | "rent" | "settle";
 
@@ -194,12 +195,15 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId }
                   : "Sub-second finality — hang tight."}
               </p>
               {stage === "done" && (
-                <button
-                  onClick={onClose}
-                  className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background"
-                >
-                  Done <ArrowRight className="h-4 w-4" />
-                </button>
+                <>
+                  <div className="mt-4 flex justify-center"><TxHashPill hash={mockTxHash(`${mode}-${amt}-${recipients.join()}`)} /></div>
+                  <button
+                    onClick={onClose}
+                    className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background"
+                  >
+                    Done <ArrowRight className="h-4 w-4" />
+                  </button>
+                </>
               )}
             </div>
           )}
