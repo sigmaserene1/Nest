@@ -9,7 +9,6 @@ import {
   members,
   activity,
   expenses,
-  settlements,
   computeBalances,
   currentUserId,
   getMember,
