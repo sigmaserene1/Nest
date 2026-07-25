@@ -252,7 +252,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                 )}
               </div>
 
-              {mode !== "scan" && (
+              {mode !== "scan" && !lockRecipient && (
                 <div className="mt-5">
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                     {mode === "request" ? "Request from" : "To roommate"}
@@ -273,6 +273,17 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                         </button>
                       );
                     })}
+                  </div>
+                </div>
+              )}
+              {lockRecipient && recipientId && (
+                <div className="mt-5 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+                  <MemberAvatar member={getMember(recipientId)} size={36} />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {mode === "request" ? "Requesting from" : "Paying"}
+                    </div>
+                    <div className="truncate text-sm font-semibold">{getMember(recipientId).name}</div>
                   </div>
                 </div>
               )}
