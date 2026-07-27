@@ -14,7 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      payment_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          from_name: string | null
+          from_wallet: string
+          id: string
+          note: string | null
+          status: string
+          to_name: string | null
+          to_wallet: string
+          tx_hash: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          from_name?: string | null
+          from_wallet: string
+          id?: string
+          note?: string | null
+          status?: string
+          to_name?: string | null
+          to_wallet: string
+          tx_hash?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          from_name?: string | null
+          from_wallet?: string
+          id?: string
+          note?: string | null
+          status?: string
+          to_name?: string | null
+          to_wallet?: string
+          tx_hash?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      roommates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_name: string | null
+          owner_wallet: string
+          wallet: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_name?: string | null
+          owner_wallet: string
+          wallet: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_name?: string | null
+          owner_wallet?: string
+          wallet?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
