@@ -156,12 +156,16 @@ export function ActionModal({
   const amt = parseFloat(amount) || 0;
 
   const isTransferMode = mode !== "request"; // request doesn't move funds
-  const needsAddress = mode !== "scan";
+  const isSplit = mode === "split" && !lockRecipient;
+  const needsAddress = mode !== "scan" && !isSplit;
   const validAddress = !needsAddress || isAddress(toAddress);
   const hasFunds = !isTransferMode || amt <= wallet.usdcBalance;
+  const splitCount = splitIds.length;
+  const perPerson = splitCount > 0 ? amt / splitCount : 0;
 
-  const canSubmit =
-    amt > 0 && validAddress && (isTransferMode ? wallet.isConnected && wallet.isOnArc && hasFunds : wallet.isConnected);
+  const canSubmit = isSplit
+    ? amt > 0 && splitCount > 0 && wallet.isConnected && wallet.isOnArc && hasFunds
+    : amt > 0 && validAddress && (isTransferMode ? wallet.isConnected && wallet.isOnArc && hasFunds : wallet.isConnected);
 
   const pickRecipient = (id: string) => {
     setRecipientId(id);
@@ -169,9 +173,84 @@ export function ActionModal({
     setToAddress(w);
   };
 
+  const toggleSplit = (id: string) =>
+    setSplitIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  // Splits the amount equally and sends each roommate their share onchain, one tx at a time.
+  const runSplit = async () => {
+    const targets = splitIds
+      .map((id) => getMember(id))
+      .filter((m) => m.wallet && isAddress(m.wallet));
+    if (targets.length !== splitIds.length) {
+      setError("One of the selected roommates has no valid wallet address.");
+      return;
+    }
+    const share = amt / targets.length;
+    const shareStr = share.toFixed(USDC_DECIMALS);
+    setSplitProgress({ done: 0, total: targets.length });
+    setSplitHashes([]);
+    setStage("confirming");
+
+    for (let i = 0; i < targets.length; i++) {
+      const m = targets[i];
+      try {
+        const hash = await writeContractAsync({
+          chainId: arcTestnet.id,
+          address: USDC_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: "transfer",
+          args: [m.wallet as `0x${string}`, parseUnits(shareStr, USDC_DECIMALS)],
+        });
+        setSplitHashes((h) => [...h, hash]);
+        txStore.add({
+          hash,
+          from: wallet.address ?? "",
+          to: m.wallet!,
+          amount: share,
+          mode: "split",
+          note: note || undefined,
+          recipientName: m.name,
+          createdAt: new Date().toISOString(),
+          status: "pending",
+        });
+        setStage("pending");
+        const rec = await waitForTransactionReceipt(wagmiConfig, { hash, chainId: arcTestnet.id });
+        const ok = rec.status === "success";
+        txStore.update(hash, { status: ok ? "confirmed" : "failed" });
+        if (!ok) {
+          setError(`Transfer to ${m.name} reverted onchain.`);
+          setStage("failed");
+          return;
+        }
+        onSuccess?.({ hash, amount: share, recipientId: m.id, toAddress: m.wallet!, mode: "split" });
+        setSplitProgress({ done: i + 1, total: targets.length });
+        setStage("confirming");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Transaction failed";
+        if (/user rejected|denied/i.test(msg)) {
+          setStage(i === 0 ? "form" : "failed");
+          if (i > 0) setError(`Stopped after ${i} of ${targets.length} transfers.`);
+          return;
+        }
+        setError(msg);
+        setStage("failed");
+        return;
+      }
+    }
+    wallet.refetchBalance();
+    setStage("done");
+  };
+
   const submit = async () => {
     if (!canSubmit) return;
     setError("");
+
+    if (isSplit) {
+      await runSplit();
+      return;
+    }
+
+
 
     // Request-only: no funds move, but the request is stored so the roommate really receives it.
     if (mode === "request") {
