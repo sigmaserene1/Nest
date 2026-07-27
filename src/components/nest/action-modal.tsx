@@ -549,7 +549,11 @@ export function ActionModal({
                 onClick={submit}
                 className={`mt-6 w-full rounded-2xl py-4 text-sm font-bold transition disabled:opacity-40 ${meta.accent}`}
               >
-                {meta.cta(amt)}
+                {isSplit
+                  ? splitCount > 0
+                    ? `Send ${fmtUSD(perPerson)} × ${splitCount}`
+                    : "Select roommates to split with"
+                  : meta.cta(amt)}
               </button>
               <div className="mt-3 text-center text-[11px] text-muted-foreground">
                 {isTransferMode
