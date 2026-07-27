@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell, Card } from "@/components/nest/app-shell";
-import { members, getMember, fmtUSD, categoryMeta } from "@/lib/nest-data";
+import { getMember, fmtUSD, categoryMeta } from "@/lib/nest-data";
+import { useMembers } from "@/lib/nest-store";
 import { useExpenses } from "@/lib/nest-store";
 
 export const Route = createFileRoute("/app/analytics")({

@@ -4,7 +4,8 @@ import { Check, Loader2, X, ArrowRight, QrCode, Home as HomeIcon, AlertTriangle,
 import { isAddress, parseUnits } from "viem";
 import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { MemberAvatar } from "./avatar";
-import { members, currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
+import { currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
+import { useMembers } from "@/lib/nest-store";
 import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, explorerTxUrl } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { txStore } from "@/lib/tx-store";
@@ -33,7 +34,8 @@ type Props = {
 };
 
 export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress, lockRecipient, lockAmount, onSuccess }: Props) {
-  const others = useMemo(() => members.filter((m) => m.id !== currentUserId), []);
+  const members = useMembers();
+  const others = useMemo(() => members.filter((m) => m.id !== currentUserId), [members]);
   const wallet = useArcWallet();
   const { writeContractAsync, reset: resetWrite } = useWriteContract();
 
