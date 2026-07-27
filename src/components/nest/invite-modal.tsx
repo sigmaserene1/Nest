@@ -129,10 +129,18 @@ export function InviteRoommateModal({
 
                 <button
                   onClick={submit}
-                  className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]"
+                  disabled={saving}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-60"
                 >
-                  Add roommate
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? "Adding…" : "Add roommate"}
                 </button>
+                <div className="text-center text-[11px] text-muted-foreground">
+                  {myWallet
+                    ? "Synced to your household — they'll see you too once they connect this wallet."
+                    : "Connect your wallet to sync this roommate across devices."}
+                </div>
+
               </div>
             )}
           </motion.div>
