@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Sparkles, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
-import { ArcLockup, ArcMark, UsdcMark } from "@/components/nest/chain";
+import { ArcMark } from "@/components/nest/chain";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -44,24 +44,21 @@ function Landing() {
           Shared living,
           <br />
           <span className="bg-gradient-to-r from-brand to-orange-500 bg-clip-text text-transparent">
-            effortlessly settled.
-          </span>
-        </h1>
-        <div className="mt-5 flex items-center justify-center gap-2.5 animate-float-in">
-          <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-            Powered by
-          </span>
-          <span className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1.5 ring-1 ring-border">
-            <ArcLockup />
-            <span className="h-3 w-px bg-border" />
-            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground">
-              <UsdcMark size={13} /> USDC
+            effortlessly settled
+          </span>{" "}
+          <span className="inline-flex items-baseline gap-2 align-baseline whitespace-nowrap">
+            <span className="text-muted-foreground">on</span>
+            <span className="inline-flex items-center gap-2 rounded-2xl bg-card px-3 py-1.5 align-middle ring-1 ring-border">
+              <ArcMark size={34} />
+              <span className="text-[0.85em] font-bold tracking-tight">Arc</span>
             </span>
           </span>
-        </div>
+        </h1>
         <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground animate-float-in">
-          The beautiful way to split rent, groceries, and life with your roommates. Settled in seconds with USDC.
+          The beautiful way to split rent, groceries, and life with your roommates. Every payment — and every gas
+          fee — is paid in USDC.
         </p>
+
         <div className="mt-8 flex justify-center gap-3 animate-float-in">
           <Link
             to="/app"
