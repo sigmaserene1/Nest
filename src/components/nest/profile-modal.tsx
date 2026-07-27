@@ -1,8 +1,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { X, User, Check } from "lucide-react";
+import { X, User, Check, Loader2, ShieldCheck } from "lucide-react";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { getDisplayName, setDisplayName, useDisplayName, hasOnboarded, markOnboarded } from "@/lib/profile-store";
+import { claimProfileName, useMyProfile } from "@/lib/nest-remote";
 import { WalletChip } from "./chain";
 
 export function ProfileNameModal({
@@ -15,27 +16,47 @@ export function ProfileNameModal({
   firstTime?: boolean;
 }) {
   const { address } = useArcWallet();
+  const { profile, loading, locked, refetch } = useMyProfile();
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setName(getDisplayName() ?? "");
+    setName(profile?.name ?? getDisplayName() ?? "");
     setError("");
     setSaved(false);
-  }, [open]);
+  }, [open, profile]);
 
-  const submit = () => {
+  // Keep the local name in sync with the permanent onchain-identity record.
+  useEffect(() => {
+    if (profile?.name && getDisplayName() !== profile.name) setDisplayName(profile.name);
+  }, [profile]);
+
+  const submit = async () => {
+    if (!address) {
+      setError("Connect your Arc wallet first.");
+      return;
+    }
     const clean = name.trim();
     if (clean.length < 2) {
       setError("Enter a name with at least 2 characters.");
       return;
     }
-    setDisplayName(clean);
+    setSaving(true);
+    const res = await claimProfileName(address, clean);
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      void refetch();
+      return;
+    }
+    setDisplayName(res.profile.name);
     setSaved(true);
     setTimeout(onClose, 700);
   };
+
 
   return (
     <AnimatePresence>
@@ -62,9 +83,13 @@ export function ProfileNameModal({
                   <User className="h-5 w-5" />
                 </span>
                 <div>
-                  <div className="text-base font-bold">{firstTime ? "Welcome to Nest" : "Your display name"}</div>
+                  <div className="text-base font-bold">
+                    {locked ? "Your Nest name" : firstTime ? "Welcome to Nest" : "Claim your Nest name"}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {firstTime ? "What should roommates call you?" : "Update how roommates see you"}
+                    {locked
+                      ? "Permanently linked to your Arc wallet"
+                      : "One name, one wallet — this can't be changed later"}
                   </div>
                 </div>
               </div>
@@ -80,7 +105,34 @@ export function ProfileNameModal({
                 <span className="grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600">
                   <Check className="h-7 w-7" />
                 </span>
-                <div className="mt-3 text-sm font-bold">Saved</div>
+                <div className="mt-3 text-sm font-bold">Name claimed</div>
+              </div>
+            ) : locked ? (
+              <div className="mt-6 space-y-4">
+                <div className="rounded-2xl bg-muted/60 px-4 py-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Display name
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-2 text-sm font-bold">
+                    {profile?.name}
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                  </div>
+                </div>
+                {address && (
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    Linked wallet <WalletChip address={address} />
+                  </div>
+                )}
+                <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-800">
+                  This name is registered to your wallet on Nest and can never be changed or reused by
+                  anyone else.
+                </div>
+                <button
+                  onClick={onClose}
+                  className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand"
+                >
+                  Done
+                </button>
               </div>
             ) : (
               <div className="mt-6 space-y-4">
@@ -94,11 +146,12 @@ export function ProfileNameModal({
                       setName(e.target.value);
                       setError("");
                     }}
-                    onKeyDown={(e) => e.key === "Enter" && submit()}
+                    onKeyDown={(e) => e.key === "Enter" && void submit()}
                     maxLength={40}
                     autoFocus
+                    disabled={saving || loading}
                     placeholder="e.g. Sara Kim"
-                    className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+                    className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand disabled:opacity-60"
                   />
                 </div>
 
@@ -113,16 +166,19 @@ export function ProfileNameModal({
                 )}
 
                 <button
-                  onClick={submit}
-                  className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]"
+                  onClick={() => void submit()}
+                  disabled={saving || loading}
+                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-70"
                 >
-                  {firstTime ? "Continue" : "Save name"}
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? "Claiming…" : "Claim name"}
                 </button>
                 <div className="text-center text-[11px] text-muted-foreground">
-                  Stored on this device — you can change it anytime from Members.
+                  Your name is locked to this wallet forever — choose carefully.
                 </div>
               </div>
             )}
+
           </motion.div>
         </motion.div>
       )}
@@ -130,17 +186,24 @@ export function ProfileNameModal({
   );
 }
 
-/** Shows the onboarding name prompt once per wallet, right after it connects. */
+/** Shows the name-claim prompt once per wallet, until that wallet has a registered name. */
 export function ProfileOnboarding() {
   const { isConnected, address } = useArcWallet();
   const displayName = useDisplayName();
+  const { profile, loading } = useMyProfile();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!isConnected || !address) return;
-    if (displayName || hasOnboarded(address)) return;
+    if (!isConnected || !address || loading) return;
+    if (profile) {
+      if (displayName !== profile.name) setDisplayName(profile.name);
+      setOpen(false);
+      return;
+    }
+    if (hasOnboarded(address)) return;
     setOpen(true);
-  }, [isConnected, address, displayName]);
+  }, [isConnected, address, displayName, profile, loading]);
+
 
   const close = () => {
     markOnboarded(address);

@@ -235,3 +235,65 @@ export function usePaymentRequests() {
     myWallet: address ?? null,
   };
 }
+
+/* -------------------------------- profiles ------------------------------- */
+// A wallet claims exactly one display name, forever. Names are globally unique,
+// so a Nest name always maps back to one real Arc wallet.
+
+export type ProfileRow = { wallet: string; name: string; created_at: string };
+
+export async function fetchProfile(wallet: string): Promise<ProfileRow | null> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("wallet,name,created_at")
+    .eq("wallet", wallet.toLowerCase())
+    .maybeSingle();
+  return (data as ProfileRow) ?? null;
+}
+
+export async function claimProfileName(
+  wallet: string,
+  name: string,
+): Promise<{ ok: true; profile: ProfileRow } | { ok: false; error: string }> {
+  const existing = await fetchProfile(wallet);
+  if (existing) return { ok: false, error: `This wallet is already registered as "${existing.name}".` };
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({ wallet: wallet.toLowerCase(), name: name.trim() })
+    .select("wallet,name,created_at")
+    .single();
+
+  if (error) {
+    if (error.code === "23505") {
+      return { ok: false, error: "That name is already claimed by another wallet. Pick another." };
+    }
+    return { ok: false, error: error.message };
+  }
+  return { ok: true, profile: data as ProfileRow };
+}
+
+/** The permanent Nest identity for the connected wallet (null until claimed). */
+export function useMyProfile() {
+  const { address } = useArcWallet();
+  const me = address?.toLowerCase() ?? null;
+  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    if (!me) {
+      setProfile(null);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    setProfile(await fetchProfile(me));
+    setLoading(false);
+  }, [me]);
+
+  useEffect(() => {
+    void refetch();
+  }, [refetch]);
+
+  return { profile, loading, refetch, locked: !!profile, myWallet: address ?? null };
+}
