@@ -34,11 +34,16 @@ function Settle() {
             </div>
             <button
               disabled={mine.length === 0}
-              onClick={() => mine[0] && setActive(mine[0])}
+              onClick={() => { setQueue(mine.length > 1); mine[0] && setActive(mine[0]); }}
               className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-50"
             >
-              {mine.length === 0 ? "You're all settled" : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
+              {mine.length === 0
+                ? "You're all settled"
+                : mine.length > 1
+                  ? `Settle all onchain · ${fmtUSD(total)}`
+                  : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
             </button>
+
           </Card>
 
           <Card>
