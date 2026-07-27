@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X, User, Check } from "lucide-react";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { getDisplayName, setDisplayName, useDisplayName } from "@/lib/profile-store";
+import { getDisplayName, setDisplayName, useDisplayName, hasOnboarded, markOnboarded } from "@/lib/profile-store";
 import { WalletChip } from "./chain";
 
 export function ProfileNameModal({

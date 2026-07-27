@@ -34,16 +34,23 @@ function Settle() {
               <Zap className="h-3.5 w-3.5 text-brand" /> Instant on Arc · ~$0.001 fee
             </div>
             <button
-              disabled={mine.length === 0}
-              onClick={() => { setQueue(mine.length > 1); mine[0] && setActive(mine[0]); }}
-              className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-50"
+              onClick={() => {
+                if (mine.length === 0) {
+                  setFreeSend(true);
+                  return;
+                }
+                setQueue(mine.length > 1);
+                setActive(mine[0]);
+              }}
+              className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]"
             >
               {mine.length === 0
-                ? "You're all settled"
+                ? "Send USDC to a roommate"
                 : mine.length > 1
                   ? `Settle all onchain · ${fmtUSD(total)}`
                   : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
             </button>
+
 
           </Card>
 
