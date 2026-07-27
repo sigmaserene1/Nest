@@ -16,27 +16,47 @@ export function ProfileNameModal({
   firstTime?: boolean;
 }) {
   const { address } = useArcWallet();
+  const { profile, loading, locked, refetch } = useMyProfile();
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setName(getDisplayName() ?? "");
+    setName(profile?.name ?? getDisplayName() ?? "");
     setError("");
     setSaved(false);
-  }, [open]);
+  }, [open, profile]);
 
-  const submit = () => {
+  // Keep the local name in sync with the permanent onchain-identity record.
+  useEffect(() => {
+    if (profile?.name && getDisplayName() !== profile.name) setDisplayName(profile.name);
+  }, [profile]);
+
+  const submit = async () => {
+    if (!address) {
+      setError("Connect your Arc wallet first.");
+      return;
+    }
     const clean = name.trim();
     if (clean.length < 2) {
       setError("Enter a name with at least 2 characters.");
       return;
     }
-    setDisplayName(clean);
+    setSaving(true);
+    const res = await claimProfileName(address, clean);
+    setSaving(false);
+    if (!res.ok) {
+      setError(res.error);
+      void refetch();
+      return;
+    }
+    setDisplayName(res.profile.name);
     setSaved(true);
     setTimeout(onClose, 700);
   };
+
 
   return (
     <AnimatePresence>
