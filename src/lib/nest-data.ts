@@ -105,7 +105,7 @@ export function computeBalances(
   expensesList: Expense[] = expenses,
   settlementsList: Settlement[] = settlements,
 ): { net: Record<string, number>; debts: Debt[] } {
-  const net: Record<string, number> = Object.fromEntries(members.map((m) => [m.id, 0]));
+  const net: Record<string, number> = Object.fromEntries(runtimeMembers.map((m) => [m.id, 0]));
   for (const e of expensesList) {
     const share = e.amount / e.splitAmong.length;
     net[e.payerId] += e.amount;
