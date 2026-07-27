@@ -205,7 +205,7 @@ export function useMembers(): Member[] {
   }, [custom, remote, myWallet, displayName]);
 }
 
-}
+
 
 
 
