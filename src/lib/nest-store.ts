@@ -188,3 +188,17 @@ export function recordSettlement(input: {
   settlementStore.add(s);
   return s;
 }
+
+export function updateExpense(id: string, patch: Partial<Omit<Expense, "id">>): void {
+  if (expenseStore.update(id, patch)) return;
+  const existing = expenseOverrideStore.all().find((o) => o.id === id);
+  if (existing) expenseOverrideStore.update(id, { patch: { ...existing.patch, ...patch } });
+  else expenseOverrideStore.add({ id, patch });
+}
+
+export function deleteExpense(id: string): void {
+  if (expenseStore.remove(id)) return;
+  const existing = expenseOverrideStore.all().find((o) => o.id === id);
+  if (existing) expenseOverrideStore.update(id, { deleted: true });
+  else expenseOverrideStore.add({ id, deleted: true });
+}
