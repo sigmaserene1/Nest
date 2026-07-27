@@ -85,10 +85,14 @@ export function ActionModal({
   const others = useMemo(() => members.filter((m) => m.id !== currentUserId), [members]);
   const wallet = useArcWallet();
   const { writeContractAsync, reset: resetWrite } = useWriteContract();
+  const wagmiConfig = useConfig();
 
   const [amount, setAmount] = useState<string>("");
   const [note, setNote] = useState("");
   const [recipientId, setRecipientId] = useState<string>("");
+  const [splitIds, setSplitIds] = useState<string[]>([]);
+  const [splitProgress, setSplitProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const [splitHashes, setSplitHashes] = useState<`0x${string}`[]>([]);
   const [toAddress, setToAddress] = useState<string>("");
   const [stage, setStage] = useState<"form" | "confirming" | "pending" | "done" | "failed">("form");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
@@ -107,6 +111,9 @@ export function ActionModal({
     setNote("");
     setError("");
     setTxHash(undefined);
+    setSplitIds([]);
+    setSplitHashes([]);
+    setSplitProgress({ done: 0, total: 0 });
     resetWrite();
     setAmount(defaultAmount ? String(defaultAmount) : mode === "rent" ? "800" : "");
     const rid = defaultRecipientId ?? (mode === "rent" ? (others[0]?.id ?? "") : "");
