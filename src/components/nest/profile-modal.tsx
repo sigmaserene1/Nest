@@ -83,9 +83,13 @@ export function ProfileNameModal({
                   <User className="h-5 w-5" />
                 </span>
                 <div>
-                  <div className="text-base font-bold">{firstTime ? "Welcome to Nest" : "Your display name"}</div>
+                  <div className="text-base font-bold">
+                    {locked ? "Your Nest name" : firstTime ? "Welcome to Nest" : "Claim your Nest name"}
+                  </div>
                   <div className="text-xs text-muted-foreground">
-                    {firstTime ? "What should roommates call you?" : "Update how roommates see you"}
+                    {locked
+                      ? "Permanently linked to your Arc wallet"
+                      : "One name, one wallet — this can't be changed later"}
                   </div>
                 </div>
               </div>
@@ -101,7 +105,34 @@ export function ProfileNameModal({
                 <span className="grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600">
                   <Check className="h-7 w-7" />
                 </span>
-                <div className="mt-3 text-sm font-bold">Saved</div>
+                <div className="mt-3 text-sm font-bold">Name claimed</div>
+              </div>
+            ) : locked ? (
+              <div className="mt-6 space-y-4">
+                <div className="rounded-2xl bg-muted/60 px-4 py-3">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    Display name
+                  </div>
+                  <div className="mt-0.5 flex items-center gap-2 text-sm font-bold">
+                    {profile?.name}
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                  </div>
+                </div>
+                {address && (
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    Linked wallet <WalletChip address={address} />
+                  </div>
+                )}
+                <div className="rounded-2xl bg-emerald-50 px-4 py-3 text-xs font-medium text-emerald-800">
+                  This name is registered to your wallet on Nest and can never be changed or reused by
+                  anyone else.
+                </div>
+                <button
+                  onClick={onClose}
+                  className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand"
+                >
+                  Done
+                </button>
               </div>
             ) : (
               <div className="mt-6 space-y-4">
@@ -115,11 +146,12 @@ export function ProfileNameModal({
                       setName(e.target.value);
                       setError("");
                     }}
-                    onKeyDown={(e) => e.key === "Enter" && submit()}
+                    onKeyDown={(e) => e.key === "Enter" && void submit()}
                     maxLength={40}
                     autoFocus
+                    disabled={saving || loading}
                     placeholder="e.g. Sara Kim"
-                    className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+                    className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand disabled:opacity-60"
                   />
                 </div>
 
@@ -134,16 +166,19 @@ export function ProfileNameModal({
                 )}
 
                 <button
-                  onClick={submit}
-                  className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]"
+                  onClick={() => void submit()}
+                  disabled={saving || loading}
+                  className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-70"
                 >
-                  {firstTime ? "Continue" : "Save name"}
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? "Claiming…" : "Claim name"}
                 </button>
                 <div className="text-center text-[11px] text-muted-foreground">
-                  Stored on this device — you can change it anytime from Members.
+                  Your name is locked to this wallet forever — choose carefully.
                 </div>
               </div>
             )}
+
           </motion.div>
         </motion.div>
       )}
