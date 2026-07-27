@@ -16,6 +16,14 @@ import {
   type Debt,
   type Member,
 } from "./nest-data";
+import { currentUserId } from "./nest-data";
+import {
+  insertRoommate,
+  deleteRoommateRow,
+  remoteMemberId,
+  useRemoteRoommates,
+} from "./nest-remote";
+
 
 
 function makeStore<T>(key: string) {
@@ -108,12 +116,23 @@ export function isValidEvmAddress(a: string): boolean {
 
 export type AddRoommateResult = { ok: true; member: Member } | { ok: false; error: string };
 
-export function addRoommate(nameRaw: string, walletRaw: string): AddRoommateResult {
+/**
+ * Adds a roommate. When a wallet is connected the roommate is stored onchain-identity-wide
+ * in Lovable Cloud (so the person added also sees you), otherwise locally.
+ */
+export async function addRoommate(
+  nameRaw: string,
+  walletRaw: string,
+  owner?: { wallet?: string | null; name?: string },
+): Promise<AddRoommateResult> {
   const name = nameRaw.trim();
   const wallet = walletRaw.trim();
   if (!name) return { ok: false, error: "Please enter a full name." };
   if (name.length > 60) return { ok: false, error: "Name must be under 60 characters." };
   if (!isValidEvmAddress(wallet)) return { ok: false, error: "Enter a valid Arc wallet address (0x…)." };
+  if (owner?.wallet && owner.wallet.toLowerCase() === wallet.toLowerCase()) {
+    return { ok: false, error: "That's your own wallet address." };
+  }
 
   const existing = [...seedMembers, ...memberStore.all()];
   if (existing.some((m) => m.wallet?.toLowerCase() === wallet.toLowerCase())) {
@@ -122,36 +141,68 @@ export function addRoommate(nameRaw: string, walletRaw: string): AddRoommateResu
 
   const skin = PALETTE[memberStore.all().length % PALETTE.length];
   const member: Member = {
-    id: `um-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    id: owner?.wallet ? remoteMemberId(wallet) : `um-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
     name,
     handle: `@${name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")}`,
     wallet,
     ...skin,
   };
+
+  if (owner?.wallet) {
+    const res = await insertRoommate({
+      ownerWallet: owner.wallet,
+      ownerName: owner.name || "Roommate",
+      wallet,
+      name,
+    });
+    if (!res.ok) return res;
+    return { ok: true, member };
+  }
+
   memberStore.add(member);
   return { ok: true, member };
 }
 
-export function removeRoommate(id: string) {
+export function removeRoommate(id: string, remoteRowId?: string) {
+  if (remoteRowId) {
+    void deleteRoommateRow(remoteRowId);
+    return;
+  }
   memberStore.remove(id);
 }
 
 export function useCustomMembers(): Member[] {
-  return useStore(memberStore);
+  const local = useStore(memberStore);
+  const { members: remote } = useRemoteRoommates();
+  return useMemo(() => [...local, ...remote], [local, remote]);
 }
 
 export function useMembers(): Member[] {
   const custom = useStore(memberStore);
+  const { members: remote, myWallet } = useRemoteRoommates();
   return useMemo(() => {
-    const list = [...seedMembers, ...custom];
+    const seeded = myWallet
+      ? seedMembers.map((m) => (m.id === currentUserId ? { ...m, wallet: myWallet } : m))
+      : seedMembers;
+    const list = [...seeded, ...custom];
+    const seen = new Set(list.map((m) => m.wallet?.toLowerCase()).filter(Boolean) as string[]);
+    for (const r of remote) {
+      const w = r.wallet!.toLowerCase();
+      if (seen.has(w)) continue;
+      seen.add(w);
+      list.push(r);
+    }
     setRuntimeMembers(list);
     return list;
-  }, [custom]);
+  }, [custom, remote, myWallet]);
 }
 
 
+
+const EMPTY: unknown[] = [];
+
 function useStore<T>(store: ReturnType<typeof makeStore<T>>): T[] {
-  return useSyncExternalStore(store.subscribe, store.all, () => [] as T[]);
+  return useSyncExternalStore(store.subscribe, store.all, () => EMPTY as T[]);
 }
 
 export function useExpenses(): Expense[] {

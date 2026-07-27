@@ -6,6 +6,7 @@ import { Stagger, Item, Tap } from "@/components/nest/motion";
 import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { PaymentRequests } from "@/components/nest/payment-requests";
 import {
   currentUserId,
   getMember,
@@ -155,6 +156,9 @@ function Dashboard() {
         <QuickPill onClick={() => action.open("scan")} label="Scan QR" icon={<QrCode className="h-[18px] w-[18px]" />} tint="bg-amber-500/10 text-amber-600" />
 
       </Stagger>
+
+      {/* Real payment requests between roommates */}
+      <PaymentRequests />
 
       {/* Roommate carousel */}
       <section className="mt-7">

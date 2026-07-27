@@ -5,6 +5,7 @@ import { MemberAvatar } from "@/components/nest/avatar";
 import { WalletChip, ArcBadge } from "@/components/nest/chain";
 import { currentUserId, fmtUSD } from "@/lib/nest-data";
 import { useComputedBalances, useMembers, useCustomMembers, removeRoommate } from "@/lib/nest-store";
+import { useRemoteRoommates } from "@/lib/nest-remote";
 import { InviteRoommateModal } from "@/components/nest/invite-modal";
 import { Copy, Check, UserPlus, Trash2 } from "lucide-react";
 
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/app/members")({
 function MembersPage() {
   const members = useMembers();
   const custom = useCustomMembers();
+  const { ownedIdByWallet } = useRemoteRoommates();
   const { net } = useComputedBalances();
   const [copied, setCopied] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -66,9 +68,9 @@ function MembersPage() {
                     <ArcBadge />
                   </div>
                 </div>
-                {custom.some((c) => c.id === m.id) && (
+                {(custom.some((c) => c.id === m.id) || ownedIdByWallet.has(m.id)) && (
                   <button
-                    onClick={() => removeRoommate(m.id)}
+                    onClick={() => removeRoommate(m.id, ownedIdByWallet.get(m.id))}
                     aria-label={`Remove ${m.name}`}
                     className="grid h-8 w-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-brand"
                   >

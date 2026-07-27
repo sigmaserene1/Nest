@@ -9,6 +9,7 @@ import { useMembers } from "@/lib/nest-store";
 import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, explorerTxUrl } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { txStore } from "@/lib/tx-store";
+import { createPaymentRequest } from "@/lib/nest-remote";
 import type { ActionMode } from "./action-modal-types";
 
 export type { ActionMode };
@@ -102,14 +103,16 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
   const amt = parseFloat(amount) || 0;
 
   const isTransferMode = mode !== "request"; // request doesn't move funds
-  const needsAddress = isTransferMode && mode !== "scan";
+  const needsAddress = mode !== "scan";
   const validAddress = !needsAddress || isAddress(toAddress);
   const hasFunds = !isTransferMode || amt <= wallet.usdcBalance;
 
   const canSubmit =
     amt > 0 &&
-    (!isTransferMode ||
-      (wallet.isConnected && wallet.isOnArc && validAddress && hasFunds));
+    validAddress &&
+    (isTransferMode
+      ? wallet.isConnected && wallet.isOnArc && hasFunds
+      : wallet.isConnected);
 
   const pickRecipient = (id: string) => {
     setRecipientId(id);
@@ -121,8 +124,30 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
     if (!canSubmit) return;
     setError("");
 
-    // Request-only: no chain action, just show a confirmation
+    // Request-only: no funds move, but the request is stored so the roommate really receives it.
     if (mode === "request") {
+      if (!wallet.address) {
+        setError("Connect your wallet to send a request.");
+        return;
+      }
+      if (!isAddress(toAddress)) {
+        setError("Pick a roommate or enter a valid wallet address.");
+        return;
+      }
+      setStage("confirming");
+      const res = await createPaymentRequest({
+        fromWallet: wallet.address,
+        fromName: getMember(currentUserId).name,
+        toWallet: toAddress,
+        toName: recipientId ? getMember(recipientId).name : undefined,
+        amount: amt,
+        note: note || undefined,
+      });
+      if (!res.ok) {
+        setError(res.error);
+        setStage("failed");
+        return;
+      }
       setStage("done");
       return;
     }
@@ -210,7 +235,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                 </div>
               )}
 
-              {isTransferMode && !wallet.isConnected && (
+              {!wallet.isConnected && (
                 <div className="mt-4 flex items-start gap-2 rounded-2xl bg-amber-50 p-3 text-xs text-amber-900 ring-1 ring-amber-200">
                   <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                   <span>Connect your wallet in the top-right to send onchain payments.</span>
@@ -339,7 +364,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                 {meta.cta(amt)}
               </button>
               <div className="mt-3 text-center text-[11px] text-muted-foreground">
-                {isTransferMode ? "Onchain USDC transfer · Arc Testnet" : "Sends a request notification"}
+                {isTransferMode ? "Onchain USDC transfer · Arc Testnet" : "Sent to their wallet · payable in USDC on Arc"}
               </div>
             </>
           )}
@@ -371,7 +396,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                 {stage === "confirming" && "Approve the USDC transfer in your wallet."}
                 {stage === "pending" && "Waiting for onchain confirmation…"}
                 {stage === "done" && mode === "request" &&
-                  (recipientId ? `${getMember(recipientId).name.split(" ")[0]} will be notified.` : "Notification sent.")}
+                  "They'll see it in their Nest and can pay it in USDC on Arc."}
                 {stage === "done" && mode !== "request" && "Confirmed on Arc Testnet."}
                 {stage === "failed" && (error || "Something went wrong.")}
               </p>

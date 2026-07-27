@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { X, UserPlus, Check } from "lucide-react";
+import { X, UserPlus, Check, Loader2 } from "lucide-react";
 import { addRoommate } from "@/lib/nest-store";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
 import type { Member } from "@/lib/nest-data";
 
 export function InviteRoommateModal({
@@ -13,21 +14,28 @@ export function InviteRoommateModal({
   onClose: () => void;
   onAdded?: (m: Member) => void;
 }) {
+  const { address: myWallet } = useArcWallet();
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [added, setAdded] = useState<Member | null>(null);
+
 
   useEffect(() => {
     if (!open) return;
     setName("");
     setWallet("");
     setError("");
+    setSaving(false);
     setAdded(null);
   }, [open]);
 
-  const submit = () => {
-    const res = addRoommate(name, wallet);
+  const submit = async () => {
+    if (saving) return;
+    setSaving(true);
+    const res = await addRoommate(name, wallet, { wallet: myWallet, name: "Me" });
+    setSaving(false);
     if (!res.ok) {
       setError(res.error);
       return;
@@ -37,6 +45,7 @@ export function InviteRoommateModal({
     onAdded?.(res.member);
     setTimeout(onClose, 900);
   };
+
 
   return (
     <AnimatePresence>
@@ -121,10 +130,18 @@ export function InviteRoommateModal({
 
                 <button
                   onClick={submit}
-                  className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]"
+                  disabled={saving}
+                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-60"
                 >
-                  Add roommate
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? "Adding…" : "Add roommate"}
                 </button>
+                <div className="text-center text-[11px] text-muted-foreground">
+                  {myWallet
+                    ? "Synced to your household — they'll see you too once they connect this wallet."
+                    : "Connect your wallet to sync this roommate across devices."}
+                </div>
+
               </div>
             )}
           </motion.div>
