@@ -181,11 +181,13 @@ export function useSettlements(): Settlement[] {
 export function useComputedBalances(): { net: Record<string, number>; debts: Debt[] } {
   const expenses = useExpenses();
   const settlements = useSettlements();
+  const allMembers = useMembers();
   return useMemo(
     () => baseComputeBalances(expenses, settlements),
-    [expenses, settlements],
+    [expenses, settlements, allMembers],
   );
 }
+
 
 export function useHouseholdActivity(): ActivityEvent[] {
   const extraExpenses = useStore(expenseStore);
