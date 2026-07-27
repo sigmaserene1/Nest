@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { X, UserPlus, Check, Loader2 } from "lucide-react";
 import { addRoommate } from "@/lib/nest-store";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { getDisplayName } from "@/lib/profile-store";
 import type { Member } from "@/lib/nest-data";
 
 export function InviteRoommateModal({
@@ -34,7 +35,7 @@ export function InviteRoommateModal({
   const submit = async () => {
     if (saving) return;
     setSaving(true);
-    const res = await addRoommate(name, wallet, { wallet: myWallet, name: "Me" });
+    const res = await addRoommate(name, wallet, { wallet: myWallet, name: getDisplayName() ?? "Me" });
     setSaving(false);
     if (!res.ok) {
       setError(res.error);
