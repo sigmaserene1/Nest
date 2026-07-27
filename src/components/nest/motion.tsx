@@ -9,9 +9,10 @@ export function PageTransition({ children }: { children: ReactNode }) {
   return (
     <motion.div
       key={pathname}
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease }}
+      transition={{ duration: 0.18, ease }}
+
     >
       {children}
     </motion.div>
@@ -34,7 +35,7 @@ export function Stagger({
       animate="show"
       variants={{
         hidden: {},
-        show: { transition: { staggerChildren: 0.06, delayChildren: delay } },
+        show: { transition: { staggerChildren: 0.03, delayChildren: delay } },
       }}
     >
       {children}
@@ -57,8 +58,8 @@ export function Item({
     <MotionTag
       className={className}
       variants={{
-        hidden: { opacity: 0, y: 10 },
-        show: { opacity: 1, y: 0, transition: { duration: 0.4, ease } },
+        hidden: { opacity: 0, y: 8 },
+        show: { opacity: 1, y: 0, transition: { duration: 0.22, ease } },
       }}
       {...rest}
     >
@@ -76,7 +77,7 @@ export function Tap({
     <motion.div
       whileTap={{ scale: 0.97 }}
       whileHover={{ y: -1 }}
-      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+      transition={{ type: "spring", stiffness: 600, damping: 30 }}
       className={className}
       {...rest}
     >

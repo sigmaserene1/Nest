@@ -1,24 +1,38 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
 import { UsdcBadge } from "@/components/nest/chain";
-import { members, getMember, fmtUSD, categoryMeta, currentUserId, type Expense } from "@/lib/nest-data";
-import { useExpenses, addExpense } from "@/lib/nest-store";
+import { ExpenseForm, type ExpenseInput } from "@/components/nest/expense-form";
+import { ExpenseDetail } from "@/components/nest/expense-detail";
+import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
+import { useExpenses, addExpense, updateExpense, deleteExpense } from "@/lib/nest-store";
 import { Search, Plus, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/expenses")({
   component: Expenses,
-  head: () => ({ meta: [{ title: "Expenses · Nest" }, { name: "description", content: "Every shared expense in one beautiful feed." }] }),
+  head: () => ({
+    meta: [
+      { title: "Expenses · Nest" },
+      { name: "description", content: "Every shared expense in one beautiful feed." },
+    ],
+  }),
 });
 
 const cats = ["All", "Rent", "Groceries", "Utilities", "Internet", "Dining", "Other"] as const;
+
+type ModalState =
+  | { mode: "add" }
+  | { mode: "detail"; expense: Expense }
+  | { mode: "edit"; expense: Expense }
+  | null;
 
 function Expenses() {
   const allExpenses = useExpenses();
   const [cat, setCat] = useState<(typeof cats)[number]>("All");
   const [q, setQ] = useState("");
-  const [open, setOpen] = useState(false);
+  const [modal, setModal] = useState<ModalState>(null);
 
   const filtered = allExpenses
     .filter((e) => cat === "All" || e.category === cat)
@@ -30,8 +44,21 @@ function Expenses() {
     return acc;
   }, {});
 
+  const close = () => setModal(null);
+
+  const handleSave = (data: ExpenseInput) => {
+    if (modal?.mode === "edit") updateExpense(modal.expense.id, data);
+    else addExpense(data);
+    close();
+  };
+
+  const handleDelete = () => {
+    if (modal && "expense" in modal) deleteExpense(modal.expense.id);
+    close();
+  };
+
   return (
-    <AppShell greeting={<Header onAdd={() => setOpen(true)} />}>
+    <AppShell greeting={<Header onAdd={() => setModal({ mode: "add" })} />} onFabClick={() => setModal({ mode: "add" })}>
       <div className="mt-4 flex flex-col gap-3">
         <div className="glass flex items-center gap-2 rounded-2xl px-4 py-2.5">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -71,7 +98,11 @@ function Expenses() {
                   const meta = categoryMeta[e.category];
                   const split = e.splitAmong.map(getMember);
                   return (
-                    <li key={e.id} className="flex items-center gap-3 p-3 transition hover:bg-muted/50 rounded-2xl">
+                    <li
+                      key={e.id}
+                      onClick={() => setModal({ mode: "detail", expense: e })}
+                      className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition hover:bg-muted/50 active:scale-[0.99]"
+                    >
                       <span className="grid h-11 w-11 place-items-center rounded-2xl text-xl" style={{ background: meta.bg }}>
                         {meta.icon}
                       </span>
@@ -96,9 +127,55 @@ function Expenses() {
             </Card>
           </div>
         ))}
+        {filtered.length === 0 && (
+          <Card className="py-12 text-center">
+            <div className="text-sm font-semibold">No expenses found</div>
+            <div className="mt-1 text-xs text-muted-foreground">Try a different filter or add a new expense.</div>
+          </Card>
+        )}
       </div>
 
-      {open && <AddExpenseSheet onClose={() => setOpen(false)} />}
+      <AnimatePresence>
+        {modal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            onClick={close}
+            className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
+          >
+            <motion.div
+              initial={{ y: 24, opacity: 0, scale: 0.98 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 24, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 620, damping: 34, mass: 0.6 }}
+              onClick={(e) => e.stopPropagation()}
+              className="glass-strong max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-[32px] p-6 sm:rounded-[32px]"
+            >
+              {modal.mode !== "detail" && (
+                <>
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold">{modal.mode === "edit" ? "Edit expense" : "New expense"}</h3>
+                    <button onClick={close} className="grid h-9 w-9 place-items-center rounded-full bg-muted" aria-label="Close">
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <ExpenseForm initial={modal.mode === "edit" ? modal.expense : undefined} onSave={handleSave} />
+                </>
+              )}
+              {modal.mode === "detail" && (
+                <ExpenseDetail
+                  expense={modal.expense}
+                  onEdit={() => setModal({ mode: "edit", expense: modal.expense })}
+                  onDelete={handleDelete}
+                  onClose={close}
+                />
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AppShell>
   );
 }
@@ -113,84 +190,6 @@ function Header({ onAdd }: { onAdd: () => void }) {
       <button onClick={onAdd} className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-brand transition hover:scale-[1.02]">
         <Plus className="h-4 w-4" /> Add
       </button>
-    </div>
-  );
-}
-
-function AddExpenseSheet({ onClose }: { onClose: () => void }) {
-  const [title, setTitle] = useState("");
-  const [amount, setAmount] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set(members.map((m) => m.id)));
-  const toggle = (id: string) => {
-    const next = new Set(selected);
-    next.has(id) ? next.delete(id) : next.add(id);
-    setSelected(next);
-  };
-
-  const amt = parseFloat(amount) || 0;
-  const canSave = title.trim().length > 0 && amt > 0 && selected.size > 0;
-
-  const save = () => {
-    if (!canSave) return;
-    addExpense({
-      title: title.trim(),
-      amount: amt,
-      category: "Other",
-      payerId: currentUserId,
-      splitAmong: Array.from(selected),
-    });
-    onClose();
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center">
-      <div className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px] animate-pop-in">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold">New expense</h3>
-          <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-muted"><X className="h-4 w-4" /></button>
-        </div>
-        <div className="mt-6 space-y-4">
-          <Field label="What">
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Trader Joe's" className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand" />
-          </Field>
-          <Field label="Amount">
-            <div className="flex items-center rounded-2xl bg-muted/60 px-4 py-3 focus-within:ring-2 focus-within:ring-brand">
-              <span className="text-lg font-bold text-muted-foreground">$</span>
-              <input value={amount} onChange={(e) => setAmount(e.target.value)} type="number" inputMode="decimal" placeholder="0.00" className="ml-2 w-full bg-transparent text-2xl font-bold tabular-nums outline-none" />
-              <span className="text-xs font-semibold text-muted-foreground">USDC</span>
-            </div>
-          </Field>
-          <Field label="Split between">
-            <div className="flex flex-wrap gap-2">
-              {members.map((m) => {
-                const on = selected.has(m.id);
-                return (
-                  <button
-                    key={m.id}
-                    onClick={() => toggle(m.id)}
-                    className={`flex items-center gap-2 rounded-full py-1.5 pl-1 pr-3 text-xs font-semibold transition ${on ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
-                  >
-                    <MemberAvatar member={m} size={22} />
-                    {m.name.split(" ")[0]}
-                  </button>
-                );
-              })}
-            </div>
-          </Field>
-        </div>
-        <button onClick={save} disabled={!canSave} className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-40">
-          Add expense
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
-      {children}
     </div>
   );
 }

@@ -41,7 +41,24 @@ function makeStore<T>(key: string) {
   return {
     all: read,
     add: (item: T) => write([item, ...read()]),
+    update: (id: string, patch: Partial<T>) => {
+      const list = read();
+      const idx = list.findIndex((i) => (i as { id?: string }).id === id);
+      if (idx === -1) return false;
+      const next = [...list];
+      next[idx] = { ...next[idx], ...patch };
+      write(next);
+      return true;
+    },
+    remove: (id: string) => {
+      const list = read();
+      const next = list.filter((i) => (i as { id?: string }).id !== id);
+      if (next.length === list.length) return false;
+      write(next);
+      return true;
+    },
     clear: () => write([]),
+
     subscribe(fn: () => void) {
       listeners.add(fn);
       const onStorage = (e: StorageEvent) => {
@@ -66,17 +83,29 @@ function makeStore<T>(key: string) {
 export const expenseStore = makeStore<Expense>("nest.expenses.v1");
 export const settlementStore = makeStore<Settlement>("nest.settlements.v1");
 
+// Edits/deletions applied on top of the seed expenses (which live in code, not storage).
+type ExpenseOverride = { id: string; deleted?: boolean; patch?: Partial<Expense> };
+export const expenseOverrideStore = makeStore<ExpenseOverride>("nest.expenseOverrides.v1");
+
 function useStore<T>(store: ReturnType<typeof makeStore<T>>): T[] {
   return useSyncExternalStore(store.subscribe, store.all, () => [] as T[]);
 }
 
 export function useExpenses(): Expense[] {
   const extras = useStore(expenseStore);
-  return useMemo(
-    () => [...extras, ...seedExpenses].sort((a, b) => b.date.localeCompare(a.date)),
-    [extras],
-  );
+  const overrides = useStore(expenseOverrideStore);
+  return useMemo(() => {
+    const map = new Map(overrides.map((o) => [o.id, o]));
+    return [...extras, ...seedExpenses]
+      .filter((e) => !map.get(e.id)?.deleted)
+      .map((e) => {
+        const patch = map.get(e.id)?.patch;
+        return patch ? { ...e, ...patch } : e;
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [extras, overrides]);
 }
+
 
 export function useSettlements(): Settlement[] {
   const extras = useStore(settlementStore);
@@ -158,4 +187,18 @@ export function recordSettlement(input: {
   };
   settlementStore.add(s);
   return s;
+}
+
+export function updateExpense(id: string, patch: Partial<Omit<Expense, "id">>): void {
+  if (expenseStore.update(id, patch)) return;
+  const existing = expenseOverrideStore.all().find((o) => o.id === id);
+  if (existing) expenseOverrideStore.update(id, { patch: { ...existing.patch, ...patch } });
+  else expenseOverrideStore.add({ id, patch });
+}
+
+export function deleteExpense(id: string): void {
+  if (expenseStore.remove(id)) return;
+  const existing = expenseOverrideStore.all().find((o) => o.id === id);
+  if (existing) expenseOverrideStore.update(id, { deleted: true });
+  else expenseOverrideStore.add({ id, deleted: true });
 }

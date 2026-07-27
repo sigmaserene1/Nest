@@ -178,10 +178,10 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
         onClick={stageIsBusy ? undefined : onClose}
       >
         <motion.div
-          initial={{ y: 40, opacity: 0, scale: 0.98 }}
+          initial={{ y: 24, opacity: 0, scale: 0.98 }}
           animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 40, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          exit={{ y: 24, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 620, damping: 34, mass: 0.6 }}
           onClick={(e) => e.stopPropagation()}
           className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px]"
         >
