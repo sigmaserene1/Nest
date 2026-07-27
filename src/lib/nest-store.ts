@@ -16,6 +16,14 @@ import {
   type Debt,
   type Member,
 } from "./nest-data";
+import { currentUserId } from "./nest-data";
+import {
+  insertRoommate,
+  deleteRoommateRow,
+  remoteMemberId,
+  useRemoteRoommates,
+} from "./nest-remote";
+
 
 
 function makeStore<T>(key: string) {
