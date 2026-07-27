@@ -1,7 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { X, UserPlus, Check } from "lucide-react";
+import { X, UserPlus, Check, Loader2 } from "lucide-react";
 import { addRoommate } from "@/lib/nest-store";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
 import type { Member } from "@/lib/nest-data";
 
 export function InviteRoommateModal({
@@ -13,10 +14,13 @@ export function InviteRoommateModal({
   onClose: () => void;
   onAdded?: (m: Member) => void;
 }) {
+  const { address: myWallet } = useArcWallet();
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
   const [added, setAdded] = useState<Member | null>(null);
+
 
   useEffect(() => {
     if (!open) return;
