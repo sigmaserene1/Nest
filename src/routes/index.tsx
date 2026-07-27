@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, Wallet, Users, Zap } from "lucide-react";
+import { ArrowRight, Sparkles, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
+import { ArcLockup, ArcMark, UsdcMark } from "@/components/nest/chain";
 
 export const Route = createFileRoute("/")({
   component: Landing,
