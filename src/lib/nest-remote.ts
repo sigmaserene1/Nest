@@ -110,7 +110,7 @@ export function useRemoteRoommates() {
     refetch();
     if (!me) return;
     const ch = supabase
-      .channel(`roommates-${me}`)
+      .channel(`roommates-${me}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "roommates" }, () => refetch())
       .subscribe();
     return () => {
@@ -211,7 +211,7 @@ export function usePaymentRequests() {
     refetch();
     if (!me) return;
     const ch = supabase
-      .channel(`requests-${me}`)
+      .channel(`requests-${me}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "payment_requests" }, () =>
         refetch(),
       )
