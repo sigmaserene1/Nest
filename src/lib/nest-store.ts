@@ -6,13 +6,17 @@ import {
   expenses as seedExpenses,
   settlements as seedSettlements,
   activity as seedActivity,
+  members as seedMembers,
   computeBalances as baseComputeBalances,
   getMember,
+  setRuntimeMembers,
   type Expense,
   type Settlement,
   type ActivityEvent,
   type Debt,
+  type Member,
 } from "./nest-data";
+
 
 function makeStore<T>(key: string) {
   const listeners = new Set<() => void>();
