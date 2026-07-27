@@ -199,8 +199,10 @@ export function useMembers(): Member[] {
 
 
 
+const EMPTY: unknown[] = [];
+
 function useStore<T>(store: ReturnType<typeof makeStore<T>>): T[] {
-  return useSyncExternalStore(store.subscribe, store.all, () => [] as T[]);
+  return useSyncExternalStore(store.subscribe, store.all, () => EMPTY as T[]);
 }
 
 export function useExpenses(): Expense[] {
