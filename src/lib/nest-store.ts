@@ -6,13 +6,17 @@ import {
   expenses as seedExpenses,
   settlements as seedSettlements,
   activity as seedActivity,
+  members as seedMembers,
   computeBalances as baseComputeBalances,
   getMember,
+  setRuntimeMembers,
   type Expense,
   type Settlement,
   type ActivityEvent,
   type Debt,
+  type Member,
 } from "./nest-data";
+
 
 function makeStore<T>(key: string) {
   const listeners = new Set<() => void>();
@@ -87,6 +91,65 @@ export const settlementStore = makeStore<Settlement>("nest.settlements.v1");
 type ExpenseOverride = { id: string; deleted?: boolean; patch?: Partial<Expense> };
 export const expenseOverrideStore = makeStore<ExpenseOverride>("nest.expenseOverrides.v1");
 
+// Roommates invited by the user (seed members stay as sample data).
+export const memberStore = makeStore<Member>("nest.members.v1");
+
+const PALETTE = [
+  { color: "#EC4899", gradient: "linear-gradient(135deg,#f9a8d4,#ec4899)", emoji: "🌸" },
+  { color: "#0EA5E9", gradient: "linear-gradient(135deg,#7dd3fc,#0284c7)", emoji: "🌊" },
+  { color: "#8B5CF6", gradient: "linear-gradient(135deg,#c4b5fd,#7c3aed)", emoji: "🪐" },
+  { color: "#14B8A6", gradient: "linear-gradient(135deg,#5eead4,#0d9488)", emoji: "🍀" },
+  { color: "#F97316", gradient: "linear-gradient(135deg,#fdba74,#ea580c)", emoji: "🔥" },
+];
+
+export function isValidEvmAddress(a: string): boolean {
+  return /^0x[a-fA-F0-9]{40}$/.test(a.trim());
+}
+
+export type AddRoommateResult = { ok: true; member: Member } | { ok: false; error: string };
+
+export function addRoommate(nameRaw: string, walletRaw: string): AddRoommateResult {
+  const name = nameRaw.trim();
+  const wallet = walletRaw.trim();
+  if (!name) return { ok: false, error: "Please enter a full name." };
+  if (name.length > 60) return { ok: false, error: "Name must be under 60 characters." };
+  if (!isValidEvmAddress(wallet)) return { ok: false, error: "Enter a valid Arc wallet address (0x…)." };
+
+  const existing = [...seedMembers, ...memberStore.all()];
+  if (existing.some((m) => m.wallet?.toLowerCase() === wallet.toLowerCase())) {
+    return { ok: false, error: "That wallet address is already a roommate." };
+  }
+
+  const skin = PALETTE[memberStore.all().length % PALETTE.length];
+  const member: Member = {
+    id: `um-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    name,
+    handle: `@${name.split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")}`,
+    wallet,
+    ...skin,
+  };
+  memberStore.add(member);
+  return { ok: true, member };
+}
+
+export function removeRoommate(id: string) {
+  memberStore.remove(id);
+}
+
+export function useCustomMembers(): Member[] {
+  return useStore(memberStore);
+}
+
+export function useMembers(): Member[] {
+  const custom = useStore(memberStore);
+  return useMemo(() => {
+    const list = [...seedMembers, ...custom];
+    setRuntimeMembers(list);
+    return list;
+  }, [custom]);
+}
+
+
 function useStore<T>(store: ReturnType<typeof makeStore<T>>): T[] {
   return useSyncExternalStore(store.subscribe, store.all, () => [] as T[]);
 }
@@ -118,11 +181,13 @@ export function useSettlements(): Settlement[] {
 export function useComputedBalances(): { net: Record<string, number>; debts: Debt[] } {
   const expenses = useExpenses();
   const settlements = useSettlements();
+  const allMembers = useMembers();
   return useMemo(
     () => baseComputeBalances(expenses, settlements),
-    [expenses, settlements],
+    [expenses, settlements, allMembers],
   );
 }
+
 
 export function useHouseholdActivity(): ActivityEvent[] {
   const extraExpenses = useStore(expenseStore);

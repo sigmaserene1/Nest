@@ -7,7 +7,6 @@ import { useActionModal, type ActionMode } from "@/components/nest/action-modal"
 import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import {
-  members,
   currentUserId,
   getMember,
   fmtUSD,
@@ -17,7 +16,7 @@ import {
   mockTxHash,
   myWallet,
 } from "@/lib/nest-data";
-import { useExpenses, useComputedBalances, useHouseholdActivity } from "@/lib/nest-store";
+import { useExpenses, useComputedBalances, useHouseholdActivity, useMembers } from "@/lib/nest-store";
 import {
   ArrowUpRight,
   Send,
@@ -67,7 +66,9 @@ function Greeting() {
 }
 
 function Dashboard() {
+  const members = useMembers();
   const expenses = useExpenses();
+
   const activity = useHouseholdActivity();
   const { net, debts } = useComputedBalances();
   const iOwe = debts.filter((d) => d.fromId === currentUserId).reduce((s, d) => s + d.amount, 0);

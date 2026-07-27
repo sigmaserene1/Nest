@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { ReactNode } from "react";
 import { MemberAvatar } from "./avatar";
-import { categoryMeta, members, currentUserId, type Expense } from "@/lib/nest-data";
+import { categoryMeta, currentUserId, type Expense } from "@/lib/nest-data";
+import { useMembers } from "@/lib/nest-store";
 
 const categories = Object.keys(categoryMeta) as Expense["category"][];
 
@@ -21,6 +22,7 @@ export function ExpenseForm({
   initial?: Expense;
   onSave: (data: ExpenseInput) => void;
 }) {
+  const members = useMembers();
   const [title, setTitle] = useState(initial?.title ?? "");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [category, setCategory] = useState<Expense["category"]>(initial?.category ?? "Other");

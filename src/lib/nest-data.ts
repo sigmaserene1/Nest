@@ -81,9 +81,23 @@ export const activity: ActivityEvent[] = [
   { id: "a8", kind: "member", actorId: "u4", text: "joined Bedford Loft", date: "2026-06-28T15:00:00Z" },
 ];
 
-export function getMember(id: string): Member {
-  return members.find((m) => m.id === id) ?? members[0];
+// Runtime registry: seed members plus any roommates the user has invited.
+// Kept in sync by the member store so non-hook helpers (getMember, computeBalances)
+// resolve custom roommates too.
+let runtimeMembers: Member[] = members;
+
+export function setRuntimeMembers(list: Member[]) {
+  runtimeMembers = list.length ? list : members;
 }
+
+export function allMembers(): Member[] {
+  return runtimeMembers;
+}
+
+export function getMember(id: string): Member {
+  return runtimeMembers.find((m) => m.id === id) ?? members.find((m) => m.id === id) ?? members[0];
+}
+
 
 export type Debt = { fromId: string; toId: string; amount: number };
 
@@ -91,7 +105,7 @@ export function computeBalances(
   expensesList: Expense[] = expenses,
   settlementsList: Settlement[] = settlements,
 ): { net: Record<string, number>; debts: Debt[] } {
-  const net: Record<string, number> = Object.fromEntries(members.map((m) => [m.id, 0]));
+  const net: Record<string, number> = Object.fromEntries(runtimeMembers.map((m) => [m.id, 0]));
   for (const e of expensesList) {
     const share = e.amount / e.splitAmong.length;
     net[e.payerId] += e.amount;

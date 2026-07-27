@@ -3,9 +3,10 @@ import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { WalletChip, ArcBadge } from "@/components/nest/chain";
-import { members, currentUserId, fmtUSD } from "@/lib/nest-data";
-import { useComputedBalances } from "@/lib/nest-store";
-import { Copy, Check, UserPlus, MoreHorizontal } from "lucide-react";
+import { currentUserId, fmtUSD } from "@/lib/nest-data";
+import { useComputedBalances, useMembers, useCustomMembers, removeRoommate } from "@/lib/nest-store";
+import { InviteRoommateModal } from "@/components/nest/invite-modal";
+import { Copy, Check, UserPlus, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/app/members")({
   component: MembersPage,
@@ -13,8 +14,11 @@ export const Route = createFileRoute("/app/members")({
 });
 
 function MembersPage() {
+  const members = useMembers();
+  const custom = useCustomMembers();
   const { net } = useComputedBalances();
   const [copied, setCopied] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const invite = "nest.app/join/bedford-loft-8fJ2";
 
   const copy = async () => {
@@ -32,6 +36,9 @@ function MembersPage() {
             <div className="mt-1 text-lg font-bold">Send a magic link</div>
             <div className="text-xs text-white/80">They'll be able to add expenses and settle in USDC.</div>
           </div>
+          <button onClick={() => setInviteOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-brand shadow-sm hover:bg-white/90">
+            <UserPlus className="h-4 w-4" /> Invite roommate
+          </button>
           <button onClick={copy} className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25">
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied ? "Copied" : invite}
@@ -59,7 +66,15 @@ function MembersPage() {
                     <ArcBadge />
                   </div>
                 </div>
-                <button className="grid h-8 w-8 place-items-center rounded-full bg-muted"><MoreHorizontal className="h-4 w-4" /></button>
+                {custom.some((c) => c.id === m.id) && (
+                  <button
+                    onClick={() => removeRoommate(m.id)}
+                    aria-label={`Remove ${m.name}`}
+                    className="grid h-8 w-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-brand"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
               </div>
               <div className="mt-4 flex items-center justify-between rounded-2xl bg-muted/60 p-3">
                 <span className="text-xs text-muted-foreground">Net balance</span>
@@ -71,10 +86,24 @@ function MembersPage() {
           );
         })}
 
-        <button className="flex items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-border p-5 text-sm font-semibold text-muted-foreground transition hover:border-brand hover:text-brand">
+        <button
+          onClick={() => setInviteOpen(true)}
+          className="flex items-center justify-center gap-2 rounded-3xl border-2 border-dashed border-border p-5 text-sm font-semibold text-muted-foreground transition hover:border-brand hover:text-brand"
+        >
           <UserPlus className="h-4 w-4" /> Invite roommate
         </button>
       </div>
+
+      {custom.length === 0 && (
+        <div className="mt-4 rounded-3xl bg-white p-5 text-center shadow-card ring-1 ring-black/[0.03]">
+          <div className="text-sm font-semibold">No roommates yet</div>
+          <div className="mt-1 text-xs text-muted-foreground">
+            You haven't added anyone of your own — invite a roommate to split expenses and settle in USDC.
+          </div>
+        </div>
+      )}
+
+      <InviteRoommateModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
     </AppShell>
   );
 }
