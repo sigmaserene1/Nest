@@ -56,6 +56,27 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          name: string
+          name_key: string | null
+          wallet: string
+        }
+        Insert: {
+          created_at?: string
+          name: string
+          name_key?: string | null
+          wallet: string
+        }
+        Update: {
+          created_at?: string
+          name?: string
+          name_key?: string | null
+          wallet?: string
+        }
+        Relationships: []
+      }
       roommates: {
         Row: {
           created_at: string
