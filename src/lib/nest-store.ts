@@ -41,7 +41,24 @@ function makeStore<T>(key: string) {
   return {
     all: read,
     add: (item: T) => write([item, ...read()]),
+    update: (id: string, patch: Partial<T>) => {
+      const list = read();
+      const idx = list.findIndex((i) => (i as { id?: string }).id === id);
+      if (idx === -1) return false;
+      const next = [...list];
+      next[idx] = { ...next[idx], ...patch };
+      write(next);
+      return true;
+    },
+    remove: (id: string) => {
+      const list = read();
+      const next = list.filter((i) => (i as { id?: string }).id !== id);
+      if (next.length === list.length) return false;
+      write(next);
+      return true;
+    },
     clear: () => write([]),
+
     subscribe(fn: () => void) {
       listeners.add(fn);
       const onStorage = (e: StorageEvent) => {
