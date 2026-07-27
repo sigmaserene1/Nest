@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X, User, Check } from "lucide-react";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { getDisplayName, setDisplayName, useDisplayName } from "@/lib/profile-store";
+import { getDisplayName, setDisplayName, useDisplayName, hasOnboarded, markOnboarded } from "@/lib/profile-store";
 import { WalletChip } from "./chain";
 
 export function ProfileNameModal({
@@ -130,15 +130,23 @@ export function ProfileNameModal({
   );
 }
 
-/** Shows the onboarding name prompt once, right after a wallet connects. */
+/** Shows the onboarding name prompt once per wallet, right after it connects. */
 export function ProfileOnboarding() {
-  const { isConnected } = useArcWallet();
+  const { isConnected, address } = useArcWallet();
   const displayName = useDisplayName();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (isConnected && !displayName) setOpen(true);
-  }, [isConnected, displayName]);
+    if (!isConnected || !address) return;
+    if (displayName || hasOnboarded(address)) return;
+    setOpen(true);
+  }, [isConnected, address, displayName]);
 
-  return <ProfileNameModal open={open} onClose={() => setOpen(false)} firstTime />;
+  const close = () => {
+    markOnboarded(address);
+    setOpen(false);
+  };
+
+  return <ProfileNameModal open={open} onClose={close} firstTime />;
 }
+
