@@ -186,17 +186,24 @@ export function ProfileNameModal({
   );
 }
 
-/** Shows the onboarding name prompt once per wallet, right after it connects. */
+/** Shows the name-claim prompt once per wallet, until that wallet has a registered name. */
 export function ProfileOnboarding() {
   const { isConnected, address } = useArcWallet();
   const displayName = useDisplayName();
+  const { profile, loading } = useMyProfile();
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!isConnected || !address) return;
-    if (displayName || hasOnboarded(address)) return;
+    if (!isConnected || !address || loading) return;
+    if (profile) {
+      if (displayName !== profile.name) setDisplayName(profile.name);
+      setOpen(false);
+      return;
+    }
+    if (hasOnboarded(address)) return;
     setOpen(true);
-  }, [isConnected, address, displayName]);
+  }, [isConnected, address, displayName, profile, loading]);
+
 
   const close = () => {
     markOnboarded(address);
