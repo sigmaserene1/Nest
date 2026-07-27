@@ -591,16 +591,37 @@ export function ActionModal({
                 {stage === "failed" && "Transaction failed"}
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                {stage === "confirming" && "Approve the USDC transfer in your wallet."}
+                {stage === "confirming" &&
+                  (isSplit && splitProgress.total > 0
+                    ? `Approve transfer ${Math.min(splitProgress.done + 1, splitProgress.total)} of ${splitProgress.total} in your wallet.`
+                    : "Approve the USDC transfer in your wallet.")}
                 {stage === "pending" && "Waiting for onchain confirmation…"}
                 {stage === "done" &&
                   mode === "request" &&
                   "They'll see it in their Nest and can pay it in USDC on Arc."}
-                {stage === "done" && mode !== "request" && "Confirmed on Arc Testnet."}
+                {stage === "done" &&
+                  mode !== "request" &&
+                  (isSplit
+                    ? `Sent ${fmtUSD(perPerson)} to each of ${splitProgress.total} roommates on Arc Testnet.`
+                    : "Confirmed on Arc Testnet.")}
                 {stage === "failed" && (error || "Something went wrong.")}
               </p>
 
-              {txHash && (
+              {isSplit && splitHashes.length > 0 && (
+                <div className="mt-4 space-y-1.5">
+                  {splitHashes.map((h) => (
+                    <button
+                      key={h}
+                      onClick={() => window.open(explorerTxUrl(h), "_blank", "noopener,noreferrer")}
+                      className="mx-auto flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px] hover:underline"
+                    >
+                      {h.slice(0, 10)}…{h.slice(-8)} <ExternalLink className="h-3 w-3" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {!isSplit && txHash && (
                 <div className="mt-4 space-y-2">
                   <div className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px]">
                     <span
