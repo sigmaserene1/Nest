@@ -27,6 +27,7 @@ export function InviteRoommateModal({
     setName("");
     setWallet("");
     setError("");
+    setSaving(false);
     setAdded(null);
   }, [open]);
 
