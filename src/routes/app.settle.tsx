@@ -19,6 +19,8 @@ function Settle() {
   const total = mine.reduce((s, d) => s + d.amount, 0);
   const [active, setActive] = useState<Debt | null>(null);
   const [queue, setQueue] = useState(false);
+  const [freeSend, setFreeSend] = useState(false);
+
 
   return (
     <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">One-tap settle</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Settle up</h1></div>}>
