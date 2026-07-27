@@ -103,6 +103,9 @@ export const expenseOverrideStore = makeStore<ExpenseOverride>("nest.expenseOver
 // Roommates invited by the user (seed members stay as sample data).
 export const memberStore = makeStore<Member>("nest.members.v1");
 
+// Demo/seed roommates the user removed.
+export const hiddenMemberStore = makeStore<{ id: string }>("nest.hiddenMembers.v1");
+
 const PALETTE = [
   { color: "#EC4899", gradient: "linear-gradient(135deg,#f9a8d4,#ec4899)", emoji: "🌸" },
   { color: "#0EA5E9", gradient: "linear-gradient(135deg,#7dd3fc,#0284c7)", emoji: "🌊" },
