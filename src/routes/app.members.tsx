@@ -5,9 +5,9 @@ import { MemberAvatar } from "@/components/nest/avatar";
 import { WalletChip, ArcBadge } from "@/components/nest/chain";
 import { currentUserId, fmtUSD } from "@/lib/nest-data";
 import { useComputedBalances, useMembers, useCustomMembers, removeRoommate } from "@/lib/nest-store";
-import { useRemoteRoommates } from "@/lib/nest-remote";
+import { useRemoteRoommates, useMyProfile } from "@/lib/nest-remote";
 import { InviteRoommateModal } from "@/components/nest/invite-modal";
-import { Copy, Check, UserPlus, Trash2, Pencil } from "lucide-react";
+import { Copy, Check, UserPlus, Trash2, Pencil, ShieldCheck } from "lucide-react";
 import { ProfileNameModal } from "@/components/nest/profile-modal";
 
 export const Route = createFileRoute("/app/members")({
@@ -19,6 +19,7 @@ function MembersPage() {
   const members = useMembers();
   const custom = useCustomMembers();
   const { ownedIdByWallet } = useRemoteRoommates();
+  const { locked: nameLocked } = useMyProfile();
   const { net } = useComputedBalances();
   const [copied, setCopied] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -63,10 +64,18 @@ function MembersPage() {
                   <div className="flex items-center gap-2">
                     <div className="truncate text-base font-bold">{m.name}</div>
                     {isMe && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">You</span>}
-                    {isMe && (
+                    {isMe && nameLocked && (
+                      <span
+                        title="This name is permanently linked to your wallet"
+                        className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-700"
+                      >
+                        <ShieldCheck className="h-3 w-3" /> Verified
+                      </span>
+                    )}
+                    {isMe && !nameLocked && (
                       <button
                         onClick={() => setNameOpen(true)}
-                        aria-label="Edit display name"
+                        aria-label="Claim display name"
                         className="grid h-7 w-7 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-brand"
                       >
                         <Pencil className="h-3.5 w-3.5" />
