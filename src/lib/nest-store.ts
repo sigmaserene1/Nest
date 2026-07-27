@@ -169,7 +169,9 @@ export function removeRoommate(id: string, remoteRowId?: string) {
     void deleteRoommateRow(remoteRowId);
     return;
   }
-  memberStore.remove(id);
+  if (memberStore.remove(id)) return;
+  // Seed/demo roommate — hide it locally so it disappears everywhere.
+  if (!hiddenMemberStore.all().some((h) => h.id === id)) hiddenMemberStore.add({ id });
 }
 
 export function useCustomMembers(): Member[] {
@@ -180,19 +182,23 @@ export function useCustomMembers(): Member[] {
 
 export function useMembers(): Member[] {
   const custom = useStore(memberStore);
+  const hidden = useStore(hiddenMemberStore);
   const displayName = useDisplayName();
   const { members: remote, myWallet } = useRemoteRoommates();
   return useMemo(() => {
-    const seeded = seedMembers.map((m) =>
-      m.id === currentUserId
-        ? {
-            ...m,
-            wallet: myWallet ?? m.wallet,
-            name: displayName ?? m.name,
-            handle: displayName ? `@${displayName.split(" ")[0].toLowerCase()}` : m.handle,
-          }
-        : m,
-    );
+    const hiddenIds = new Set(hidden.map((h) => h.id));
+    const seeded = seedMembers
+      .filter((m) => m.id === currentUserId || !hiddenIds.has(m.id))
+      .map((m) =>
+        m.id === currentUserId
+          ? {
+              ...m,
+              wallet: myWallet ?? m.wallet,
+              name: displayName ?? m.name,
+              handle: displayName ? `@${displayName.split(" ")[0].toLowerCase()}` : m.handle,
+            }
+          : m,
+      );
     const list = [...seeded, ...custom];
     const seen = new Set(list.map((m) => m.wallet?.toLowerCase()).filter(Boolean) as string[]);
     for (const r of remote) {
@@ -203,7 +209,7 @@ export function useMembers(): Member[] {
     }
     setRuntimeMembers(list);
     return list;
-  }, [custom, remote, myWallet, displayName]);
+  }, [custom, hidden, remote, myWallet, displayName]);
 }
 
 
