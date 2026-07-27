@@ -15,12 +15,42 @@ import type { ActionMode } from "./action-modal-types";
 export type { ActionMode };
 
 const META: Record<ActionMode, { title: string; verb: string; cta: (a: number) => string; accent: string }> = {
-  send:    { title: "Send USDC",        verb: "sent",      cta: (a) => `Send ${fmtUSD(a)}`,      accent: "bg-brand text-white shadow-brand" },
-  request: { title: "Request USDC",     verb: "requested", cta: (a) => `Request ${fmtUSD(a)}`,   accent: "bg-emerald-600 text-white" },
-  split:   { title: "Split an expense", verb: "split",     cta: (a) => `Send ${fmtUSD(a)}`,      accent: "bg-indigo-600 text-white" },
-  scan:    { title: "Scan to pay",      verb: "sent",      cta: (a) => `Pay ${fmtUSD(a)}`,       accent: "bg-brand text-white shadow-brand" },
-  rent:    { title: "Pay rent",         verb: "paid rent", cta: (a) => `Pay ${fmtUSD(a)}`,       accent: "bg-brand text-white shadow-brand" },
-  settle:  { title: "Settle up",        verb: "settled",   cta: (a) => `Settle ${fmtUSD(a)}`,    accent: "bg-brand text-white shadow-brand" },
+  send: {
+    title: "Send USDC",
+    verb: "sent",
+    cta: (a) => `Send ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
+  request: {
+    title: "Request USDC",
+    verb: "requested",
+    cta: (a) => `Request ${fmtUSD(a)}`,
+    accent: "bg-emerald-600 text-white",
+  },
+  split: {
+    title: "Split an expense",
+    verb: "split",
+    cta: (a) => `Send ${fmtUSD(a)}`,
+    accent: "bg-indigo-600 text-white",
+  },
+  scan: {
+    title: "Scan to pay",
+    verb: "sent",
+    cta: (a) => `Pay ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
+  rent: {
+    title: "Pay rent",
+    verb: "paid rent",
+    cta: (a) => `Pay ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
+  settle: {
+    title: "Settle up",
+    verb: "settled",
+    cta: (a) => `Settle ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
 };
 
 type Props = {
@@ -31,10 +61,25 @@ type Props = {
   defaultToAddress?: string;
   lockRecipient?: boolean;
   lockAmount?: boolean;
-  onSuccess?: (info: { hash: string; amount: number; recipientId?: string; toAddress: string; mode: ActionMode }) => void;
+  onSuccess?: (info: {
+    hash: string;
+    amount: number;
+    recipientId?: string;
+    toAddress: string;
+    mode: ActionMode;
+  }) => void;
 };
 
-export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, defaultToAddress, lockRecipient, lockAmount, onSuccess }: Props) {
+export function ActionModal({
+  mode,
+  onClose,
+  defaultAmount,
+  defaultRecipientId,
+  defaultToAddress,
+  lockRecipient,
+  lockAmount,
+  onSuccess,
+}: Props) {
   const members = useMembers();
   const others = useMemo(() => members.filter((m) => m.id !== currentUserId), [members]);
   const wallet = useArcWallet();
@@ -63,9 +108,9 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
     setTxHash(undefined);
     resetWrite();
     setAmount(defaultAmount ? String(defaultAmount) : mode === "rent" ? "800" : "");
-    const rid = defaultRecipientId ?? (mode === "rent" ? others[0]?.id ?? "" : "");
+    const rid = defaultRecipientId ?? (mode === "rent" ? (others[0]?.id ?? "") : "");
     setRecipientId(rid);
-    const seedAddr = defaultToAddress ?? (rid ? getMember(rid).wallet ?? "" : "");
+    const seedAddr = defaultToAddress ?? (rid ? (getMember(rid).wallet ?? "") : "");
     setToAddress(seedAddr);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
@@ -108,11 +153,7 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
   const hasFunds = !isTransferMode || amt <= wallet.usdcBalance;
 
   const canSubmit =
-    amt > 0 &&
-    validAddress &&
-    (isTransferMode
-      ? wallet.isConnected && wallet.isOnArc && hasFunds
-      : wallet.isConnected);
+    amt > 0 && validAddress && (isTransferMode ? wallet.isConnected && wallet.isOnArc && hasFunds : wallet.isConnected);
 
   const pickRecipient = (id: string) => {
     setRecipientId(id);
@@ -216,7 +257,11 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
             <>
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold">{meta.title}</h3>
-                <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-muted" aria-label="Close">
+                <button
+                  onClick={onClose}
+                  className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+                  aria-label="Close"
+                >
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -253,10 +298,14 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
 
               <div className="mt-5">
                 <div className="flex items-center justify-between">
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Amount</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Amount
+                  </div>
                   {wallet.isConnected && wallet.isOnArc && (
                     <div className="text-[11px] text-muted-foreground">
-                      Balance <span className="font-bold text-foreground tabular-nums">{wallet.usdcBalance.toFixed(2)}</span> USDC
+                      Balance{" "}
+                      <span className="font-bold text-foreground tabular-nums">{wallet.usdcBalance.toFixed(2)}</span>{" "}
+                      USDC
                     </div>
                   )}
                 </div>
@@ -275,7 +324,9 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                   <span className="text-sm font-semibold text-muted-foreground">USDC</span>
                 </div>
                 {isTransferMode && wallet.isConnected && wallet.isOnArc && amt > 0 && !hasFunds && (
-                  <div className="mt-2 text-[11px] font-semibold text-brand">Insufficient USDC balance on Arc Testnet.</div>
+                  <div className="mt-2 text-[11px] font-semibold text-brand">
+                    Insufficient USDC balance on Arc Testnet.
+                  </div>
                 )}
               </div>
 
@@ -317,7 +368,9 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
 
               {needsAddress && (
                 <div className="mt-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recipient address</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Recipient address
+                  </div>
                   <input
                     value={toAddress}
                     onChange={(e) => setToAddress(e.target.value)}
@@ -332,7 +385,9 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
               )}
               {mode === "scan" && (
                 <div className="mt-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recipient address</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Recipient address
+                  </div>
                   <input
                     value={toAddress}
                     onChange={(e) => setToAddress(e.target.value)}
@@ -364,7 +419,9 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                 {meta.cta(amt)}
               </button>
               <div className="mt-3 text-center text-[11px] text-muted-foreground">
-                {isTransferMode ? "Onchain USDC transfer · Arc Testnet" : "Sent to their wallet · payable in USDC on Arc"}
+                {isTransferMode
+                  ? "Onchain USDC transfer · Arc Testnet"
+                  : "Sent to their wallet · payable in USDC on Arc"}
               </div>
             </>
           )}
@@ -377,7 +434,11 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                 }`}
               >
                 {stage === "done" ? (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                  >
                     <Check className="h-10 w-10 text-brand" strokeWidth={2.5} />
                   </motion.div>
                 ) : stage === "failed" ? (
@@ -395,7 +456,8 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
               <p className="mt-2 text-sm text-muted-foreground">
                 {stage === "confirming" && "Approve the USDC transfer in your wallet."}
                 {stage === "pending" && "Waiting for onchain confirmation…"}
-                {stage === "done" && mode === "request" &&
+                {stage === "done" &&
+                  mode === "request" &&
                   "They'll see it in their Nest and can pay it in USDC on Arc."}
                 {stage === "done" && mode !== "request" && "Confirmed on Arc Testnet."}
                 {stage === "failed" && (error || "Something went wrong.")}
@@ -406,19 +468,21 @@ export function ActionModal({ mode, onClose, defaultAmount, defaultRecipientId, 
                   <div className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px]">
                     <span
                       className={`h-1.5 w-1.5 rounded-full ${
-                        stage === "done" ? "bg-emerald-500" : stage === "failed" ? "bg-brand" : "bg-amber-400 animate-pulse"
+                        stage === "done"
+                          ? "bg-emerald-500"
+                          : stage === "failed"
+                            ? "bg-brand"
+                            : "bg-amber-400 animate-pulse"
                       }`}
                     />
                     {txHash.slice(0, 10)}…{txHash.slice(-8)}
                   </div>
-                  <a
-                    href={explorerTxUrl(txHash)}
-                    target="_blank"
-                    rel="noreferrer"
+                  <button
+                    onClick={() => window.open(explorerTxUrl(txHash), "_blank", "noopener,noreferrer")}
                     className="mx-auto inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
                   >
-                    View on Arcscan <ExternalLink className="h-3 w-3" />
-                  </a>
+                    View on ArcScan <ExternalLink className="h-3 w-3" />
+                  </button>
                 </div>
               )}
 
