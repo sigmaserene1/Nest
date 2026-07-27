@@ -1,52 +1,41 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { X, UserPlus, Check, Loader2 } from "lucide-react";
-import { addRoommate } from "@/lib/nest-store";
+import { X, User, Check } from "lucide-react";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { getDisplayName } from "@/lib/profile-store";
-import type { Member } from "@/lib/nest-data";
+import { getDisplayName, setDisplayName, useDisplayName } from "@/lib/profile-store";
+import { WalletChip } from "./chain";
 
-export function InviteRoommateModal({
+export function ProfileNameModal({
   open,
   onClose,
-  onAdded,
+  firstTime = false,
 }: {
   open: boolean;
   onClose: () => void;
-  onAdded?: (m: Member) => void;
+  firstTime?: boolean;
 }) {
-  const { address: myWallet } = useArcWallet();
+  const { address } = useArcWallet();
   const [name, setName] = useState("");
-  const [wallet, setWallet] = useState("");
   const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [added, setAdded] = useState<Member | null>(null);
-
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (!open) return;
-    setName("");
-    setWallet("");
+    setName(getDisplayName() ?? "");
     setError("");
-    setSaving(false);
-    setAdded(null);
+    setSaved(false);
   }, [open]);
 
-  const submit = async () => {
-    if (saving) return;
-    setSaving(true);
-    const res = await addRoommate(name, wallet, { wallet: myWallet, name: getDisplayName() ?? "Me" });
-    setSaving(false);
-    if (!res.ok) {
-      setError(res.error);
+  const submit = () => {
+    const clean = name.trim();
+    if (clean.length < 2) {
+      setError("Enter a name with at least 2 characters.");
       return;
     }
-    setError("");
-    setAdded(res.member);
-    onAdded?.(res.member);
-    setTimeout(onClose, 900);
+    setDisplayName(clean);
+    setSaved(true);
+    setTimeout(onClose, 700);
   };
-
 
   return (
     <AnimatePresence>
@@ -57,7 +46,7 @@ export function InviteRoommateModal({
           exit={{ opacity: 0 }}
           transition={{ duration: 0.15 }}
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
-          onClick={onClose}
+          onClick={firstTime ? undefined : onClose}
         >
           <motion.div
             initial={{ y: 30, opacity: 0, scale: 0.98 }}
@@ -70,31 +59,34 @@ export function InviteRoommateModal({
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-soft text-brand">
-                  <UserPlus className="h-5 w-5" />
+                  <User className="h-5 w-5" />
                 </span>
                 <div>
-                  <div className="text-base font-bold">Invite roommate</div>
-                  <div className="text-xs text-muted-foreground">Add them to your household</div>
+                  <div className="text-base font-bold">{firstTime ? "Welcome to Nest" : "Your display name"}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {firstTime ? "What should roommates call you?" : "Update how roommates see you"}
+                  </div>
                 </div>
               </div>
-              <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full bg-muted">
-                <X className="h-4 w-4" />
-              </button>
+              {!firstTime && (
+                <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full bg-muted">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
-            {added ? (
+            {saved ? (
               <div className="mt-8 flex flex-col items-center py-6">
                 <span className="grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600">
                   <Check className="h-7 w-7" />
                 </span>
-                <div className="mt-3 text-sm font-bold">{added.name} added</div>
-                <div className="text-xs text-muted-foreground">They can now be picked in every flow.</div>
+                <div className="mt-3 text-sm font-bold">Saved</div>
               </div>
             ) : (
               <div className="mt-6 space-y-4">
                 <div>
                   <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Full name
+                    Display name
                   </div>
                   <input
                     value={name}
@@ -102,28 +94,19 @@ export function InviteRoommateModal({
                       setName(e.target.value);
                       setError("");
                     }}
-                    maxLength={60}
+                    onKeyDown={(e) => e.key === "Enter" && submit()}
+                    maxLength={40}
                     autoFocus
                     placeholder="e.g. Sara Kim"
                     className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
                   />
                 </div>
-                <div>
-                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Arc wallet address
+
+                {address && (
+                  <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                    Connected wallet <WalletChip address={address} />
                   </div>
-                  <input
-                    value={wallet}
-                    onChange={(e) => {
-                      setWallet(e.target.value);
-                      setError("");
-                    }}
-                    spellCheck={false}
-                    maxLength={42}
-                    placeholder="0x…"
-                    className="w-full rounded-2xl bg-muted/60 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-brand"
-                  />
-                </div>
+                )}
 
                 {error && (
                   <div className="rounded-2xl bg-brand/10 px-4 py-2.5 text-xs font-semibold text-brand">{error}</div>
@@ -131,18 +114,13 @@ export function InviteRoommateModal({
 
                 <button
                   onClick={submit}
-                  disabled={saving}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-60"
+                  className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]"
                 >
-                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {saving ? "Adding…" : "Add roommate"}
+                  {firstTime ? "Continue" : "Save name"}
                 </button>
                 <div className="text-center text-[11px] text-muted-foreground">
-                  {myWallet
-                    ? "Synced to your household — they'll see you too once they connect this wallet."
-                    : "Connect your wallet to sync this roommate across devices."}
+                  Stored on this device — you can change it anytime from Members.
                 </div>
-
               </div>
             )}
           </motion.div>
@@ -150,4 +128,17 @@ export function InviteRoommateModal({
       )}
     </AnimatePresence>
   );
+}
+
+/** Shows the onboarding name prompt once, right after a wallet connects. */
+export function ProfileOnboarding() {
+  const { isConnected } = useArcWallet();
+  const displayName = useDisplayName();
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (isConnected && !displayName) setOpen(true);
+  }, [isConnected, displayName]);
+
+  return <ProfileNameModal open={open} onClose={() => setOpen(false)} firstTime />;
 }

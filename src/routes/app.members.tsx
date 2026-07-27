@@ -7,7 +7,8 @@ import { currentUserId, fmtUSD } from "@/lib/nest-data";
 import { useComputedBalances, useMembers, useCustomMembers, removeRoommate } from "@/lib/nest-store";
 import { useRemoteRoommates } from "@/lib/nest-remote";
 import { InviteRoommateModal } from "@/components/nest/invite-modal";
-import { Copy, Check, UserPlus, Trash2 } from "lucide-react";
+import { Copy, Check, UserPlus, Trash2, Pencil } from "lucide-react";
+import { ProfileNameModal } from "@/components/nest/profile-modal";
 
 export const Route = createFileRoute("/app/members")({
   component: MembersPage,
@@ -21,6 +22,7 @@ function MembersPage() {
   const { net } = useComputedBalances();
   const [copied, setCopied] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [nameOpen, setNameOpen] = useState(false);
   const invite = "nest.app/join/bedford-loft-8fJ2";
 
   const copy = async () => {
@@ -61,6 +63,15 @@ function MembersPage() {
                   <div className="flex items-center gap-2">
                     <div className="truncate text-base font-bold">{m.name}</div>
                     {isMe && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">You</span>}
+                    {isMe && (
+                      <button
+                        onClick={() => setNameOpen(true)}
+                        aria-label="Edit display name"
+                        className="grid h-7 w-7 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-brand"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground">{m.handle}</div>
                   <div className="mt-1.5 flex items-center gap-1.5">
@@ -106,6 +117,7 @@ function MembersPage() {
       )}
 
       <InviteRoommateModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
+      <ProfileNameModal open={nameOpen} onClose={() => setNameOpen(false)} />
     </AppShell>
   );
 }
