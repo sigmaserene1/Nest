@@ -102,7 +102,14 @@ function Settle() {
 
       <ActionModal
         mode={active ? "settle" : null}
-        onClose={() => setActive(null)}
+        onClose={() => {
+          const paidTo = active?.toId;
+          setActive(null);
+          if (!queue) return;
+          const next = mine.find((d) => d.toId !== paidTo);
+          if (next) setTimeout(() => setActive(next), 260);
+          else setQueue(false);
+        }}
         defaultAmount={active?.amount}
         defaultRecipientId={active?.toId}
         defaultToAddress={active ? getMember(active.toId).wallet : undefined}
