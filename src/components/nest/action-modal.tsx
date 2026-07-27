@@ -417,7 +417,53 @@ export function ActionModal({
                 )}
               </div>
 
-              {mode !== "scan" && !lockRecipient && (
+              {isSplit && (
+                <div className="mt-5">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Split between
+                    </div>
+                    <button
+                      onClick={() =>
+                        setSplitIds(splitIds.length === others.length ? [] : others.map((m) => m.id))
+                      }
+                      className="text-[11px] font-bold text-brand"
+                    >
+                      {splitIds.length === others.length ? "Clear all" : "Select all"}
+                    </button>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {others.map((m) => {
+                      const active = splitIds.includes(m.id);
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => toggleSplit(m.id)}
+                          className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${
+                            active
+                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                              : "border-border bg-white text-foreground"
+                          }`}
+                        >
+                          <MemberAvatar member={m} size={26} />
+                          {m.name.split(" ")[0]}
+                          {active && <Check className="h-3.5 w-3.5" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {splitCount > 0 && amt > 0 && (
+                    <div className="mt-3 flex items-center justify-between rounded-2xl bg-indigo-50 px-4 py-3 text-sm">
+                      <span className="font-semibold text-indigo-700">
+                        {splitCount} {splitCount === 1 ? "person" : "people"} · equal split
+                      </span>
+                      <span className="font-bold tabular-nums text-indigo-700">{fmtUSD(perPerson)} each</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {mode !== "scan" && !lockRecipient && !isSplit && (
                 <div className="mt-5">
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                     {mode === "request" ? "Request from" : "To roommate"}
