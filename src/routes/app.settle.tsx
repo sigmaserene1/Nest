@@ -18,6 +18,7 @@ function Settle() {
   const mine = useMemo(() => debts.filter((d) => d.fromId === currentUserId), [debts]);
   const total = mine.reduce((s, d) => s + d.amount, 0);
   const [active, setActive] = useState<Debt | null>(null);
+  const [queue, setQueue] = useState(false);
 
   return (
     <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">One-tap settle</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Settle up</h1></div>}>
@@ -34,11 +35,16 @@ function Settle() {
             </div>
             <button
               disabled={mine.length === 0}
-              onClick={() => mine[0] && setActive(mine[0])}
+              onClick={() => { setQueue(mine.length > 1); mine[0] && setActive(mine[0]); }}
               className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-50"
             >
-              {mine.length === 0 ? "You're all settled" : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
+              {mine.length === 0
+                ? "You're all settled"
+                : mine.length > 1
+                  ? `Settle all onchain · ${fmtUSD(total)}`
+                  : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
             </button>
+
           </Card>
 
           <Card>
@@ -96,7 +102,14 @@ function Settle() {
 
       <ActionModal
         mode={active ? "settle" : null}
-        onClose={() => setActive(null)}
+        onClose={() => {
+          const paidTo = active?.toId;
+          setActive(null);
+          if (!queue) return;
+          const next = mine.find((d) => d.toId !== paidTo);
+          if (next) setTimeout(() => setActive(next), 260);
+          else setQueue(false);
+        }}
         defaultAmount={active?.amount}
         defaultRecipientId={active?.toId}
         defaultToAddress={active ? getMember(active.toId).wallet : undefined}
