@@ -18,13 +18,15 @@ function short(a: string) {
 }
 
 export function PaymentRequests() {
-  const { incomingPending, outgoing, myWallet } = usePaymentRequests();
+  const { incoming, incomingPending, outgoing, myWallet } = usePaymentRequests();
   const [paying, setPaying] = useState<PaymentRequestRow | null>(null);
 
   if (!myWallet) return null;
   const pendingOut = outgoing.filter((r) => r.status === "pending");
   const recentOut = outgoing.filter((r) => r.status !== "pending").slice(0, 2);
-  if (incomingPending.length === 0 && pendingOut.length === 0 && recentOut.length === 0) return null;
+  const paidIn = incoming.filter((r) => r.status === "paid").slice(0, 3);
+  if (incomingPending.length === 0 && pendingOut.length === 0 && recentOut.length === 0 && paidIn.length === 0)
+    return null;
 
   return (
     <section className="mt-6">
@@ -82,6 +84,36 @@ export function PaymentRequests() {
           ))}
         </AnimatePresence>
 
+        {paidIn.map((r) => (
+          <Card key={r.id} className="!p-4">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+                <ArrowDownLeft className="h-5 w-5" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">
+                  You paid {fmtUSD(Number(r.amount))} to {r.from_name || short(r.from_wallet)}
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Check className="h-3 w-3 text-emerald-600" /> Settled in USDC on Arc
+                </div>
+              </div>
+              {r.tx_hash ? (
+                <a
+                  href={explorerTxUrl(r.tx_hash)}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand transition hover:bg-brand/15"
+                >
+                  View onchain <ExternalLink className="h-3 w-3" />
+                </a>
+              ) : (
+                <UsdcBadge />
+              )}
+            </div>
+          </Card>
+        ))}
+
         {[...pendingOut, ...recentOut].map((r) => (
           <Card key={r.id} className="!p-4">
             <div className="flex items-center gap-3">
@@ -106,9 +138,9 @@ export function PaymentRequests() {
                           href={explorerTxUrl(r.tx_hash)}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 font-semibold text-brand hover:underline"
+                          className="inline-flex items-center gap-1 rounded-full bg-brand-soft px-2.5 py-1 text-[11px] font-bold text-brand transition hover:bg-brand/15"
                         >
-                          view <ExternalLink className="h-3 w-3" />
+                          View onchain <ExternalLink className="h-3 w-3" />
                         </a>
                       )}
                     </>
