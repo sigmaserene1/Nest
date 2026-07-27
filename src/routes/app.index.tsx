@@ -66,7 +66,9 @@ function Greeting() {
 }
 
 function Dashboard() {
+  const members = useMembers();
   const expenses = useExpenses();
+
   const activity = useHouseholdActivity();
   const { net, debts } = useComputedBalances();
   const iOwe = debts.filter((d) => d.fromId === currentUserId).reduce((s, d) => s + d.amount, 0);
