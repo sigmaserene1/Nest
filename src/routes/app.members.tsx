@@ -79,11 +79,11 @@ function MembersPage() {
                     <ArcBadge />
                   </div>
                 </div>
-                {(custom.some((c) => c.id === m.id) || ownedIdByWallet.has(m.id)) && (
+                {!isMe && (
                   <button
                     onClick={() => removeRoommate(m.id, ownedIdByWallet.get(m.id))}
                     aria-label={`Remove ${m.name}`}
-                    className="grid h-8 w-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:text-brand"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:bg-brand/10 hover:text-brand"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

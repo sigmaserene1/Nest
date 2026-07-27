@@ -2,7 +2,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 import { Check, Loader2, X, ArrowRight, QrCode, Home as HomeIcon, AlertTriangle, ExternalLink } from "lucide-react";
 import { isAddress, parseUnits } from "viem";
-import { useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useConfig, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { waitForTransactionReceipt } from "wagmi/actions";
 import { MemberAvatar } from "./avatar";
 import { currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers } from "@/lib/nest-store";
@@ -84,10 +85,14 @@ export function ActionModal({
   const others = useMemo(() => members.filter((m) => m.id !== currentUserId), [members]);
   const wallet = useArcWallet();
   const { writeContractAsync, reset: resetWrite } = useWriteContract();
+  const wagmiConfig = useConfig();
 
   const [amount, setAmount] = useState<string>("");
   const [note, setNote] = useState("");
   const [recipientId, setRecipientId] = useState<string>("");
+  const [splitIds, setSplitIds] = useState<string[]>([]);
+  const [splitProgress, setSplitProgress] = useState<{ done: number; total: number }>({ done: 0, total: 0 });
+  const [splitHashes, setSplitHashes] = useState<`0x${string}`[]>([]);
   const [toAddress, setToAddress] = useState<string>("");
   const [stage, setStage] = useState<"form" | "confirming" | "pending" | "done" | "failed">("form");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
@@ -106,6 +111,9 @@ export function ActionModal({
     setNote("");
     setError("");
     setTxHash(undefined);
+    setSplitIds([]);
+    setSplitHashes([]);
+    setSplitProgress({ done: 0, total: 0 });
     resetWrite();
     setAmount(defaultAmount ? String(defaultAmount) : mode === "rent" ? "800" : "");
     const rid = defaultRecipientId ?? (mode === "rent" ? (others[0]?.id ?? "") : "");
@@ -148,12 +156,16 @@ export function ActionModal({
   const amt = parseFloat(amount) || 0;
 
   const isTransferMode = mode !== "request"; // request doesn't move funds
-  const needsAddress = mode !== "scan";
+  const isSplit = mode === "split" && !lockRecipient;
+  const needsAddress = mode !== "scan" && !isSplit;
   const validAddress = !needsAddress || isAddress(toAddress);
   const hasFunds = !isTransferMode || amt <= wallet.usdcBalance;
+  const splitCount = splitIds.length;
+  const perPerson = splitCount > 0 ? amt / splitCount : 0;
 
-  const canSubmit =
-    amt > 0 && validAddress && (isTransferMode ? wallet.isConnected && wallet.isOnArc && hasFunds : wallet.isConnected);
+  const canSubmit = isSplit
+    ? amt > 0 && splitCount > 0 && wallet.isConnected && wallet.isOnArc && hasFunds
+    : amt > 0 && validAddress && (isTransferMode ? wallet.isConnected && wallet.isOnArc && hasFunds : wallet.isConnected);
 
   const pickRecipient = (id: string) => {
     setRecipientId(id);
@@ -161,9 +173,84 @@ export function ActionModal({
     setToAddress(w);
   };
 
+  const toggleSplit = (id: string) =>
+    setSplitIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  // Splits the amount equally and sends each roommate their share onchain, one tx at a time.
+  const runSplit = async () => {
+    const targets = splitIds
+      .map((id) => getMember(id))
+      .filter((m) => m.wallet && isAddress(m.wallet));
+    if (targets.length !== splitIds.length) {
+      setError("One of the selected roommates has no valid wallet address.");
+      return;
+    }
+    const share = amt / targets.length;
+    const shareStr = share.toFixed(USDC_DECIMALS);
+    setSplitProgress({ done: 0, total: targets.length });
+    setSplitHashes([]);
+    setStage("confirming");
+
+    for (let i = 0; i < targets.length; i++) {
+      const m = targets[i];
+      try {
+        const hash = await writeContractAsync({
+          chainId: arcTestnet.id,
+          address: USDC_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: "transfer",
+          args: [m.wallet as `0x${string}`, parseUnits(shareStr, USDC_DECIMALS)],
+        });
+        setSplitHashes((h) => [...h, hash]);
+        txStore.add({
+          hash,
+          from: wallet.address ?? "",
+          to: m.wallet!,
+          amount: share,
+          mode: "split",
+          note: note || undefined,
+          recipientName: m.name,
+          createdAt: new Date().toISOString(),
+          status: "pending",
+        });
+        setStage("pending");
+        const rec = await waitForTransactionReceipt(wagmiConfig, { hash, chainId: arcTestnet.id });
+        const ok = rec.status === "success";
+        txStore.update(hash, { status: ok ? "confirmed" : "failed" });
+        if (!ok) {
+          setError(`Transfer to ${m.name} reverted onchain.`);
+          setStage("failed");
+          return;
+        }
+        onSuccess?.({ hash, amount: share, recipientId: m.id, toAddress: m.wallet!, mode: "split" });
+        setSplitProgress({ done: i + 1, total: targets.length });
+        setStage("confirming");
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Transaction failed";
+        if (/user rejected|denied/i.test(msg)) {
+          setStage(i === 0 ? "form" : "failed");
+          if (i > 0) setError(`Stopped after ${i} of ${targets.length} transfers.`);
+          return;
+        }
+        setError(msg);
+        setStage("failed");
+        return;
+      }
+    }
+    wallet.refetchBalance();
+    setStage("done");
+  };
+
   const submit = async () => {
     if (!canSubmit) return;
     setError("");
+
+    if (isSplit) {
+      await runSplit();
+      return;
+    }
+
+
 
     // Request-only: no funds move, but the request is stored so the roommate really receives it.
     if (mode === "request") {
@@ -330,7 +417,53 @@ export function ActionModal({
                 )}
               </div>
 
-              {mode !== "scan" && !lockRecipient && (
+              {isSplit && (
+                <div className="mt-5">
+                  <div className="flex items-center justify-between">
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Split between
+                    </div>
+                    <button
+                      onClick={() =>
+                        setSplitIds(splitIds.length === others.length ? [] : others.map((m) => m.id))
+                      }
+                      className="text-[11px] font-bold text-brand"
+                    >
+                      {splitIds.length === others.length ? "Clear all" : "Select all"}
+                    </button>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {others.map((m) => {
+                      const active = splitIds.includes(m.id);
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => toggleSplit(m.id)}
+                          className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${
+                            active
+                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                              : "border-border bg-white text-foreground"
+                          }`}
+                        >
+                          <MemberAvatar member={m} size={26} />
+                          {m.name.split(" ")[0]}
+                          {active && <Check className="h-3.5 w-3.5" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {splitCount > 0 && amt > 0 && (
+                    <div className="mt-3 flex items-center justify-between rounded-2xl bg-indigo-50 px-4 py-3 text-sm">
+                      <span className="font-semibold text-indigo-700">
+                        {splitCount} {splitCount === 1 ? "person" : "people"} · equal split
+                      </span>
+                      <span className="font-bold tabular-nums text-indigo-700">{fmtUSD(perPerson)} each</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {mode !== "scan" && !lockRecipient && !isSplit && (
                 <div className="mt-5">
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
                     {mode === "request" ? "Request from" : "To roommate"}
@@ -416,7 +549,11 @@ export function ActionModal({
                 onClick={submit}
                 className={`mt-6 w-full rounded-2xl py-4 text-sm font-bold transition disabled:opacity-40 ${meta.accent}`}
               >
-                {meta.cta(amt)}
+                {isSplit
+                  ? splitCount > 0
+                    ? `Send ${fmtUSD(perPerson)} × ${splitCount}`
+                    : "Select roommates to split with"
+                  : meta.cta(amt)}
               </button>
               <div className="mt-3 text-center text-[11px] text-muted-foreground">
                 {isTransferMode
@@ -454,16 +591,37 @@ export function ActionModal({
                 {stage === "failed" && "Transaction failed"}
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                {stage === "confirming" && "Approve the USDC transfer in your wallet."}
+                {stage === "confirming" &&
+                  (isSplit && splitProgress.total > 0
+                    ? `Approve transfer ${Math.min(splitProgress.done + 1, splitProgress.total)} of ${splitProgress.total} in your wallet.`
+                    : "Approve the USDC transfer in your wallet.")}
                 {stage === "pending" && "Waiting for onchain confirmation…"}
                 {stage === "done" &&
                   mode === "request" &&
                   "They'll see it in their Nest and can pay it in USDC on Arc."}
-                {stage === "done" && mode !== "request" && "Confirmed on Arc Testnet."}
+                {stage === "done" &&
+                  mode !== "request" &&
+                  (isSplit
+                    ? `Sent ${fmtUSD(perPerson)} to each of ${splitProgress.total} roommates on Arc Testnet.`
+                    : "Confirmed on Arc Testnet.")}
                 {stage === "failed" && (error || "Something went wrong.")}
               </p>
 
-              {txHash && (
+              {isSplit && splitHashes.length > 0 && (
+                <div className="mt-4 space-y-1.5">
+                  {splitHashes.map((h) => (
+                    <button
+                      key={h}
+                      onClick={() => window.open(explorerTxUrl(h), "_blank", "noopener,noreferrer")}
+                      className="mx-auto flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px] hover:underline"
+                    >
+                      {h.slice(0, 10)}…{h.slice(-8)} <ExternalLink className="h-3 w-3" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {!isSplit && txHash && (
                 <div className="mt-4 space-y-2">
                   <div className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px]">
                     <span
