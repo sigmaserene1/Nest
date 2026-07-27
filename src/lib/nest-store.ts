@@ -179,11 +179,19 @@ export function useCustomMembers(): Member[] {
 
 export function useMembers(): Member[] {
   const custom = useStore(memberStore);
+  const displayName = useDisplayName();
   const { members: remote, myWallet } = useRemoteRoommates();
   return useMemo(() => {
-    const seeded = myWallet
-      ? seedMembers.map((m) => (m.id === currentUserId ? { ...m, wallet: myWallet } : m))
-      : seedMembers;
+    const seeded = seedMembers.map((m) =>
+      m.id === currentUserId
+        ? {
+            ...m,
+            wallet: myWallet ?? m.wallet,
+            name: displayName ?? m.name,
+            handle: displayName ? `@${displayName.split(" ")[0].toLowerCase()}` : m.handle,
+          }
+        : m,
+    );
     const list = [...seeded, ...custom];
     const seen = new Set(list.map((m) => m.wallet?.toLowerCase()).filter(Boolean) as string[]);
     for (const r of remote) {
@@ -194,7 +202,9 @@ export function useMembers(): Member[] {
     }
     setRuntimeMembers(list);
     return list;
-  }, [custom, remote, myWallet]);
+  }, [custom, remote, myWallet, displayName]);
+}
+
 }
 
 
