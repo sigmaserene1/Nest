@@ -17,6 +17,7 @@ import {
   type Member,
 } from "./nest-data";
 import { currentUserId } from "./nest-data";
+import { useDisplayName } from "./profile-store";
 import {
   insertRoommate,
   deleteRoommateRow,
