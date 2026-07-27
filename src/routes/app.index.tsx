@@ -6,6 +6,7 @@ import { Stagger, Item, Tap } from "@/components/nest/motion";
 import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { useDisplayName } from "@/lib/profile-store";
 import { PaymentRequests } from "@/components/nest/payment-requests";
 import {
   currentUserId,
@@ -42,10 +43,11 @@ export const Route = createFileRoute("/app/")({
 });
 
 function Greeting() {
-  const me = getMember(currentUserId);
+  const displayName = useDisplayName();
+  const me = { ...getMember(currentUserId), name: displayName ?? "You" };
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const first = me.name.split(" ")[0];
+  const first = displayName ? displayName.split(" ")[0] : "there";
   return (
     <div className="flex items-center justify-between">
       <div className="min-w-0">

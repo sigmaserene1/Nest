@@ -7,7 +7,10 @@ import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
 import { ArcBadge, UsdcBadge, WalletChip } from "./chain";
 import { WalletHeader } from "./wallet-header";
-import { getMember, currentUserId, myWallet } from "@/lib/nest-data";
+import { getMember, currentUserId } from "@/lib/nest-data";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { useDisplayName } from "@/lib/profile-store";
+import { ProfileOnboarding } from "./profile-modal";
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
@@ -72,6 +75,9 @@ function BottomTab({
 
 export function AppShell({ children, greeting, onFabClick }: { children: ReactNode; greeting?: ReactNode; onFabClick?: () => void }) {
   const me = getMember(currentUserId);
+  const displayName = useDisplayName();
+  const wallet = useArcWallet();
+  const myName = displayName ?? "You";
 
   return (
     <div className="min-h-screen text-foreground">
@@ -98,12 +104,22 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
             <div className="relative mt-4">
               <div className="text-[11px] text-background/60">Wallet balance</div>
               <div className="mt-1 flex items-baseline gap-1.5">
-                <div className="text-2xl font-bold tracking-tight tabular-nums">245.75</div>
+                {wallet.isConnected && wallet.isBalanceLoading ? (
+                  <div className="h-7 w-24 animate-pulse rounded-lg bg-white/15" />
+                ) : (
+                  <div className="text-2xl font-bold tracking-tight tabular-nums">
+                    {wallet.isConnected && wallet.isOnArc ? wallet.usdcBalance.toFixed(2) : "—"}
+                  </div>
+                )}
                 <span className="text-xs font-medium text-background/60">USDC</span>
               </div>
             </div>
             <div className="relative mt-3">
-              <WalletChip address={myWallet} variant="dark" />
+              {wallet.address ? (
+                <WalletChip address={wallet.address} variant="dark" />
+              ) : (
+                <span className="text-[11px] text-background/60">Wallet not connected</span>
+              )}
             </div>
           </div>
 
@@ -120,10 +136,16 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
           </nav>
 
           <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
-            <MemberAvatar member={me} size={38} ring />
+            <MemberAvatar member={{ ...me, name: myName }} size={38} ring />
             <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold">{me.name}</div>
-              <div className="mt-0.5"><WalletChip address={myWallet} /></div>
+              <div className="truncate text-sm font-semibold">{myName}</div>
+              <div className="mt-0.5">
+                {wallet.address ? (
+                  <WalletChip address={wallet.address} />
+                ) : (
+                  <span className="text-[11px] text-muted-foreground">Not connected</span>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -174,6 +196,8 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
           <BottomTab to="/app/analytics" label="Insights" icon={PieChart} />
         </div>
       </nav>
+
+      <ProfileOnboarding />
     </div>
   );
 }
