@@ -83,17 +83,29 @@ function makeStore<T>(key: string) {
 export const expenseStore = makeStore<Expense>("nest.expenses.v1");
 export const settlementStore = makeStore<Settlement>("nest.settlements.v1");
 
+// Edits/deletions applied on top of the seed expenses (which live in code, not storage).
+type ExpenseOverride = { id: string; deleted?: boolean; patch?: Partial<Expense> };
+export const expenseOverrideStore = makeStore<ExpenseOverride>("nest.expenseOverrides.v1");
+
 function useStore<T>(store: ReturnType<typeof makeStore<T>>): T[] {
   return useSyncExternalStore(store.subscribe, store.all, () => [] as T[]);
 }
 
 export function useExpenses(): Expense[] {
   const extras = useStore(expenseStore);
-  return useMemo(
-    () => [...extras, ...seedExpenses].sort((a, b) => b.date.localeCompare(a.date)),
-    [extras],
-  );
+  const overrides = useStore(expenseOverrideStore);
+  return useMemo(() => {
+    const map = new Map(overrides.map((o) => [o.id, o]));
+    return [...extras, ...seedExpenses]
+      .filter((e) => !map.get(e.id)?.deleted)
+      .map((e) => {
+        const patch = map.get(e.id)?.patch;
+        return patch ? { ...e, ...patch } : e;
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }, [extras, overrides]);
 }
+
 
 export function useSettlements(): Settlement[] {
   const extras = useStore(settlementStore);
