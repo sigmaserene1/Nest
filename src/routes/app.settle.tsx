@@ -134,6 +134,18 @@ function Settle() {
           });
         }}
       />
+
+      {freeSend && (
+        <ActionModal
+          mode="send"
+          onClose={() => setFreeSend(false)}
+          onSuccess={({ hash, amount, recipientId }) => {
+            if (!recipientId) return;
+            recordSettlement({ fromId: currentUserId, toId: recipientId, amount, txHash: hash });
+          }}
+        />
+      )}
+
     </AppShell>
   );
 }
