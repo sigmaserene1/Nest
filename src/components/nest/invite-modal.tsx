@@ -26,8 +26,11 @@ export function InviteRoommateModal({
     setAdded(null);
   }, [open]);
 
-  const submit = () => {
-    const res = addRoommate(name, wallet);
+  const submit = async () => {
+    if (saving) return;
+    setSaving(true);
+    const res = await addRoommate(name, wallet, { wallet: myWallet, name: "Me" });
+    setSaving(false);
     if (!res.ok) {
       setError(res.error);
       return;
@@ -37,6 +40,7 @@ export function InviteRoommateModal({
     onAdded?.(res.member);
     setTimeout(onClose, 900);
   };
+
 
   return (
     <AnimatePresence>
