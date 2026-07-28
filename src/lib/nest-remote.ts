@@ -4,6 +4,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAccount } from "wagmi/actions";
+import { wagmiConfig } from "./wagmi";
+import { signedNestWrite } from "./nest-sign";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import type { Member } from "./nest-data";
 
@@ -67,21 +70,19 @@ export async function insertRoommate(input: {
   wallet: string;
   name: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { error } = await supabase.from("roommates").insert({
-    owner_wallet: input.ownerWallet.toLowerCase(),
-    owner_name: input.ownerName,
-    wallet: input.wallet.toLowerCase(),
+  const res = await signedNestWrite("add_roommate", input.ownerWallet, {
+    ownerName: input.ownerName,
+    wallet: input.wallet,
     name: input.name,
   });
-  if (error) {
-    if (error.code === "23505") return { ok: false, error: "That wallet is already a roommate." };
-    return { ok: false, error: error.message };
-  }
+  if (!res.ok) return res;
   return { ok: true };
 }
 
 export async function deleteRoommateRow(id: string) {
-  await supabase.from("roommates").delete().eq("id", id);
+  const me = getAccount(wagmiConfig).address;
+  if (!me) return { ok: false as const, error: "Connect your wallet first." };
+  return signedNestWrite("delete_roommate", me, { id });
 }
 
 /** Roommates visible to the connected wallet: people I added + people who added me. */
@@ -154,35 +155,33 @@ export async function createPaymentRequest(input: {
   amount: number;
   note?: string;
 }): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
-  const { data, error } = await supabase
-    .from("payment_requests")
-    .insert({
-      from_wallet: input.fromWallet.toLowerCase(),
-      from_name: input.fromName,
-      to_wallet: input.toWallet.toLowerCase(),
-      to_name: input.toName ?? null,
-      amount: input.amount,
-      note: input.note ?? null,
-    })
-    .select("id")
-    .single();
-  if (error) return { ok: false, error: error.message };
-  return { ok: true, id: (data as { id: string }).id };
+  const res = await signedNestWrite("create_request", input.fromWallet, {
+    fromName: input.fromName,
+    toWallet: input.toWallet,
+    toName: input.toName ?? "",
+    amount: input.amount,
+    note: input.note ?? "",
+  });
+  if (!res.ok) return res;
+  return { ok: true, id: String(res.data?.id ?? "") };
+}
+
+function connectedWallet() {
+  return getAccount(wagmiConfig).address ?? null;
 }
 
 export async function markRequestPaid(id: string, txHash: string) {
-  await supabase
-    .from("payment_requests")
-    .update({ status: "paid", tx_hash: txHash, updated_at: new Date().toISOString() })
-    .eq("id", id);
+  const me = connectedWallet();
+  if (!me) return { ok: false as const, error: "Connect your wallet first." };
+  return signedNestWrite("update_request", me, { id, status: "paid", txHash });
 }
 
 export async function setRequestStatus(id: string, status: "declined" | "cancelled") {
-  await supabase
-    .from("payment_requests")
-    .update({ status, updated_at: new Date().toISOString() })
-    .eq("id", id);
+  const me = connectedWallet();
+  if (!me) return { ok: false as const, error: "Connect your wallet first." };
+  return signedNestWrite("update_request", me, { id, status });
 }
+
 
 export function usePaymentRequests() {
   const { address } = useArcWallet();
@@ -258,19 +257,9 @@ export async function claimProfileName(
   const existing = await fetchProfile(wallet);
   if (existing) return { ok: false, error: `This wallet is already registered as "${existing.name}".` };
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert({ wallet: wallet.toLowerCase(), name: name.trim() })
-    .select("wallet,name,created_at")
-    .single();
-
-  if (error) {
-    if (error.code === "23505") {
-      return { ok: false, error: "That name is already claimed by another wallet. Pick another." };
-    }
-    return { ok: false, error: error.message };
-  }
-  return { ok: true, profile: data as ProfileRow };
+  const res = await signedNestWrite("claim_profile", wallet, { name: name.trim() });
+  if (!res.ok) return res;
+  return { ok: true, profile: res.data as unknown as ProfileRow };
 }
 
 /** The permanent Nest identity for the connected wallet (null until claimed). */
