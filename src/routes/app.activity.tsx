@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useAccount } from "wagmi";
 import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
@@ -11,7 +12,9 @@ import { ArrowLeftRight, UserPlus, ExternalLink, Loader2, AlertTriangle, Check }
 
 export const Route = createFileRoute("/app/activity")({
   component: ActivityPage,
-  head: () => ({ meta: [{ title: "Activity · Nest" }, { name: "description", content: "Everything happening in your home." }] }),
+  head: () => ({
+    meta: [{ title: "Activity · Nest" }, { name: "description", content: "Everything happening in your home." }],
+  }),
 });
 
 const filters = ["All", "Onchain", "Expenses", "Payments", "Members"] as const;
@@ -19,6 +22,7 @@ const filters = ["All", "Onchain", "Expenses", "Payments", "Members"] as const;
 function ActivityPage() {
   const [f, setF] = useState<(typeof filters)[number]>("All");
   const txs = useTxHistory();
+  const { address } = useAccount();
   const activity = useHouseholdActivity();
 
   const filtered = activity.filter((a) => {
@@ -30,7 +34,14 @@ function ActivityPage() {
   const showTxs = f === "All" || f === "Onchain" || f === "Payments";
 
   return (
-    <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">Live feed</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Activity</h1></div>}>
+    <AppShell
+      greeting={
+        <div>
+          <div className="text-sm font-medium text-muted-foreground">Live feed</div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Activity</h1>
+        </div>
+      }
+    >
       <div className="mt-4 -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
         {filters.map((c) => (
           <button
@@ -52,21 +63,43 @@ function ActivityPage() {
           </div>
           <ul>
             {txs.map((t, i) => {
+              const isReceived =
+                !!address &&
+                t.to.toLowerCase() === address.toLowerCase() &&
+                t.from.toLowerCase() !== address.toLowerCase();
+
               const statusMeta =
                 t.status === "confirmed"
                   ? { dot: "bg-emerald-500", label: "Confirmed", icon: <Check className="h-3 w-3 text-emerald-600" /> }
                   : t.status === "failed"
                     ? { dot: "bg-brand", label: "Failed", icon: <AlertTriangle className="h-3 w-3 text-brand" /> }
-                    : { dot: "bg-amber-400 animate-pulse", label: "Pending", icon: <Loader2 className="h-3 w-3 animate-spin text-amber-600" /> };
+                    : {
+                        dot: "bg-amber-400 animate-pulse",
+                        label: "Pending",
+                        icon: <Loader2 className="h-3 w-3 animate-spin text-amber-600" />,
+                      };
               return (
-                <li key={t.hash} className={`flex items-center gap-3 p-3 ${i !== txs.length - 1 ? "border-b border-border/60" : ""}`}>
+                <li
+                  key={t.hash}
+                  className={`flex items-center gap-3 p-3 ${i !== txs.length - 1 ? "border-b border-border/60" : ""}`}
+                >
                   <div className="grid h-10 w-10 place-items-center rounded-full bg-brand/10 text-brand">
                     <ArrowLeftRight className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold">
-                      {t.mode === "rent" ? "Rent payment" : t.mode === "settle" ? "Settled up" : t.mode === "split" ? "Split share" : t.mode === "scan" ? "QR payment" : "Sent USDC"}
-                      {t.recipientName && <span className="font-normal text-muted-foreground"> → {t.recipientName.split(" ")[0]}</span>}
+                      {t.mode === "rent"
+                        ? "Rent payment"
+                        : t.mode === "settle"
+                          ? "Settled up"
+                          : t.mode === "split"
+                            ? "Split share"
+                            : t.mode === "scan"
+                              ? "QR payment"
+                              : "Sent USDC"}
+                      {t.recipientName && (
+                        <span className="font-normal text-muted-foreground"> → {t.recipientName.split(" ")[0]}</span>
+                      )}
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
@@ -88,7 +121,9 @@ function ActivityPage() {
                     </div>
                     {t.error && <div className="mt-1 text-[10px] font-semibold text-brand">{t.error.slice(0, 90)}</div>}
                   </div>
-                  <div className={`text-sm font-bold tabular-nums ${t.status === "failed" ? "text-muted-foreground line-through" : "text-brand"}`}>
+                  <div
+                    className={`text-sm font-bold tabular-nums ${t.status === "failed" ? "text-muted-foreground line-through" : "text-brand"}`}
+                  >
                     −{fmtUSD(t.amount)}
                   </div>
                 </li>
@@ -110,13 +145,21 @@ function ActivityPage() {
               const m = getMember(a.actorId);
               const meta = a.category ? categoryMeta[a.category] : null;
               const icon =
-                a.kind === "settlement" ? <ArrowLeftRight className="h-4 w-4" /> :
-                a.kind === "member" ? <UserPlus className="h-4 w-4" /> : null;
+                a.kind === "settlement" ? (
+                  <ArrowLeftRight className="h-4 w-4" />
+                ) : a.kind === "member" ? (
+                  <UserPlus className="h-4 w-4" />
+                ) : null;
               return (
-                <li key={a.id} className={`relative flex items-center gap-3 p-3 ${i !== filtered.length - 1 ? "border-b border-border/60" : ""}`}>
+                <li
+                  key={a.id}
+                  className={`relative flex items-center gap-3 p-3 ${i !== filtered.length - 1 ? "border-b border-border/60" : ""}`}
+                >
                   <div className="relative">
                     <MemberAvatar member={m} size={42} />
-                    <span className={`absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[11px] shadow-sm ring-1 ring-black/5 ${a.kind === "settlement" ? "text-emerald-600" : "text-foreground"}`}>
+                    <span
+                      className={`absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[11px] shadow-sm ring-1 ring-black/5 ${a.kind === "settlement" ? "text-emerald-600" : "text-foreground"}`}
+                    >
                       {meta ? meta.icon : icon}
                     </span>
                   </div>
@@ -131,8 +174,11 @@ function ActivityPage() {
                     </div>
                   </div>
                   {a.amount != null && (
-                    <div className={`text-sm font-bold tabular-nums ${a.kind === "settlement" ? "text-emerald-600" : ""}`}>
-                      {a.kind === "settlement" ? "+" : ""}{fmtUSD(a.amount)}
+                    <div
+                      className={`text-sm font-bold tabular-nums ${a.kind === "settlement" ? "text-emerald-600" : ""}`}
+                    >
+                      {a.kind === "settlement" ? "+" : ""}
+                      {fmtUSD(a.amount)}
                     </div>
                   )}
                 </li>
