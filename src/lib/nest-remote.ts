@@ -4,6 +4,9 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { getAccount } from "wagmi/actions";
+import { wagmiConfig } from "./wagmi";
+import { signedNestWrite } from "./nest-sign";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import type { Member } from "./nest-data";
 
