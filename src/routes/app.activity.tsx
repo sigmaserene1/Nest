@@ -88,18 +88,30 @@ function ActivityPage() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-semibold">
-                      {t.mode === "rent"
-                        ? "Rent payment"
-                        : t.mode === "settle"
-                          ? "Settled up"
-                          : t.mode === "split"
-                            ? "Split share"
-                            : t.mode === "scan"
-                              ? "QR payment"
-                              : "Sent USDC"}
-                      {t.recipientName && (
-                        <span className="font-normal text-muted-foreground"> → {t.recipientName.split(" ")[0]}</span>
-                      )}
+                      {isReceived
+                        ? t.mode === "rent"
+                          ? "Received Rent"
+                          : t.mode === "settle"
+                            ? "Settlement Received"
+                            : t.mode === "split"
+                              ? "Split Payment Received"
+                              : t.mode === "scan"
+                                ? "Received via QR"
+                                : "Received USDC"
+                        : t.mode === "rent"
+                          ? "Paid Rent"
+                          : t.mode === "settle"
+                            ? "Settled Up"
+                            : t.mode === "split"
+                              ? "Paid Split Share"
+                              : t.mode === "scan"
+                                ? "Sent via QR"
+                                : "Sent USDC"}
+
+                      <span className="font-normal text-muted-foreground">
+                        {isReceived ? " ← " : " → "}
+                        {isReceived ? shortAddr(t.from) : (t.recipientName?.split(" ")[0] ?? shortAddr(t.to))}
+                      </span>
                     </div>
                     <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
                       <span className="inline-flex items-center gap-1">
@@ -109,7 +121,9 @@ function ActivityPage() {
                       <span>·</span>
                       <span>{fmtRelative(t.createdAt)}</span>
                       <span>·</span>
-                      <span className="font-mono">to {shortAddr(t.to)}</span>
+                      <span className="font-mono">
+                        {isReceived ? "from" : "to"} {shortAddr(isReceived ? t.from : t.to)}
+                      </span>
                       <a
                         href={explorerTxUrl(t.hash)}
                         target="_blank"
@@ -122,9 +136,16 @@ function ActivityPage() {
                     {t.error && <div className="mt-1 text-[10px] font-semibold text-brand">{t.error.slice(0, 90)}</div>}
                   </div>
                   <div
-                    className={`text-sm font-bold tabular-nums ${t.status === "failed" ? "text-muted-foreground line-through" : "text-brand"}`}
+                    className={`text-sm font-bold tabular-nums ${
+                      t.status === "failed"
+                        ? "text-muted-foreground line-through"
+                        : isReceived
+                          ? "text-emerald-600"
+                          : "text-brand"
+                    }`}
                   >
-                    −{fmtUSD(t.amount)}
+                    {isReceived ? "+" : "−"}
+                    {fmtUSD(t.amount)}
                   </div>
                 </li>
               );
