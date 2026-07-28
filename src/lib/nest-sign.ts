@@ -10,7 +10,7 @@ export async function signedNestWrite(
   action: NestAction,
   wallet: string,
   payload: Record<string, unknown>,
-): Promise<{ ok: true; data?: unknown } | { ok: false; error: string }> {
+): Promise<{ ok: true; data?: Record<string, string | number | null> } | { ok: false; error: string }> {
   const ts = Date.now();
   let signature: string;
   try {
@@ -25,7 +25,7 @@ export async function signedNestWrite(
   try {
     return (await nestWrite({
       data: { action, wallet, ts, signature, payload },
-    })) as { ok: true; data?: unknown } | { ok: false; error: string };
+    })) as { ok: true; data?: Record<string, string | number | null> } | { ok: false; error: string };
   } catch {
     return { ok: false, error: "Could not reach the server. Please try again." };
   }

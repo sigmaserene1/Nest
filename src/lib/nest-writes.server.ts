@@ -12,7 +12,8 @@ type Input = {
   payload: Record<string, unknown>;
 };
 
-type Result = { ok: true; data?: unknown } | { ok: false; error: string };
+type Json = string | number | null;
+type Result = { ok: true; data?: Record<string, Json> } | { ok: false; error: string };
 
 const MAX_AGE_MS = 5 * 60 * 1000;
 
