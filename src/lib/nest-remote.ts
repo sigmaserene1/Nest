@@ -67,21 +67,19 @@ export async function insertRoommate(input: {
   wallet: string;
   name: string;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
-  const { error } = await supabase.from("roommates").insert({
-    owner_wallet: input.ownerWallet.toLowerCase(),
-    owner_name: input.ownerName,
-    wallet: input.wallet.toLowerCase(),
+  const res = await signedNestWrite("add_roommate", input.ownerWallet, {
+    ownerName: input.ownerName,
+    wallet: input.wallet,
     name: input.name,
   });
-  if (error) {
-    if (error.code === "23505") return { ok: false, error: "That wallet is already a roommate." };
-    return { ok: false, error: error.message };
-  }
+  if (!res.ok) return res;
   return { ok: true };
 }
 
 export async function deleteRoommateRow(id: string) {
-  await supabase.from("roommates").delete().eq("id", id);
+  const me = getAccount(wagmiConfig).address;
+  if (!me) return { ok: false as const, error: "Connect your wallet first." };
+  return signedNestWrite("delete_roommate", me, { id });
 }
 
 /** Roommates visible to the connected wallet: people I added + people who added me. */
