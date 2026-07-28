@@ -258,19 +258,9 @@ export async function claimProfileName(
   const existing = await fetchProfile(wallet);
   if (existing) return { ok: false, error: `This wallet is already registered as "${existing.name}".` };
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .insert({ wallet: wallet.toLowerCase(), name: name.trim() })
-    .select("wallet,name,created_at")
-    .single();
-
-  if (error) {
-    if (error.code === "23505") {
-      return { ok: false, error: "That name is already claimed by another wallet. Pick another." };
-    }
-    return { ok: false, error: error.message };
-  }
-  return { ok: true, profile: data as ProfileRow };
+  const res = await signedNestWrite("claim_profile", wallet, { name: name.trim() });
+  if (!res.ok) return res;
+  return { ok: true, profile: res.data as unknown as ProfileRow };
 }
 
 /** The permanent Nest identity for the connected wallet (null until claimed). */
