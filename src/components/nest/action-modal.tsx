@@ -9,7 +9,7 @@ import { currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers } from "@/lib/nest-store";
 import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, explorerTxUrl } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { txStore } from "@/lib/tx-store";
+import { saveTransaction, finalizeTransactionStatus } from "@/lib/tx-remote";
 import { createPaymentRequest } from "@/lib/nest-remote";
 import type { ActionMode } from "./action-modal-types";
 
@@ -128,7 +128,7 @@ export function ActionModal({
     if (!txHash) return;
     if (receipt.isSuccess) {
       const status = receipt.data?.status === "success" ? "confirmed" : "failed";
-      txStore.update(txHash, { status });
+      void finalizeTransactionStatus(txHash);
       if (status === "confirmed") {
         setStage("done");
         wallet.refetchBalance();
@@ -144,7 +144,7 @@ export function ActionModal({
         setStage("failed");
       }
     } else if (receipt.isError) {
-      txStore.update(txHash, { status: "failed", error: receipt.error?.message });
+      void finalizeTransactionStatus(txHash);
       setError(receipt.error?.message ?? "Failed to confirm transaction.");
       setStage("failed");
     }
@@ -202,21 +202,19 @@ export function ActionModal({
           args: [m.wallet as `0x${string}`, parseUnits(shareStr, USDC_DECIMALS)],
         });
         setSplitHashes((h) => [...h, hash]);
-        txStore.add({
-          hash,
-          from: wallet.address ?? "",
-          to: m.wallet!,
+        void saveTransaction({
+          txHash: hash,
+          fromWallet: wallet.address ?? "",
+          toWallet: m.wallet!,
+          toName: m.name,
           amount: share,
           mode: "split",
           note: note || undefined,
-          recipientName: m.name,
-          createdAt: new Date().toISOString(),
-          status: "pending",
         });
         setStage("pending");
         const rec = await waitForTransactionReceipt(wagmiConfig, { hash, chainId: arcTestnet.id });
         const ok = rec.status === "success";
-        txStore.update(hash, { status: ok ? "confirmed" : "failed" });
+        void finalizeTransactionStatus(hash);
         if (!ok) {
           setError(`Transfer to ${m.name} reverted onchain.`);
           setStage("failed");
@@ -297,16 +295,14 @@ export function ActionModal({
         args: [toAddress as `0x${string}`, value],
       });
       setTxHash(hash);
-      txStore.add({
-        hash,
-        from: wallet.address ?? "",
-        to: toAddress,
+      void saveTransaction({
+        txHash: hash,
+        fromWallet: wallet.address ?? "",
+        toWallet: toAddress,
+        toName: recipientId ? getMember(recipientId).name : undefined,
         amount: amt,
         mode,
         note: note || undefined,
-        recipientName: recipientId ? getMember(recipientId).name : undefined,
-        createdAt: new Date().toISOString(),
-        status: "pending",
       });
       setStage("pending");
     } catch (err) {
