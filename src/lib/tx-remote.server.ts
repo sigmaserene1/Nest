@@ -85,14 +85,16 @@ export async function finalizeTransaction(input: FinalizeInput): Promise<Result>
   }
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  const { error } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from("transactions")
     .update({
       status,
       error: status === "failed" ? "Transaction reverted onchain." : null,
       updated_at: new Date().toISOString(),
     })
-    .eq("tx_hash", hash);
+    .eq("tx_hash", hash)
+    .select("tx_hash");
   if (error) return { ok: false, error: "Could not update transaction." };
+  if (!data?.length) return { ok: false, error: "Transaction not recorded yet." };
   return { ok: true, status };
 }

@@ -81,10 +81,15 @@ export async function saveTransaction(input: {
 
 /** Settle a stored transaction's status from the onchain receipt. */
 export async function finalizeTransactionStatus(txHash: string) {
-  try {
-    await finalizeTx({ data: { txHash } });
-  } catch {
-    /* history is best-effort */
+  // The insert may still be in flight when the receipt lands, so retry once.
+  for (let i = 0; i < 3; i++) {
+    try {
+      const res = (await finalizeTx({ data: { txHash } })) as { ok: boolean };
+      if (res?.ok) return;
+    } catch {
+      /* history is best-effort */
+    }
+    await new Promise((r) => setTimeout(r, 1500));
   }
 }
 
