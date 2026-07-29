@@ -104,6 +104,51 @@ export type Database = {
         }
         Relationships: []
       }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          error: string | null
+          from_wallet: string
+          id: string
+          mode: string
+          note: string | null
+          status: string
+          to_name: string | null
+          to_wallet: string
+          tx_hash: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          error?: string | null
+          from_wallet: string
+          id?: string
+          mode?: string
+          note?: string | null
+          status?: string
+          to_name?: string | null
+          to_wallet: string
+          tx_hash: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          error?: string | null
+          from_wallet?: string
+          id?: string
+          mode?: string
+          note?: string | null
+          status?: string
+          to_name?: string | null
+          to_wallet?: string
+          tx_hash?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -6,7 +6,7 @@ import { MemberAvatar } from "@/components/nest/avatar";
 import { TxHashPill, shortAddr } from "@/components/nest/chain";
 import { getMember, fmtUSD, fmtRelative, categoryMeta, mockTxHash } from "@/lib/nest-data";
 import { useHouseholdActivity } from "@/lib/nest-store";
-import { useTxHistory } from "@/lib/tx-store";
+import { useTxHistory } from "@/lib/tx-remote";
 import { explorerTxUrl } from "@/lib/wagmi";
 import { ArrowLeftRight, UserPlus, ExternalLink, Loader2, AlertTriangle, Check } from "lucide-react";
 
