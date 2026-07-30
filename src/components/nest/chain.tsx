@@ -1,3 +1,4 @@
+import { explorerTxUrl, openExplorerTx } from "@/lib/wagmi";
 import { useEffect, useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
 import { motion } from "framer-motion";
