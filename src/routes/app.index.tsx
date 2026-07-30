@@ -28,8 +28,8 @@ import {
   Sparkles,
   Bell,
   TrendingUp,
-  Home as HomeIcon,
 } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/app/")({
