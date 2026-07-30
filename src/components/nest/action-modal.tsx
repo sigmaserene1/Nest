@@ -6,7 +6,7 @@ import { useConfig, useWaitForTransactionReceipt, useWriteContract } from "wagmi
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { MemberAvatar } from "./avatar";
 import { currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
-import { useMembers } from "@/lib/nest-store";
+import { useMembers, useExpenses } from "@/lib/nest-store";
 import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { saveTransaction, finalizeTransactionStatus } from "@/lib/tx-remote";
@@ -82,6 +82,15 @@ export function ActionModal({
   onSuccess,
 }: Props) {
   const members = useMembers();
+  const expenses = useExpenses();
+  const rentExpenses = useMemo(
+    () =>
+      expenses
+        .filter((e) => e.category === "Rent")
+        .sort((a, b) => (a.date < b.date ? 1 : -1)),
+    [expenses],
+  );
+  const [rentExpenseId, setRentExpenseId] = useState<string>("");
   const others = useMemo(() => members.filter((m) => m.id !== currentUserId), [members]);
   const wallet = useArcWallet();
   const { writeContractAsync, reset: resetWrite } = useWriteContract();
@@ -115,8 +124,9 @@ export function ActionModal({
     setSplitHashes([]);
     setSplitProgress({ done: 0, total: 0 });
     resetWrite();
-    setAmount(defaultAmount ? String(defaultAmount) : mode === "rent" ? "800" : "");
-    const rid = defaultRecipientId ?? (mode === "rent" ? (others[0]?.id ?? "") : "");
+    setRentExpenseId("");
+    setAmount(defaultAmount ? String(defaultAmount) : "");
+    const rid = defaultRecipientId ?? "";
     setRecipientId(rid);
     const seedAddr = defaultToAddress ?? (rid ? (getMember(rid).wallet ?? "") : "");
     setToAddress(seedAddr);
@@ -357,9 +367,52 @@ export function ActionModal({
               )}
 
               {mode === "rent" && (
-                <div className="mt-4 flex items-center gap-3 rounded-2xl bg-brand/10 p-3 text-brand">
-                  <HomeIcon className="h-5 w-5" />
-                  <div className="text-sm font-semibold">Bedford Loft · Monthly rent</div>
+                <div className="mt-4">
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Rent expenses
+                  </div>
+                  {rentExpenses.length === 0 ? (
+                    <div className="mt-2 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+                      <HomeIcon className="h-5 w-5 text-muted-foreground" />
+                      <div className="text-xs text-muted-foreground">
+                        No rent expense yet. Add one under Expenses with the “Rent” category and it will show up here.
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-2 space-y-2">
+                      {rentExpenses.map((e) => {
+                        const payer = getMember(e.payerId);
+                        const active = rentExpenseId === e.id;
+                        return (
+                          <button
+                            key={e.id}
+                            onClick={() => {
+                              setRentExpenseId(e.id);
+                              setAmount(String(e.amount));
+                              setRecipientId(e.payerId);
+                              setToAddress(payer.wallet ?? "");
+                            }}
+                            className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition ${
+                              active ? "border-brand bg-brand/10" : "border-border bg-white hover:bg-muted/50"
+                            }`}
+                          >
+                            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
+                              <HomeIcon className="h-5 w-5" />
+                            </span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-semibold">{e.title}</span>
+                              <span className="block truncate text-[11px] text-muted-foreground">
+                                Paid by {payer.name.split(" ")[0]} ·{" "}
+                                {new Date(e.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                              </span>
+                            </span>
+                            <span className="text-sm font-bold tabular-nums">{fmtUSD(e.amount)}</span>
+                            {active && <Check className="h-4 w-4 text-brand" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
