@@ -96,8 +96,9 @@ function makeStore<T>(baseKey: string) {
 
     subscribe(fn: () => void) {
       listeners.add(fn);
+      scopeListeners.add(fn);
       const onStorage = (e: StorageEvent) => {
-        if (e.key === key) {
+        if (e.key === scopedKey()) {
           cache = null;
           fn();
         }
@@ -107,11 +108,13 @@ function makeStore<T>(baseKey: string) {
       }
       return () => {
         listeners.delete(fn);
+        scopeListeners.delete(fn);
         if (typeof window !== "undefined") {
           window.removeEventListener("storage", onStorage);
         }
       };
     },
+
   };
 }
 
