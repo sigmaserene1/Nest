@@ -1,11 +1,9 @@
 // Reactive, persisted stores for user-created expenses and completed settlements.
 // Combines with the seed data in nest-data so every screen reflects the same state.
 
-import { useSyncExternalStore, useMemo } from "react";
+import { useSyncExternalStore, useMemo, useEffect } from "react";
+import { useAccount } from "wagmi";
 import {
-  expenses as seedExpenses,
-  settlements as seedSettlements,
-  activity as seedActivity,
   members as seedMembers,
   computeBalances as baseComputeBalances,
   getMember,
