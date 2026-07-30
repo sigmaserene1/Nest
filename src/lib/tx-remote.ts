@@ -110,22 +110,46 @@ export function useTxHistory(): StoredTx[] {
       .or(`from_wallet.eq.${me},to_wallet.eq.${me}`)
       .order("created_at", { ascending: false })
       .limit(200);
-    setRows(((data as TxRow[]) ?? []).map(toStoredTx));
+    const next = ((data as TxRow[]) ?? []).map(toStoredTx);
+    setRows(next);
+
+    // Self-heal: a tab that closed mid-payment can leave rows stuck on
+    // "pending". Settle them from the chain so a re-login shows the truth.
+    for (const tx of next) {
+      if (tx.status === "pending" && tx.from.toLowerCase() === me) {
+        void finalizeTx({ data: { txHash: tx.hash } }).catch(() => {});
+      }
+    }
   }, [me]);
 
   useEffect(() => {
     void refetch();
     if (!me) return;
+
+    // Realtime is the fast path; polling + focus refetch guarantee that
+    // everything already onchain shows up immediately after a re-login.
     const ch = supabase
       .channel(`transactions-${me}-${Math.random().toString(36).slice(2)}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, () => {
         void refetch();
       })
       .subscribe();
+
+    const poll = setInterval(() => void refetch(), 8000);
+    const onFocus = () => {
+      if (document.visibilityState === "visible") void refetch();
+    };
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
+
     return () => {
       supabase.removeChannel(ch);
+      clearInterval(poll);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
   }, [me, refetch]);
 
   return rows;
 }
+
