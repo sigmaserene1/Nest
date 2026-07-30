@@ -254,8 +254,10 @@ export async function claimProfileName(
   wallet: string,
   name: string,
 ): Promise<{ ok: true; profile: ProfileRow } | { ok: false; error: string }> {
+  // If this wallet already owns a name, adopt it instead of failing — the name
+  // is permanent, so re-claiming is a no-op.
   const existing = await fetchProfile(wallet);
-  if (existing) return { ok: false, error: `This wallet is already registered as "${existing.name}".` };
+  if (existing) return { ok: true, profile: existing };
 
   const res = await signedNestWrite("claim_profile", wallet, { name: name.trim() });
   if (!res.ok) return res;
