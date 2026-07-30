@@ -8,6 +8,7 @@ import { getAccount } from "wagmi/actions";
 import { wagmiConfig } from "./wagmi";
 import { signedNestWrite } from "./nest-sign";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { setDisplayName, markOnboarded } from "./profile-store";
 import type { Member } from "./nest-data";
 
 export type RoommateRow = {
