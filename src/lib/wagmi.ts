@@ -38,6 +38,21 @@ export const WALLETCONNECT_PROJECT_ID = WC_VALID ? WC_RAW : "";
 export const explorerTxUrl = (hash: string) => `${arcTestnet.blockExplorers.default.url}/tx/${hash}`;
 export const explorerAddrUrl = (addr: string) => `${arcTestnet.blockExplorers.default.url}/address/${addr}`;
 
+/**
+ * Opens an explorer link in a brand-new browsing context.
+ * Plain target="_blank" inherits the opener from the embedded preview, which
+ * Arcscan rejects with ERR_BLOCKED_BY_RESPONSE — "noopener" avoids that.
+ */
+export function openExternal(url: string) {
+  if (typeof window === "undefined") return;
+  const w = window.open(url, "_blank", "noopener,noreferrer");
+  if (w) w.opener = null;
+  else window.location.href = url;
+}
+
+export const openExplorerTx = (hash: string) => openExternal(explorerTxUrl(hash));
+export const openExplorerAddr = (addr: string) => openExternal(explorerAddrUrl(addr));
+
 const wallets = WC_VALID
   ? [metaMaskWallet, rainbowWallet, walletConnectWallet, injectedWallet]
   : [metaMaskWallet, rainbowWallet, injectedWallet];
