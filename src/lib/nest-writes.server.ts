@@ -53,26 +53,36 @@ export async function handleNestWrite(input: Input): Promise<Result> {
       if (name.length < 2 || name.length > 40) {
         return { ok: false, error: "Name must be 2–40 characters." };
       }
+      // A wallet keeps exactly one permanent name: re-claiming is idempotent.
       const { data: existing } = await supabaseAdmin
         .from("profiles")
-        .select("name")
+        .select("wallet,name,created_at")
         .eq("wallet", wallet)
         .maybeSingle();
-      if (existing) {
-        return { ok: false, error: `This wallet is already registered as "${existing.name}".` };
-      }
+      if (existing) return { ok: true, data: existing };
+
       const { data, error } = await supabaseAdmin
         .from("profiles")
-        .insert({ wallet, name })
+        .upsert({ wallet, name }, { onConflict: "wallet", ignoreDuplicates: true })
         .select("wallet,name,created_at")
-        .single();
+        .maybeSingle();
       if (error) {
         if (error.code === "23505") {
           return { ok: false, error: "That name is already claimed by another wallet. Pick another." };
         }
         return { ok: false, error: "Could not claim that name." };
       }
-      return { ok: true, data };
+      if (data) return { ok: true, data };
+
+      // Raced with a parallel claim from the same wallet — return the stored row.
+      const { data: current } = await supabaseAdmin
+        .from("profiles")
+        .select("wallet,name,created_at")
+        .eq("wallet", wallet)
+        .maybeSingle();
+      return current
+        ? { ok: true, data: current }
+        : { ok: false, error: "Could not claim that name." };
     }
 
     case "add_roommate": {
