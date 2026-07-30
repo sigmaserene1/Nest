@@ -1,11 +1,9 @@
 // Reactive, persisted stores for user-created expenses and completed settlements.
 // Combines with the seed data in nest-data so every screen reflects the same state.
 
-import { useSyncExternalStore, useMemo } from "react";
+import { useSyncExternalStore, useMemo, useEffect } from "react";
+import { useAccount } from "wagmi";
 import {
-  expenses as seedExpenses,
-  settlements as seedSettlements,
-  activity as seedActivity,
   members as seedMembers,
   computeBalances as baseComputeBalances,
   getMember,
@@ -25,17 +23,39 @@ import {
   useRemoteRoommates,
 } from "./nest-remote";
 
+// Every store is scoped to the connected wallet, so one account never sees
+// another account's expense history (and there is no shared demo history).
+let activeWallet: string | null = null;
+const scopeListeners = new Set<() => void>();
 
+export function setStoreWallet(address?: string | null) {
+  const next = address ? address.toLowerCase() : null;
+  if (next === activeWallet) return;
+  activeWallet = next;
+  scopeListeners.forEach((l) => l());
+}
 
-function makeStore<T>(key: string) {
+/** Keeps all local stores scoped to the connected wallet. Mount once in the app layout. */
+export function useNestScope() {
+  const { address } = useAccount();
+  useEffect(() => {
+    setStoreWallet(address);
+  }, [address]);
+}
+
+function makeStore<T>(baseKey: string) {
   const listeners = new Set<() => void>();
   let cache: T[] | null = null;
+  let cachedScope: string | null | undefined;
+
+  const scopedKey = () => `${baseKey}:${activeWallet ?? "guest"}`;
 
   const read = (): T[] => {
-    if (cache) return cache;
+    if (cache && cachedScope === activeWallet) return cache;
+    cachedScope = activeWallet;
     if (typeof window === "undefined") return (cache = []);
     try {
-      const raw = localStorage.getItem(key);
+      const raw = localStorage.getItem(scopedKey());
       cache = raw ? (JSON.parse(raw) as T[]) : [];
     } catch {
       cache = [];
@@ -45,11 +65,13 @@ function makeStore<T>(key: string) {
 
   const write = (list: T[]) => {
     cache = list;
+    cachedScope = activeWallet;
     if (typeof window !== "undefined") {
-      localStorage.setItem(key, JSON.stringify(list));
+      localStorage.setItem(scopedKey(), JSON.stringify(list));
     }
     listeners.forEach((l) => l());
   };
+
 
   return {
     all: read,
@@ -74,8 +96,9 @@ function makeStore<T>(key: string) {
 
     subscribe(fn: () => void) {
       listeners.add(fn);
+      scopeListeners.add(fn);
       const onStorage = (e: StorageEvent) => {
-        if (e.key === key) {
+        if (e.key === scopedKey()) {
           cache = null;
           fn();
         }
@@ -85,11 +108,13 @@ function makeStore<T>(key: string) {
       }
       return () => {
         listeners.delete(fn);
+        scopeListeners.delete(fn);
         if (typeof window !== "undefined") {
           window.removeEventListener("storage", onStorage);
         }
       };
     },
+
   };
 }
 
@@ -230,7 +255,7 @@ export function useExpenses(): Expense[] {
   const overrides = useStore(expenseOverrideStore);
   return useMemo(() => {
     const map = new Map(overrides.map((o) => [o.id, o]));
-    return [...extras, ...seedExpenses]
+    return [...extras]
       .filter((e) => !map.get(e.id)?.deleted)
       .map((e) => {
         const patch = map.get(e.id)?.patch;
@@ -244,7 +269,7 @@ export function useExpenses(): Expense[] {
 export function useSettlements(): Settlement[] {
   const extras = useStore(settlementStore);
   return useMemo(
-    () => [...extras, ...seedSettlements].sort((a, b) => b.date.localeCompare(a.date)),
+    () => [...extras].sort((a, b) => b.date.localeCompare(a.date)),
     [extras],
   );
 }
@@ -285,7 +310,7 @@ export function useHouseholdActivity(): ActivityEvent[] {
         date: new Date(s.date).toISOString(),
       };
     });
-    return [...fromExpenses, ...fromSettlements, ...seedActivity].sort(
+    return [...fromExpenses, ...fromSettlements].sort(
       (a, b) => b.date.localeCompare(a.date),
     );
   }, [extraExpenses, extraSettlements]);
