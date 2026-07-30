@@ -149,10 +149,14 @@ export function TxHashPill({
         {copied ? <Check className="h-2.5 w-2.5 text-emerald-500" /> : <Copy className="h-2.5 w-2.5" />}
       </button>
       <a
-        href={`https://testnet.arcscan.app/tx/${hash}`}
+        href={explorerTxUrl(hash)}
         target="_blank"
-        rel="noreferrer"
-        onClick={(e) => e.stopPropagation()}
+        rel="noopener noreferrer"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          openExplorerTx(hash);
+        }}
         className="grid h-4 w-4 place-items-center rounded-full hover:bg-black/5"
         aria-label="View on Arc explorer"
       >
