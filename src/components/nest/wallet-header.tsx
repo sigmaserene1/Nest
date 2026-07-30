@@ -1,20 +1,10 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { LogOut, AlertTriangle, Loader2 } from "lucide-react";
-import { useNavigate } from "@tanstack/react-router";
-import { supabase } from "@/integrations/supabase/client";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { arcTestnet } from "@/lib/wagmi";
-import { toast } from "sonner";
 
 export function WalletHeader() {
-  const navigate = useNavigate();
   const { isConnected, isOnArc, switchToArc, isSwitching } = useArcWallet();
-
-  const signOut = async () => {
-    await supabase.auth.signOut();
-    toast.success("Signed out");
-    navigate({ to: "/auth" });
-  };
 
   return (
     <div className="flex flex-col gap-2">
@@ -24,13 +14,6 @@ export function WalletHeader() {
           chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
           showBalance={false}
         />
-        <button
-          onClick={signOut}
-          aria-label="Sign out"
-          className="grid h-9 w-9 place-items-center rounded-full bg-card text-muted-foreground ring-1 ring-black/[0.05] transition hover:text-brand"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
       </div>
 
       {isConnected && !isOnArc && (
