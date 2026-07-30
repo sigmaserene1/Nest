@@ -107,9 +107,9 @@ export function useTxHistory(): StoredTx[] {
     const { data } = await supabase
       .from("transactions")
       .select("tx_hash,from_wallet,to_wallet,to_name,amount,mode,note,status,error,created_at")
-      .or(`from_wallet.eq.${me},to_wallet.eq.${me}`)
+      .or(`from_wallet.ilike.${me},to_wallet.ilike.${me}`)
       .order("created_at", { ascending: false })
-      .limit(200);
+      .limit(1000);
     const next = ((data as TxRow[]) ?? []).map(toStoredTx);
     setRows(next);
 

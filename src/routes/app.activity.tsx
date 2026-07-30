@@ -7,7 +7,7 @@ import { TxHashPill, shortAddr } from "@/components/nest/chain";
 import { getMember, fmtUSD, fmtRelative, categoryMeta, mockTxHash } from "@/lib/nest-data";
 import { useHouseholdActivity } from "@/lib/nest-store";
 import { useTxHistory } from "@/lib/tx-remote";
-import { explorerTxUrl } from "@/lib/wagmi";
+import { explorerTxUrl, openExplorerTx } from "@/lib/wagmi";
 import { ArrowLeftRight, UserPlus, ExternalLink, Loader2, AlertTriangle, Check } from "lucide-react";
 
 export const Route = createFileRoute("/app/activity")({
@@ -127,7 +127,12 @@ function ActivityPage() {
                       <a
                         href={explorerTxUrl(t.hash)}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openExplorerTx(t.hash);
+                        }}
                         className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 font-mono text-[10px] hover:bg-muted/80"
                       >
                         {t.hash.slice(0, 6)}…{t.hash.slice(-4)} <ExternalLink className="h-2.5 w-2.5" />
