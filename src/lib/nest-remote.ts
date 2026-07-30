@@ -8,6 +8,7 @@ import { getAccount } from "wagmi/actions";
 import { wagmiConfig } from "./wagmi";
 import { signedNestWrite } from "./nest-sign";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { setDisplayName, markOnboarded } from "./profile-store";
 import type { Member } from "./nest-data";
 
 export type RoommateRow = {
@@ -254,8 +255,10 @@ export async function claimProfileName(
   wallet: string,
   name: string,
 ): Promise<{ ok: true; profile: ProfileRow } | { ok: false; error: string }> {
+  // If this wallet already owns a name, adopt it instead of failing — the name
+  // is permanent, so re-claiming is a no-op.
   const existing = await fetchProfile(wallet);
-  if (existing) return { ok: false, error: `This wallet is already registered as "${existing.name}".` };
+  if (existing) return { ok: true, profile: existing };
 
   const res = await signedNestWrite("claim_profile", wallet, { name: name.trim() });
   if (!res.ok) return res;
@@ -266,7 +269,9 @@ export async function claimProfileName(
 export function useMyProfile() {
   const { address } = useArcWallet();
   const me = address?.toLowerCase() ?? null;
-  const [profile, setProfile] = useState<ProfileRow | null>(null);
+  const [profile, setProfile] = useState<ProfileRow | null>(() =>
+    me ? readCachedProfile(me) : null,
+  );
   const [loading, setLoading] = useState(true);
 
   const refetch = useCallback(async () => {
@@ -276,7 +281,15 @@ export function useMyProfile() {
       return;
     }
     setLoading(true);
-    setProfile(await fetchProfile(me));
+    const cached = readCachedProfile(me);
+    if (cached) setProfile(cached);
+    const fresh = await fetchProfile(me);
+    if (fresh) {
+      cacheProfile(fresh);
+      setDisplayName(fresh.name);
+      markOnboarded(me);
+    }
+    setProfile(fresh ?? null);
     setLoading(false);
   }, [me]);
 
@@ -285,4 +298,29 @@ export function useMyProfile() {
   }, [refetch]);
 
   return { profile, loading, refetch, locked: !!profile, myWallet: address ?? null };
+}
+
+/* --------------------------- local profile cache -------------------------- */
+// Lets a returning wallet render its claimed name instantly (and skip the
+// claim modal) before the database round-trip finishes.
+
+const profileCacheKey = (wallet: string) => `nest.profile.row.${wallet.toLowerCase()}`;
+
+function readCachedProfile(wallet: string): ProfileRow | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(profileCacheKey(wallet));
+    return raw ? (JSON.parse(raw) as ProfileRow) : null;
+  } catch {
+    return null;
+  }
+}
+
+function cacheProfile(profile: ProfileRow) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(profileCacheKey(profile.wallet), JSON.stringify(profile));
+  } catch {
+    /* ignore */
+  }
 }
