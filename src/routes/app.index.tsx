@@ -28,8 +28,8 @@ import {
   Sparkles,
   Bell,
   TrendingUp,
-  Home as HomeIcon,
 } from "lucide-react";
+
 
 
 export const Route = createFileRoute("/app/")({
@@ -150,10 +150,9 @@ function Dashboard() {
         <QuickPill onClick={() => action.open("send")} label="Send" icon={<Send className="h-[18px] w-[18px]" />} tint="bg-brand/10 text-brand" />
         <QuickPill onClick={() => action.open("request")} label="Request" icon={<Download className="h-[18px] w-[18px]" />} tint="bg-emerald-500/10 text-emerald-600" />
         <QuickPill onClick={() => action.open("split")} label="Split" icon={<Split className="h-[18px] w-[18px]" />} tint="bg-indigo-500/10 text-indigo-600" />
-        <QuickPill onClick={() => action.open("rent")} label="Pay Rent" icon={<HomeIcon className="h-[18px] w-[18px]" />} tint="bg-rose-500/10 text-rose-600" />
         <QuickPill onClick={() => action.open("scan")} label="Scan QR" icon={<QrCode className="h-[18px] w-[18px]" />} tint="bg-amber-500/10 text-amber-600" />
-
       </Stagger>
+
 
       {/* Real payment requests between roommates */}
       <PaymentRequests />
