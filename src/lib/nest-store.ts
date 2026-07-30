@@ -255,7 +255,7 @@ export function useExpenses(): Expense[] {
   const overrides = useStore(expenseOverrideStore);
   return useMemo(() => {
     const map = new Map(overrides.map((o) => [o.id, o]));
-    return [...extras, ...seedExpenses]
+    return [...extras]
       .filter((e) => !map.get(e.id)?.deleted)
       .map((e) => {
         const patch = map.get(e.id)?.patch;
@@ -269,7 +269,7 @@ export function useExpenses(): Expense[] {
 export function useSettlements(): Settlement[] {
   const extras = useStore(settlementStore);
   return useMemo(
-    () => [...extras, ...seedSettlements].sort((a, b) => b.date.localeCompare(a.date)),
+    () => [...extras].sort((a, b) => b.date.localeCompare(a.date)),
     [extras],
   );
 }
@@ -310,7 +310,7 @@ export function useHouseholdActivity(): ActivityEvent[] {
         date: new Date(s.date).toISOString(),
       };
     });
-    return [...fromExpenses, ...fromSettlements, ...seedActivity].sort(
+    return [...fromExpenses, ...fromSettlements].sort(
       (a, b) => b.date.localeCompare(a.date),
     );
   }, [extraExpenses, extraSettlements]);
