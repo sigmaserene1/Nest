@@ -7,7 +7,7 @@ import { waitForTransactionReceipt } from "wagmi/actions";
 import { MemberAvatar } from "./avatar";
 import { currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers } from "@/lib/nest-store";
-import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, explorerTxUrl } from "@/lib/wagmi";
+import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { saveTransaction, finalizeTransactionStatus } from "@/lib/tx-remote";
 import { createPaymentRequest } from "@/lib/nest-remote";
@@ -608,7 +608,7 @@ export function ActionModal({
                   {splitHashes.map((h) => (
                     <button
                       key={h}
-                      onClick={() => window.open(explorerTxUrl(h), "_blank", "noopener,noreferrer")}
+                      onClick={() => openExplorerTx(h)}
                       className="mx-auto flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px] hover:underline"
                     >
                       {h.slice(0, 10)}…{h.slice(-8)} <ExternalLink className="h-3 w-3" />
@@ -632,7 +632,7 @@ export function ActionModal({
                     {txHash.slice(0, 10)}…{txHash.slice(-8)}
                   </div>
                   <button
-                    onClick={() => window.open(explorerTxUrl(txHash), "_blank", "noopener,noreferrer")}
+                    onClick={() => openExplorerTx(txHash)}
                     className="mx-auto inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
                   >
                     View on ArcScan <ExternalLink className="h-3 w-3" />
