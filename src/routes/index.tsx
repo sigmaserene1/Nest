@@ -37,8 +37,9 @@ function Landing() {
       </header>
 
       <section className="mx-auto max-w-6xl px-5 pt-8 pb-20 text-center">
-        <span className="inline-flex items-center rounded-full bg-foreground px-4 py-1.5 text-sm font-semibold text-background animate-float-in">
-          Built on Arc
+        <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-2 text-sm font-semibold text-brand animate-float-in">
+          <span className="h-2 w-2 rounded-full bg-brand" />
+          Now live on Arc testnet
         </span>
 
 
