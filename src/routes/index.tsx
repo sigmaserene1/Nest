@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
 import { ArcMark } from "@/components/nest/chain";
 
@@ -37,9 +37,10 @@ function Landing() {
       </header>
 
       <section className="mx-auto max-w-6xl px-5 pt-8 pb-20 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand animate-float-in">
-          <Sparkles className="h-3.5 w-3.5" /> New · Now live on Arc testnet
+        <span className="inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-1.5 text-sm font-semibold text-background animate-float-in">
+          <ArcMark size={18} className="rounded-md ring-1 ring-white/20" /> Built on Arc
         </span>
+
         <h1 className="mx-auto mt-5 max-w-3xl text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl animate-float-in">
           Shared living,
           <br />

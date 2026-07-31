@@ -36,26 +36,29 @@ export function UsdcMark({ size = 16, className = "" }: { size?: number; classNa
 }
 
 export function ArcMark({ size = 22, className = "" }: { size?: number; className?: string }) {
+  // Arc brand mark: white arc on solid Arc black.
   return (
     <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-hidden>
-      <defs>
-        <linearGradient id="arcg" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#ff8a5b" />
-          <stop offset="100%" stopColor="#e53935" />
-        </linearGradient>
-      </defs>
-      <circle cx="16" cy="16" r="15" fill="url(#arcg)" />
+      <rect width="32" height="32" rx="8" fill="#0B0B0F" />
       <path
-        d="M8.5 21.5c0-5.2 3.6-9 7.5-9s7.5 3.8 7.5 9"
+        d="M8 22.5c0-4.42 3.58-8 8-8s8 3.58 8 8"
         fill="none"
-        stroke="#fff"
-        strokeWidth="2.6"
+        stroke="#ffffff"
+        strokeWidth="2.8"
         strokeLinecap="round"
       />
-      <circle cx="16" cy="21.8" r="2" fill="#fff" />
+      <path
+        d="M12.4 22.5a3.6 3.6 0 0 1 7.2 0"
+        fill="none"
+        stroke="#ffffff"
+        strokeWidth="2.8"
+        strokeLinecap="round"
+        opacity="0.55"
+      />
     </svg>
   );
 }
+
 
 export function ArcLockup({ className = "" }: { className?: string }) {
   return (
