@@ -109,6 +109,15 @@ export function ActionModal({
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
   const [error, setError] = useState<string>("");
 
+  // EIP-681 USDC transfer request — scannable by any wallet
+  const paymentUri = useMemo(() => {
+    if (!isAddress(toAddress)) return "";
+    const amt = Number(amount) > 0 ? parseUnits(String(amount), USDC_DECIMALS).toString() : "";
+    const base = `ethereum:${USDC_ADDRESS}@${arcTestnet.id}/transfer?address=${toAddress}`;
+    return amt ? `${base}&uint256=${amt}` : base;
+  }, [toAddress, amount]);
+
+
   const receipt = useWaitForTransactionReceipt({
     hash: txHash,
     chainId: arcTestnet.id,
