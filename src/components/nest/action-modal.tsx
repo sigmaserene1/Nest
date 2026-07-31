@@ -5,6 +5,8 @@ import { isAddress, parseUnits } from "viem";
 import { useConfig, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { MemberAvatar } from "./avatar";
+import { PaymentQr } from "./qr";
+
 import { currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers, useExpenses } from "@/lib/nest-store";
 import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, openExplorerTx } from "@/lib/wagmi";
@@ -106,6 +108,15 @@ export function ActionModal({
   const [stage, setStage] = useState<"form" | "confirming" | "pending" | "done" | "failed">("form");
   const [txHash, setTxHash] = useState<`0x${string}` | undefined>();
   const [error, setError] = useState<string>("");
+
+  // EIP-681 USDC transfer request — scannable by any wallet
+  const paymentUri = useMemo(() => {
+    if (!isAddress(toAddress)) return "";
+    const amt = Number(amount) > 0 ? parseUnits(String(amount), USDC_DECIMALS).toString() : "";
+    const base = `ethereum:${USDC_ADDRESS}@${arcTestnet.id}/transfer?address=${toAddress}`;
+    return amt ? `${base}&uint256=${amt}` : base;
+  }, [toAddress, amount]);
+
 
   const receipt = useWaitForTransactionReceipt({
     hash: txHash,
@@ -360,11 +371,27 @@ export function ActionModal({
               </div>
 
               {mode === "scan" && (
-                <div className="mt-5 grid place-items-center rounded-[24px] bg-muted/60 p-8">
-                  <QrCode className="h-24 w-24 text-foreground/70" strokeWidth={1.2} />
-                  <div className="mt-3 text-xs text-muted-foreground">Paste a wallet address or QR result below</div>
+                <div className="mt-5 grid place-items-center rounded-[24px] bg-muted/60 p-6">
+                  {isAddress(toAddress) ? (
+                    <>
+                      <PaymentQr value={paymentUri} />
+                      <div className="mt-3 text-center text-xs text-muted-foreground">
+                        Scan with any wallet to pay{" "}
+                        <span className="font-mono">{toAddress.slice(0, 6)}…{toAddress.slice(-4)}</span>
+                        {Number(amount) > 0 ? ` · ${fmtUSD(Number(amount))} USDC` : ""}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <QrCode className="h-24 w-24 text-foreground/70" strokeWidth={1.2} />
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        Enter a recipient address below to generate a real QR code
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
+
 
               {mode === "rent" && (
                 <div className="mt-4">
