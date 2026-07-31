@@ -360,11 +360,27 @@ export function ActionModal({
               </div>
 
               {mode === "scan" && (
-                <div className="mt-5 grid place-items-center rounded-[24px] bg-muted/60 p-8">
-                  <QrCode className="h-24 w-24 text-foreground/70" strokeWidth={1.2} />
-                  <div className="mt-3 text-xs text-muted-foreground">Paste a wallet address or QR result below</div>
+                <div className="mt-5 grid place-items-center rounded-[24px] bg-muted/60 p-6">
+                  {isAddress(toAddress) ? (
+                    <>
+                      <PaymentQr value={paymentUri} />
+                      <div className="mt-3 text-center text-xs text-muted-foreground">
+                        Scan with any wallet to pay{" "}
+                        <span className="font-mono">{toAddress.slice(0, 6)}…{toAddress.slice(-4)}</span>
+                        {Number(amount) > 0 ? ` · ${fmtUSD(Number(amount))} USDC` : ""}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <QrCode className="h-24 w-24 text-foreground/70" strokeWidth={1.2} />
+                      <div className="mt-3 text-xs text-muted-foreground">
+                        Enter a recipient address below to generate a real QR code
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
+
 
               {mode === "rent" && (
                 <div className="mt-4">
