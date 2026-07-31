@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Sparkles, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
 import { ArcMark } from "@/components/nest/chain";
 
