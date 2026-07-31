@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
-import arcLogo from "@/assets/arc-logo.png.asset.json";
+
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -134,7 +134,12 @@ function Landing() {
 
         <div className="glass-strong mx-auto mt-10 flex max-w-3xl flex-col items-center gap-4 rounded-[28px] p-8 sm:flex-row sm:justify-between sm:text-left">
           <div className="flex items-center gap-3">
-            <img src={arcLogo.url} alt="Arc logo" className="h-11 w-11 object-contain" />
+            <img
+              src="/__l5e/assets-v1/f137cacf-9417-4a42-a5bf-c214ce115c80/arc-logo.png"
+              alt="Arc logo"
+              className="h-11 w-11 object-contain"
+            />
+
             <div>
               <div className="text-sm font-bold">Every settlement is a real Arc transaction</div>
               <div className="text-xs text-muted-foreground">
