@@ -5,6 +5,8 @@ import { isAddress, parseUnits } from "viem";
 import { useConfig, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { MemberAvatar } from "./avatar";
+import { PaymentQr } from "./qr";
+
 import { currentUserId, getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers, useExpenses } from "@/lib/nest-store";
 import { ERC20_ABI, USDC_ADDRESS, USDC_DECIMALS, arcTestnet, openExplorerTx } from "@/lib/wagmi";
