@@ -7,9 +7,9 @@ import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
 import { ArcBadge, UsdcBadge, WalletChip } from "./chain";
 import { WalletHeader } from "./wallet-header";
-import { getMember, currentUserId } from "@/lib/nest-data";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { useDisplayName } from "@/lib/profile-store";
+import { useNestChain } from "@/lib/chain/nest-chain";
+import { getMember } from "@/lib/nest-data";
 import { ProfileOnboarding } from "./profile-modal";
 
 const primary = [
@@ -74,8 +74,8 @@ function BottomTab({
 }
 
 export function AppShell({ children, greeting, onFabClick }: { children: ReactNode; greeting?: ReactNode; onFabClick?: () => void }) {
-  const me = getMember(currentUserId);
-  const displayName = useDisplayName();
+  const { me: myId, myName: displayName } = useNestChain();
+  const me = getMember(myId ?? "");
   const wallet = useArcWallet();
   const myName = displayName ?? "You";
 

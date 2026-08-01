@@ -3,9 +3,8 @@ import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { WalletChip, ArcBadge } from "@/components/nest/chain";
-import { currentUserId, fmtUSD } from "@/lib/nest-data";
-import { useComputedBalances, useMembers, useCustomMembers, removeRoommate } from "@/lib/nest-store";
-import { useRemoteRoommates, useMyProfile } from "@/lib/nest-remote";
+import { fmtUSD } from "@/lib/nest-data";
+import { useComputedBalances, useMembers, useMe, useNestChain } from "@/lib/chain/nest-chain";
 import { InviteRoommateModal } from "@/components/nest/invite-modal";
 import { Copy, Check, UserPlus, Trash2, Pencil, ShieldCheck } from "lucide-react";
 import { ProfileNameModal } from "@/components/nest/profile-modal";
@@ -17,14 +16,15 @@ export const Route = createFileRoute("/app/members")({
 
 function MembersPage() {
   const members = useMembers();
-  const custom = useCustomMembers();
-  const { ownedIdByWallet } = useRemoteRoommates();
-  const { locked: nameLocked } = useMyProfile();
+  const currentUserId = useMe();
+  const { myName, roomId, contractAddress } = useNestChain();
+  const nameLocked = !!myName;
+  const custom = members.filter((m) => m.id !== currentUserId);
   const { net } = useComputedBalances();
   const [copied, setCopied] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [nameOpen, setNameOpen] = useState(false);
-  const invite = "nest.app/join/bedford-loft-8fJ2";
+  const invite = `${contractAddress ?? ""}-${roomId ?? ""}`;
 
   const copy = async () => {
     try { await navigator.clipboard?.writeText(invite); } catch {}
@@ -88,15 +88,6 @@ function MembersPage() {
                     <ArcBadge />
                   </div>
                 </div>
-                {!isMe && (
-                  <button
-                    onClick={() => removeRoommate(m.id, ownedIdByWallet.get(m.id))}
-                    aria-label={`Remove ${m.name}`}
-                    className="grid h-8 w-8 place-items-center rounded-full bg-muted text-muted-foreground transition hover:bg-brand/10 hover:text-brand"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
               </div>
               <div className="mt-4 flex items-center justify-between rounded-2xl bg-muted/60 p-3">
                 <span className="text-xs text-muted-foreground">Net balance</span>

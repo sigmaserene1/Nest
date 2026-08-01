@@ -4,19 +4,11 @@ import { AppShell } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap } from "@/components/nest/motion";
 import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
-import { ArcBadge, UsdcBadge, WalletChip, TxHashPill, BlockTicker } from "@/components/nest/chain";
+import { ArcBadge, UsdcBadge, WalletChip, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { useDisplayName } from "@/lib/profile-store";
-import { PaymentRequests } from "@/components/nest/payment-requests";
-import {
-  currentUserId,
-  getMember,
-  fmtUSD,
-  fmtRelative,
-  categoryMeta,
-  mockTxHash,
-} from "@/lib/nest-data";
-import { useExpenses, useComputedBalances, useHouseholdActivity, useMembers } from "@/lib/nest-store";
+
+import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
+import { useExpenses, useComputedBalances, useHouseholdActivity, useMembers, useMe, useNestChain } from "@/lib/chain/nest-chain";
 import {
   ArrowUpRight,
   Send,
@@ -43,8 +35,8 @@ export const Route = createFileRoute("/app/")({
 });
 
 function Greeting() {
-  const displayName = useDisplayName();
-  const me = { ...getMember(currentUserId), name: displayName ?? "You" };
+  const { me: myId, myName: displayName } = useNestChain();
+  const me = { ...getMember(myId ?? ""), name: displayName ?? "You" };
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
   const first = displayName ? displayName.split(" ")[0] : "there";
@@ -69,6 +61,7 @@ function Greeting() {
 function Dashboard() {
   const members = useMembers();
   const expenses = useExpenses();
+  const currentUserId = useMe();
 
   const activity = useHouseholdActivity();
   const { net, debts } = useComputedBalances();
@@ -154,8 +147,6 @@ function Dashboard() {
       </Stagger>
 
 
-      {/* Real payment requests between roommates */}
-      <PaymentRequests />
 
       {/* Roommate carousel */}
       <section className="mt-7">
@@ -272,7 +263,7 @@ function Dashboard() {
                       </div>
                       <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                         <span>{fmtRelative(a.date)}</span>
-                        {isIncoming && <TxHashPill hash={mockTxHash(a.id)} />}
+                        
                       </div>
                     </div>
                     {a.amount != null && (

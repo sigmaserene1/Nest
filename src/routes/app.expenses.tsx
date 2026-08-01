@@ -7,7 +7,8 @@ import { UsdcBadge } from "@/components/nest/chain";
 import { ExpenseForm, type ExpenseInput } from "@/components/nest/expense-form";
 import { ExpenseDetail } from "@/components/nest/expense-detail";
 import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
-import { useExpenses, addExpense, updateExpense, deleteExpense } from "@/lib/nest-store";
+import { useExpenses } from "@/lib/chain/nest-chain";
+import { useNestWrites } from "@/lib/chain/writes";
 import { Search, Plus, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/expenses")({
@@ -30,6 +31,7 @@ type ModalState =
 
 function Expenses() {
   const allExpenses = useExpenses();
+  const writes = useNestWrites();
   const [cat, setCat] = useState<(typeof cats)[number]>("All");
   const [q, setQ] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
@@ -46,15 +48,14 @@ function Expenses() {
 
   const close = () => setModal(null);
 
-  const handleSave = (data: ExpenseInput) => {
-    if (modal?.mode === "edit") updateExpense(modal.expense.id, data);
-    else addExpense(data);
+  const handleSave = async (data: ExpenseInput) => {
     close();
-  };
-
-  const handleDelete = () => {
-    if (modal && "expense" in modal) deleteExpense(modal.expense.id);
-    close();
+    await writes.addExpense({
+      title: data.title,
+      category: data.category,
+      amount: data.amount,
+      participants: data.splitAmong,
+    });
   };
 
   return (
@@ -167,8 +168,6 @@ function Expenses() {
               {modal.mode === "detail" && (
                 <ExpenseDetail
                   expense={modal.expense}
-                  onEdit={() => setModal({ mode: "edit", expense: modal.expense })}
-                  onDelete={handleDelete}
                   onClose={close}
                 />
               )}

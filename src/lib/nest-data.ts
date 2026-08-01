@@ -1,6 +1,9 @@
-// Mock data for Nest — realistic household expense scenario.
+// Shared types + presentation helpers for Nest.
+// All application state lives onchain in the ExpenseManager contract — there is
+// no mock data here, only formatting and deterministic avatar styling.
 
 export type Member = {
+  /** Lowercase wallet address — the canonical onchain identity. */
   id: string;
   name: string;
   handle: string;
@@ -10,13 +13,21 @@ export type Member = {
   emoji: string;
 };
 
+export const CATEGORIES = ["Rent", "Groceries", "Utilities", "Internet", "Dining", "Other"] as const;
+export type Category = (typeof CATEGORIES)[number];
+
 export type Expense = {
+  /** Onchain expense id, as a string. */
   id: string;
   title: string;
-  category: "Rent" | "Groceries" | "Utilities" | "Internet" | "Dining" | "Other";
+  category: Category;
   amount: number;
   payerId: string;
   splitAmong: string[];
+  /** Per-participant share, keyed by lowercase address. */
+  shares: Record<string, number>;
+  /** Participants who have already paid their share (payer included). */
+  settled: Record<string, boolean>;
   date: string;
   note?: string;
 };
@@ -33,61 +44,63 @@ export type Settlement = {
 
 export type ActivityEvent = {
   id: string;
-  kind: "expense" | "settlement" | "member" | "comment";
+  kind: "expense" | "settlement" | "member" | "transfer";
   actorId: string;
+  counterpartyId?: string;
   text: string;
   date: string;
   amount?: number;
-  category?: Expense["category"];
+  category?: Category;
 };
 
-export const currentUserId = "u1";
+export type Debt = { fromId: string; toId: string; amount: number };
 
-export const members: Member[] = [
-  { id: "u1", name: "You", handle: "@you", color: "#E53935", gradient: "linear-gradient(135deg,#ff6a5b,#e53935)", emoji: "🦊" },
-  { id: "u2", name: "Alex Chen", handle: "@alex", color: "#F59E0B", gradient: "linear-gradient(135deg,#fcd34d,#f59e0b)", wallet: "0x21a9c78b3D5f19E4a6b8c72e88b23F1a90cD6E88", emoji: "🐼" },
-  { id: "u3", name: "Priya Shah", handle: "@priya", color: "#10B981", gradient: "linear-gradient(135deg,#6ee7b7,#059669)", wallet: "0x9c33e5B7A1F84dc2b91e07f012Df6A8c34Eb7A21", emoji: "🌿" },
-  { id: "u4", name: "Marcus Lee", handle: "@marcus", color: "#6366F1", gradient: "linear-gradient(135deg,#a5b4fc,#6366f1)", wallet: "0x44e1B7c980A3f256d81a90CB2f3E7a9014D6bC12", emoji: "🎧" },
+export function normalizeCategory(raw: string): Category {
+  return (CATEGORIES as readonly string[]).includes(raw) ? (raw as Category) : "Other";
+}
+
+// ----------------------------------------------------------------- identities
+
+const PALETTE = [
+  { color: "#E53935", gradient: "linear-gradient(135deg,#ff6a5b,#e53935)", emoji: "🦊" },
+  { color: "#F59E0B", gradient: "linear-gradient(135deg,#fcd34d,#f59e0b)", emoji: "🐼" },
+  { color: "#10B981", gradient: "linear-gradient(135deg,#6ee7b7,#059669)", emoji: "🌿" },
+  { color: "#6366F1", gradient: "linear-gradient(135deg,#a5b4fc,#6366f1)", emoji: "🎧" },
+  { color: "#EC4899", gradient: "linear-gradient(135deg,#f9a8d4,#ec4899)", emoji: "🌸" },
+  { color: "#0EA5E9", gradient: "linear-gradient(135deg,#7dd3fc,#0284c7)", emoji: "🌊" },
+  { color: "#8B5CF6", gradient: "linear-gradient(135deg,#c4b5fd,#7c3aed)", emoji: "🪐" },
+  { color: "#14B8A6", gradient: "linear-gradient(135deg,#5eead4,#0d9488)", emoji: "🍀" },
 ];
 
-const allIds = members.map((m) => m.id);
+function hashAddr(a: string): number {
+  let h = 0;
+  for (let i = 2; i < a.length; i++) h = (h * 31 + a.charCodeAt(i)) >>> 0;
+  return h;
+}
 
-export const expenses: Expense[] = [
-  { id: "e1", title: "November Rent", category: "Rent", amount: 3200, payerId: "u2", splitAmong: allIds, date: "2026-07-01", note: "Landlord transfer" },
-  { id: "e2", title: "Costco run", category: "Groceries", amount: 184.52, payerId: "u1", splitAmong: allIds, date: "2026-07-05" },
-  { id: "e3", title: "Con Edison — July", category: "Utilities", amount: 142.18, payerId: "u3", splitAmong: allIds, date: "2026-07-08" },
-  { id: "e4", title: "Verizon Fios", category: "Internet", amount: 89.99, payerId: "u4", splitAmong: allIds, date: "2026-07-10" },
-  { id: "e5", title: "Trader Joe's", category: "Groceries", amount: 96.4, payerId: "u1", splitAmong: allIds, date: "2026-07-14" },
-  { id: "e6", title: "Cleaning supplies", category: "Other", amount: 42.15, payerId: "u2", splitAmong: allIds, date: "2026-07-16" },
-  { id: "e7", title: "Farmers market", category: "Groceries", amount: 58.9, payerId: "u3", splitAmong: allIds, date: "2026-07-19" },
-  { id: "e8", title: "Sushi night", category: "Dining", amount: 128.2, payerId: "u1", splitAmong: allIds, date: "2026-07-21", note: "Sugarfish takeout" },
-  { id: "e9", title: "Movie & popcorn", category: "Dining", amount: 62.5, payerId: "u4", splitAmong: allIds, date: "2026-07-22" },
-];
+export function shortAddress(a: string): string {
+  return `${a.slice(0, 6)}…${a.slice(-4)}`;
+}
 
-export const settlements: Settlement[] = [
-  { id: "s1", fromId: "u1", toId: "u2", amount: 812.5, txHash: "0x7d9a1c…f28e", status: "confirmed", date: "2026-07-02" },
-  { id: "s2", fromId: "u4", toId: "u2", amount: 800.0, txHash: "0x2b41ac…9910", status: "confirmed", date: "2026-07-02" },
-  { id: "s3", fromId: "u3", toId: "u1", amount: 35.62, txHash: "0xa1b8d3…44c1", status: "confirmed", date: "2026-07-15" },
-];
+/** Builds the display identity for a wallet address (name comes from the contract). */
+export function makeMember(address: string, name?: string): Member {
+  const id = address.toLowerCase();
+  const skin = PALETTE[hashAddr(id) % PALETTE.length];
+  const display = name && name.trim() ? name.trim() : shortAddress(address);
+  return {
+    id,
+    name: display,
+    handle: name && name.trim() ? `@${name.trim().split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")}` : shortAddress(address),
+    wallet: address,
+    ...skin,
+  };
+}
 
-export const activity: ActivityEvent[] = [
-  { id: "a1", kind: "expense", actorId: "u1", text: "added Sushi night", amount: 128.2, category: "Dining", date: "2026-07-21T20:14:00Z" },
-  { id: "a2", kind: "expense", actorId: "u4", text: "added Movie & popcorn", amount: 62.5, category: "Dining", date: "2026-07-22T22:00:00Z" },
-  { id: "a3", kind: "expense", actorId: "u3", text: "added Farmers market", amount: 58.9, category: "Groceries", date: "2026-07-19T11:02:00Z" },
-  { id: "a4", kind: "expense", actorId: "u2", text: "added Cleaning supplies", amount: 42.15, category: "Other", date: "2026-07-16T09:30:00Z" },
-  { id: "a5", kind: "settlement", actorId: "u3", text: "settled with you", amount: 35.62, date: "2026-07-15T14:22:00Z" },
-  { id: "a6", kind: "expense", actorId: "u1", text: "added Trader Joe's", amount: 96.4, category: "Groceries", date: "2026-07-14T18:41:00Z" },
-  { id: "a7", kind: "expense", actorId: "u4", text: "added Verizon Fios", amount: 89.99, category: "Internet", date: "2026-07-10T10:00:00Z" },
-  { id: "a8", kind: "member", actorId: "u4", text: "joined Bedford Loft", date: "2026-06-28T15:00:00Z" },
-];
-
-// Runtime registry: seed members plus any roommates the user has invited.
-// Kept in sync by the member store so non-hook helpers (getMember, computeBalances)
-// resolve custom roommates too.
-let runtimeMembers: Member[] = members;
+// Runtime registry so non-hook helpers can resolve a member by address.
+let runtimeMembers: Member[] = [];
 
 export function setRuntimeMembers(list: Member[]) {
-  runtimeMembers = list.length ? list : members;
+  runtimeMembers = list;
 }
 
 export function allMembers(): Member[] {
@@ -95,42 +108,48 @@ export function allMembers(): Member[] {
 }
 
 export function getMember(id: string): Member {
-  return runtimeMembers.find((m) => m.id === id) ?? members.find((m) => m.id === id) ?? members[0];
+  const key = (id ?? "").toLowerCase();
+  return runtimeMembers.find((m) => m.id === key) ?? makeMember(key.startsWith("0x") ? key : "0x0000000000000000000000000000000000000000");
 }
 
+// ------------------------------------------------------------------ balances
 
-export type Debt = { fromId: string; toId: string; amount: number };
+/**
+ * Net position per member derived from onchain expenses.
+ * Positive = the household owes them; negative = they owe the household.
+ * Settled shares are excluded because settlement moves real USDC.
+ */
+export function computeBalances(expensesList: Expense[]): { net: Record<string, number>; debts: Debt[] } {
+  const net: Record<string, number> = {};
+  const pair = new Map<string, number>(); // `${debtor}|${creditor}` -> amount
 
-export function computeBalances(
-  expensesList: Expense[] = expenses,
-  settlementsList: Settlement[] = settlements,
-): { net: Record<string, number>; debts: Debt[] } {
-  const net: Record<string, number> = Object.fromEntries(runtimeMembers.map((m) => [m.id, 0]));
+  for (const m of runtimeMembers) net[m.id] = 0;
+
   for (const e of expensesList) {
-    const share = e.amount / e.splitAmong.length;
-    net[e.payerId] += e.amount;
-    for (const uid of e.splitAmong) net[uid] -= share;
+    net[e.payerId] ??= 0;
+    for (const uid of e.splitAmong) {
+      if (uid === e.payerId) continue;
+      if (e.settled[uid]) continue;
+      const amt = e.shares[uid] ?? 0;
+      if (amt <= 0) continue;
+      net[uid] = (net[uid] ?? 0) - amt;
+      net[e.payerId] = (net[e.payerId] ?? 0) + amt;
+      const k = `${uid}|${e.payerId}`;
+      pair.set(k, (pair.get(k) ?? 0) + amt);
+    }
   }
-  for (const s of settlementsList) {
-    net[s.fromId] += s.amount;
-    net[s.toId] -= s.amount;
-  }
-  const creditors = Object.entries(net).filter(([, v]) => v > 0.01).map(([id, v]) => ({ id, v }));
-  const debtors = Object.entries(net).filter(([, v]) => v < -0.01).map(([id, v]) => ({ id, v: -v }));
-  creditors.sort((a, b) => b.v - a.v);
-  debtors.sort((a, b) => b.v - a.v);
+
   const debts: Debt[] = [];
-  let i = 0, j = 0;
-  while (i < debtors.length && j < creditors.length) {
-    const amt = Math.min(debtors[i].v, creditors[j].v);
-    debts.push({ fromId: debtors[i].id, toId: creditors[j].id, amount: +amt.toFixed(2) });
-    debtors[i].v -= amt;
-    creditors[j].v -= amt;
-    if (debtors[i].v < 0.01) i++;
-    if (creditors[j].v < 0.01) j++;
+  for (const [k, amount] of pair) {
+    if (amount < 0.005) continue;
+    const [fromId, toId] = k.split("|");
+    debts.push({ fromId, toId, amount: +amount.toFixed(2) });
   }
+  debts.sort((a, b) => b.amount - a.amount);
   return { net, debts };
 }
+
+// ----------------------------------------------------------------- formatting
 
 export function fmtUSD(n: number): string {
   return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
@@ -138,8 +157,7 @@ export function fmtUSD(n: number): string {
 
 export function fmtRelative(iso: string): string {
   const then = new Date(iso).getTime();
-  const now = Date.now();
-  const s = Math.round((now - then) / 1000);
+  const s = Math.round((Date.now() - then) / 1000);
   if (s < 60) return "just now";
   const m = Math.round(s / 60);
   if (m < 60) return `${m}m ago`;
@@ -150,15 +168,7 @@ export function fmtRelative(iso: string): string {
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
-
-export function mockTxHash(seed: string): string {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  const hex = (h.toString(16) + "abcdef1234567890").padEnd(40, "0");
-  return `0x${hex.slice(0, 40)}`;
-}
-
-export const categoryMeta: Record<Expense["category"], { icon: string; color: string; bg: string }> = {
+export const categoryMeta: Record<Category, { icon: string; color: string; bg: string }> = {
   Rent: { icon: "🏠", color: "#e53935", bg: "#ffe9e8" },
   Groceries: { icon: "🛒", color: "#f59e0b", bg: "#fff4e0" },
   Utilities: { icon: "⚡", color: "#6366f1", bg: "#eceffe" },

@@ -1,0 +1,218 @@
+// First-run onchain setup: point at a shared Nest contract (or deploy one),
+// then create or join a home. Everything here writes to Arc Testnet.
+
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Loader2, Home, Plus, LinkIcon, Rocket, Copy, Check } from "lucide-react";
+import { NestLogo } from "./logo";
+import { ArcBadge } from "./chain";
+import { useNestChain } from "@/lib/chain/nest-chain";
+import { useNestWrites } from "@/lib/chain/writes";
+import { buildJoinCode, isAddress, parseJoinCode, setContractAddress } from "@/lib/chain/config";
+
+function Panel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen px-4 py-10">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto w-full max-w-md"
+      >
+        <div className="flex items-center justify-between">
+          <NestLogo />
+          <ArcBadge />
+        </div>
+        <div className="glass-strong mt-6 rounded-[28px] p-6">{children}</div>
+      </motion.div>
+    </div>
+  );
+}
+
+export function ContractSetup() {
+  const { deployContract } = useNestWrites();
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState<"deploy" | "join" | null>(null);
+  const [error, setError] = useState("");
+
+  const useExisting = () => {
+    setError("");
+    const parsed = parseJoinCode(code);
+    if (parsed) {
+      setContractAddress(parsed.address);
+      return;
+    }
+    if (isAddress(code.trim())) {
+      setContractAddress(code.trim());
+      return;
+    }
+    setError("Paste a Nest home code or contract address (0x…).");
+  };
+
+  const deploy = async () => {
+    setError("");
+    setBusy("deploy");
+    try {
+      const addr = await deployContract();
+      setContractAddress(addr);
+    } catch (e) {
+      setError((e as Error).message.split("\n")[0]);
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  return (
+    <Panel>
+      <h1 className="text-xl font-bold tracking-tight">Connect to a Nest home</h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">
+        Nest stores every expense, split and settlement onchain. Join your roommates' home with their code, or launch a
+        new Nest contract on Arc Testnet.
+      </p>
+
+      <div className="mt-6">
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Home code</label>
+        <input
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          placeholder="0xabc…-1"
+          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 font-mono text-xs outline-none focus:ring-2 focus:ring-brand"
+        />
+        <button
+          onClick={useExisting}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground py-3.5 text-sm font-bold text-background transition hover:opacity-90"
+        >
+          <LinkIcon className="h-4 w-4" /> Continue
+        </button>
+      </div>
+
+      <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <button
+        onClick={deploy}
+        disabled={busy === "deploy"}
+        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-60"
+      >
+        {busy === "deploy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+        {busy === "deploy" ? "Deploying onchain…" : "Deploy a new Nest contract"}
+      </button>
+      {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">{error}</div>}
+    </Panel>
+  );
+}
+
+export function RoomSetup() {
+  const { rooms, selectRoom, contractAddress } = useNestChain();
+  const { createRoom, joinRoom } = useNestWrites();
+  const [name, setName] = useState("");
+  const [joinId, setJoinId] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const run = async (fn: () => Promise<unknown>) => {
+    setError("");
+    setBusy(true);
+    try {
+      await fn();
+    } catch (e) {
+      setError((e as Error).message.split("\n")[0]);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const copyContract = async () => {
+    if (!contractAddress) return;
+    try {
+      await navigator.clipboard?.writeText(contractAddress);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  return (
+    <Panel>
+      <h1 className="text-xl font-bold tracking-tight">Set up your home</h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">
+        A home is an onchain room. Everyone in it sees the same expenses and balances.
+      </p>
+
+      {rooms.length > 0 && (
+        <div className="mt-5 space-y-2">
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Your homes</div>
+          {rooms.map((r) => (
+            <button
+              key={r.id}
+              onClick={() => selectRoom(r.id)}
+              className="flex w-full items-center gap-3 rounded-2xl bg-muted/60 p-3 text-left transition hover:bg-muted"
+            >
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand/10 text-brand">
+                <Home className="h-4 w-4" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm font-semibold">{r.name}</div>
+                <div className="font-mono text-[11px] text-muted-foreground">
+                  {buildJoinCode(contractAddress ?? "0x", r.id)}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-6">
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">New home name</label>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Bedford Loft"
+          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+        />
+        <button
+          onClick={() => name.trim() && run(() => createRoom(name.trim()))}
+          disabled={busy || !name.trim()}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-50"
+        >
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Create home onchain
+        </button>
+      </div>
+
+      <div className="mt-6">
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Join with a room number
+        </label>
+        <div className="mt-1.5 flex gap-2">
+          <input
+            value={joinId}
+            onChange={(e) => setJoinId(e.target.value.replace(/\D/g, ""))}
+            placeholder="1"
+            className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+          />
+          <button
+            onClick={() => joinId && run(() => joinRoom(Number(joinId)))}
+            disabled={busy || !joinId}
+            className="shrink-0 rounded-2xl bg-foreground px-5 text-sm font-bold text-background disabled:opacity-50"
+          >
+            Join
+          </button>
+        </div>
+      </div>
+
+      {error && <div className="mt-4 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">{error}</div>}
+
+      {contractAddress && (
+        <button
+          onClick={copyContract}
+          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-muted/60 py-2.5 font-mono text-[11px] text-muted-foreground transition hover:text-foreground"
+        >
+          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} {contractAddress}
+        </button>
+      )}
+    </Panel>
+  );
+}
