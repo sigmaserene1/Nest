@@ -1,81 +1,77 @@
-## Nest — shared household expenses, settled in USDC on Arc
+## Goal
 
-A premium consumer web app for roommates and shared households to track expenses and settle up with real onchain USDC payments on Arc. Splitwise simplicity, real settlement, zero crypto jargon in the UI. Branded as **Nest**, with a subtle "Built on Arc" badge.
+Move every piece of Nest's shared app state — rooms, members, expenses, splits, settlements, payment status — out of localStorage and Supabase and into an `ExpenseManager` smart contract on Arc Testnet. USDC transfers keep using the existing Arc USDC contract, but they now happen *through* the contract so payment status is recorded onchain and every room member reads identical state.
 
-### Product surface (all v1)
+## Current state (analysis)
 
-1. **Landing** — hero, how it works, testimonial-style block, CTA. White bg, red accents, "Built on Arc" badge in footer.
-2. **Auth** — Email/password + Google (Lovable Cloud).
-3. **Onboarding** — create your first Home, or join via invite code.
-4. **Home Dashboard** — total household balance, "You owe / You are owed", quick add-expense CTA, recent activity, upcoming recurring bills.
-5. **Members** — invite by email or share code, roles (admin / member), remove/leave home, wallet address per member.
-6. **Expenses** — list + filters (category, member, month). Add expense flow: amount, payer, split type (equal / by shares / exact amounts / percentages), category (Rent, Groceries, Electricity, Internet, Other), notes, receipt image upload.
-7. **Activity Feed** — chronological stream: expenses added/edited, settlements, member joins, comments.
-8. **Balances / Settle Up** — simplified debt graph ("Alex owes you $42.30"). One-click **Settle Up** flow:
-   - Shows recipient + amount in USDC.
-   - Wallet Connect if not connected.
-   - Sends USDC on Arc testnet.
-   - Live transaction status (pending → confirmed with Arc's sub-second finality).
-   - Wallet balance refreshes automatically after confirmation.
-   - Onchain tx hash + Arc explorer link stored as proof.
-9. **Transaction History** — every onchain settlement with hash, from, to, amount, status, timestamp, Arc explorer link.
-10. **Monthly Analytics** — spend by category (donut), spend over time (line), top spenders, month-over-month comparison, per-member share.
-11. **Settings** — profile, connected wallet, notification prefs, leave/delete home.
+| Layer | Today | After |
+|---|---|---|
+| Expenses, splits, edits | `nest-store.ts` — wallet-scoped localStorage | `ExpenseManager` contract |
+| Roommates/members | localStorage + Supabase `roommates` table | contract room membership |
+| Settlements | localStorage `settlementStore` | contract `settleSplit` (USDC transferFrom) |
+| Transactions/activity | Supabase `transactions` + signature-verified server fns | contract events (indexed via viem logs) |
+| Payment requests | Supabase `payment_requests` | contract expenses with a single participant |
+| Profile names | Supabase `profiles` + rename-block trigger | onchain `displayName` per address |
+| Seed/demo data | `nest-data.ts` seed members, palette, mock balances | deleted; empty states only |
 
-### Design direction (locked)
-- Premium consumer product feel — think Linear × Notion × Cash App, not a crypto dashboard.
-- Palette: **white background**, **subtle gray cards** (`#F7F7F8` / `#EEEEF0` borders), **bold red `#E41E26`** for primary CTAs, active states, and brand marks.
-- Typography: clean modern sans (Inter or similar), tight tracking on headlines, generous whitespace.
-- Rounded corners (12–16px), soft shadows, subtle motion on state changes.
-- Fully responsive: mobile-first for the app views, desktop-optimized dashboard.
-- Small "Built on Arc" badge (monochrome) in footer, settle-up screen, and transaction history — never dominant.
-- No gradients, no neon, no Web3 tropes.
+## The contract
 
-### Technical approach
+`contracts/ExpenseManager.sol` — single contract, USDC address fixed at deploy.
+
 ```text
-Framework:  TanStack Start (already scaffolded)
-Styling:    Tailwind v4 tokens in src/styles.css
-              --color-brand: #E41E26
-              --color-surface, --color-surface-muted, --color-border
-UI:         shadcn components restyled to Nest tokens
-Backend:    Lovable Cloud
-  ├─ auth (email/password + Google)
-  ├─ tables: profiles, homes, home_members (role), expenses, expense_splits,
-             settlements, activity_events
-  ├─ RLS scoped by home membership via has_home_membership() SECURITY DEFINER
-  └─ user_roles table pattern for home admin role (never on profiles)
-Wallet:     wagmi + viem + RainbowKit configured for Arc testnet + USDC
-Onchain:    settle-up flow = ERC-20 transfer of USDC to recipient's wallet on Arc
-              tx hash + status stored on the settlement row
-              balance re-read via wagmi useBalance after confirmation
-Charts:     Recharts for monthly analytics (donut + line)
-Server fns: createServerFn for all writes (expenses, settlements),
-            requireSupabaseAuth middleware, homes gated by membership
+Room     { id, name, creator, createdAt, address[] members }
+Expense  { id, roomId, payer, token(USDC), totalAmount, category,
+           description, createdAt, address[] participants,
+           uint256[] shares, mapping(address => bool) settled }
+
+createRoom(name) / joinRoom(id) / inviteMember(roomId, addr)
+setDisplayName(name)                      -- write-once, permanent
+addExpense(roomId, participants[], shares[], category, description, amount)
+settleSplit(expenseId)                    -- pulls USDC from caller to payer
+settleAll(roomId)                         -- batch settle caller's open shares
+directTransfer(roomId, to, amount, note)  -- Send / Request-pay flow
+
+Events: RoomCreated, MemberJoined, DisplayNameSet, ExpenseAdded,
+        SplitSettled, DirectTransfer
+
+Views: getRooms(user), getRoomMembers, getExpenses(roomId),
+       getBalances(roomId) -> (address[], int256[]), getActivity(roomId)
 ```
 
-### Data model (concise)
-```text
-profiles(user_id, display_name, avatar_url, wallet_address)
-homes(id, name, created_by, created_at)
-home_members(home_id, user_id, role: 'admin'|'member', joined_at)  -- PK (home_id, user_id)
-expenses(id, home_id, payer_id, amount_cents, currency, category, description, receipt_url, occurred_at, created_by, created_at)
-expense_splits(expense_id, user_id, share_cents)  -- who owes what for this expense
-settlements(id, home_id, from_user, to_user, amount_cents, tx_hash, tx_status, chain_id, created_at)
-activity_events(id, home_id, actor_id, kind, payload_json, created_at)
-```
-Balance = sum(splits owed to you) − sum(splits you owe) − sum(settlements you paid) + sum(settlements paid to you), computed in a SQL view.
+Balance math lives onchain in `getBalances` so every client shows the same numbers — no client-side recomputation.
 
-### Build order
-1. Design tokens + shadcn restyle to Nest palette. Landing page.
-2. Auth + onboarding + Home Dashboard shell.
-3. Expenses CRUD + splits + Activity Feed.
-4. Balance computation + simplified debt graph.
-5. Wallet Connect + Arc testnet chain config + USDC settle-up flow + tx history.
-6. Monthly Analytics.
-7. Members management + settings.
-8. Polish pass: motion, empty states, error states, mobile responsiveness, "Built on Arc" badges.
+USDC settlement requires an ERC-20 `approve` first; the UI shows a two-step "Approve → Settle" flow with allowance detection so approval is asked only once (max allowance).
 
-### Notes
-- All settle-up transactions are real onchain USDC transfers on Arc testnet. No custody, no escrow — Nest orchestrates the transfer from the payer's own wallet.
-- Wallet address is optional at signup; required only when a user wants to settle up. Users can still track expenses without a wallet.
-- Every state (loading, empty, error, success) gets a designed treatment — no default shadcn placeholders shipped.
+## Deployment
+
+There is no funded deployer key available in this environment, so the contract is deployed from the connected wallet:
+
+1. I compile `ExpenseManager.sol` with solc in the sandbox and commit ABI + bytecode to `src/contracts/expense-manager.ts`.
+2. A one-time `/app/deploy` screen lets you deploy it from your Arc wallet (needs a little testnet USDC for gas).
+3. The resulting address goes into `VITE_EXPENSE_MANAGER_ADDRESS`; after that every user of the app reads/writes the same contract. If you'd rather deploy it yourself outside the app, I'll just wire the address in.
+
+## Frontend changes
+
+New `src/lib/contract/` layer:
+- `expense-manager.ts` — address, ABI, typed helpers
+- `use-rooms.ts`, `use-expenses.ts`, `use-balances.ts`, `use-activity.ts` — wagmi `useReadContract` + React Query, invalidated on every relevant event via `useWatchContractEvent`, so a member adding an expense appears for everyone within one block
+- `use-onchain-write.ts` — shared write helper: simulate → write → wait for receipt → invalidate → toast, reusing the existing Confirming/Pending/Done modal UI
+
+Rewired screens (UI/design unchanged): dashboard, expenses, settle, activity, members, analytics, action-modal, expense-form, invite-modal, profile-modal.
+
+Deleted: `nest-store.ts`, `nest-data.ts` seeds, `nest-remote.ts`, `nest-writes.*`, `nest-sign.ts`, `tx-remote.*`, `profile-store.ts` (Supabase-backed parts), and the `roommates` / `payment_requests` / `profiles` / `transactions` tables. Supabase drops out of the app entirely.
+
+## Tradeoffs you should know about
+
+- Every expense write is a gas-paying transaction, so adding an expense takes a confirmation and a few seconds instead of being instant.
+- Descriptions and names are public onchain — no private notes.
+- Receipt image upload can't go onchain; I'll drop it unless you want it kept off-chain.
+- Existing localStorage/Supabase history will not be migrated; everyone starts fresh onchain.
+
+## Build order
+
+1. Write + compile `ExpenseManager.sol`, emit ABI/bytecode module.
+2. Deploy flow + address config.
+3. Contract read/write hook layer with event-driven invalidation.
+4. Migrate rooms/members/profile, then expenses/splits, then settle/activity/analytics.
+5. Delete all local + Supabase state, drop tables, full empty-state and error-state pass.
