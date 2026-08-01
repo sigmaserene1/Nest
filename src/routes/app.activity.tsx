@@ -4,9 +4,8 @@ import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { TxHashPill, shortAddr } from "@/components/nest/chain";
-import { getMember, fmtUSD, fmtRelative, categoryMeta, mockTxHash } from "@/lib/nest-data";
-import { useHouseholdActivity } from "@/lib/nest-store";
-import { useTxHistory } from "@/lib/tx-remote";
+import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
+import { useHouseholdActivity } from "@/lib/chain/nest-chain";
 import { explorerTxUrl, openExplorerTx } from "@/lib/wagmi";
 import { ArrowLeftRight, UserPlus, ExternalLink, Loader2, AlertTriangle, Check } from "lucide-react";
 
@@ -21,7 +20,7 @@ const filters = ["All", "Onchain", "Expenses", "Payments", "Members"] as const;
 
 function ActivityPage() {
   const [f, setF] = useState<(typeof filters)[number]>("All");
-  const txs = useTxHistory();
+  const txs: never[] = [];
   const { address } = useAccount();
   const activity = useHouseholdActivity();
 
@@ -196,7 +195,7 @@ function ActivityPage() {
                     </div>
                     <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                       <span>{fmtRelative(a.date)}</span>
-                      {a.kind === "settlement" && <TxHashPill hash={mockTxHash(a.id)} />}
+                      
                     </div>
                   </div>
                   {a.amount != null && (

@@ -3,8 +3,8 @@ import { useMemo, useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { UsdcBadge, WalletChip } from "@/components/nest/chain";
-import { currentUserId, getMember, fmtUSD, type Debt } from "@/lib/nest-data";
-import { useComputedBalances, recordSettlement } from "@/lib/nest-store";
+import { getMember, fmtUSD, type Debt } from "@/lib/nest-data";
+import { useComputedBalances, useMe } from "@/lib/chain/nest-chain";
 import { ActionModal } from "@/components/nest/action-modal";
 import { Shield, Zap, ArrowRight } from "lucide-react";
 
@@ -15,6 +15,7 @@ export const Route = createFileRoute("/app/settle")({
 
 function Settle() {
   const { debts } = useComputedBalances();
+  const currentUserId = useMe();
   const mine = useMemo(() => debts.filter((d) => d.fromId === currentUserId), [debts]);
   const total = mine.reduce((s, d) => s + d.amount, 0);
   const [active, setActive] = useState<Debt | null>(null);
@@ -124,25 +125,12 @@ function Settle() {
         defaultToAddress={active ? getMember(active.toId).wallet : undefined}
         lockRecipient
         lockAmount
-        onSuccess={({ hash, amount, recipientId }) => {
-          if (!recipientId) return;
-          recordSettlement({
-            fromId: currentUserId,
-            toId: recipientId,
-            amount,
-            txHash: hash,
-          });
-        }}
       />
 
       {freeSend && (
         <ActionModal
           mode="send"
           onClose={() => setFreeSend(false)}
-          onSuccess={({ hash, amount, recipientId }) => {
-            if (!recipientId) return;
-            recordSettlement({ fromId: currentUserId, toId: recipientId, amount, txHash: hash });
-          }}
         />
       )}
 
