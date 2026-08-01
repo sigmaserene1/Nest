@@ -319,7 +319,7 @@ export function ActionModal({
                 </div>
               )}
 
-              {(needsAddress || mode === "scan") && (
+              {!isSplit && mode !== "request" && (
                 <div className="mt-4">
                   <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recipient address</div>
                   <input
