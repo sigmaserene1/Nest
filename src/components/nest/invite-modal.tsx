@@ -1,52 +1,38 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { X, UserPlus, Check, Loader2 } from "lucide-react";
-import { addRoommate } from "@/lib/nest-store";
-import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { getDisplayName } from "@/lib/profile-store";
-import type { Member } from "@/lib/nest-data";
+import { X, UserPlus, Loader2 } from "lucide-react";
+import { isAddress } from "viem";
+import { useNestWrites } from "@/lib/chain/writes";
 
-export function InviteRoommateModal({
-  open,
-  onClose,
-  onAdded,
-}: {
-  open: boolean;
-  onClose: () => void;
-  onAdded?: (m: Member) => void;
-}) {
-  const { address: myWallet } = useArcWallet();
-  const [name, setName] = useState("");
+export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { inviteMember } = useNestWrites();
   const [wallet, setWallet] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [added, setAdded] = useState<Member | null>(null);
-
 
   useEffect(() => {
     if (!open) return;
-    setName("");
     setWallet("");
     setError("");
     setSaving(false);
-    setAdded(null);
   }, [open]);
 
   const submit = async () => {
-    if (saving) return;
-    setSaving(true);
-    const res = await addRoommate(name, wallet, { wallet: myWallet, name: getDisplayName() ?? "Me" });
-    setSaving(false);
-    if (!res.ok) {
-      setError(res.error);
+    if (!isAddress(wallet.trim())) {
+      setError("Enter a valid Arc wallet address (0x…).");
       return;
     }
+    setSaving(true);
     setError("");
-    setAdded(res.member);
-    onAdded?.(res.member);
-    setTimeout(onClose, 900);
+    try {
+      await inviteMember(wallet.trim() as `0x${string}`);
+      onClose();
+    } catch (e) {
+      setError((e as Error).message.split("\n")[0]);
+    } finally {
+      setSaving(false);
+    }
   };
-
 
   return (
     <AnimatePresence>
@@ -55,96 +41,41 @@ export function InviteRoommateModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
           onClick={onClose}
+          className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
         >
           <motion.div
-            initial={{ y: 30, opacity: 0, scale: 0.98 }}
+            initial={{ y: 24, opacity: 0, scale: 0.98 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 20, opacity: 0 }}
-            transition={{ duration: 0.18 }}
+            exit={{ y: 24, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 620, damping: 34, mass: 0.6 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md rounded-t-[28px] bg-white p-6 shadow-xl ring-1 ring-black/5 sm:rounded-[28px]"
+            className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px]"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-brand-soft text-brand">
-                  <UserPlus className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="text-base font-bold">Invite roommate</div>
-                  <div className="text-xs text-muted-foreground">Add them to your household</div>
-                </div>
-              </div>
-              <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full bg-muted">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold">Invite roommate</h3>
+              <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-muted" aria-label="Close">
                 <X className="h-4 w-4" />
               </button>
             </div>
-
-            {added ? (
-              <div className="mt-8 flex flex-col items-center py-6">
-                <span className="grid h-14 w-14 place-items-center rounded-full bg-emerald-50 text-emerald-600">
-                  <Check className="h-7 w-7" />
-                </span>
-                <div className="mt-3 text-sm font-bold">{added.name} added</div>
-                <div className="text-xs text-muted-foreground">They can now be picked in every flow.</div>
-              </div>
-            ) : (
-              <div className="mt-6 space-y-4">
-                <div>
-                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Full name
-                  </div>
-                  <input
-                    value={name}
-                    onChange={(e) => {
-                      setName(e.target.value);
-                      setError("");
-                    }}
-                    maxLength={60}
-                    autoFocus
-                    placeholder="e.g. Sara Kim"
-                    className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
-                  />
-                </div>
-                <div>
-                  <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Arc wallet address
-                  </div>
-                  <input
-                    value={wallet}
-                    onChange={(e) => {
-                      setWallet(e.target.value);
-                      setError("");
-                    }}
-                    spellCheck={false}
-                    maxLength={42}
-                    placeholder="0x…"
-                    className="w-full rounded-2xl bg-muted/60 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-brand"
-                  />
-                </div>
-
-                {error && (
-                  <div className="rounded-2xl bg-brand/10 px-4 py-2.5 text-xs font-semibold text-brand">{error}</div>
-                )}
-
-                <button
-                  onClick={submit}
-                  disabled={saving}
-                  className="mt-2 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-60"
-                >
-                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {saving ? "Adding…" : "Add roommate"}
-                </button>
-                <div className="text-center text-[11px] text-muted-foreground">
-                  {myWallet
-                    ? "Synced to your household — they'll see you too once they connect this wallet."
-                    : "Connect your wallet to sync this roommate across devices."}
-                </div>
-
-              </div>
-            )}
+            <p className="mt-2 text-sm text-muted-foreground">
+              They join your home onchain and instantly see every shared expense.
+            </p>
+            <input
+              value={wallet}
+              onChange={(e) => setWallet(e.target.value)}
+              placeholder="0x…"
+              spellCheck={false}
+              className="mt-5 w-full rounded-2xl bg-muted/60 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-brand"
+            />
+            {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">{error}</div>}
+            <button
+              onClick={submit}
+              disabled={saving}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand disabled:opacity-50"
+            >
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} Add onchain
+            </button>
           </motion.div>
         </motion.div>
       )}

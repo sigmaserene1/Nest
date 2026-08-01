@@ -1,25 +1,19 @@
-import { useState } from "react";
 import { MemberAvatar, AvatarStack } from "./avatar";
 import { UsdcBadge } from "./chain";
 import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
-import { Pencil, Trash2, X, Calendar } from "lucide-react";
+import { X, Calendar } from "lucide-react";
 
 export function ExpenseDetail({
   expense,
-  onEdit,
-  onDelete,
   onClose,
 }: {
   expense: Expense;
-  onEdit: () => void;
-  onDelete: () => void;
   onClose: () => void;
 }) {
   const payer = getMember(expense.payerId);
   const meta = categoryMeta[expense.category];
   const split = expense.splitAmong.map(getMember);
   const perPerson = expense.amount / Math.max(expense.splitAmong.length, 1);
-  const [confirmDelete, setConfirmDelete] = useState(false);
 
   const dateStr = new Date(expense.date).toLocaleDateString("en-US", {
     weekday: "short",
@@ -93,29 +87,6 @@ export function ExpenseDetail({
         )}
       </div>
 
-      <div className="mt-6 flex gap-3">
-        <button
-          onClick={onEdit}
-          className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-foreground py-3.5 text-sm font-bold text-background transition hover:opacity-90"
-        >
-          <Pencil className="h-4 w-4" /> Edit
-        </button>
-        {confirmDelete ? (
-          <button
-            onClick={onDelete}
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white transition"
-          >
-            <Trash2 className="h-4 w-4" /> Confirm
-          </button>
-        ) : (
-          <button
-            onClick={() => setConfirmDelete(true)}
-            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand/10 py-3.5 text-sm font-bold text-brand transition hover:bg-brand/20"
-          >
-            <Trash2 className="h-4 w-4" /> Delete
-          </button>
-        )}
-      </div>
     </div>
   );
 }
