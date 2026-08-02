@@ -67,18 +67,19 @@ export function ContractSetup() {
     <Panel>
       <h1 className="text-xl font-bold tracking-tight">Connect to a Nest home</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Nest stores every expense, split and settlement onchain. Join your roommates' home with their code, or launch a
-        new Nest contract on Arc Testnet.
+        Nest stores every expense, split and settlement onchain. Paste the invite link from your roommates, or launch a
+        new Nest home on Arc Testnet.
       </p>
 
       <div className="mt-6">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Home code</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Invite link</label>
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="0xabc…-1"
-          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 font-mono text-xs outline-none focus:ring-2 focus:ring-brand"
+          placeholder="Paste your invite link"
+          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-brand"
         />
+
         <button
           onClick={useExisting}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground py-3.5 text-sm font-bold text-background transition hover:opacity-90"
