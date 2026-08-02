@@ -6,8 +6,9 @@ import { WalletChip, ArcBadge } from "@/components/nest/chain";
 import { fmtUSD } from "@/lib/nest-data";
 import { useComputedBalances, useMembers, useMe, useNestChain } from "@/lib/chain/nest-chain";
 import { InviteRoommateModal } from "@/components/nest/invite-modal";
-import { Copy, Check, UserPlus, Trash2, Pencil, ShieldCheck } from "lucide-react";
+import { Check, UserPlus, Pencil, ShieldCheck, Share2 } from "lucide-react";
 import { ProfileNameModal } from "@/components/nest/profile-modal";
+import { buildInviteLink } from "@/lib/chain/config";
 
 export const Route = createFileRoute("/app/members")({
   component: MembersPage,
