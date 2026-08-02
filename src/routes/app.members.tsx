@@ -24,10 +24,16 @@ function MembersPage() {
   const [copied, setCopied] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [nameOpen, setNameOpen] = useState(false);
-  const invite = `${contractAddress ?? ""}-${roomId ?? ""}`;
 
-  const copy = async () => {
-    try { await navigator.clipboard?.writeText(invite); } catch {}
+  const shareInvite = async () => {
+    if (!contractAddress || !roomId) return;
+    const link = buildInviteLink(contractAddress, roomId);
+    try {
+      if (navigator.share) await navigator.share({ title: "Join my Nest home", url: link });
+      else await navigator.clipboard?.writeText(link);
+    } catch {
+      try { await navigator.clipboard?.writeText(link); } catch {}
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
@@ -44,12 +50,13 @@ function MembersPage() {
           <button onClick={() => setInviteOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-brand shadow-sm hover:bg-white/90">
             <UserPlus className="h-4 w-4" /> Invite roommate
           </button>
-          <button onClick={copy} className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25">
-            {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            {copied ? "Copied" : invite}
+          <button onClick={shareInvite} className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25">
+            {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+            {copied ? "Link copied" : "Share invite"}
           </button>
         </div>
       </Card>
+
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {members.map((m) => {
