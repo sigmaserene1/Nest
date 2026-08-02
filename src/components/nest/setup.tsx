@@ -104,13 +104,12 @@ export function ContractSetup() {
 }
 
 export function RoomSetup() {
-  const { rooms, selectRoom, contractAddress } = useNestChain();
+  const { rooms, selectRoom } = useNestChain();
   const { createRoom, joinRoom } = useNestWrites();
   const [name, setName] = useState("");
   const [joinId, setJoinId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
 
   const run = async (fn: () => Promise<unknown>) => {
     setError("");
@@ -124,16 +123,6 @@ export function RoomSetup() {
     }
   };
 
-  const copyContract = async () => {
-    if (!contractAddress) return;
-    try {
-      await navigator.clipboard?.writeText(contractAddress);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* ignore */
-    }
-  };
 
   return (
     <Panel>
