@@ -98,7 +98,7 @@ export function ContractSetup() {
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-60"
       >
         {busy === "deploy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-        {busy === "deploy" ? "Deploying onchain…" : "Deploy a new Nest contract"}
+        {busy === "deploy" ? "Setting up onchain…" : "Start a new Nest home"}
       </button>
       {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">{error}</div>}
     </Panel>
