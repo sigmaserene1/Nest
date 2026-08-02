@@ -5,6 +5,8 @@ import { NestChainProvider, useNestChain } from "@/lib/chain/nest-chain";
 import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
 
+const PENDING_INVITE = "nest.invite.pending";
+
 export const Route = createFileRoute("/app")({
   component: AppLayout,
 });
