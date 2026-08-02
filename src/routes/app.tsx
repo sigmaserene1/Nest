@@ -21,20 +21,25 @@ function AppLayout() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount();
   const navigate = useNavigate();
 
-  // Resolve an invite link silently: set the contract + room, then clean the URL.
+  // Resolve an invite link silently: stash the token, clean the URL, then apply
+  // it as soon as a wallet is connected. Users never see contract or room IDs.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const token = params.get("invite");
-    if (!token) return;
-    const invite = resolveInvite(token);
-    if (invite && address) {
-      applyInvite(address, invite);
+    if (token) {
+      localStorage.setItem(PENDING_INVITE, token);
       params.delete("invite");
       const qs = params.toString();
       window.history.replaceState({}, "", window.location.pathname + (qs ? `?${qs}` : ""));
     }
+    const pending = localStorage.getItem(PENDING_INVITE);
+    if (!pending || !address) return;
+    const invite = resolveInvite(pending);
+    if (invite) applyInvite(address, invite);
+    localStorage.removeItem(PENDING_INVITE);
   }, [address]);
+
 
   useEffect(() => {
     if (!isConnected && !isConnecting && !isReconnecting) navigate({ to: "/auth" });
