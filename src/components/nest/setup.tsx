@@ -37,7 +37,7 @@ export function ContractSetup() {
 
   const useExisting = () => {
     setError("");
-    const parsed = parseJoinCode(code);
+    const parsed = resolveInvite(code);
     if (parsed) {
       setContractAddress(parsed.address);
       return;
@@ -46,8 +46,9 @@ export function ContractSetup() {
       setContractAddress(code.trim());
       return;
     }
-    setError("Paste a Nest home code or contract address (0x…).");
+    setError("Paste the invite link your roommate sent you.");
   };
+
 
   const deploy = async () => {
     setError("");
