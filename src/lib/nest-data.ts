@@ -90,7 +90,14 @@ export function makeMember(address: string, name?: string): Member {
   return {
     id,
     name: display,
-    handle: name && name.trim() ? `@${name.trim().split(" ")[0].toLowerCase().replace(/[^a-z0-9]/g, "")}` : shortAddress(address),
+    handle:
+      name && name.trim()
+        ? `@${name
+            .trim()
+            .split(" ")[0]
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "")}`
+        : shortAddress(address),
     wallet: address,
     ...skin,
   };
@@ -100,6 +107,15 @@ export function makeMember(address: string, name?: string): Member {
 let runtimeMembers: Member[] = [];
 
 export function setRuntimeMembers(list: Member[]) {
+  // Never replace good data with an empty polling result.
+  if (list.length === 0 && runtimeMembers.length > 0) return;
+
+  runtimeMembers = list;
+}
+export function setRuntimeMembers(list: Member[]) {
+  // Never replace good data with an empty polling result.
+  if (list.length === 0 && runtimeMembers.length > 0) return;
+
   runtimeMembers = list;
 }
 
@@ -109,7 +125,10 @@ export function allMembers(): Member[] {
 
 export function getMember(id: string): Member {
   const key = (id ?? "").toLowerCase();
-  return runtimeMembers.find((m) => m.id === key) ?? makeMember(key.startsWith("0x") ? key : "0x0000000000000000000000000000000000000000");
+  return (
+    runtimeMembers.find((m) => m.id === key) ??
+    makeMember(key.startsWith("0x") ? key : "0x0000000000000000000000000000000000000000")
+  );
 }
 
 // ------------------------------------------------------------------ balances
