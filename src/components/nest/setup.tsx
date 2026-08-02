@@ -3,12 +3,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Home, Plus, LinkIcon, Rocket, Copy, Check } from "lucide-react";
+import { Loader2, Home, Plus, LinkIcon, Rocket } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
-import { buildJoinCode, isAddress, parseJoinCode, setContractAddress } from "@/lib/chain/config";
+import { isAddress, resolveInvite, setContractAddress } from "@/lib/chain/config";
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
@@ -37,7 +37,7 @@ export function ContractSetup() {
 
   const useExisting = () => {
     setError("");
-    const parsed = parseJoinCode(code);
+    const parsed = resolveInvite(code);
     if (parsed) {
       setContractAddress(parsed.address);
       return;
@@ -46,8 +46,9 @@ export function ContractSetup() {
       setContractAddress(code.trim());
       return;
     }
-    setError("Paste a Nest home code or contract address (0x…).");
+    setError("Paste the invite link your roommate sent you.");
   };
+
 
   const deploy = async () => {
     setError("");
@@ -66,18 +67,19 @@ export function ContractSetup() {
     <Panel>
       <h1 className="text-xl font-bold tracking-tight">Connect to a Nest home</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Nest stores every expense, split and settlement onchain. Join your roommates' home with their code, or launch a
-        new Nest contract on Arc Testnet.
+        Nest stores every expense, split and settlement onchain. Paste the invite link from your roommates, or launch a
+        new Nest home on Arc Testnet.
       </p>
 
       <div className="mt-6">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Home code</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Invite link</label>
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
-          placeholder="0xabc…-1"
-          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 font-mono text-xs outline-none focus:ring-2 focus:ring-brand"
+          placeholder="Paste your invite link"
+          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-brand"
         />
+
         <button
           onClick={useExisting}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-foreground py-3.5 text-sm font-bold text-background transition hover:opacity-90"
@@ -96,7 +98,7 @@ export function ContractSetup() {
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-60"
       >
         {busy === "deploy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
-        {busy === "deploy" ? "Deploying onchain…" : "Deploy a new Nest contract"}
+        {busy === "deploy" ? "Setting up onchain…" : "Start a new Nest home"}
       </button>
       {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">{error}</div>}
     </Panel>
@@ -104,13 +106,12 @@ export function ContractSetup() {
 }
 
 export function RoomSetup() {
-  const { rooms, selectRoom, contractAddress } = useNestChain();
+  const { rooms, selectRoom } = useNestChain();
   const { createRoom, joinRoom } = useNestWrites();
   const [name, setName] = useState("");
   const [joinId, setJoinId] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [copied, setCopied] = useState(false);
 
   const run = async (fn: () => Promise<unknown>) => {
     setError("");
@@ -124,16 +125,6 @@ export function RoomSetup() {
     }
   };
 
-  const copyContract = async () => {
-    if (!contractAddress) return;
-    try {
-      await navigator.clipboard?.writeText(contractAddress);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      /* ignore */
-    }
-  };
 
   return (
     <Panel>
@@ -156,9 +147,7 @@ export function RoomSetup() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold">{r.name}</div>
-                <div className="font-mono text-[11px] text-muted-foreground">
-                  {buildJoinCode(contractAddress ?? "0x", r.id)}
-                </div>
+                <div className="text-[11px] text-muted-foreground">Shared home on Arc</div>
               </div>
             </button>
           ))}
@@ -184,18 +173,23 @@ export function RoomSetup() {
 
       <div className="mt-6">
         <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Join with a room number
+          Have an invite link?
         </label>
         <div className="mt-1.5 flex gap-2">
           <input
             value={joinId}
-            onChange={(e) => setJoinId(e.target.value.replace(/\D/g, ""))}
-            placeholder="1"
+            onChange={(e) => setJoinId(e.target.value)}
+            placeholder="Paste your invite link"
             className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
           />
           <button
-            onClick={() => joinId && run(() => joinRoom(Number(joinId)))}
-            disabled={busy || !joinId}
+            onClick={() => {
+              const invite = resolveInvite(joinId);
+              if (!invite) return setError("That invite link isn't valid.");
+              setError("");
+              run(() => joinRoom(invite.roomId));
+            }}
+            disabled={busy || !joinId.trim()}
             className="shrink-0 rounded-2xl bg-foreground px-5 text-sm font-bold text-background disabled:opacity-50"
           >
             Join
@@ -204,15 +198,7 @@ export function RoomSetup() {
       </div>
 
       {error && <div className="mt-4 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">{error}</div>}
-
-      {contractAddress && (
-        <button
-          onClick={copyContract}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-muted/60 py-2.5 font-mono text-[11px] text-muted-foreground transition hover:text-foreground"
-        >
-          {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />} {contractAddress}
-        </button>
-      )}
     </Panel>
   );
 }
+
