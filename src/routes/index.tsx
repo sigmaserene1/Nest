@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
 
-
 export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
@@ -42,7 +41,6 @@ function Landing() {
           Now live on Arc testnet
         </span>
 
-
         <h1 className="mx-auto mt-5 max-w-3xl text-5xl font-bold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl animate-float-in">
           Shared living,
           <br />
@@ -51,8 +49,8 @@ function Landing() {
           </span>
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground animate-float-in">
-          The beautiful way to split rent, groceries, and life with your roommates. Every payment — and every gas
-          fee — is paid in USDC.
+          The beautiful way to split rent, groceries, and life with your roommates. Every payment — and every gas fee —
+          is paid in USDC.
         </p>
 
         <div className="mt-8 flex justify-center gap-3 animate-float-in">
@@ -186,4 +184,3 @@ const STEPS = [
     onchain: true,
   },
 ];
-

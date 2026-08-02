@@ -115,4 +115,3 @@ export function applyInvite(wallet: string | null | undefined, invite: { address
   setContractAddress(invite.address);
   if (wallet) setActiveRoom(wallet, invite.roomId);
 }
-
