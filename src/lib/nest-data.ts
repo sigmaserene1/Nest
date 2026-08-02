@@ -112,12 +112,6 @@ export function setRuntimeMembers(list: Member[]) {
 
   runtimeMembers = list;
 }
-export function setRuntimeMembers(list: Member[]) {
-  // Never replace good data with an empty polling result.
-  if (list.length === 0 && runtimeMembers.length > 0) return;
-
-  runtimeMembers = list;
-}
 
 export function allMembers(): Member[] {
   return runtimeMembers;
