@@ -70,7 +70,10 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     [roomsQ.data],
   );
 
-  const roomId = storedRoom && rooms.some((r) => r.id === storedRoom) ? storedRoom : (rooms[0]?.id ?? null);
+  // An invited wallet may not be a member yet — honour the stored room anyway so
+  // the invite link resolves straight into the right home.
+  const roomId = storedRoom ?? rooms[0]?.id ?? null;
+
 
   useEffect(() => {
     if (address && roomId && roomId !== storedRoom) select(roomId);
