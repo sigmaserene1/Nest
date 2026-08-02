@@ -3,12 +3,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Home, Plus, LinkIcon, Rocket, Copy, Check } from "lucide-react";
+import { Loader2, Home, Plus, LinkIcon, Rocket } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
-import { buildJoinCode, isAddress, parseJoinCode, setContractAddress } from "@/lib/chain/config";
+import { isAddress, resolveInvite, setContractAddress } from "@/lib/chain/config";
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
