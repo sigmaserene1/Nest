@@ -19,7 +19,7 @@ import {
   type Member,
 } from "@/lib/nest-data";
 
-const REFRESH_MS = 6_000;
+const REFRESH_MS = 20_000;
 
 export type RoomInfo = { id: number; name: string; creator: string; createdAt: number };
 
@@ -74,7 +74,6 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   // the invite link resolves straight into the right home.
   const roomId = storedRoom ?? rooms[0]?.id ?? null;
 
-
   useEffect(() => {
     if (address && roomId && roomId !== storedRoom) select(roomId);
   }, [address, roomId, storedRoom, select]);
@@ -91,7 +90,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   });
 
   const memberAddresses = useMemo(
-    () => (((roomQ.data?.[0]?.result as readonly string[] | undefined) ?? []).map((a) => a) as string[]),
+    () => ((roomQ.data?.[0]?.result as readonly string[] | undefined) ?? []).map((a) => a) as string[],
     [roomQ.data],
   );
 
@@ -108,7 +107,9 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   }, [memberAddresses, namesQ.data]);
 
   useEffect(() => {
-    setRuntimeMembers(members);
+    if (members.length > 0) {
+      setRuntimeMembers(members);
+    }
   }, [members]);
 
   const expenses: Expense[] = useMemo(() => {
