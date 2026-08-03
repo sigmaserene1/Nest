@@ -44,7 +44,7 @@ export function ActionModal({
   onSuccess,
 }: Props) {
   const members = useMembers();
-  const { me } = useNestChain();
+  const { me, isDemo, rpcMessage } = useNestChain();
   const writes = useNestWrites();
   const wallet = useArcWallet();
   const others = useMemo(() => members.filter((m) => m.id !== me), [members, me]);
@@ -93,7 +93,9 @@ export function ActionModal({
   const splitCount = splitIds.length + 1; // includes you
   const perPerson = amt > 0 ? amt / splitCount : 0;
 
-  const canSubmit = isSplit
+  const canSubmit = isDemo
+    ? false
+    : isSplit
     ? amt > 0 && splitIds.length > 0 && wallet.isConnected && wallet.isOnArc
     : amt > 0 && validAddress && wallet.isConnected && wallet.isOnArc && hasFunds && (mode !== "request" || !!recipientId);
 
@@ -344,6 +346,11 @@ export function ActionModal({
               </div>
 
               {error && <div className="mt-3 rounded-2xl bg-brand/10 px-3 py-2 text-xs font-semibold text-brand">{error}</div>}
+              {isDemo && (
+                <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-900">
+                  {rpcMessage}
+                </div>
+              )}
 
               <button
                 disabled={!canSubmit}

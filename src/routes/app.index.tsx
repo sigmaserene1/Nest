@@ -25,7 +25,6 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
-  Bell,
   TrendingUp,
 } from "lucide-react";
 
@@ -49,9 +48,6 @@ function Greeting() {
         <h1 className="truncate text-2xl font-bold tracking-tight sm:text-[28px]">{first} 👋</h1>
       </div>
       <div className="flex items-center gap-2">
-        <button className="glass grid h-11 w-11 place-items-center rounded-2xl" aria-label="Notifications">
-          <Bell className="h-[18px] w-[18px]" />
-        </button>
         <Link to="/app/members" aria-label="Profile">
           <MemberAvatar member={me} size={44} ring />
         </Link>
