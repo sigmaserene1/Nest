@@ -8,7 +8,14 @@ import { ArcBadge, UsdcBadge, WalletChip, BlockTicker } from "@/components/nest/
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 
 import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
-import { useExpenses, useComputedBalances, useHouseholdActivity, useMembers, useMe, useNestChain } from "@/lib/chain/nest-chain";
+import {
+  useExpenses,
+  useComputedBalances,
+  useHouseholdActivity,
+  useMembers,
+  useMe,
+  useNestChain,
+} from "@/lib/chain/nest-chain";
 import {
   ArrowUpRight,
   Send,
@@ -22,15 +29,10 @@ import {
   TrendingUp,
 } from "lucide-react";
 
-
-
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
   head: () => ({
-    meta: [
-      { title: "Home · Nest" },
-      { name: "description", content: "Your Nest wallet on Arc Testnet." },
-    ],
+    meta: [{ title: "Home · Nest" }, { name: "description", content: "Your Nest wallet on Arc Testnet." }],
   }),
 });
 
@@ -79,7 +81,6 @@ function Dashboard() {
 
   return (
     <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
-
       {/* Hero wallet card */}
       <motion.section
         initial={{ opacity: 0, y: 12 }}
@@ -131,7 +132,11 @@ function Dashboard() {
               )}
               <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </button>
-            <button onClick={() => action.open("send")} className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition hover:bg-white/20" aria-label="Send">
+            <button
+              onClick={() => action.open("send")}
+              className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition hover:bg-white/20"
+              aria-label="Send"
+            >
               <Plus className="h-5 w-5" strokeWidth={2.5} />
             </button>
           </div>
@@ -140,13 +145,31 @@ function Dashboard() {
 
       {/* Quick action pills */}
       <Stagger className="mt-5 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <QuickPill onClick={() => action.open("send")} label="Send" icon={<Send className="h-[18px] w-[18px]" />} tint="bg-brand/10 text-brand" />
-        <QuickPill onClick={() => action.open("request")} label="Request" icon={<Download className="h-[18px] w-[18px]" />} tint="bg-emerald-500/10 text-emerald-600" />
-        <QuickPill onClick={() => action.open("split")} label="Split" icon={<Split className="h-[18px] w-[18px]" />} tint="bg-indigo-500/10 text-indigo-600" />
-        <QuickPill onClick={() => action.open("scan")} label="Scan QR" icon={<QrCode className="h-[18px] w-[18px]" />} tint="bg-amber-500/10 text-amber-600" />
+        <QuickPill
+          onClick={() => action.open("send")}
+          label="Send"
+          icon={<Send className="h-[18px] w-[18px]" />}
+          tint="bg-brand/10 text-brand"
+        />
+        <QuickPill
+          onClick={() => action.open("request")}
+          label="Request"
+          icon={<Download className="h-[18px] w-[18px]" />}
+          tint="bg-emerald-500/10 text-emerald-600"
+        />
+        <QuickPill
+          onClick={() => action.open("split")}
+          label="Split"
+          icon={<Split className="h-[18px] w-[18px]" />}
+          tint="bg-indigo-500/10 text-indigo-600"
+        />
+        <QuickPill
+          onClick={() => action.open("scan")}
+          label="Scan QR"
+          icon={<QrCode className="h-[18px] w-[18px]" />}
+          tint="bg-amber-500/10 text-amber-600"
+        />
       </Stagger>
-
-
 
       {/* Roommate carousel */}
       <section className="mt-7">
@@ -216,7 +239,8 @@ function Dashboard() {
             <div className="text-[11px] uppercase tracking-widest text-white/70">You spent this month</div>
             <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">{fmtUSD(myShare)}</div>
             <div className="mt-1 text-xs text-white/80">
-              Household total {fmtUSD(monthlySpend)} · Most on {topCat?.[0] ?? "—"} {topCat ? categoryMeta[topCat[0] as keyof typeof categoryMeta]?.icon : ""}
+              Household total {fmtUSD(monthlySpend)} · Most on {topCat?.[0] ?? "—"}{" "}
+              {topCat ? categoryMeta[topCat[0] as keyof typeof categoryMeta]?.icon : ""}
             </div>
           </div>
           <Link
@@ -263,7 +287,6 @@ function Dashboard() {
                       </div>
                       <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
                         <span>{fmtRelative(a.date)}</span>
-                        
                       </div>
                     </div>
                     {a.amount != null && (
@@ -313,5 +336,3 @@ function QuickPill({
     </Item>
   );
 }
-
-

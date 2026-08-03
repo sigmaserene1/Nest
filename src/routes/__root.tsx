@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NestChainProvider } from "@/lib/chain/nest-chain";
 import { Outlet, Link, createRootRouteWithContext, useRouter, HeadContent, Scripts } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -110,8 +111,9 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <Web3Provider>
-        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <NestChainProvider>
+          <Outlet />
+        </NestChainProvider>
       </Web3Provider>
     </QueryClientProvider>
   );
