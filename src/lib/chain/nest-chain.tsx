@@ -2,7 +2,7 @@
 // Everything the UI renders (members, expenses, balances, activity) is read
 // from the ExpenseManager contract on Arc Testnet — nothing is cached locally.
 
-import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
@@ -106,18 +106,12 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     query: { enabled: enabled && memberAddresses.length > 0, refetchInterval: REFRESH_MS * 4 },
   });
 
-  const members: Member[] = useMemo(() => {
+  const liveMembers: Member[] = useMemo(() => {
     const names = (namesQ.data as readonly string[] | undefined) ?? [];
     return memberAddresses.map((a, i) => makeMember(a, names[i]));
   }, [memberAddresses, namesQ.data]);
 
-  useEffect(() => {
-    if (members.length > 0) {
-      setRuntimeMembers(members);
-    }
-  }, [members]);
-
-  const expenses: Expense[] = useMemo(() => {
+  const liveExpenses: Expense[] = useMemo(() => {
     const raw = (roomQ.data?.[1]?.result as readonly any[] | undefined) ?? [];
     return raw
       .map((e) => {
@@ -143,7 +137,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [roomQ.data]);
 
-  const activity: ActivityEvent[] = useMemo(() => {
+  const liveActivity: ActivityEvent[] = useMemo(() => {
     const raw = (roomQ.data?.[2]?.result as readonly any[] | undefined) ?? [];
     return raw.map((a, i) => {
       const kindNum = Number(a.kind);
@@ -173,32 +167,48 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     });
   }, [roomQ.data]);
 
+  const me = address ? address.toLowerCase() : null;
+
+  // Arc's public RPC rate-limits aggressively and occasionally drops requests.
+  // When reads fail outright we fall back to a read-only sample home so the
+  // product stays navigable; live data resumes on the next successful poll.
+  const isDemo = Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
+
+  const members = useMemo(() => (isDemo ? demoMembers(me) : liveMembers), [isDemo, me, liveMembers]);
+  const expenses = useMemo(() => (isDemo ? demoExpenses(me) : liveExpenses), [isDemo, me, liveExpenses]);
+  const activity = useMemo(() => (isDemo ? demoActivity(me) : liveActivity), [isDemo, me, liveActivity]);
+
+  useEffect(() => {
+    if (members.length > 0) setRuntimeMembers(members);
+  }, [members]);
+
   const { net, debts } = useMemo(() => computeBalances(expenses), [expenses, members]);
 
-  const me = address ? address.toLowerCase() : null;
   const myName = useMemo(() => {
-    const found = members.find((m) => m.id === me);
+    const found = liveMembers.find((m) => m.id === me);
     return found && found.name !== found.handle ? found.name : null;
-  }, [members, me]);
+  }, [liveMembers, me]);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     await Promise.all([roomsQ.refetch(), roomQ.refetch(), namesQ.refetch()]);
-  };
+  }, [roomsQ.refetch, roomQ.refetch, namesQ.refetch]);
 
   const value: ChainState = {
     contractAddress,
     me,
     myName,
-    rooms,
-    roomId,
-    room: rooms.find((r) => r.id === roomId) ?? null,
+    rooms: isDemo && rooms.length === 0 ? [demoRoom] : rooms,
+    roomId: isDemo ? (roomId ?? demoRoom.id) : roomId,
+    room: rooms.find((r) => r.id === roomId) ?? (isDemo ? demoRoom : null),
     selectRoom: select,
     members,
     expenses,
     activity,
     net,
     debts,
-    isLoading: roomsQ.isLoading || roomQ.isLoading,
+    isLoading: !isDemo && (roomsQ.isLoading || roomQ.isLoading),
+    isDemo,
+    rpcMessage: RPC_DOWN_MESSAGE,
     refresh,
   };
 
