@@ -40,7 +40,9 @@ function MembersPage() {
     } catch {
       try {
         await navigator.clipboard?.writeText(link);
-      } catch {}
+      } catch {
+        // clipboard unavailable — the copied state below is still shown
+      }
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);

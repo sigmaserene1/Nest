@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import type { ElementType, ReactNode } from "react";
 import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { NestLogo } from "./logo";
@@ -223,8 +223,8 @@ export function Card({
 }: {
   children: ReactNode;
   className?: string;
-  as?: any;
-  [k: string]: any;
+  as?: ElementType;
+  [k: string]: unknown;
 }) {
   return (
     <As

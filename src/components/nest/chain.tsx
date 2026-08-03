@@ -103,7 +103,9 @@ export function WalletChip({
     e.stopPropagation();
     try {
       await navigator.clipboard?.writeText(address);
-    } catch {}
+    } catch {
+      // clipboard unavailable — the copied state below is still shown
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   };
@@ -143,7 +145,9 @@ export function TxHashPill({
     e.stopPropagation();
     try {
       await navigator.clipboard?.writeText(hash);
-    } catch {}
+    } catch {
+      // clipboard unavailable — the copied state below is still shown
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   };
