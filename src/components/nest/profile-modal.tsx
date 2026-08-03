@@ -42,7 +42,11 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold">Claim your name</h3>
           {dismissible && (
-            <button onClick={onDone} className="grid h-9 w-9 place-items-center rounded-full bg-muted" aria-label="Close">
+            <button
+              onClick={onDone}
+              className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+              aria-label="Close"
+            >
               <X className="h-4 w-4" />
             </button>
           )}
@@ -57,7 +61,11 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           autoFocus
           className="mt-5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
         />
-        {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">{error}</div>}
+        {error && (
+          <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">
+            {error}
+          </div>
+        )}
         {isDemo && (
           <div className="mt-3 rounded-2xl bg-amber-50 p-3 text-[11px] font-semibold leading-relaxed text-amber-900">
             {rpcMessage}
@@ -68,7 +76,12 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           disabled={busy || isDemo || !name.trim()}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand disabled:opacity-50"
         >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Claim onchain
+          {busy ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <ShieldCheck className="h-4 w-4" />
+          )}{" "}
+          Claim onchain
         </button>
       </motion.div>
     </motion.div>
@@ -85,5 +98,9 @@ export function ProfileOnboarding() {
   useEffect(() => setSkipped(false), [me]);
   const inRoom = !!me && members.some((m) => m.id === me);
   const show = !isDemo && inRoom && !myName && !skipped;
-  return <AnimatePresence>{show && <NameForm onDone={() => setSkipped(true)} dismissible />}</AnimatePresence>;
+  return (
+    <AnimatePresence>
+      {show && <NameForm onDone={() => setSkipped(true)} dismissible />}
+    </AnimatePresence>
+  );
 }

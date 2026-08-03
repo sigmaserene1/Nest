@@ -11,7 +11,10 @@ export function NestLogo({ size = 32, showWord = true }: { size?: number; showWo
         aria-hidden
       >
         <svg viewBox="0 0 24 24" width={size * 0.55} height={size * 0.55} fill="none">
-          <path d="M4 11L12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8z" fill="currentColor" />
+          <path
+            d="M4 11L12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8z"
+            fill="currentColor"
+          />
         </svg>
       </span>
       {showWord && <span className="text-[19px] font-bold tracking-tight">Nest</span>}

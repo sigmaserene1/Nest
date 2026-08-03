@@ -111,7 +111,10 @@ export function resolveInvite(input: string): { address: `0x${string}`; roomId: 
 }
 
 /** Applies an invite: points at the right contract and selects the room. */
-export function applyInvite(wallet: string | null | undefined, invite: { address: string; roomId: number }) {
+export function applyInvite(
+  wallet: string | null | undefined,
+  invite: { address: string; roomId: number },
+) {
   setContractAddress(invite.address);
   if (wallet) setActiveRoom(wallet, invite.roomId);
 }

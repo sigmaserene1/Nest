@@ -1,11 +1,31 @@
 import type { Member } from "@/lib/nest-data";
 
-export function MemberAvatar({ member, size = 36, ring = false, showEmoji = false }: { member: Member; size?: number; ring?: boolean; showEmoji?: boolean }) {
-  const initials = member.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+export function MemberAvatar({
+  member,
+  size = 36,
+  ring = false,
+  showEmoji = false,
+}: {
+  member: Member;
+  size?: number;
+  ring?: boolean;
+  showEmoji?: boolean;
+}) {
+  const initials = member.name
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
   return (
     <span
       className={`relative inline-grid place-items-center rounded-full font-semibold text-white ${ring ? "ring-[3px] ring-white shadow-sm" : ""}`}
-      style={{ width: size, height: size, background: member.gradient, fontSize: Math.max(10, size * 0.36) }}
+      style={{
+        width: size,
+        height: size,
+        background: member.gradient,
+        fontSize: Math.max(10, size * 0.36),
+      }}
       aria-label={member.name}
     >
       {showEmoji ? <span style={{ fontSize: size * 0.55 }}>{member.emoji}</span> : initials}
@@ -13,7 +33,15 @@ export function MemberAvatar({ member, size = 36, ring = false, showEmoji = fals
   );
 }
 
-export function AvatarStack({ members, max = 4, size = 30 }: { members: Member[]; max?: number; size?: number }) {
+export function AvatarStack({
+  members,
+  max = 4,
+  size = 30,
+}: {
+  members: Member[];
+  max?: number;
+  size?: number;
+}) {
   const shown = members.slice(0, max);
   const extra = members.length - shown.length;
   return (

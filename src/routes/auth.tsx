@@ -67,20 +67,24 @@ function AuthPage() {
             <li className="flex items-start gap-3">
               <Shield className="mt-0.5 h-4 w-4 text-brand" />
               <span className="text-muted-foreground">
-                <span className="font-semibold text-foreground">Self-custodial.</span> Your keys, your funds. No passwords.
+                <span className="font-semibold text-foreground">Self-custodial.</span> Your keys,
+                your funds. No passwords.
               </span>
             </li>
             <li className="flex items-start gap-3">
               <Zap className="mt-0.5 h-4 w-4 text-brand" />
               <span className="text-muted-foreground">
-                <span className="font-semibold text-foreground">Instant USDC.</span> Settle on Arc Testnet in seconds.
+                <span className="font-semibold text-foreground">Instant USDC.</span> Settle on Arc
+                Testnet in seconds.
               </span>
             </li>
           </ul>
         </div>
 
         <div className="mt-6 text-center text-xs text-muted-foreground">
-          <Link to="/" className="hover:underline">← Back home</Link>
+          <Link to="/" className="hover:underline">
+            ← Back home
+          </Link>
         </div>
       </div>
     </div>

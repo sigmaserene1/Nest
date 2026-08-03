@@ -45,13 +45,9 @@ function AppLayout() {
     localStorage.removeItem(PENDING_INVITE);
   }, [address]);
 
-
   useEffect(() => {
     if (!isConnected && !isConnecting && !isReconnecting) navigate({ to: "/auth" });
   }, [isConnected, isConnecting, isReconnecting, navigate]);
 
-  return (
-<Gate />
-  );
+  return <Gate />;
 }
-

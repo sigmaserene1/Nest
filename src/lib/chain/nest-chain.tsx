@@ -44,7 +44,6 @@ type ChainState = {
   refresh: () => Promise<void>;
 };
 
-
 const Ctx = createContext<ChainState | null>(null);
 
 const toNum = (v: bigint) => Number(formatUnits(v, 6));
@@ -54,7 +53,11 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   const contractAddress = useContractAddress();
   const { roomId: storedRoom, select } = useActiveRoom(address);
 
-  const base = { address: contractAddress ?? undefined, abi: EXPENSE_MANAGER_ABI, chainId: arcTestnet.id } as const;
+  const base = {
+    address: contractAddress ?? undefined,
+    abi: EXPENSE_MANAGER_ABI,
+    chainId: arcTestnet.id,
+  } as const;
   const enabled = !!contractAddress;
 
   const roomsQ = useReadContract({
@@ -89,13 +92,18 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     contracts: [
       { ...base, functionName: "getRoomMembers", args: roomArgs },
       { ...base, functionName: "getExpenses", args: roomArgs },
-      { ...base, functionName: "getActivity", args: roomId ? ([BigInt(roomId), 200n] as const) : undefined },
+      {
+        ...base,
+        functionName: "getActivity",
+        args: roomId ? ([BigInt(roomId), 200n] as const) : undefined,
+      },
     ],
     query: { enabled: enabled && !!roomId, refetchInterval: REFRESH_MS },
   });
 
   const memberAddresses = useMemo(
-    () => ((roomQ.data?.[0]?.result as readonly string[] | undefined) ?? []).map((a) => a) as string[],
+    () =>
+      ((roomQ.data?.[0]?.result as readonly string[] | undefined) ?? []).map((a) => a) as string[],
     [roomQ.data],
   );
 
@@ -146,7 +154,13 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
       const amount = toNum(a.amount as bigint);
       const date = new Date(Number(a.timestamp) * 1000).toISOString();
       const kind: ActivityEvent["kind"] =
-        kindNum === 0 ? "expense" : kindNum === 1 ? "settlement" : kindNum === 2 ? "transfer" : "member";
+        kindNum === 0
+          ? "expense"
+          : kindNum === 1
+            ? "settlement"
+            : kindNum === 2
+              ? "transfer"
+              : "member";
       const text =
         kindNum === 0
           ? `added ${a.text as string}`
@@ -159,7 +173,8 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
         id: `${kindNum}-${String(a.refId)}-${Number(a.timestamp)}-${i}`,
         kind,
         actorId: actor,
-        counterpartyId: counterparty === "0x0000000000000000000000000000000000000000" ? undefined : counterparty,
+        counterpartyId:
+          counterparty === "0x0000000000000000000000000000000000000000" ? undefined : counterparty,
         text,
         amount: amount > 0 ? amount : undefined,
         date,
@@ -174,9 +189,18 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   // product stays navigable; live data resumes on the next successful poll.
   const isDemo = Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
 
-  const members = useMemo(() => (isDemo ? demoMembers(me) : liveMembers), [isDemo, me, liveMembers]);
-  const expenses = useMemo(() => (isDemo ? demoExpenses(me) : liveExpenses), [isDemo, me, liveExpenses]);
-  const activity = useMemo(() => (isDemo ? demoActivity(me) : liveActivity), [isDemo, me, liveActivity]);
+  const members = useMemo(
+    () => (isDemo ? demoMembers(me) : liveMembers),
+    [isDemo, me, liveMembers],
+  );
+  const expenses = useMemo(
+    () => (isDemo ? demoExpenses(me) : liveExpenses),
+    [isDemo, me, liveExpenses],
+  );
+  const activity = useMemo(
+    () => (isDemo ? demoActivity(me) : liveActivity),
+    [isDemo, me, liveActivity],
+  );
 
   useEffect(() => {
     if (members.length > 0) setRuntimeMembers(members);

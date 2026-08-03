@@ -59,7 +59,10 @@ function Expenses() {
   };
 
   return (
-    <AppShell greeting={<Header onAdd={() => setModal({ mode: "add" })} />} onFabClick={() => setModal({ mode: "add" })}>
+    <AppShell
+      greeting={<Header onAdd={() => setModal({ mode: "add" })} />}
+      onFabClick={() => setModal({ mode: "add" })}
+    >
       <div className="mt-4 flex flex-col gap-3">
         <div className="glass flex items-center gap-2 rounded-2xl px-4 py-2.5">
           <Search className="h-4 w-4 text-muted-foreground" />
@@ -76,7 +79,9 @@ function Expenses() {
               key={c}
               onClick={() => setCat(c)}
               className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
-                cat === c ? "bg-foreground text-background" : "bg-card text-muted-foreground ring-1 ring-black/[0.04] hover:text-foreground"
+                cat === c
+                  ? "bg-foreground text-background"
+                  : "bg-card text-muted-foreground ring-1 ring-black/[0.04] hover:text-foreground"
               }`}
             >
               {c}
@@ -90,7 +95,9 @@ function Expenses() {
           <div key={day}>
             <div className="mb-2 flex items-center justify-between px-1 text-xs">
               <span className="font-semibold text-muted-foreground">{day}</span>
-              <span className="tabular-nums text-muted-foreground">{fmtUSD(items.reduce((s, e) => s + e.amount, 0))}</span>
+              <span className="tabular-nums text-muted-foreground">
+                {fmtUSD(items.reduce((s, e) => s + e.amount, 0))}
+              </span>
             </div>
             <Card className="!p-2">
               <ul className="divide-y divide-border/60">
@@ -104,14 +111,22 @@ function Expenses() {
                       onClick={() => setModal({ mode: "detail", expense: e })}
                       className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition hover:bg-muted/50 active:scale-[0.99]"
                     >
-                      <span className="grid h-11 w-11 place-items-center rounded-2xl text-xl" style={{ background: meta.bg }}>
+                      <span
+                        className="grid h-11 w-11 place-items-center rounded-2xl text-xl"
+                        style={{ background: meta.bg }}
+                      >
                         {meta.icon}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="truncate text-sm font-semibold">{e.title}</div>
                         <div className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
                           <MemberAvatar member={payer} size={16} />
-                          <span>Paid by <span className="font-medium text-foreground">{payer.name.split(" ")[0]}</span></span>
+                          <span>
+                            Paid by{" "}
+                            <span className="font-medium text-foreground">
+                              {payer.name.split(" ")[0]}
+                            </span>
+                          </span>
                         </div>
                       </div>
                       <div className="text-right">
@@ -119,7 +134,9 @@ function Expenses() {
                           <div className="text-sm font-bold tabular-nums">{fmtUSD(e.amount)}</div>
                           <UsdcBadge />
                         </div>
-                        <div className="mt-1 flex justify-end"><AvatarStack members={split} size={18} max={4} /></div>
+                        <div className="mt-1 flex justify-end">
+                          <AvatarStack members={split} size={18} max={4} />
+                        </div>
                       </div>
                     </li>
                   );
@@ -131,7 +148,9 @@ function Expenses() {
         {filtered.length === 0 && (
           <Card className="py-12 text-center">
             <div className="text-sm font-semibold">No expenses found</div>
-            <div className="mt-1 text-xs text-muted-foreground">Try a different filter or add a new expense.</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Try a different filter or add a new expense.
+            </div>
           </Card>
         )}
       </div>
@@ -157,20 +176,24 @@ function Expenses() {
               {modal.mode !== "detail" && (
                 <>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-bold">{modal.mode === "edit" ? "Edit expense" : "New expense"}</h3>
-                    <button onClick={close} className="grid h-9 w-9 place-items-center rounded-full bg-muted" aria-label="Close">
+                    <h3 className="text-lg font-bold">
+                      {modal.mode === "edit" ? "Edit expense" : "New expense"}
+                    </h3>
+                    <button
+                      onClick={close}
+                      className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+                      aria-label="Close"
+                    >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                  <ExpenseForm initial={modal.mode === "edit" ? modal.expense : undefined} onSave={handleSave} />
+                  <ExpenseForm
+                    initial={modal.mode === "edit" ? modal.expense : undefined}
+                    onSave={handleSave}
+                  />
                 </>
               )}
-              {modal.mode === "detail" && (
-                <ExpenseDetail
-                  expense={modal.expense}
-                  onClose={close}
-                />
-              )}
+              {modal.mode === "detail" && <ExpenseDetail expense={modal.expense} onClose={close} />}
             </motion.div>
           </motion.div>
         )}
@@ -186,7 +209,10 @@ function Header({ onAdd }: { onAdd: () => void }) {
         <div className="text-sm font-medium text-muted-foreground">Bedford Loft</div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Expenses</h1>
       </div>
-      <button onClick={onAdd} className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-brand transition hover:scale-[1.02]">
+      <button
+        onClick={onAdd}
+        className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-brand transition hover:scale-[1.02]"
+      >
         <Plus className="h-4 w-4" /> Add
       </button>
     </div>

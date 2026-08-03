@@ -29,7 +29,17 @@ function useActive(path: string, exact = false) {
   return pathname === path || pathname.startsWith(path + "/");
 }
 
-function NavItem({ to, label, icon: Icon, exact }: { to: string; label: string; icon: typeof Home; exact?: boolean }) {
+function NavItem({
+  to,
+  label,
+  icon: Icon,
+  exact,
+}: {
+  to: string;
+  label: string;
+  icon: typeof Home;
+  exact?: boolean;
+}) {
   const active = useActive(to, exact);
   return (
     <Link
@@ -74,7 +84,15 @@ function BottomTab({
   );
 }
 
-export function AppShell({ children, greeting, onFabClick }: { children: ReactNode; greeting?: ReactNode; onFabClick?: () => void }) {
+export function AppShell({
+  children,
+  greeting,
+  onFabClick,
+}: {
+  children: ReactNode;
+  greeting?: ReactNode;
+  onFabClick?: () => void;
+}) {
   const { me: myId, myName: displayName } = useNestChain();
   const me = getMember(myId ?? "");
   const wallet = useArcWallet();
@@ -186,7 +204,6 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
               </Link>
             )}
-
           </motion.div>
           <BottomTab to="/app/activity" label="Activity" icon={Activity} />
           <BottomTab to="/app/analytics" label="Insights" icon={PieChart} />
@@ -210,7 +227,10 @@ export function Card({
   [k: string]: any;
 }) {
   return (
-    <As className={`rounded-[20px] bg-card p-5 shadow-card ring-1 ring-black/[0.03] ${className}`} {...rest}>
+    <As
+      className={`rounded-[20px] bg-card p-5 shadow-card ring-1 ring-black/[0.03] ${className}`}
+      {...rest}
+    >
       {children}
     </As>
   );

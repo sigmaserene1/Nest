@@ -57,7 +57,11 @@ export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose:
           >
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold">Invite roommate</h3>
-              <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-muted" aria-label="Close">
+              <button
+                onClick={onClose}
+                className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+                aria-label="Close"
+              >
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -71,13 +75,22 @@ export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose:
               spellCheck={false}
               className="mt-5 w-full rounded-2xl bg-muted/60 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-brand"
             />
-            {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">{error}</div>}
+            {error && (
+              <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">
+                {error}
+              </div>
+            )}
             <button
               onClick={submit}
               disabled={saving || isDemo}
               className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand disabled:opacity-50"
             >
-              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />} Add onchain
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}{" "}
+              Add onchain
             </button>
           </motion.div>
         </motion.div>

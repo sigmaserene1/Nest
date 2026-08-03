@@ -1,5 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowRight, Wallet, Users, Zap, Link2, Receipt, Calculator, Send, CheckCircle2 } from "lucide-react";
+import {
+  ArrowRight,
+  Wallet,
+  Users,
+  Zap,
+  Link2,
+  Receipt,
+  Calculator,
+  Send,
+  CheckCircle2,
+} from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
 
 export const Route = createFileRoute("/")({
@@ -13,7 +23,10 @@ export const Route = createFileRoute("/")({
           "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc.",
       },
       { property: "og:title", content: "Nest — Shared living, effortlessly settled" },
-      { property: "og:description", content: "Split rent, groceries, and life. Instantly settled in USDC." },
+      {
+        property: "og:description",
+        content: "Split rent, groceries, and life. Instantly settled in USDC.",
+      },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -49,8 +62,8 @@ function Landing() {
           </span>
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground animate-float-in">
-          The beautiful way to split rent, groceries, and life with your roommates. Every payment — and every gas fee —
-          is paid in USDC.
+          The beautiful way to split rent, groceries, and life with your roommates. Every payment —
+          and every gas fee — is paid in USDC.
         </p>
 
         <div className="mt-8 flex justify-center gap-3 animate-float-in">
@@ -70,9 +83,21 @@ function Landing() {
 
         <div className="glass-strong mx-auto mt-16 grid max-w-4xl grid-cols-1 gap-6 rounded-[32px] p-8 sm:grid-cols-3 animate-pop-in">
           {[
-            { icon: Wallet, title: "Instant USDC", body: "Sub-second settlement. No IOUs, no chasing." },
-            { icon: Users, title: "Roommate friendly", body: "Beautiful shared home, built for real life." },
-            { icon: Zap, title: "One-tap settle", body: "Auto-simplified debts. Pay everyone at once." },
+            {
+              icon: Wallet,
+              title: "Instant USDC",
+              body: "Sub-second settlement. No IOUs, no chasing.",
+            },
+            {
+              icon: Users,
+              title: "Roommate friendly",
+              body: "Beautiful shared home, built for real life.",
+            },
+            {
+              icon: Zap,
+              title: "One-tap settle",
+              body: "Auto-simplified debts. Pay everyone at once.",
+            },
           ].map((f) => (
             <div key={f.title} className="text-left">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-brand-soft text-brand">
@@ -91,7 +116,9 @@ function Landing() {
         </span>
         <h2 className="mx-auto mt-5 max-w-3xl text-4xl font-bold tracking-tight sm:text-5xl">
           How roommates settle on{" "}
-          <span className="bg-gradient-to-r from-brand to-orange-500 bg-clip-text text-transparent">Arc</span>
+          <span className="bg-gradient-to-r from-brand to-orange-500 bg-clip-text text-transparent">
+            Arc
+          </span>
         </h2>
         <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground">
           From splitting groceries to an onchain USDC transfer — here's the full flow, step by step.

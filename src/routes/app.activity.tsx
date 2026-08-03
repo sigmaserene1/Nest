@@ -9,7 +9,10 @@ import { ArrowLeftRight, UserPlus, Receipt, Send } from "lucide-react";
 export const Route = createFileRoute("/app/activity")({
   component: ActivityPage,
   head: () => ({
-    meta: [{ title: "Activity · Nest" }, { name: "description", content: "Every onchain event in your home." }],
+    meta: [
+      { title: "Activity · Nest" },
+      { name: "description", content: "Every onchain event in your home." },
+    ],
   }),
 });
 
@@ -41,7 +44,9 @@ function ActivityPage() {
             key={c}
             onClick={() => setF(c)}
             className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
-              f === c ? "bg-foreground text-background" : "bg-card text-muted-foreground ring-1 ring-black/[0.04]"
+              f === c
+                ? "bg-foreground text-background"
+                : "bg-card text-muted-foreground ring-1 ring-black/[0.04]"
             }`}
           >
             {c}
@@ -80,7 +85,9 @@ function ActivityPage() {
                     <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
                     <span className="text-muted-foreground">{a.text}</span>
                   </div>
-                  <div className="mt-0.5 text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    {fmtRelative(a.date)}
+                  </div>
                 </div>
                 {a.amount != null && (
                   <div
@@ -98,7 +105,9 @@ function ActivityPage() {
         {filtered.length === 0 && (
           <div className="py-12 text-center">
             <div className="text-sm font-semibold">Nothing here yet</div>
-            <div className="mt-1 text-xs text-muted-foreground">Add an expense or settle up to write your first onchain event.</div>
+            <div className="mt-1 text-xs text-muted-foreground">
+              Add an expense or settle up to write your first onchain event.
+            </div>
           </div>
         )}
       </Card>

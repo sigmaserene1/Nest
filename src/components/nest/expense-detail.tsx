@@ -3,13 +3,7 @@ import { UsdcBadge } from "./chain";
 import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
 import { X, Calendar } from "lucide-react";
 
-export function ExpenseDetail({
-  expense,
-  onClose,
-}: {
-  expense: Expense;
-  onClose: () => void;
-}) {
+export function ExpenseDetail({ expense, onClose }: { expense: Expense; onClose: () => void }) {
   const payer = getMember(expense.payerId);
   const meta = categoryMeta[expense.category];
   const split = expense.splitAmong.map(getMember);
@@ -86,7 +80,6 @@ export function ExpenseDetail({
           </div>
         )}
       </div>
-
     </div>
   );
 }

@@ -13,7 +13,14 @@ export type Member = {
   emoji: string;
 };
 
-export const CATEGORIES = ["Rent", "Groceries", "Utilities", "Internet", "Dining", "Other"] as const;
+export const CATEGORIES = [
+  "Rent",
+  "Groceries",
+  "Utilities",
+  "Internet",
+  "Dining",
+  "Other",
+] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export type Expense = {
@@ -132,7 +139,10 @@ export function getMember(id: string): Member {
  * Positive = the household owes them; negative = they owe the household.
  * Settled shares are excluded because settlement moves real USDC.
  */
-export function computeBalances(expensesList: Expense[]): { net: Record<string, number>; debts: Debt[] } {
+export function computeBalances(expensesList: Expense[]): {
+  net: Record<string, number>;
+  debts: Debt[];
+} {
   const net: Record<string, number> = {};
   const pair = new Map<string, number>(); // `${debtor}|${creditor}` -> amount
 
@@ -165,7 +175,11 @@ export function computeBalances(expensesList: Expense[]): { net: Record<string, 
 // ----------------------------------------------------------------- formatting
 
 export function fmtUSD(n: number): string {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 2 });
+  return n.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 2,
+  });
 }
 
 export function fmtRelative(iso: string): string {

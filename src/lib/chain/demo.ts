@@ -63,8 +63,30 @@ export function demoExpenses(me: string | null): Expense[] {
 export function demoActivity(me: string | null): ActivityEvent[] {
   const self = (me ?? A).toLowerCase();
   return [
-    { id: "d3", kind: "expense", actorId: self, text: "added Groceries run", amount: 96, date: hoursAgo(6) },
-    { id: "d2", kind: "settlement", actorId: self, counterpartyId: B, text: "settled a share onchain", amount: 20, date: hoursAgo(30) },
-    { id: "d1", kind: "expense", actorId: C, text: "added Rent — August", amount: 2400, date: hoursAgo(96) },
+    {
+      id: "d3",
+      kind: "expense",
+      actorId: self,
+      text: "added Groceries run",
+      amount: 96,
+      date: hoursAgo(6),
+    },
+    {
+      id: "d2",
+      kind: "settlement",
+      actorId: self,
+      counterpartyId: B,
+      text: "settled a share onchain",
+      amount: 20,
+      date: hoursAgo(30),
+    },
+    {
+      id: "d1",
+      kind: "expense",
+      actorId: C,
+      text: "added Rent — August",
+      amount: 2400,
+      date: hoursAgo(96),
+    },
   ];
 }
