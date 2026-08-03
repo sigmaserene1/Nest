@@ -22,6 +22,28 @@ import {
 
 const REFRESH_MS = 20_000;
 
+type RawRoom = { id: bigint; name: string; creator: string; createdAt: bigint };
+type RawExpense = {
+  id: bigint;
+  description: string;
+  category: string;
+  totalAmount: bigint;
+  payer: string;
+  participants: readonly string[];
+  shares: readonly bigint[];
+  settled: readonly boolean[];
+  createdAt: bigint;
+};
+type RawActivity = {
+  kind: number;
+  actor: string;
+  counterparty: string;
+  amount: bigint;
+  timestamp: bigint;
+  refId: bigint;
+  text: string;
+};
+
 export type RoomInfo = { id: number; name: string; creator: string; createdAt: number };
 
 type ChainState = {
@@ -69,7 +91,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
 
   const rooms: RoomInfo[] = useMemo(
     () =>
-      ((roomsQ.data as readonly any[] | undefined) ?? []).map((r) => ({
+      ((roomsQ.data as readonly RawRoom[] | undefined) ?? []).map((r) => ({
         id: Number(r.id),
         name: r.name as string,
         creator: (r.creator as string).toLowerCase(),
@@ -120,7 +142,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   }, [memberAddresses, namesQ.data]);
 
   const liveExpenses: Expense[] = useMemo(() => {
-    const raw = (roomQ.data?.[1]?.result as readonly any[] | undefined) ?? [];
+    const raw = (roomQ.data?.[1]?.result as readonly RawExpense[] | undefined) ?? [];
     return raw
       .map((e) => {
         const participants = (e.participants as readonly string[]).map((p) => p.toLowerCase());
@@ -146,7 +168,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   }, [roomQ.data]);
 
   const liveActivity: ActivityEvent[] = useMemo(() => {
-    const raw = (roomQ.data?.[2]?.result as readonly any[] | undefined) ?? [];
+    const raw = (roomQ.data?.[2]?.result as readonly RawActivity[] | undefined) ?? [];
     return raw.map((a, i) => {
       const kindNum = Number(a.kind);
       const actor = (a.actor as string).toLowerCase();
