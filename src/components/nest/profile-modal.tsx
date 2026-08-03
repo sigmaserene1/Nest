@@ -58,6 +58,11 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           className="mt-5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
         />
         {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">{error}</div>}
+        {isDemo && (
+          <div className="mt-3 rounded-2xl bg-amber-50 p-3 text-[11px] font-semibold leading-relaxed text-amber-900">
+            {rpcMessage}
+          </div>
+        )}
         <button
           onClick={save}
           disabled={busy || isDemo || !name.trim()}
@@ -75,10 +80,10 @@ export function ProfileNameModal({ open, onClose }: { open: boolean; onClose: ()
 }
 
 export function ProfileOnboarding() {
-  const { me, myName, members } = useNestChain();
+  const { me, myName, members, isDemo } = useNestChain();
   const [skipped, setSkipped] = useState(false);
   useEffect(() => setSkipped(false), [me]);
   const inRoom = !!me && members.some((m) => m.id === me);
-  const show = inRoom && !myName && !skipped;
+  const show = !isDemo && inRoom && !myName && !skipped;
   return <AnimatePresence>{show && <NameForm onDone={() => setSkipped(true)} dismissible />}</AnimatePresence>;
 }
