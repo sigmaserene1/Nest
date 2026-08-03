@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "Nest — Shared living, effortlessly settled" },
       {
         property: "og:description",
-        content: "Split rent, groceries, and life. Instantly settled in USDC.",
+        content: "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "/" },
