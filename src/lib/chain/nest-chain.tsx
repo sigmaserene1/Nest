@@ -8,6 +8,7 @@ import { formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { arcTestnet } from "@/lib/wagmi";
 import { useActiveRoom, useContractAddress } from "./config";
+import { demoActivity, demoExpenses, demoMembers, demoRoom, RPC_DOWN_MESSAGE } from "./demo";
 import {
   computeBalances,
   makeMember,
@@ -37,8 +38,12 @@ type ChainState = {
   net: Record<string, number>;
   debts: Debt[];
   isLoading: boolean;
+  /** True when Arc's public RPC is unreachable and the UI is showing sample data. */
+  isDemo: boolean;
+  rpcMessage: string;
   refresh: () => Promise<void>;
 };
+
 
 const Ctx = createContext<ChainState | null>(null);
 
