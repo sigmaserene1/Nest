@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Bell, Plus } from "lucide-react";
+import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
@@ -11,6 +11,7 @@ import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { getMember } from "@/lib/nest-data";
 import { ProfileOnboarding } from "./profile-modal";
+import { RpcBanner } from "./rpc-banner";
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
@@ -86,12 +87,6 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
         <div className="glass-strong flex h-full flex-col rounded-3xl p-5">
           <div className="flex items-center justify-between">
             <NestLogo />
-            <button
-              className="grid h-9 w-9 place-items-center rounded-full bg-muted text-muted-foreground hover:text-foreground"
-              aria-label="Notifications"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
           </div>
 
           <div className="relative mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-4 text-background shadow-lg">
@@ -154,6 +149,7 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
       {/* Main area */}
       <div className="lg:pl-72">
         <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+          <RpcBanner />
           <WalletHeader />
         </div>
         {greeting && <div className="px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>}

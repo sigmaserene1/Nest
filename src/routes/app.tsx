@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAccount } from "wagmi";
-import { NestChainProvider, useNestChain } from "@/lib/chain/nest-chain";
+import { useNestChain } from "@/lib/chain/nest-chain";
 import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
 
@@ -51,9 +51,7 @@ function AppLayout() {
   }, [isConnected, isConnecting, isReconnecting, navigate]);
 
   return (
-    <NestChainProvider>
-      <Gate />
-    </NestChainProvider>
+<Gate />
   );
 }
 
