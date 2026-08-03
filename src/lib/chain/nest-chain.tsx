@@ -198,7 +198,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     me,
     myName,
     rooms: isDemo && rooms.length === 0 ? [demoRoom] : rooms,
-    roomId: isDemo ? (roomId ?? demoRoom.id) : roomId,
+    roomId,
     room: rooms.find((r) => r.id === roomId) ?? (isDemo ? demoRoom : null),
     selectRoom: select,
     members,

@@ -12,8 +12,11 @@ export const Route = createFileRoute("/app")({
 });
 
 function Gate() {
-  const { contractAddress, roomId, isLoading } = useNestChain();
+  const { contractAddress, roomId, isLoading, isDemo } = useNestChain();
   if (!contractAddress) return <ContractSetup />;
+  // During an RPC outage we cannot read room membership — show the app in
+  // read-only demo mode instead of bouncing people to the setup screen.
+  if (isDemo) return <Outlet />;
   if (!roomId && !isLoading) return <RoomSetup />;
   if (!roomId) return null;
   return <Outlet />;
