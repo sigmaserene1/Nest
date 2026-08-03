@@ -6,12 +6,13 @@ import { useNestWrites } from "@/lib/chain/writes";
 
 function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: boolean }) {
   const { claimName } = useNestWrites();
+  const { isDemo, rpcMessage } = useNestChain();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const save = async () => {
-    if (!name.trim()) return;
+    if (!name.trim() || isDemo) return;
     setBusy(true);
     setError("");
     try {
@@ -59,7 +60,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
         {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">{error}</div>}
         <button
           onClick={save}
-          disabled={busy || !name.trim()}
+          disabled={busy || isDemo || !name.trim()}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand disabled:opacity-50"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />} Claim onchain
