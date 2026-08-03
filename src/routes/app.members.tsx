@@ -12,7 +12,12 @@ import { buildInviteLink } from "@/lib/chain/config";
 
 export const Route = createFileRoute("/app/members")({
   component: MembersPage,
-  head: () => ({ meta: [{ title: "Members · Nest" }, { name: "description", content: "Your household roommates." }] }),
+  head: () => ({
+    meta: [
+      { title: "Members · Nest" },
+      { name: "description", content: "Your household roommates." },
+    ],
+  }),
 });
 
 function MembersPage() {
@@ -33,31 +38,51 @@ function MembersPage() {
       if (navigator.share) await navigator.share({ title: "Join my Nest home", url: link });
       else await navigator.clipboard?.writeText(link);
     } catch {
-      try { await navigator.clipboard?.writeText(link); } catch {}
+      try {
+        await navigator.clipboard?.writeText(link);
+      } catch {
+        // clipboard unavailable — the copied state below is still shown
+      }
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 1600);
   };
 
   return (
-    <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">Bedford Loft</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Members</h1></div>}>
+    <AppShell
+      greeting={
+        <div>
+          <div className="text-sm font-medium text-muted-foreground">Bedford Loft</div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Members</h1>
+        </div>
+      }
+    >
       <Card className="mt-6 !p-6 bg-gradient-to-br from-brand to-orange-500 text-white ring-0">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-widest text-white/70">Invite roommate</div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
+              Invite roommate
+            </div>
             <div className="mt-1 text-lg font-bold">Send a magic link</div>
-            <div className="text-xs text-white/80">They'll be able to add expenses and settle in USDC.</div>
+            <div className="text-xs text-white/80">
+              They'll be able to add expenses and settle in USDC.
+            </div>
           </div>
-          <button onClick={() => setInviteOpen(true)} className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-brand shadow-sm hover:bg-white/90">
+          <button
+            onClick={() => setInviteOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-brand shadow-sm hover:bg-white/90"
+          >
             <UserPlus className="h-4 w-4" /> Invite roommate
           </button>
-          <button onClick={shareInvite} className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25">
+          <button
+            onClick={shareInvite}
+            className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25"
+          >
             {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
             {copied ? "Link copied" : "Share invite"}
           </button>
         </div>
       </Card>
-
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {members.map((m) => {
@@ -71,7 +96,11 @@ function MembersPage() {
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <div className="truncate text-base font-bold">{m.name}</div>
-                    {isMe && <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">You</span>}
+                    {isMe && (
+                      <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">
+                        You
+                      </span>
+                    )}
                     {isMe && nameLocked && (
                       <span
                         title="This name is permanently linked to your wallet"
@@ -99,8 +128,11 @@ function MembersPage() {
               </div>
               <div className="mt-4 flex items-center justify-between rounded-2xl bg-muted/60 p-3">
                 <span className="text-xs text-muted-foreground">Net balance</span>
-                <span className={`text-sm font-bold tabular-nums ${positive ? "text-emerald-600" : "text-brand"}`}>
-                  {positive ? "+" : ""}{fmtUSD(bal)}
+                <span
+                  className={`text-sm font-bold tabular-nums ${positive ? "text-emerald-600" : "text-brand"}`}
+                >
+                  {positive ? "+" : ""}
+                  {fmtUSD(bal)}
                 </span>
               </div>
             </Card>
@@ -119,7 +151,8 @@ function MembersPage() {
         <div className="mt-4 rounded-3xl bg-white p-5 text-center shadow-card ring-1 ring-black/[0.03]">
           <div className="text-sm font-semibold">No roommates yet</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            You haven't added anyone of your own — invite a roommate to split expenses and settle in USDC.
+            You haven't added anyone of your own — invite a roommate to split expenses and settle in
+            USDC.
           </div>
         </div>
       )}

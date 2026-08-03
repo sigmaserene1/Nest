@@ -9,7 +9,9 @@ export function ArcBadge({ variant = "dark" }: { variant?: "dark" | "light" }) {
       ? "bg-white/10 text-white backdrop-blur"
       : "bg-emerald-500/10 text-emerald-600 ring-1 ring-emerald-500/20";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${cls}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${cls}`}
+    >
       <span className="relative flex h-1.5 w-1.5">
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
@@ -59,7 +61,6 @@ export function ArcMark({ size = 22, className = "" }: { size?: number; classNam
   );
 }
 
-
 export function ArcLockup({ className = "" }: { className?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 ${className}`}>
@@ -72,13 +73,14 @@ export function ArcLockup({ className = "" }: { className?: string }) {
 export function UsdcBadge({ size = "sm" }: { size?: "sm" | "md" }) {
   const px = size === "md" ? "px-2 py-0.5 text-[11px]" : "px-1.5 py-0.5 text-[9.5px]";
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full bg-[#2775CA]/10 font-bold uppercase tracking-wider text-[#2775CA] ring-1 ring-[#2775CA]/20 ${px}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full bg-[#2775CA]/10 font-bold uppercase tracking-wider text-[#2775CA] ring-1 ring-[#2775CA]/20 ${px}`}
+    >
       <UsdcMark size={size === "md" ? 14 : 12} />
       USDC
     </span>
   );
 }
-
 
 export function shortAddr(addr?: string): string {
   if (!addr) return "";
@@ -99,7 +101,11 @@ export function WalletChip({
   const copy = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    try { await navigator.clipboard?.writeText(address); } catch {}
+    try {
+      await navigator.clipboard?.writeText(address);
+    } catch {
+      // clipboard unavailable — the copied state below is still shown
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   };
@@ -115,7 +121,11 @@ export function WalletChip({
     >
       <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-br from-brand to-orange-400" />
       <span className="tabular-nums">{shortAddr(address)}</span>
-      {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3 opacity-60 group-hover:opacity-100" />}
+      {copied ? (
+        <Check className="h-3 w-3 text-emerald-500" />
+      ) : (
+        <Copy className="h-3 w-3 opacity-60 group-hover:opacity-100" />
+      )}
     </button>
   );
 }
@@ -133,24 +143,37 @@ export function TxHashPill({
   const copy = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    try { await navigator.clipboard?.writeText(hash); } catch {}
+    try {
+      await navigator.clipboard?.writeText(hash);
+    } catch {
+      // clipboard unavailable — the copied state below is still shown
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 1400);
   };
-  const dot =
-    status === "pending"
-      ? "bg-amber-400"
-      : "bg-emerald-500";
+  const dot = status === "pending" ? "bg-amber-400" : "bg-emerald-500";
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full bg-muted/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground ${className}`}>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full bg-muted/70 px-2 py-0.5 text-[10px] font-medium text-muted-foreground ${className}`}
+    >
       <span className={`relative h-1.5 w-1.5 rounded-full ${dot}`}>
         {status === "pending" && (
           <span className="absolute inset-0 animate-ping rounded-full bg-amber-400 opacity-75" />
         )}
       </span>
-      <span className="font-mono tabular-nums">{hash.length > 14 ? `${hash.slice(0, 6)}…${hash.slice(-4)}` : hash}</span>
-      <button onClick={copy} className="grid h-4 w-4 place-items-center rounded-full hover:bg-black/5" aria-label="Copy tx hash">
-        {copied ? <Check className="h-2.5 w-2.5 text-emerald-500" /> : <Copy className="h-2.5 w-2.5" />}
+      <span className="font-mono tabular-nums">
+        {hash.length > 14 ? `${hash.slice(0, 6)}…${hash.slice(-4)}` : hash}
+      </span>
+      <button
+        onClick={copy}
+        className="grid h-4 w-4 place-items-center rounded-full hover:bg-black/5"
+        aria-label="Copy tx hash"
+      >
+        {copied ? (
+          <Check className="h-2.5 w-2.5 text-emerald-500" />
+        ) : (
+          <Copy className="h-2.5 w-2.5" />
+        )}
       </button>
       <a
         href={explorerTxUrl(hash)}

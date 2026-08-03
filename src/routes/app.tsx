@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAccount } from "wagmi";
-import { NestChainProvider, useNestChain } from "@/lib/chain/nest-chain";
+import { useNestChain } from "@/lib/chain/nest-chain";
 import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
 
@@ -12,8 +12,11 @@ export const Route = createFileRoute("/app")({
 });
 
 function Gate() {
-  const { contractAddress, roomId, isLoading } = useNestChain();
+  const { contractAddress, roomId, isLoading, isDemo } = useNestChain();
   if (!contractAddress) return <ContractSetup />;
+  // During an RPC outage we cannot read room membership — show the app in
+  // read-only demo mode instead of bouncing people to the setup screen.
+  if (isDemo) return <Outlet />;
   if (!roomId && !isLoading) return <RoomSetup />;
   if (!roomId) return null;
   return <Outlet />;
@@ -42,15 +45,9 @@ function AppLayout() {
     localStorage.removeItem(PENDING_INVITE);
   }, [address]);
 
-
   useEffect(() => {
     if (!isConnected && !isConnecting && !isReconnecting) navigate({ to: "/auth" });
   }, [isConnected, isConnecting, isReconnecting, navigate]);
 
-  return (
-    <NestChainProvider>
-      <Gate />
-    </NestChainProvider>
-  );
+  return <Gate />;
 }
-

@@ -2,12 +2,13 @@
 // Everything the UI renders (members, expenses, balances, activity) is read
 // from the ExpenseManager contract on Arc Testnet — nothing is cached locally.
 
-import { createContext, useContext, useEffect, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { arcTestnet } from "@/lib/wagmi";
 import { useActiveRoom, useContractAddress } from "./config";
+import { demoActivity, demoExpenses, demoMembers, demoRoom, RPC_DOWN_MESSAGE } from "./demo";
 import {
   computeBalances,
   makeMember,
@@ -20,6 +21,28 @@ import {
 } from "@/lib/nest-data";
 
 const REFRESH_MS = 20_000;
+
+type RawRoom = { id: bigint; name: string; creator: string; createdAt: bigint };
+type RawExpense = {
+  id: bigint;
+  description: string;
+  category: string;
+  totalAmount: bigint;
+  payer: string;
+  participants: readonly string[];
+  shares: readonly bigint[];
+  settled: readonly boolean[];
+  createdAt: bigint;
+};
+type RawActivity = {
+  kind: number;
+  actor: string;
+  counterparty: string;
+  amount: bigint;
+  timestamp: bigint;
+  refId: bigint;
+  text: string;
+};
 
 export type RoomInfo = { id: number; name: string; creator: string; createdAt: number };
 
@@ -37,6 +60,9 @@ type ChainState = {
   net: Record<string, number>;
   debts: Debt[];
   isLoading: boolean;
+  /** True when Arc's public RPC is unreachable and the UI is showing sample data. */
+  isDemo: boolean;
+  rpcMessage: string;
   refresh: () => Promise<void>;
 };
 
@@ -49,7 +75,11 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   const contractAddress = useContractAddress();
   const { roomId: storedRoom, select } = useActiveRoom(address);
 
-  const base = { address: contractAddress ?? undefined, abi: EXPENSE_MANAGER_ABI, chainId: arcTestnet.id } as const;
+  const base = {
+    address: contractAddress ?? undefined,
+    abi: EXPENSE_MANAGER_ABI,
+    chainId: arcTestnet.id,
+  } as const;
   const enabled = !!contractAddress;
 
   const roomsQ = useReadContract({
@@ -61,7 +91,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
 
   const rooms: RoomInfo[] = useMemo(
     () =>
-      ((roomsQ.data as readonly any[] | undefined) ?? []).map((r) => ({
+      ((roomsQ.data as readonly RawRoom[] | undefined) ?? []).map((r) => ({
         id: Number(r.id),
         name: r.name as string,
         creator: (r.creator as string).toLowerCase(),
@@ -84,13 +114,18 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     contracts: [
       { ...base, functionName: "getRoomMembers", args: roomArgs },
       { ...base, functionName: "getExpenses", args: roomArgs },
-      { ...base, functionName: "getActivity", args: roomId ? ([BigInt(roomId), 200n] as const) : undefined },
+      {
+        ...base,
+        functionName: "getActivity",
+        args: roomId ? ([BigInt(roomId), 200n] as const) : undefined,
+      },
     ],
     query: { enabled: enabled && !!roomId, refetchInterval: REFRESH_MS },
   });
 
   const memberAddresses = useMemo(
-    () => ((roomQ.data?.[0]?.result as readonly string[] | undefined) ?? []).map((a) => a) as string[],
+    () =>
+      ((roomQ.data?.[0]?.result as readonly string[] | undefined) ?? []).map((a) => a) as string[],
     [roomQ.data],
   );
 
@@ -101,19 +136,13 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     query: { enabled: enabled && memberAddresses.length > 0, refetchInterval: REFRESH_MS * 4 },
   });
 
-  const members: Member[] = useMemo(() => {
+  const liveMembers: Member[] = useMemo(() => {
     const names = (namesQ.data as readonly string[] | undefined) ?? [];
     return memberAddresses.map((a, i) => makeMember(a, names[i]));
   }, [memberAddresses, namesQ.data]);
 
-  useEffect(() => {
-    if (members.length > 0) {
-      setRuntimeMembers(members);
-    }
-  }, [members]);
-
-  const expenses: Expense[] = useMemo(() => {
-    const raw = (roomQ.data?.[1]?.result as readonly any[] | undefined) ?? [];
+  const liveExpenses: Expense[] = useMemo(() => {
+    const raw = (roomQ.data?.[1]?.result as readonly RawExpense[] | undefined) ?? [];
     return raw
       .map((e) => {
         const participants = (e.participants as readonly string[]).map((p) => p.toLowerCase());
@@ -138,8 +167,8 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
       .sort((a, b) => b.date.localeCompare(a.date));
   }, [roomQ.data]);
 
-  const activity: ActivityEvent[] = useMemo(() => {
-    const raw = (roomQ.data?.[2]?.result as readonly any[] | undefined) ?? [];
+  const liveActivity: ActivityEvent[] = useMemo(() => {
+    const raw = (roomQ.data?.[2]?.result as readonly RawActivity[] | undefined) ?? [];
     return raw.map((a, i) => {
       const kindNum = Number(a.kind);
       const actor = (a.actor as string).toLowerCase();
@@ -147,7 +176,13 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
       const amount = toNum(a.amount as bigint);
       const date = new Date(Number(a.timestamp) * 1000).toISOString();
       const kind: ActivityEvent["kind"] =
-        kindNum === 0 ? "expense" : kindNum === 1 ? "settlement" : kindNum === 2 ? "transfer" : "member";
+        kindNum === 0
+          ? "expense"
+          : kindNum === 1
+            ? "settlement"
+            : kindNum === 2
+              ? "transfer"
+              : "member";
       const text =
         kindNum === 0
           ? `added ${a.text as string}`
@@ -160,7 +195,8 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
         id: `${kindNum}-${String(a.refId)}-${Number(a.timestamp)}-${i}`,
         kind,
         actorId: actor,
-        counterpartyId: counterparty === "0x0000000000000000000000000000000000000000" ? undefined : counterparty,
+        counterpartyId:
+          counterparty === "0x0000000000000000000000000000000000000000" ? undefined : counterparty,
         text,
         amount: amount > 0 ? amount : undefined,
         date,
@@ -168,32 +204,57 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     });
   }, [roomQ.data]);
 
+  const me = address ? address.toLowerCase() : null;
+
+  // Arc's public RPC rate-limits aggressively and occasionally drops requests.
+  // When reads fail outright we fall back to a read-only sample home so the
+  // product stays navigable; live data resumes on the next successful poll.
+  const isDemo = Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
+
+  const members = useMemo(
+    () => (isDemo ? demoMembers(me) : liveMembers),
+    [isDemo, me, liveMembers],
+  );
+  const expenses = useMemo(
+    () => (isDemo ? demoExpenses(me) : liveExpenses),
+    [isDemo, me, liveExpenses],
+  );
+  const activity = useMemo(
+    () => (isDemo ? demoActivity(me) : liveActivity),
+    [isDemo, me, liveActivity],
+  );
+
+  useEffect(() => {
+    if (members.length > 0) setRuntimeMembers(members);
+  }, [members]);
+
   const { net, debts } = useMemo(() => computeBalances(expenses), [expenses, members]);
 
-  const me = address ? address.toLowerCase() : null;
   const myName = useMemo(() => {
-    const found = members.find((m) => m.id === me);
+    const found = liveMembers.find((m) => m.id === me);
     return found && found.name !== found.handle ? found.name : null;
-  }, [members, me]);
+  }, [liveMembers, me]);
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     await Promise.all([roomsQ.refetch(), roomQ.refetch(), namesQ.refetch()]);
-  };
+  }, [roomsQ.refetch, roomQ.refetch, namesQ.refetch]);
 
   const value: ChainState = {
     contractAddress,
     me,
     myName,
-    rooms,
+    rooms: isDemo && rooms.length === 0 ? [demoRoom] : rooms,
     roomId,
-    room: rooms.find((r) => r.id === roomId) ?? null,
+    room: rooms.find((r) => r.id === roomId) ?? (isDemo ? demoRoom : null),
     selectRoom: select,
     members,
     expenses,
     activity,
     net,
     debts,
-    isLoading: roomsQ.isLoading || roomQ.isLoading,
+    isLoading: !isDemo && (roomsQ.isLoading || roomQ.isLoading),
+    isDemo,
+    rpcMessage: RPC_DOWN_MESSAGE,
     refresh,
   };
 

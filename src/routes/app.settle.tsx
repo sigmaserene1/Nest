@@ -10,7 +10,12 @@ import { Shield, Zap, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/app/settle")({
   component: Settle,
-  head: () => ({ meta: [{ title: "Settle up · Nest" }, { name: "description", content: "Pay your share instantly in USDC." }] }),
+  head: () => ({
+    meta: [
+      { title: "Settle up · Nest" },
+      { name: "description", content: "Pay your share instantly in USDC." },
+    ],
+  }),
 });
 
 function Settle() {
@@ -22,13 +27,21 @@ function Settle() {
   const [queue, setQueue] = useState(false);
   const [freeSend, setFreeSend] = useState(false);
 
-
   return (
-    <AppShell greeting={<div><div className="text-sm font-medium text-muted-foreground">One-tap settle</div><h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Settle up</h1></div>}>
+    <AppShell
+      greeting={
+        <div>
+          <div className="text-sm font-medium text-muted-foreground">One-tap settle</div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Settle up</h1>
+        </div>
+      }
+    >
       <div className="mt-6 grid gap-5 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-4">
           <Card className="!p-6 bg-gradient-to-br from-foreground to-slate-800 text-background ring-0">
-            <div className="text-[11px] font-semibold uppercase tracking-widest text-background/60">Total to pay</div>
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-background/60">
+              Total to pay
+            </div>
             <div className="mt-2 flex items-baseline gap-2">
               <div className="text-5xl font-bold tracking-tight tabular-nums">{fmtUSD(total)}</div>
               <span className="text-sm font-semibold text-background/60">USDC</span>
@@ -53,8 +66,6 @@ function Settle() {
                   ? `Settle all onchain · ${fmtUSD(total)}`
                   : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
             </button>
-
-
           </Card>
 
           <Card>
@@ -67,11 +78,15 @@ function Settle() {
                     <MemberAvatar member={to} size={40} ring />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold">{to.name}</div>
-                      <div className="mt-0.5">{to.wallet && <WalletChip address={to.wallet} />}</div>
+                      <div className="mt-0.5">
+                        {to.wallet && <WalletChip address={to.wallet} />}
+                      </div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-bold tabular-nums">{fmtUSD(d.amount)}</div>
-                      <div className="mt-0.5"><UsdcBadge /></div>
+                      <div className="mt-0.5">
+                        <UsdcBadge />
+                      </div>
                     </div>
                     <button
                       onClick={() => setActive(d)}
@@ -82,7 +97,11 @@ function Settle() {
                   </li>
                 );
               })}
-              {mine.length === 0 && <li className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">Nothing to pay 🎉</li>}
+              {mine.length === 0 && (
+                <li className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+                  Nothing to pay 🎉
+                </li>
+              )}
             </ul>
           </Card>
         </div>
@@ -96,7 +115,9 @@ function Settle() {
               { t: "Balances update", d: "Debts are cleared the moment the tx confirms." },
             ].map((s, i) => (
               <li key={i} className="flex gap-3">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">{i + 1}</span>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">
+                  {i + 1}
+                </span>
                 <div>
                   <div className="text-sm font-semibold">{s.t}</div>
                   <div className="text-xs text-muted-foreground">{s.d}</div>
@@ -127,13 +148,7 @@ function Settle() {
         lockAmount
       />
 
-      {freeSend && (
-        <ActionModal
-          mode="send"
-          onClose={() => setFreeSend(false)}
-        />
-      )}
-
+      {freeSend && <ActionModal mode="send" onClose={() => setFreeSend(false)} />}
     </AppShell>
   );
 }

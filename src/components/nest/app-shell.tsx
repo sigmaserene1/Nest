@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import type { ReactNode } from "react";
-import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Bell, Plus } from "lucide-react";
+import type { ElementType, ReactNode } from "react";
+import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
@@ -11,6 +11,7 @@ import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { getMember } from "@/lib/nest-data";
 import { ProfileOnboarding } from "./profile-modal";
+import { RpcBanner } from "./rpc-banner";
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
@@ -28,7 +29,17 @@ function useActive(path: string, exact = false) {
   return pathname === path || pathname.startsWith(path + "/");
 }
 
-function NavItem({ to, label, icon: Icon, exact }: { to: string; label: string; icon: typeof Home; exact?: boolean }) {
+function NavItem({
+  to,
+  label,
+  icon: Icon,
+  exact,
+}: {
+  to: string;
+  label: string;
+  icon: typeof Home;
+  exact?: boolean;
+}) {
   const active = useActive(to, exact);
   return (
     <Link
@@ -73,7 +84,15 @@ function BottomTab({
   );
 }
 
-export function AppShell({ children, greeting, onFabClick }: { children: ReactNode; greeting?: ReactNode; onFabClick?: () => void }) {
+export function AppShell({
+  children,
+  greeting,
+  onFabClick,
+}: {
+  children: ReactNode;
+  greeting?: ReactNode;
+  onFabClick?: () => void;
+}) {
   const { me: myId, myName: displayName } = useNestChain();
   const me = getMember(myId ?? "");
   const wallet = useArcWallet();
@@ -86,12 +105,6 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
         <div className="glass-strong flex h-full flex-col rounded-3xl p-5">
           <div className="flex items-center justify-between">
             <NestLogo />
-            <button
-              className="grid h-9 w-9 place-items-center rounded-full bg-muted text-muted-foreground hover:text-foreground"
-              aria-label="Notifications"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
           </div>
 
           <div className="relative mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-4 text-background shadow-lg">
@@ -154,6 +167,7 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
       {/* Main area */}
       <div className="lg:pl-72">
         <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
+          <RpcBanner />
           <WalletHeader />
         </div>
         {greeting && <div className="px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>}
@@ -190,7 +204,6 @@ export function AppShell({ children, greeting, onFabClick }: { children: ReactNo
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
               </Link>
             )}
-
           </motion.div>
           <BottomTab to="/app/activity" label="Activity" icon={Activity} />
           <BottomTab to="/app/analytics" label="Insights" icon={PieChart} />
@@ -210,11 +223,14 @@ export function Card({
 }: {
   children: ReactNode;
   className?: string;
-  as?: any;
-  [k: string]: any;
+  as?: ElementType;
+  [k: string]: unknown;
 }) {
   return (
-    <As className={`rounded-[20px] bg-card p-5 shadow-card ring-1 ring-black/[0.03] ${className}`} {...rest}>
+    <As
+      className={`rounded-[20px] bg-card p-5 shadow-card ring-1 ring-black/[0.03] ${className}`}
+      {...rest}
+    >
       {children}
     </As>
   );

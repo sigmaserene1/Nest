@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { MemberAvatar } from "./avatar";
 import { categoryMeta, type Expense } from "@/lib/nest-data";
-import { useMembers, useMe } from "@/lib/chain/nest-chain";
+import { useMembers, useMe, useNestChain } from "@/lib/chain/nest-chain";
 
 const categories = Object.keys(categoryMeta) as Expense["category"][];
 
@@ -24,6 +24,7 @@ export function ExpenseForm({
 }) {
   const members = useMembers();
   const currentUserId = useMe();
+  const { isDemo, rpcMessage } = useNestChain();
   const [title, setTitle] = useState(initial?.title ?? "");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [category, setCategory] = useState<Expense["category"]>(initial?.category ?? "Other");
@@ -41,7 +42,7 @@ export function ExpenseForm({
   };
 
   const amt = parseFloat(amount) || 0;
-  const canSave = title.trim().length > 0 && amt > 0 && selected.size > 0;
+  const canSave = !isDemo && title.trim().length > 0 && amt > 0 && selected.size > 0;
 
   const save = () => {
     if (!canSave) return;
@@ -138,6 +139,12 @@ export function ExpenseForm({
           className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
         />
       </Field>
+
+      {isDemo && (
+        <div className="rounded-2xl bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-900">
+          {rpcMessage}
+        </div>
+      )}
 
       <button
         onClick={save}

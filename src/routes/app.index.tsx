@@ -25,14 +25,16 @@ import {
   Plus,
   ArrowRight,
   Sparkles,
-  Bell,
   TrendingUp,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
   head: () => ({
-    meta: [{ title: "Home · Nest" }, { name: "description", content: "Your Nest wallet on Arc Testnet." }],
+    meta: [
+      { title: "Home · Nest" },
+      { name: "description", content: "Your Nest wallet on Arc Testnet." },
+    ],
   }),
 });
 
@@ -49,9 +51,6 @@ function Greeting() {
         <h1 className="truncate text-2xl font-bold tracking-tight sm:text-[28px]">{first} 👋</h1>
       </div>
       <div className="flex items-center gap-2">
-        <button className="glass grid h-11 w-11 place-items-center rounded-2xl" aria-label="Notifications">
-          <Bell className="h-[18px] w-[18px]" />
-        </button>
         <Link to="/app/members" aria-label="Profile">
           <MemberAvatar member={me} size={44} ring />
         </Link>
@@ -102,7 +101,9 @@ function Dashboard() {
           </div>
 
           <div className="relative mt-8">
-            <div className="text-[11px] uppercase tracking-widest text-background/60">Available balance</div>
+            <div className="text-[11px] uppercase tracking-widest text-background/60">
+              Available balance
+            </div>
             <div className="mt-1 flex items-baseline gap-2">
               <div className="text-5xl font-bold tracking-tight tabular-nums">
                 {wallet.isConnected && wallet.isOnArc ? wallet.usdcBalance.toFixed(2) : "—"}
@@ -128,7 +129,9 @@ function Dashboard() {
             >
               Settle Up
               {iOwe > 0 && (
-                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">{fmtUSD(iOwe)}</span>
+                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">
+                  {fmtUSD(iOwe)}
+                </span>
               )}
               <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </button>
@@ -193,7 +196,9 @@ function Dashboard() {
                       {m.emoji}
                     </span>
                   </div>
-                  <div className="mt-3 truncate text-sm font-semibold">{isMe ? "You" : m.name.split(" ")[0]}</div>
+                  <div className="mt-3 truncate text-sm font-semibold">
+                    {isMe ? "You" : m.name.split(" ")[0]}
+                  </div>
                   <div
                     className={`mt-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                       positive ? "bg-emerald-50 text-emerald-600" : "bg-brand/10 text-brand"
@@ -236,8 +241,12 @@ function Dashboard() {
             <TrendingUp className="h-4 w-4 opacity-80" />
           </div>
           <div className="mt-5">
-            <div className="text-[11px] uppercase tracking-widest text-white/70">You spent this month</div>
-            <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">{fmtUSD(myShare)}</div>
+            <div className="text-[11px] uppercase tracking-widest text-white/70">
+              You spent this month
+            </div>
+            <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">
+              {fmtUSD(myShare)}
+            </div>
             <div className="mt-1 text-xs text-white/80">
               Household total {fmtUSD(monthlySpend)} · Most on {topCat?.[0] ?? "—"}{" "}
               {topCat ? categoryMeta[topCat[0] as keyof typeof categoryMeta]?.icon : ""}

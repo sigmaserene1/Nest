@@ -24,7 +24,10 @@ export function PaymentQr({ value, size = 168 }: { value: string; size?: number 
     };
   }, [value, size]);
 
-  if (!src) return <div className="animate-pulse rounded-2xl bg-muted" style={{ width: size, height: size }} />;
+  if (!src)
+    return (
+      <div className="animate-pulse rounded-2xl bg-muted" style={{ width: size, height: size }} />
+    );
 
   return (
     <img

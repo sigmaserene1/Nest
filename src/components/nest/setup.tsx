@@ -49,7 +49,6 @@ export function ContractSetup() {
     setError("Paste the invite link your roommate sent you.");
   };
 
-
   const deploy = async () => {
     setError("");
     setBusy("deploy");
@@ -67,12 +66,14 @@ export function ContractSetup() {
     <Panel>
       <h1 className="text-xl font-bold tracking-tight">Connect to a Nest home</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Nest stores every expense, split and settlement onchain. Paste the invite link from your roommates, or launch a
-        new Nest home on Arc Testnet.
+        Nest stores every expense, split and settlement onchain. Paste the invite link from your
+        roommates, or launch a new Nest home on Arc Testnet.
       </p>
 
       <div className="mt-6">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Invite link</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          Invite link
+        </label>
         <input
           value={code}
           onChange={(e) => setCode(e.target.value)}
@@ -97,10 +98,18 @@ export function ContractSetup() {
         disabled={busy === "deploy"}
         className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-60"
       >
-        {busy === "deploy" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Rocket className="h-4 w-4" />}
+        {busy === "deploy" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Rocket className="h-4 w-4" />
+        )}
         {busy === "deploy" ? "Setting up onchain…" : "Start a new Nest home"}
       </button>
-      {error && <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">{error}</div>}
+      {error && (
+        <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">
+          {error}
+        </div>
+      )}
     </Panel>
   );
 }
@@ -125,7 +134,6 @@ export function RoomSetup() {
     }
   };
 
-
   return (
     <Panel>
       <h1 className="text-xl font-bold tracking-tight">Set up your home</h1>
@@ -135,7 +143,9 @@ export function RoomSetup() {
 
       {rooms.length > 0 && (
         <div className="mt-5 space-y-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Your homes</div>
+          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Your homes
+          </div>
           {rooms.map((r) => (
             <button
               key={r.id}
@@ -155,7 +165,9 @@ export function RoomSetup() {
       )}
 
       <div className="mt-6">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">New home name</label>
+        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          New home name
+        </label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -167,7 +179,8 @@ export function RoomSetup() {
           disabled={busy || !name.trim()}
           className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-50"
         >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />} Create home onchain
+          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}{" "}
+          Create home onchain
         </button>
       </div>
 
@@ -197,8 +210,11 @@ export function RoomSetup() {
         </div>
       </div>
 
-      {error && <div className="mt-4 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">{error}</div>}
+      {error && (
+        <div className="mt-4 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">
+          {error}
+        </div>
+      )}
     </Panel>
   );
 }
-

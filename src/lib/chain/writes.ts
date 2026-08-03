@@ -4,7 +4,10 @@
 import { useCallback } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { parseUnits } from "viem";
-import { EXPENSE_MANAGER_ABI, EXPENSE_MANAGER_BYTECODE } from "@/contracts/expense-manager-artifact";
+import {
+  EXPENSE_MANAGER_ABI,
+  EXPENSE_MANAGER_BYTECODE,
+} from "@/contracts/expense-manager-artifact";
 import { arcTestnet, ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
 import { useNestChain } from "./nest-chain";
 
@@ -62,7 +65,8 @@ export function useNestWrites() {
       chain: arcTestnet,
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
-    if (receipt.status !== "success" || !receipt.contractAddress) throw new Error("Deployment failed.");
+    if (receipt.status !== "success" || !receipt.contractAddress)
+      throw new Error("Deployment failed.");
     return receipt.contractAddress;
   }, [requireEnv]);
 

@@ -13,13 +13,46 @@ import type { ActionMode } from "./action-modal-types";
 
 export type { ActionMode };
 
-const META: Record<ActionMode, { title: string; verb: string; cta: (a: number) => string; accent: string }> = {
-  send: { title: "Send USDC", verb: "sent", cta: (a) => `Send ${fmtUSD(a)}`, accent: "bg-brand text-white shadow-brand" },
-  request: { title: "Request USDC", verb: "requested", cta: (a) => `Request ${fmtUSD(a)}`, accent: "bg-emerald-600 text-white" },
-  split: { title: "Split an expense", verb: "split", cta: (a) => `Split ${fmtUSD(a)}`, accent: "bg-indigo-600 text-white" },
-  scan: { title: "Scan to pay", verb: "sent", cta: (a) => `Pay ${fmtUSD(a)}`, accent: "bg-brand text-white shadow-brand" },
-  rent: { title: "Pay rent", verb: "paid rent", cta: (a) => `Pay ${fmtUSD(a)}`, accent: "bg-brand text-white shadow-brand" },
-  settle: { title: "Settle up", verb: "settled", cta: (a) => `Settle ${fmtUSD(a)}`, accent: "bg-brand text-white shadow-brand" },
+const META: Record<
+  ActionMode,
+  { title: string; verb: string; cta: (a: number) => string; accent: string }
+> = {
+  send: {
+    title: "Send USDC",
+    verb: "sent",
+    cta: (a) => `Send ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
+  request: {
+    title: "Request USDC",
+    verb: "requested",
+    cta: (a) => `Request ${fmtUSD(a)}`,
+    accent: "bg-emerald-600 text-white",
+  },
+  split: {
+    title: "Split an expense",
+    verb: "split",
+    cta: (a) => `Split ${fmtUSD(a)}`,
+    accent: "bg-indigo-600 text-white",
+  },
+  scan: {
+    title: "Scan to pay",
+    verb: "sent",
+    cta: (a) => `Pay ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
+  rent: {
+    title: "Pay rent",
+    verb: "paid rent",
+    cta: (a) => `Pay ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
+  settle: {
+    title: "Settle up",
+    verb: "settled",
+    cta: (a) => `Settle ${fmtUSD(a)}`,
+    accent: "bg-brand text-white shadow-brand",
+  },
 };
 
 type Props = {
@@ -30,7 +63,13 @@ type Props = {
   defaultToAddress?: string;
   lockRecipient?: boolean;
   lockAmount?: boolean;
-  onSuccess?: (info: { hash: string; amount: number; recipientId?: string; toAddress: string; mode: ActionMode }) => void;
+  onSuccess?: (info: {
+    hash: string;
+    amount: number;
+    recipientId?: string;
+    toAddress: string;
+    mode: ActionMode;
+  }) => void;
 };
 
 export function ActionModal({
@@ -44,7 +83,7 @@ export function ActionModal({
   onSuccess,
 }: Props) {
   const members = useMembers();
-  const { me } = useNestChain();
+  const { me, isDemo, rpcMessage } = useNestChain();
   const writes = useNestWrites();
   const wallet = useArcWallet();
   const others = useMemo(() => members.filter((m) => m.id !== me), [members, me]);
@@ -93,9 +132,16 @@ export function ActionModal({
   const splitCount = splitIds.length + 1; // includes you
   const perPerson = amt > 0 ? amt / splitCount : 0;
 
-  const canSubmit = isSplit
-    ? amt > 0 && splitIds.length > 0 && wallet.isConnected && wallet.isOnArc
-    : amt > 0 && validAddress && wallet.isConnected && wallet.isOnArc && hasFunds && (mode !== "request" || !!recipientId);
+  const canSubmit = isDemo
+    ? false
+    : isSplit
+      ? amt > 0 && splitIds.length > 0 && wallet.isConnected && wallet.isOnArc
+      : amt > 0 &&
+        validAddress &&
+        wallet.isConnected &&
+        wallet.isOnArc &&
+        hasFunds &&
+        (mode !== "request" || !!recipientId);
 
   const pickRecipient = (id: string) => {
     setRecipientId(id);
@@ -132,10 +178,15 @@ export function ActionModal({
           setStage(s.startsWith("Sending") ? "pending" : "confirming");
         });
       } else {
-        hash = await writes.directTransfer(toAddress as `0x${string}`, amt, note.trim() || "USDC transfer", (s) => {
-          setStep(s);
-          setStage(s.startsWith("Sending") ? "pending" : "confirming");
-        });
+        hash = await writes.directTransfer(
+          toAddress as `0x${string}`,
+          amt,
+          note.trim() || "USDC transfer",
+          (s) => {
+            setStep(s);
+            setStage(s.startsWith("Sending") ? "pending" : "confirming");
+          },
+        );
       }
       setTxHash(hash);
       setStage("done");
@@ -175,7 +226,11 @@ export function ActionModal({
             <>
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold">{meta.title}</h3>
-                <button onClick={onClose} className="grid h-9 w-9 place-items-center rounded-full bg-muted" aria-label="Close">
+                <button
+                  onClick={onClose}
+                  className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+                  aria-label="Close"
+                >
                   <X className="h-4 w-4" />
                 </button>
               </div>
@@ -187,7 +242,9 @@ export function ActionModal({
                       <PaymentQr value={paymentUri} />
                       <div className="mt-3 text-center text-xs text-muted-foreground">
                         Scan with any wallet to pay{" "}
-                        <span className="font-mono">{toAddress.slice(0, 6)}…{toAddress.slice(-4)}</span>
+                        <span className="font-mono">
+                          {toAddress.slice(0, 6)}…{toAddress.slice(-4)}
+                        </span>
                         {Number(amount) > 0 ? ` · ${fmtUSD(Number(amount))} USDC` : ""}
                       </div>
                     </>
@@ -214,16 +271,24 @@ export function ActionModal({
                   className="mt-4 flex w-full items-center justify-between rounded-2xl bg-amber-50 px-4 py-3 text-xs ring-1 ring-amber-200 hover:bg-amber-100"
                 >
                   <span className="font-semibold text-amber-900">Switch to Arc Testnet</span>
-                  <span className="rounded-full bg-amber-600 px-3 py-1 font-bold text-white">Switch</span>
+                  <span className="rounded-full bg-amber-600 px-3 py-1 font-bold text-white">
+                    Switch
+                  </span>
                 </button>
               )}
 
               <div className="mt-5">
                 <div className="flex items-center justify-between">
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Amount</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Amount
+                  </div>
                   {wallet.isConnected && wallet.isOnArc && (
                     <div className="text-[11px] text-muted-foreground">
-                      Balance <span className="font-bold tabular-nums text-foreground">{wallet.usdcBalance.toFixed(2)}</span> USDC
+                      Balance{" "}
+                      <span className="font-bold tabular-nums text-foreground">
+                        {wallet.usdcBalance.toFixed(2)}
+                      </span>{" "}
+                      USDC
                     </div>
                   )}
                 </div>
@@ -242,16 +307,24 @@ export function ActionModal({
                   <span className="text-sm font-semibold text-muted-foreground">USDC</span>
                 </div>
                 {movesFunds && wallet.isConnected && wallet.isOnArc && amt > 0 && !hasFunds && (
-                  <div className="mt-2 text-[11px] font-semibold text-brand">Insufficient USDC balance on Arc Testnet.</div>
+                  <div className="mt-2 text-[11px] font-semibold text-brand">
+                    Insufficient USDC balance on Arc Testnet.
+                  </div>
                 )}
               </div>
 
               {isSplit && (
                 <div className="mt-5">
                   <div className="flex items-center justify-between">
-                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Split between</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Split between
+                    </div>
                     <button
-                      onClick={() => setSplitIds(splitIds.length === others.length ? [] : others.map((m) => m.id))}
+                      onClick={() =>
+                        setSplitIds(
+                          splitIds.length === others.length ? [] : others.map((m) => m.id),
+                        )
+                      }
                       className="text-[11px] font-bold text-brand"
                     >
                       {splitIds.length === others.length ? "Clear all" : "Select all"}
@@ -265,7 +338,9 @@ export function ActionModal({
                           key={m.id}
                           onClick={() => toggleSplit(m.id)}
                           className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${
-                            active ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-border bg-white text-foreground"
+                            active
+                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                              : "border-border bg-white text-foreground"
                           }`}
                         >
                           <MemberAvatar member={m} size={26} />
@@ -277,8 +352,12 @@ export function ActionModal({
                   </div>
                   {splitIds.length > 0 && amt > 0 && (
                     <div className="mt-3 flex items-center justify-between rounded-2xl bg-indigo-50 px-4 py-3 text-sm">
-                      <span className="font-semibold text-indigo-700">{splitCount} people · equal split</span>
-                      <span className="font-bold tabular-nums text-indigo-700">{fmtUSD(perPerson)} each</span>
+                      <span className="font-semibold text-indigo-700">
+                        {splitCount} people · equal split
+                      </span>
+                      <span className="font-bold tabular-nums text-indigo-700">
+                        {fmtUSD(perPerson)} each
+                      </span>
                     </div>
                   )}
                 </div>
@@ -295,7 +374,9 @@ export function ActionModal({
                         key={m.id}
                         onClick={() => pickRecipient(m.id)}
                         className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${
-                          recipientId === m.id ? "border-brand bg-brand/10 text-brand" : "border-border bg-white text-foreground"
+                          recipientId === m.id
+                            ? "border-brand bg-brand/10 text-brand"
+                            : "border-border bg-white text-foreground"
                         }`}
                       >
                         <MemberAvatar member={m} size={26} />
@@ -303,7 +384,9 @@ export function ActionModal({
                       </button>
                     ))}
                     {others.length === 0 && (
-                      <div className="text-xs text-muted-foreground">Invite a roommate first — they join onchain.</div>
+                      <div className="text-xs text-muted-foreground">
+                        Invite a roommate first — they join onchain.
+                      </div>
                     )}
                   </div>
                 </div>
@@ -313,15 +396,21 @@ export function ActionModal({
                 <div className="mt-5 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
                   <MemberAvatar member={getMember(recipientId)} size={36} />
                   <div className="min-w-0 flex-1">
-                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Paying</div>
-                    <div className="truncate text-sm font-semibold">{getMember(recipientId).name}</div>
+                    <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      Paying
+                    </div>
+                    <div className="truncate text-sm font-semibold">
+                      {getMember(recipientId).name}
+                    </div>
                   </div>
                 </div>
               )}
 
               {!isSplit && mode !== "request" && (
                 <div className="mt-4">
-                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Recipient address</div>
+                  <div className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Recipient address
+                  </div>
                   <input
                     value={toAddress}
                     onChange={(e) => setToAddress(e.target.value)}
@@ -330,7 +419,11 @@ export function ActionModal({
                     readOnly={lockRecipient}
                     className="mt-2 w-full rounded-2xl bg-muted/50 px-4 py-3 font-mono text-sm outline-none focus:ring-2 focus:ring-brand/30"
                   />
-                  {toAddress && !validAddress && <div className="mt-2 text-[11px] font-semibold text-brand">Not a valid EVM address.</div>}
+                  {toAddress && !validAddress && (
+                    <div className="mt-2 text-[11px] font-semibold text-brand">
+                      Not a valid EVM address.
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -338,12 +431,23 @@ export function ActionModal({
                 <input
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  placeholder={isSplit || mode === "request" ? "What is it for?" : "Add a note (optional)"}
+                  placeholder={
+                    isSplit || mode === "request" ? "What is it for?" : "Add a note (optional)"
+                  }
                   className="w-full rounded-2xl bg-muted/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand/30"
                 />
               </div>
 
-              {error && <div className="mt-3 rounded-2xl bg-brand/10 px-3 py-2 text-xs font-semibold text-brand">{error}</div>}
+              {error && (
+                <div className="mt-3 rounded-2xl bg-brand/10 px-3 py-2 text-xs font-semibold text-brand">
+                  {error}
+                </div>
+              )}
+              {isDemo && (
+                <div className="mt-3 rounded-2xl bg-amber-50 px-3 py-2 text-[11px] font-semibold leading-relaxed text-amber-900">
+                  {rpcMessage}
+                </div>
+              )}
 
               <button
                 disabled={!canSubmit}
@@ -357,16 +461,24 @@ export function ActionModal({
                   : meta.cta(amt)}
               </button>
               <div className="mt-3 text-center text-[11px] text-muted-foreground">
-                {movesFunds ? "Onchain USDC transfer · Arc Testnet" : "Recorded onchain · payable in USDC on Arc"}
+                {movesFunds
+                  ? "Onchain USDC transfer · Arc Testnet"
+                  : "Recorded onchain · payable in USDC on Arc"}
               </div>
             </>
           )}
 
           {stage !== "form" && (
             <div className="py-6 text-center">
-              <div className={`mx-auto grid h-20 w-20 place-items-center rounded-full ${stage === "failed" ? "bg-brand/10" : "bg-brand-soft"}`}>
+              <div
+                className={`mx-auto grid h-20 w-20 place-items-center rounded-full ${stage === "failed" ? "bg-brand/10" : "bg-brand-soft"}`}
+              >
                 {stage === "done" ? (
-                  <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 18 }}>
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                  >
                     <Check className="h-10 w-10 text-brand" strokeWidth={2.5} />
                   </motion.div>
                 ) : stage === "failed" ? (
@@ -378,7 +490,10 @@ export function ActionModal({
               <h3 className="mt-5 text-xl font-bold">
                 {stage === "confirming" && "Confirm in your wallet"}
                 {stage === "pending" && "Broadcasting on Arc…"}
-                {stage === "done" && (mode === "request" || isSplit ? "Recorded onchain" : `You ${meta.verb} ${fmtUSD(amt)} 🎉`)}
+                {stage === "done" &&
+                  (mode === "request" || isSplit
+                    ? "Recorded onchain"
+                    : `You ${meta.verb} ${fmtUSD(amt)} 🎉`)}
                 {stage === "failed" && "Transaction failed"}
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -396,7 +511,9 @@ export function ActionModal({
               {txHash && (
                 <div className="mt-4 space-y-2">
                   <div className="mx-auto inline-flex items-center gap-1.5 rounded-full bg-muted px-3 py-1 font-mono text-[11px]">
-                    <span className={`h-1.5 w-1.5 rounded-full ${stage === "done" ? "bg-emerald-500" : "bg-amber-400"}`} />
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${stage === "done" ? "bg-emerald-500" : "bg-amber-400"}`}
+                    />
                     {txHash.slice(0, 10)}…{txHash.slice(-8)}
                   </div>
                   <button
@@ -409,7 +526,10 @@ export function ActionModal({
               )}
 
               {(stage === "done" || stage === "failed") && (
-                <button onClick={onClose} className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background">
+                <button
+                  onClick={onClose}
+                  className="mt-6 inline-flex items-center gap-1.5 rounded-full bg-foreground px-5 py-3 text-sm font-semibold text-background"
+                >
                   Done <ArrowRight className="h-4 w-4" />
                 </button>
               )}
@@ -427,7 +547,9 @@ export function useActionModal() {
     mode,
     open: (m: ActionMode) => setMode(m),
     close: () => setMode(null),
-    Modal: (props: Omit<Props, "mode" | "onClose">) => <ActionModal mode={mode} onClose={() => setMode(null)} {...props} />,
+    Modal: (props: Omit<Props, "mode" | "onClose">) => (
+      <ActionModal mode={mode} onClose={() => setMode(null)} {...props} />
+    ),
   };
 }
 
