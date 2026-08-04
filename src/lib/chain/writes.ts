@@ -78,18 +78,7 @@ export function useNestWrites() {
       const needed = toUnits(amount);
       const current = (await publicClient.readContract({
         address: USDC_ADDRESS,
-        abi: [
-          {
-            type: "function",
-            name: "allowance",
-            stateMutability: "view",
-            inputs: [
-              { name: "owner", type: "address" },
-              { name: "spender", type: "address" },
-            ],
-            outputs: [{ name: "", type: "uint256" }],
-          },
-        ] as const,
+        abi: ERC20_ABI,
         functionName: "allowance",
         args: [address, contract],
       })) as bigint;
@@ -98,8 +87,8 @@ export function useNestWrites() {
       const hash = await walletClient.writeContract({
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
-        functionName: "approve" as never,
-        args: [contract, needed] as never,
+        functionName: "approve",
+        args: [contract, needed],
         account: address,
         chain: arcTestnet,
       });
