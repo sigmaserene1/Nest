@@ -200,7 +200,11 @@ export function RoomSetup() {
               const invite = resolveInvite(joinId);
               if (!invite) return setError("That invite link isn't valid.");
               setError("");
-              run(() => joinRoom(invite.roomId));
+              setContractAddress(invite.address);
+              run(async () => {
+                await joinRoom(invite.roomId);
+                selectRoom(invite.roomId);
+              });
             }}
             disabled={busy || !joinId.trim()}
             className="shrink-0 rounded-2xl bg-foreground px-5 text-sm font-bold text-background disabled:opacity-50"

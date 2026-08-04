@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { AppShell } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap } from "@/components/nest/motion";
-import { useActionModal, type ActionMode } from "@/components/nest/action-modal";
+import { ActionModal, useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import { ArcBadge, UsdcBadge, WalletChip, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 
@@ -315,7 +315,7 @@ function Dashboard() {
           })}
         </Stagger>
       </section>
-      <action.Modal />
+      <ActionModal mode={action.mode} onClose={action.close} />
     </AppShell>
   );
 }

@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2, X, ArrowRight, QrCode, AlertTriangle, ExternalLink } from "lucide-react";
 import { isAddress, parseUnits } from "viem";
 import { MemberAvatar } from "./avatar";
@@ -541,16 +541,16 @@ export function ActionModal({
   );
 }
 
+/**
+ * Small controller for a single action modal. It intentionally returns only
+ * state + handlers — rendering a component from a hook would create a new
+ * component type on every render, remounting (and re-opening) the modal.
+ */
 export function useActionModal() {
   const [mode, setMode] = useState<ActionMode | null>(null);
-  return {
-    mode,
-    open: (m: ActionMode) => setMode(m),
-    close: () => setMode(null),
-    Modal: (props: Omit<Props, "mode" | "onClose">) => (
-      <ActionModal mode={mode} onClose={() => setMode(null)} {...props} />
-    ),
-  };
+  const open = useCallback((m: ActionMode) => setMode(m), []);
+  const close = useCallback(() => setMode(null), []);
+  return { mode, open, close };
 }
 
 export type { Member };
