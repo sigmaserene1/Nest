@@ -8,13 +8,20 @@ import {
 } from "@rainbow-me/rainbowkit/wallets";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 
-// Official Arc Testnet params
+// Arc Testnet, served through reliable third-party RPC providers first and the
+// official public endpoint last (it rate-limits aggressively).
+export const ARC_RPC_URLS = [
+  "https://arc-testnet.drpc.org",
+  "https://5042002.rpc.thirdweb.com",
+  "https://rpc.testnet.arc.network",
+] as const;
+
 export const arcTestnet = defineChain({
   id: 5042002,
   name: "Arc Testnet",
   nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
   rpcUrls: {
-    default: { http: ["https://rpc.testnet.arc.network"] },
+    default: { http: [...ARC_RPC_URLS] },
   },
   blockExplorers: {
     default: { name: "Arcscan", url: "https://testnet.arcscan.app" },
