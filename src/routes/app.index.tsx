@@ -315,7 +315,7 @@ function Dashboard() {
           })}
         </Stagger>
       </section>
-      <action.Modal />
+      <ActionModal mode={action.mode} onClose={action.close} />
     </AppShell>
   );
 }
