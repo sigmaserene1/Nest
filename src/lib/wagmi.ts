@@ -1,4 +1,4 @@
-import { defineChain } from "viem";
+import { defineChain, fallback } from "viem";
 import { createConfig, http } from "wagmi";
 import {
   metaMaskWallet,
