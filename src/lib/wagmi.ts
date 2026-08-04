@@ -107,7 +107,10 @@ export const wagmiConfig = createConfig({
   chains: [arcTestnet],
   connectors,
   transports: {
-    [arcTestnet.id]: http(),
+    [arcTestnet.id]: fallback(
+      ARC_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
+      { rank: false },
+    ),
   },
   ssr: true,
 });
