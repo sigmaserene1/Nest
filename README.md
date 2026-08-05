@@ -93,9 +93,9 @@ https://testnet.arcscan.app
 # Getting Started
 
 ```bash
-git clone https://github.com/sigmaserene1/Nest/blob/main/README.md
+git clone https://github.com/sigmaserene1/NEST.git
 
-cd YOUR_REPOSITORY
+cd Nest
 
 npm install
 
