@@ -93,7 +93,7 @@ https://testnet.arcscan.app
 # Getting Started
 
 ```bash
-git clone https://github.com/sigmaserene1/NEST.git
+git clone https://github.com/sigmaserene1/Nest.git
 
 cd Nest
 
