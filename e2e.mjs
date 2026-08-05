@@ -24,9 +24,9 @@ for (const url of RPCS) {
     const ap=await c.simulateContract({address:USDC,abi:ERC20,functionName:'approve',args:[MGR,1000000n],account:A});
     console.log('simulate approve: OK, returns', ap.result);
     // room state
-    const rooms=await c.readContract({address:MGR,abi:EXPENSE_MANAGER_ABI,functionName:'roomsOf',args:[A]});
+    const rooms=await c.readContract({address:MGR,abi:EXPENSE_MANAGER_ABI,functionName:'getRooms',args:[A]});
     console.log('rooms of A', rooms);
-    const members=await c.readContract({address:MGR,abi:EXPENSE_MANAGER_ABI,functionName:'membersOf',args:[1n]});
+    const members=await c.readContract({address:MGR,abi:EXPENSE_MANAGER_ABI,functionName:'getRoomMembers',args:[1n]});
     console.log('members room1', members);
     const owed=await c.readContract({address:MGR,abi:EXPENSE_MANAGER_ABI,functionName:'owedBetween',args:[1n,A,B]}).catch(e=>'n/a: '+e.shortMessage);
     console.log('owed A->B', owed);
