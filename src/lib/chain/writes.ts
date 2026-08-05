@@ -136,12 +136,29 @@ export function useNestWrites() {
   const settleWith = useCallback(
     async (to: `0x${string}`, amount: number, onStep?: TxStep) => {
       if (!roomId) throw new Error("No active home.");
-      await ensureAllowance(amount, onStep);
+      const { address, publicClient } = requireEnv();
+      const contract = requireContract();
+      // settleWith clears *every* open share, so approve the exact onchain total
+      // rather than a UI-rounded number (rounding left approvals short before).
+      let needed = toUnits(amount);
+      try {
+        const owed = (await publicClient.readContract({
+          address: contract,
+          abi: EXPENSE_MANAGER_ABI,
+          functionName: "owedBetween",
+          args: [BigInt(roomId), address, to],
+        })) as bigint;
+        if (owed > needed) needed = owed;
+      } catch {
+        /* fall back to the UI amount */
+      }
+      await ensureAllowanceUnits(needed, onStep);
       onStep?.("Sending USDC…");
       return send("settleWith", [BigInt(roomId), to]);
     },
-    [send, roomId, ensureAllowance],
+    [send, roomId, ensureAllowanceUnits, requireEnv, requireContract],
   );
+
 
   /** Settles one specific expense share. */
   const settleSplit = useCallback(
