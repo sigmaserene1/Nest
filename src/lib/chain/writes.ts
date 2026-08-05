@@ -70,12 +70,11 @@ export function useNestWrites() {
     return receipt.contractAddress;
   }, [requireEnv]);
 
-  /** Approves the ExpenseManager to move `amount` USDC, when the allowance is short. */
-  const ensureAllowance = useCallback(
-    async (amount: number, onStep?: TxStep) => {
+  /** Approves the ExpenseManager to move `needed` USDC base units, when the allowance is short. */
+  const ensureAllowanceUnits = useCallback(
+    async (needed: bigint, onStep?: TxStep) => {
       const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
-      const needed = toUnits(amount);
       const current = (await publicClient.readContract({
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
@@ -96,6 +95,12 @@ export function useNestWrites() {
     },
     [requireEnv, requireContract],
   );
+
+  const ensureAllowance = useCallback(
+    (amount: number, onStep?: TxStep) => ensureAllowanceUnits(toUnits(amount), onStep),
+    [ensureAllowanceUnits],
+  );
+
 
   const createRoom = useCallback((name: string) => send("createRoom", [name]), [send]);
   const joinRoom = useCallback((id: number) => send("joinRoom", [BigInt(id)]), [send]);
