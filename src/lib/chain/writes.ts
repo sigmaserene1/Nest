@@ -75,11 +75,13 @@ export function useNestWrites() {
     async (needed: bigint, onStep?: TxStep) => {
       const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
+      const blockNumber = await publicClient.getBlockNumber();
       const current = (await publicClient.readContract({
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
         functionName: "allowance",
         args: [address, contract],
+        blockNumber,
       })) as bigint;
       if (current >= needed) return;
       onStep?.("Approving USDC…");
@@ -153,11 +155,13 @@ export function useNestWrites() {
       const contract = requireContract();
       // settleWith clears *every* open share, so the contract moves the exact
       // base-unit total from owedBetween — never the rounded UI number.
+      const blockNumber = await publicClient.getBlockNumber();
       const needed = (await publicClient.readContract({
         address: contract,
         abi: EXPENSE_MANAGER_ABI,
         functionName: "owedBetween",
         args: [BigInt(roomId), address, to],
+        blockNumber,
       })) as bigint;
       if (needed <= 0n) throw new Error("Nothing to settle with this roommate.");
       await ensureAllowanceUnits(needed, onStep);
