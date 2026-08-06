@@ -93,6 +93,19 @@ export function useNestWrites() {
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("USDC approval failed onchain.");
+
+      // Do not race the settlement against an RPC node that has seen the
+      // approval receipt but is still serving an older allowance value.
+      const confirmed = (await publicClient.readContract({
+        address: USDC_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: "allowance",
+        args: [address, contract],
+        blockNumber: receipt.blockNumber,
+      })) as bigint;
+      if (confirmed < needed) {
+        throw new Error("USDC approval has not finalized yet. Please try settlement again.");
+      }
     },
     [requireEnv, requireContract],
   );
@@ -135,30 +148,39 @@ export function useNestWrites() {
 
   /** Settles every open share the caller owes to `to` in the active home. */
   const settleWith = useCallback(
-    async (to: `0x${string}`, amount: number, onStep?: TxStep) => {
+    async (to: `0x${string}`, _amount: number, onStep?: TxStep) => {
       if (!roomId) throw new Error("No active home.");
-      const { address, publicClient } = requireEnv();
+      const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
       // settleWith clears *every* open share, so the contract moves the exact
       // base-unit total from owedBetween — never the rounded UI number.
-      let needed: bigint;
-      try {
-        needed = (await publicClient.readContract({
-          address: contract,
-          abi: EXPENSE_MANAGER_ABI,
-          functionName: "owedBetween",
-          args: [BigInt(roomId), address, to],
-        })) as bigint;
-      } catch {
-        needed = toUnits(amount);
-      }
-      if (needed <= 0n) needed = toUnits(amount);
+      const needed = (await publicClient.readContract({
+        address: contract,
+        abi: EXPENSE_MANAGER_ABI,
+        functionName: "owedBetween",
+        args: [BigInt(roomId), address, to],
+      })) as bigint;
       if (needed <= 0n) throw new Error("Nothing to settle with this roommate.");
       await ensureAllowanceUnits(needed, onStep);
+
+      // Simulate against current onchain state after approval. This prevents a
+      // doomed wallet transaction and preserves the contract's revert reason.
+      const simulation = await publicClient.simulateContract({
+        address: contract,
+        abi: EXPENSE_MANAGER_ABI,
+        functionName: "settleWith",
+        args: [BigInt(roomId), to],
+        account: address,
+      });
+
       onStep?.("Sending USDC…");
-      return send("settleWith", [BigInt(roomId), to]);
+      const hash = await walletClient.writeContract(simulation.request);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("Settlement reverted onchain.");
+      await refresh();
+      return hash;
     },
-    [send, roomId, ensureAllowanceUnits, requireEnv, requireContract],
+    [roomId, ensureAllowanceUnits, requireEnv, requireContract, refresh],
   );
 
 
