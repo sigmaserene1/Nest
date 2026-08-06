@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2, X, ArrowRight, QrCode, AlertTriangle, ExternalLink } from "lucide-react";
 import { isAddress, parseUnits } from "viem";
+import { toast } from "sonner";
 import { MemberAvatar } from "./avatar";
 import { PaymentQr } from "./qr";
 import { getMember, fmtUSD, type Member } from "@/lib/nest-data";
@@ -83,7 +84,7 @@ export function ActionModal({
   onSuccess,
 }: Props) {
   const members = useMembers();
-  const { me, isDemo, rpcMessage } = useNestChain();
+  const { me, isDemo, rpcMessage, refresh } = useNestChain();
   const writes = useNestWrites();
   const wallet = useArcWallet();
   const others = useMemo(() => members.filter((m) => m.id !== me), [members, me]);
@@ -191,6 +192,10 @@ export function ActionModal({
       setTxHash(hash);
       setStage("done");
       wallet.refetchBalance();
+      void refresh();
+      toast.success(
+        mode === "settle" ? `Settled ${fmtUSD(amt)} USDC onchain` : "Transaction confirmed onchain",
+      );
       onSuccess?.({ hash, amount: amt, recipientId: recipientId || undefined, toAddress, mode });
     } catch (err) {
       const msg = err instanceof Error ? err.message.split("\n")[0] : "Transaction failed";
