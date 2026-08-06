@@ -91,7 +91,8 @@ export function useNestWrites() {
         account: address,
         chain: arcTestnet,
       });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("USDC approval failed onchain.");
     },
     [requireEnv, requireContract],
   );
