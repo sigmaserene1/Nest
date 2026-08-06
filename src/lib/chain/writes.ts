@@ -91,7 +91,8 @@ export function useNestWrites() {
         account: address,
         chain: arcTestnet,
       });
-      await publicClient.waitForTransactionReceipt({ hash });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("USDC approval failed onchain.");
     },
     [requireEnv, requireContract],
   );
@@ -138,26 +139,28 @@ export function useNestWrites() {
       if (!roomId) throw new Error("No active home.");
       const { address, publicClient } = requireEnv();
       const contract = requireContract();
-      // settleWith clears *every* open share, so approve the exact onchain total
-      // rather than a UI-rounded number (rounding left approvals short before).
-      let needed = toUnits(amount);
+      // settleWith clears *every* open share, so the contract moves the exact
+      // base-unit total from owedBetween — never the rounded UI number.
+      let needed: bigint;
       try {
-        const owed = (await publicClient.readContract({
+        needed = (await publicClient.readContract({
           address: contract,
           abi: EXPENSE_MANAGER_ABI,
           functionName: "owedBetween",
           args: [BigInt(roomId), address, to],
         })) as bigint;
-        if (owed > needed) needed = owed;
       } catch {
-        /* fall back to the UI amount */
+        needed = toUnits(amount);
       }
+      if (needed <= 0n) needed = toUnits(amount);
+      if (needed <= 0n) throw new Error("Nothing to settle with this roommate.");
       await ensureAllowanceUnits(needed, onStep);
       onStep?.("Sending USDC…");
       return send("settleWith", [BigInt(roomId), to]);
     },
     [send, roomId, ensureAllowanceUnits, requireEnv, requireContract],
   );
+
 
 
   /** Settles one specific expense share. */

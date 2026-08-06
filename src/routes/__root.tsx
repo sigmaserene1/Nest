@@ -14,6 +14,7 @@ import appCss from "../styles.css?url";
 import rainbowKitCss from "@rainbow-me/rainbowkit/styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Web3Provider } from "../components/web3-provider";
+import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -131,6 +132,7 @@ function RootComponent() {
       <Web3Provider>
         <NestChainProvider>
           <Outlet />
+          <Toaster />
         </NestChainProvider>
       </Web3Provider>
     </QueryClientProvider>
