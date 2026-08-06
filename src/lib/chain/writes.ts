@@ -115,7 +115,6 @@ export function useNestWrites() {
     [ensureAllowanceUnits],
   );
 
-
   const createRoom = useCallback((name: string) => send("createRoom", [name]), [send]);
   const joinRoom = useCallback((id: number) => send("joinRoom", [BigInt(id)]), [send]);
   const inviteMember = useCallback(
@@ -182,8 +181,6 @@ export function useNestWrites() {
     },
     [roomId, ensureAllowanceUnits, requireEnv, requireContract, refresh],
   );
-
-
 
   /** Settles one specific expense share. */
   const settleSplit = useCallback(
