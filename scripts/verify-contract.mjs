@@ -80,7 +80,10 @@ function compile(input) {
   if (fatal.length) throw new Error(fatal.map((e) => e.formattedMessage).join('\n'));
   const artifact = out.contracts?.[CONFIG.sourcePath]?.[CONFIG.contractName];
   if (!artifact) throw new Error(`${CONFIG.contractName} not found in compiler output`);
-  return artifact.evm.deployedBytecode.object.toLowerCase().replace(/^0x/, '');
+  return {
+    code: artifact.evm.deployedBytecode.object.toLowerCase().replace(/^0x/, ''),
+    immutables: artifact.evm.deployedBytecode.immutableReferences ?? {},
+  };
 }
 
 async function fetchOnchainRuntime() {
@@ -101,11 +104,26 @@ async function fetchOnchainRuntime() {
   return code;
 }
 
-/** Blockscout considers metadata-only differences a "partial" match. */
-function classify(local, onchain) {
-  if (local === onchain) return 'full';
-  const trim = (s) => s.slice(0, Math.max(0, s.length - 106));
-  if (trim(local) === trim(onchain) && local.length === onchain.length) return 'partial';
+/**
+ * Immutable slots (the USDC address) are written at deploy time and the CBOR
+ * metadata tail encodes the source hash, so both regions are masked out before
+ * comparing. Blockscout treats a metadata-only difference as a partial match.
+ */
+function mask(hex, immutables, withMetadata) {
+  const chars = hex.split('');
+  for (const refs of Object.values(immutables ?? {})) {
+    for (const { start, length } of refs) {
+      for (let i = start * 2; i < (start + length) * 2 && i < chars.length; i++) chars[i] = '0';
+    }
+  }
+  const masked = chars.join('');
+  return withMetadata ? masked : masked.slice(0, Math.max(0, masked.length - 106));
+}
+
+function classify(local, onchain, immutables) {
+  if (local.length !== onchain.length) return 'none';
+  if (mask(local, immutables, true) === mask(onchain, immutables, true)) return 'full';
+  if (mask(local, immutables, false) === mask(onchain, immutables, false)) return 'partial';
   return 'none';
 }
 
