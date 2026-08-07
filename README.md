@@ -44,10 +44,6 @@ Contract Address:
 
 `0x709cbAd88162b999882788155cde79aDe46A6D42`
 
-Status:
-- Deployed on Arc Testnet
-- Verification in progress
-
 ---
 
 # Tech Stack
