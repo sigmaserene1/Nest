@@ -189,7 +189,8 @@ async function main() {
     const input = buildInput(variant);
     let match = 'none';
     try {
-      match = classify(compile(input), onchain);
+      const compiled = compile(input);
+      match = classify(compiled.code, onchain, compiled.immutables);
     } catch (err) {
       console.log(`compile failed: ${err.message.split('\n')[0]}`);
       continue;
