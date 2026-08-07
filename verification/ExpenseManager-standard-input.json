@@ -10,13 +10,20 @@
       "enabled": true,
       "runs": 200
     },
-    "evmVersion": "paris",
+    "metadata": {
+      "bytecodeHash": "ipfs",
+      "appendCBOR": true,
+      "useLiteralContent": true
+    },
     "outputSelection": {
       "*": {
         "*": [
           "abi",
+          "metadata",
           "evm.bytecode",
-          "evm.deployedBytecode"
+          "evm.bytecode.sourceMap",
+          "evm.deployedBytecode",
+          "evm.deployedBytecode.sourceMap"
         ]
       }
     }
