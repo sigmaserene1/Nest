@@ -12,7 +12,6 @@
     },
     "metadata": {
       "bytecodeHash": "ipfs",
-      "appendCBOR": true,
       "useLiteralContent": true
     },
     "outputSelection": {
@@ -21,9 +20,7 @@
           "abi",
           "metadata",
           "evm.bytecode",
-          "evm.bytecode.sourceMap",
-          "evm.deployedBytecode",
-          "evm.deployedBytecode.sourceMap"
+          "evm.deployedBytecode"
         ]
       }
     }
