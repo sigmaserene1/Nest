@@ -211,7 +211,7 @@ function Header({ onAdd }: { onAdd: () => void }) {
       </div>
       <button
         onClick={onAdd}
-        className="inline-flex items-center gap-1.5 rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-white shadow-brand transition hover:scale-[1.02]"
+        className="inline-flex items-center gap-1.5 rounded-full btn-gradient px-4 py-2.5 text-sm font-semibold"
       >
         <Plus className="h-4 w-4" /> Add
       </button>

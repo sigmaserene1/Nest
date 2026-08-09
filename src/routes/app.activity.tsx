@@ -4,6 +4,8 @@ import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
 import { useHouseholdActivity } from "@/lib/chain/nest-chain";
+import { EmptyState } from "@/components/nest/feedback";
+import { Stagger, Item } from "@/components/nest/motion";
 import { ArrowLeftRight, UserPlus, Receipt, Send } from "lucide-react";
 
 export const Route = createFileRoute("/app/activity")({
@@ -50,6 +52,7 @@ function ActivityPage() {
       </div>
 
       <Card className="mt-5 !p-2">
+        <Stagger>
         <ul>
           {filtered.map((a, i) => {
             const m = getMember(a.actorId);
@@ -65,9 +68,10 @@ function ActivityPage() {
                 <Receipt className="h-4 w-4" />
               );
             return (
-              <li
+              <Item
+                as="li"
                 key={a.id}
-                className={`flex items-center gap-3 p-3 ${i !== filtered.length - 1 ? "border-b border-border/60" : ""}`}
+                className={`flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-muted/50 ${i !== filtered.length - 1 ? "border-b border-border/60" : ""}`}
               >
                 <div className="relative">
                   <MemberAvatar member={m} size={42} />
@@ -96,17 +100,17 @@ function ActivityPage() {
                     {fmtUSD(a.amount)}
                   </div>
                 )}
-              </li>
+              </Item>
             );
           })}
         </ul>
+        </Stagger>
         {filtered.length === 0 && (
-          <div className="py-12 text-center">
-            <div className="text-sm font-semibold">Nothing here yet</div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              Add an expense or settle up to write your first onchain event.
-            </div>
-          </div>
+          <EmptyState
+            emoji="📜"
+            title="Nothing here yet"
+            description="Add an expense or settle up to write your first onchain event."
+          />
         )}
       </Card>
     </AppShell>

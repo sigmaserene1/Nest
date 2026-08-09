@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ElementType, ReactNode } from "react";
-import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus } from "lucide-react";
+import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus, ScrollText } from "lucide-react";
 import { motion } from "framer-motion";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
@@ -21,7 +21,10 @@ const primary = [
   { to: "/app/analytics", label: "Insights", icon: PieChart },
 ] as const;
 
-const desktopExtra = [{ to: "/app/members", label: "Members", icon: Users }] as const;
+const desktopExtra = [
+  { to: "/app/members", label: "Members", icon: Users },
+  { to: "/app/receipts", label: "Receipts", icon: ScrollText },
+] as const;
 
 function useActive(path: string, exact = false) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -70,17 +73,20 @@ function BottomTab({
   const active = useActive(to, exact);
   return (
     <Link to={to} className="flex flex-1 flex-col items-center gap-1 py-2">
-      <span
-        className={`grid h-9 w-12 place-items-center rounded-2xl transition-all ${active ? "bg-foreground text-background" : "text-muted-foreground"}`}
+      <motion.span
+        whileTap={{ scale: 0.88 }}
+        transition={{ type: "spring", stiffness: 520, damping: 24 }}
+        className={`grid h-9 w-12 place-items-center rounded-2xl transition-all duration-300 ${active ? "bg-foreground text-background shadow-soft" : "text-muted-foreground"}`}
       >
         <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.5 : 2} />
-      </span>
+      </motion.span>
       <span
-        className={`text-[10px] font-semibold tracking-wide ${active ? "text-foreground" : "text-muted-foreground"}`}
+        className={`text-[10px] font-semibold tracking-wide transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`}
       >
         {label}
       </span>
     </Link>
+
   );
 }
 
@@ -190,7 +196,7 @@ export function AppShell({
             {onFabClick ? (
               <button
                 onClick={onFabClick}
-                className="grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-brand animate-pulse-brand"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-white/60"
                 aria-label="Quick action"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
@@ -198,7 +204,7 @@ export function AppShell({
             ) : (
               <Link
                 to="/app/settle"
-                className="grid h-14 w-14 place-items-center rounded-full bg-brand text-white shadow-brand animate-pulse-brand"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-white/60"
                 aria-label="Settle up"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
@@ -227,11 +233,9 @@ export function Card({
   [k: string]: unknown;
 }) {
   return (
-    <As
-      className={`rounded-[20px] bg-card p-5 shadow-card ring-1 ring-black/[0.03] ${className}`}
-      {...rest}
-    >
+    <As className={`card-premium p-5 ${className}`} {...rest}>
       {children}
     </As>
   );
 }
+

@@ -96,7 +96,7 @@ export function ContractSetup() {
       <button
         onClick={deploy}
         disabled={busy === "deploy"}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold disabled:opacity-60"
       >
         {busy === "deploy" ? (
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -177,7 +177,7 @@ export function RoomSetup() {
         <button
           onClick={() => name.trim() && run(() => createRoom(name.trim()))}
           disabled={busy || !name.trim()}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110 disabled:opacity-50"
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold disabled:opacity-50"
         >
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}{" "}
           Create home onchain

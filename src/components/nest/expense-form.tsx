@@ -149,7 +149,7 @@ export function ExpenseForm({
       <button
         onClick={save}
         disabled={!canSave}
-        className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-40"
+        className="mt-2 w-full rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-40"
       >
         {initial ? "Save changes" : "Add expense"}
       </button>

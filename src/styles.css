@@ -187,3 +187,119 @@
 @utility animate-pulse-brand {
   animation: pulse-brand 2s ease-in-out infinite;
 }
+
+/* ---------- Premium polish layer ---------- */
+
+@theme inline {
+  --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 6px 18px -10px rgb(15 23 42 / 0.10);
+  --shadow-lift: 0 18px 40px -18px rgb(15 23 42 / 0.22), 0 6px 16px -8px rgb(15 23 42 / 0.10);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  :focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 22%, transparent);
+  }
+}
+
+@utility card-premium {
+  background: color-mix(in oklab, white 96%, transparent);
+  backdrop-filter: saturate(150%) blur(14px);
+  border: 1px solid rgb(255 255 255 / 0.75);
+  border-radius: 22px;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 10px 30px -18px rgb(15 23 42 / 0.18);
+  transition:
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@utility lift {
+  transition:
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 40px -18px rgb(15 23 42 / 0.22);
+  }
+  &:active {
+    transform: translateY(0) scale(0.99);
+  }
+}
+
+@utility btn-gradient {
+  background-image: linear-gradient(135deg, #ff5b52 0%, var(--brand) 55%, #c62828 100%);
+  color: #fff;
+  box-shadow:
+    0 12px 28px -12px rgb(229 57 53 / 0.55),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+  transition:
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.22s ease,
+    filter 0.18s ease;
+  &:hover {
+    filter: brightness(1.06);
+    box-shadow:
+      0 18px 38px -12px rgb(229 57 53 / 0.65),
+      0 0 0 6px rgb(229 57 53 / 0.10),
+      inset 0 1px 0 rgb(255 255 255 / 0.25);
+  }
+  &:active {
+    transform: scale(0.975);
+  }
+  &:disabled {
+    filter: grayscale(0.2);
+    opacity: 0.55;
+    box-shadow: none;
+  }
+}
+
+@utility btn-ghost-soft {
+  background: color-mix(in oklab, var(--muted) 80%, transparent);
+  color: var(--foreground);
+  transition:
+    background 0.2s ease,
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+  &:hover {
+    background: color-mix(in oklab, var(--muted) 100%, transparent);
+  }
+  &:active {
+    transform: scale(0.975);
+  }
+}
+
+@utility skeleton {
+  background-image: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--muted) 90%, transparent) 25%,
+    color-mix(in oklab, white 85%, var(--muted)) 37%,
+    color-mix(in oklab, var(--muted) 90%, transparent) 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 12px;
+}
+
+@utility scroll-clean {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

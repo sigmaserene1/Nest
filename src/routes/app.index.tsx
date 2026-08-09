@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { Stagger, Item, Tap } from "@/components/nest/motion";
+import { Stagger, Item, Tap, AnimatedNumber } from "@/components/nest/motion";
+import { EmptyState } from "@/components/nest/feedback";
 import { ActionModal, useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import { ArcBadge, UsdcBadge, WalletChip, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
@@ -67,6 +68,8 @@ function Dashboard() {
   const activity = useHouseholdActivity();
   const { net, debts } = useComputedBalances();
   const iOwe = debts.filter((d) => d.fromId === currentUserId).reduce((s, d) => s + d.amount, 0);
+  const owedToMe = debts.filter((d) => d.toId === currentUserId).reduce((s, d) => s + d.amount, 0);
+  const myNet = net[currentUserId ?? ""] ?? 0;
   const monthlySpend = expenses.reduce((s, e) => s + e.amount, 0);
   const myShare = expenses.reduce((s, e) => s + e.amount / e.splitAmong.length, 0);
   const topCat = Object.entries(
@@ -106,7 +109,11 @@ function Dashboard() {
             </div>
             <div className="mt-1 flex items-baseline gap-2">
               <div className="text-5xl font-bold tracking-tight tabular-nums">
-                {wallet.isConnected && wallet.isOnArc ? wallet.usdcBalance.toFixed(2) : "—"}
+                {wallet.isConnected && wallet.isOnArc ? (
+                  <AnimatedNumber value={wallet.usdcBalance} decimals={2} />
+                ) : (
+                  "—"
+                )}
               </div>
               <div className="text-sm font-semibold text-background/70">USDC</div>
             </div>
@@ -122,12 +129,35 @@ function Dashboard() {
             </div>
           </div>
 
+
+          <div className="relative mt-6 grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-3 backdrop-blur">
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-background/60">Net</div>
+              <div className={`mt-0.5 text-sm font-bold tabular-nums ${myNet >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
+                {myNet >= 0 ? "+" : ""}
+                <AnimatedNumber value={Math.abs(myNet)} prefix="$" />
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-background/60">You owe</div>
+              <div className="mt-0.5 text-sm font-bold tabular-nums text-rose-300">
+                <AnimatedNumber value={iOwe} prefix="$" />
+              </div>
+            </div>
+            <div>
+              <div className="text-[10px] uppercase tracking-wider text-background/60">To receive</div>
+              <div className="mt-0.5 text-sm font-bold tabular-nums text-emerald-300">
+                <AnimatedNumber value={owedToMe} prefix="$" />
+              </div>
+            </div>
+          </div>
+
           <div className="relative mt-7 flex items-center gap-3">
             <button
               onClick={() => action.open("settle")}
-              className="group flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:brightness-110"
+              className="group flex flex-1 items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold"
             >
-              Settle Up
+              Settle Now
               {iOwe > 0 && (
                 <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">
                   {fmtUSD(iOwe)}
@@ -137,7 +167,7 @@ function Dashboard() {
             </button>
             <button
               onClick={() => action.open("send")}
-              className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition hover:bg-white/20"
+              className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition duration-200 hover:bg-white/20 active:scale-95"
               aria-label="Send"
             >
               <Plus className="h-5 w-5" strokeWidth={2.5} />
@@ -189,7 +219,7 @@ function Dashboard() {
             const isMe = m.id === currentUserId;
             return (
               <Tap key={m.id} className="snap-start">
-                <div className="flex w-[128px] flex-col items-center rounded-3xl bg-white p-4 shadow-card ring-1 ring-black/[0.03]">
+                <div className="card-premium flex w-[128px] flex-col items-center p-4">
                   <div className="relative">
                     <MemberAvatar member={m} size={58} />
                     <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-white text-xs shadow-sm ring-1 ring-black/5">
@@ -277,7 +307,7 @@ function Dashboard() {
             return (
               <Item key={a.id}>
                 <Tap>
-                  <div className="flex items-center gap-3 rounded-[20px] bg-white p-3.5 shadow-card ring-1 ring-black/[0.03] transition hover:-translate-y-0.5">
+                  <div className="card-premium flex items-center gap-3 p-3.5">
                     <div className="relative shrink-0">
                       <MemberAvatar member={m} size={42} />
                       {meta && (
@@ -314,6 +344,13 @@ function Dashboard() {
             );
           })}
         </Stagger>
+        {activity.length === 0 && (
+          <EmptyState
+            emoji="🪶"
+            title="No activity yet"
+            description="Add a shared expense or settle up — every event lands here, straight from Arc."
+          />
+        )}
       </section>
       <ActionModal mode={action.mode} onClose={action.close} />
     </AppShell>
@@ -336,7 +373,7 @@ function QuickPill({
       <Tap>
         <button
           onClick={onClick}
-          className="flex min-w-[104px] flex-col items-center gap-2 rounded-2xl bg-white p-3.5 shadow-card ring-1 ring-black/[0.03]"
+          className="card-premium flex min-w-[104px] flex-col items-center gap-2 p-3.5"
         >
           <span className={`grid h-11 w-11 place-items-center rounded-xl ${tint}`}>{icon}</span>
           <span className="text-xs font-semibold">{label}</span>

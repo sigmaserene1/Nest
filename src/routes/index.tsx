@@ -69,7 +69,7 @@ function Landing() {
         <div className="mt-8 flex justify-center gap-3 animate-float-in">
           <Link
             to="/app"
-            className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3.5 text-sm font-semibold text-white shadow-brand transition hover:scale-[1.02]"
+            className="inline-flex items-center gap-2 rounded-full btn-gradient px-6 py-3.5 text-sm font-semibold"
           >
             Get started <ArrowRight className="h-4 w-4" />
           </Link>
@@ -175,7 +175,7 @@ function Landing() {
           </div>
           <Link
             to="/app"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-brand px-5 py-3 text-sm font-semibold text-white shadow-brand transition hover:scale-[1.02]"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full btn-gradient px-5 py-3 text-sm font-semibold"
           >
             Settle onchain <ArrowRight className="h-4 w-4" />
           </Link>

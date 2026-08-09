@@ -14,6 +14,7 @@ import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettleRouteImport } from './routes/app.settle'
+import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
 import { Route as AppMembersRouteImport } from './routes/app.members'
 import { Route as AppExpensesRouteImport } from './routes/app.expenses'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
@@ -42,6 +43,11 @@ const AppIndexRoute = AppIndexRouteImport.update({
 const AppSettleRoute = AppSettleRouteImport.update({
   id: '/settle',
   path: '/settle',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReceiptsRoute = AppReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
   getParentRoute: () => AppRoute,
 } as any)
 const AppMembersRoute = AppMembersRouteImport.update({
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/members': typeof AppMembersRoute
+  '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
   '/app/': typeof AppIndexRoute
 }
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/members': typeof AppMembersRoute
+  '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
   '/app': typeof AppIndexRoute
 }
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/members': typeof AppMembersRoute
+  '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
   '/app/': typeof AppIndexRoute
 }
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/expenses'
     | '/app/members'
+    | '/app/receipts'
     | '/app/settle'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -118,6 +128,7 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/expenses'
     | '/app/members'
+    | '/app/receipts'
     | '/app/settle'
     | '/app'
   id:
@@ -129,6 +140,7 @@ export interface FileRouteTypes {
     | '/app/analytics'
     | '/app/expenses'
     | '/app/members'
+    | '/app/receipts'
     | '/app/settle'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -176,6 +188,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/receipts': {
+      id: '/app/receipts'
+      path: '/receipts'
+      fullPath: '/app/receipts'
+      preLoaderRoute: typeof AppReceiptsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/members': {
       id: '/app/members'
       path: '/members'
@@ -212,6 +231,7 @@ interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppExpensesRoute: typeof AppExpensesRoute
   AppMembersRoute: typeof AppMembersRoute
+  AppReceiptsRoute: typeof AppReceiptsRoute
   AppSettleRoute: typeof AppSettleRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -221,6 +241,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppExpensesRoute: AppExpensesRoute,
   AppMembersRoute: AppMembersRoute,
+  AppReceiptsRoute: AppReceiptsRoute,
   AppSettleRoute: AppSettleRoute,
   AppIndexRoute: AppIndexRoute,
 }
@@ -235,13 +256,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

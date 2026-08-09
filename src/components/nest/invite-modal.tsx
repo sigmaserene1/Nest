@@ -83,7 +83,7 @@ export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose:
             <button
               onClick={submit}
               disabled={saving || isDemo}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand disabled:opacity-50"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-50"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

@@ -48,7 +48,7 @@ function AuthPage() {
                     type="button"
                     onClick={openConnectModal}
                     disabled={!mounted}
-                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3.5 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01] disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold disabled:opacity-60"
                   >
                     <Wallet className="h-4 w-4" />
                     Connect Wallet

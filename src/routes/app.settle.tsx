@@ -58,7 +58,7 @@ function Settle() {
                 setQueue(mine.length > 1);
                 setActive(mine[0]);
               }}
-              className="mt-6 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-white shadow-brand transition hover:scale-[1.01]"
+              className="mt-6 w-full rounded-2xl btn-gradient py-4 text-sm font-bold"
             >
               {mine.length === 0
                 ? "Send USDC to a roommate"
@@ -90,7 +90,7 @@ function Settle() {
                     </div>
                     <button
                       onClick={() => setActive(d)}
-                      className="ml-2 inline-flex items-center gap-1 rounded-full bg-brand px-3 py-2 text-xs font-bold text-white shadow-brand hover:brightness-110"
+                      className="ml-2 inline-flex items-center gap-1 rounded-full btn-gradient px-3 py-2 text-xs font-bold"
                     >
                       Pay <ArrowRight className="h-3 w-3" />
                     </button>

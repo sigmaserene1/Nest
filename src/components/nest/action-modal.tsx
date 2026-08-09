@@ -10,6 +10,7 @@ import { useMembers, useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
 import { USDC_ADDRESS, USDC_DECIMALS, arcTestnet, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { recordReceipt } from "@/lib/receipts-store";
 import type { ActionMode } from "./action-modal-types";
 
 export type { ActionMode };
@@ -196,6 +197,18 @@ export function ActionModal({
       toast.success(
         mode === "settle" ? `Settled ${fmtUSD(amt)} USDC onchain` : "Transaction confirmed onchain",
       );
+      if (hash && me && isAddress(toAddress) && (mode === "settle" || !isSplit) && mode !== "request") {
+        recordReceipt({
+          hash,
+          from: me,
+          to: toAddress.toLowerCase(),
+          amount: amt,
+          date: new Date().toISOString(),
+          kind: mode === "settle" ? "settle" : mode === "rent" ? "rent" : mode === "scan" ? "qr" : "pay",
+          note: note.trim() || undefined,
+          chainId: arcTestnet.id,
+        });
+      }
       onSuccess?.({ hash, amount: amt, recipientId: recipientId || undefined, toAddress, mode });
     } catch (err) {
       const msg = err instanceof Error ? err.message.split("\n")[0] : "Transaction failed";
