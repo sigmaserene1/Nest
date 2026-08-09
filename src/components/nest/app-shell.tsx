@@ -21,7 +21,10 @@ const primary = [
   { to: "/app/analytics", label: "Insights", icon: PieChart },
 ] as const;
 
-const desktopExtra = [{ to: "/app/members", label: "Members", icon: Users }] as const;
+const desktopExtra = [
+  { to: "/app/members", label: "Members", icon: Users },
+  { to: "/app/receipts", label: "Receipts", icon: ScrollText },
+] as const;
 
 function useActive(path: string, exact = false) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
