@@ -1,4 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { NestChainProvider } from "@/lib/chain/nest-chain";
 import {
   Outlet,
   Link,
@@ -10,7 +11,10 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import rainbowKitCss from "@rainbow-me/rainbowkit/styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Web3Provider } from "../components/web3-provider";
+import { Toaster } from "../components/ui/sonner";
 
 function NotFoundComponent() {
   return (
@@ -77,21 +81,27 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
-      { property: "og:type", content: "website" },
+      { name: "theme-color", content: "#E41E26" },
+      { title: "Nest — Shared living, effortlessly settled" },
+      { property: "og:title", content: "Nest — Shared living, effortlessly settled" },
+      { name: "twitter:title", content: "Nest — Shared living, effortlessly settled" },
+      { name: "description", content: "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc." },
+      { property: "og:description", content: "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc." },
+      { name: "twitter:description", content: "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { property: "og:type", content: "website" },
     ],
     links: [
+      { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: rainbowKitCss },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: appCss,
+        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,
@@ -119,8 +129,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <Web3Provider>
+        <NestChainProvider>
+          <Outlet />
+          <Toaster />
+        </NestChainProvider>
+      </Web3Provider>
     </QueryClientProvider>
   );
 }
