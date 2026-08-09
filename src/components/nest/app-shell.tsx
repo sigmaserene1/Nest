@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ElementType, ReactNode } from "react";
-import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus } from "lucide-react";
+import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus, ScrollText } from "lucide-react";
 import { motion } from "framer-motion";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
