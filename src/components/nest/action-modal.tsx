@@ -10,6 +10,7 @@ import { useMembers, useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
 import { USDC_ADDRESS, USDC_DECIMALS, arcTestnet, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { recordReceipt } from "@/lib/receipts-store";
 import type { ActionMode } from "./action-modal-types";
 
 export type { ActionMode };
@@ -203,7 +204,7 @@ export function ActionModal({
           to: toAddress.toLowerCase(),
           amount: amt,
           date: new Date().toISOString(),
-          kind: mode === "settle" ? "settle" : mode === "rent" ? "rent" : mode === "qr" ? "qr" : "pay",
+          kind: mode === "settle" ? "settle" : mode === "rent" ? "rent" : mode === "scan" ? "qr" : "pay",
           note: note.trim() || undefined,
           chainId: arcTestnet.id,
         });
