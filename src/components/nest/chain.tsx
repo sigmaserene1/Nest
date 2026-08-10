@@ -1,7 +1,6 @@
 import { explorerTxUrl, openExplorerTx } from "@/lib/wagmi";
 import { useEffect, useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
-import { motion } from "framer-motion";
 
 export function ArcBadge({ variant = "dark" }: { variant?: "dark" | "light" }) {
   const cls =
@@ -201,13 +200,12 @@ export function BlockTicker() {
     return () => clearInterval(id);
   }, []);
   return (
-    <motion.span
+    <span
       key={n}
-      initial={{ opacity: 0.4 }}
-      animate={{ opacity: 1 }}
+
       className="font-mono text-[10px] tabular-nums text-white/70"
     >
       #{n.toLocaleString()}
-    </motion.span>
+    </span>
   );
 }

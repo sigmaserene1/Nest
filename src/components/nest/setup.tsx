@@ -2,7 +2,6 @@
 // then create or join a home. Everything here writes to Arc Testnet.
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Loader2, Home, Plus, LinkIcon, Rocket } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
@@ -13,10 +12,9 @@ import { isAddress, resolveInvite, setContractAddress } from "@/lib/chain/config
 function Panel({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen px-4 py-10">
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      <div
+
+        
         className="mx-auto w-full max-w-md"
       >
         <div className="flex items-center justify-between">
@@ -24,7 +22,7 @@ function Panel({ children }: { children: React.ReactNode }) {
           <ArcBadge />
         </div>
         <div className="glass-strong mt-6 rounded-[28px] p-6">{children}</div>
-      </motion.div>
+      </div>
     </div>
   );
 }

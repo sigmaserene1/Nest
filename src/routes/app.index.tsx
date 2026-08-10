@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import { AppShell } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap, AnimatedNumber } from "@/components/nest/motion";
@@ -84,10 +83,9 @@ function Dashboard() {
   return (
     <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
       {/* Hero wallet card */}
-      <motion.section
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      <section
+
+        
         className="mt-6"
       >
         <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-6 text-background shadow-2xl">
@@ -128,7 +126,6 @@ function Dashboard() {
               </span>
             </div>
           </div>
-
 
           <div className="relative mt-6 grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-3 backdrop-blur">
             <div>
@@ -174,7 +171,7 @@ function Dashboard() {
             </button>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* Quick action pills */}
       <Stagger className="mt-5 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -256,10 +253,9 @@ function Dashboard() {
       </section>
 
       {/* Monthly insight */}
-      <motion.section
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15, duration: 0.5 }}
+      <section
+
+        
         className="mt-6"
       >
         <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 p-5 text-white shadow-lg">
@@ -289,7 +285,7 @@ function Dashboard() {
             See insights <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
-      </motion.section>
+      </section>
 
       {/* Recent activity */}
       <section className="mt-7">

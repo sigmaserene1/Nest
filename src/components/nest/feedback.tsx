@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import { motion } from "framer-motion";
 
 export function Skeleton({ className = "" }: { className?: string }) {
   return <div className={`skeleton ${className}`} aria-hidden />;
@@ -34,10 +33,9 @@ export function EmptyState({
   action?: ReactNode;
 }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+    <div
+
+      
       className="flex flex-col items-center px-6 py-12 text-center"
     >
       <div className="relative grid h-20 w-20 place-items-center">
@@ -51,6 +49,6 @@ export function EmptyState({
         <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">{description}</p>
       )}
       {action && <div className="mt-4">{action}</div>}
-    </motion.div>
+    </div>
   );
 }
