@@ -86,7 +86,8 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
 }
 
 export function ProfileNameModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  return {open && <NameForm onDone={onClose} dismissible />};
+  if (!open) return null;
+  return <NameForm onDone={onClose} dismissible />;
 }
 
 export function ProfileOnboarding() {
@@ -95,7 +96,6 @@ export function ProfileOnboarding() {
   useEffect(() => setSkipped(false), [me]);
   const inRoom = !!me && members.some((m) => m.id === me);
   const show = !isDemo && inRoom && !myName && !skipped;
-  return (
-          {show && <NameForm onDone={() => setSkipped(true)} dismissible />}
-      );
+  if (!show) return null;
+  return <NameForm onDone={() => setSkipped(true)} dismissible />;
 }

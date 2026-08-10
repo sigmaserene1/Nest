@@ -90,6 +90,5 @@ export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose:
             </button>
           </div>
         </div>
-      )}
-      );
+  );
 }
