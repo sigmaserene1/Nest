@@ -16,6 +16,7 @@ import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppSettleRouteImport } from './routes/app.settle'
 import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
 import { Route as AppMembersRouteImport } from './routes/app.members'
+import { Route as AppLendRouteImport } from './routes/app.lend'
 import { Route as AppExpensesRouteImport } from './routes/app.expenses'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
@@ -55,6 +56,11 @@ const AppMembersRoute = AppMembersRouteImport.update({
   path: '/members',
   getParentRoute: () => AppRoute,
 } as any)
+const AppLendRoute = AppLendRouteImport.update({
+  id: '/lend',
+  path: '/lend',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppExpensesRoute = AppExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/app/activity': typeof AppActivityRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
+  '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/app/activity': typeof AppActivityRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
+  '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/app/activity': typeof AppActivityRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
+  '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/analytics'
     | '/app/expenses'
+    | '/app/lend'
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/analytics'
     | '/app/expenses'
+    | '/app/lend'
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/app/activity'
     | '/app/analytics'
     | '/app/expenses'
+    | '/app/lend'
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
@@ -202,6 +214,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMembersRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/lend': {
+      id: '/app/lend'
+      path: '/lend'
+      fullPath: '/app/lend'
+      preLoaderRoute: typeof AppLendRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/expenses': {
       id: '/app/expenses'
       path: '/expenses'
@@ -230,6 +249,7 @@ interface AppRouteChildren {
   AppActivityRoute: typeof AppActivityRoute
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppExpensesRoute: typeof AppExpensesRoute
+  AppLendRoute: typeof AppLendRoute
   AppMembersRoute: typeof AppMembersRoute
   AppReceiptsRoute: typeof AppReceiptsRoute
   AppSettleRoute: typeof AppSettleRoute
@@ -240,6 +260,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppActivityRoute: AppActivityRoute,
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppExpensesRoute: AppExpensesRoute,
+  AppLendRoute: AppLendRoute,
   AppMembersRoute: AppMembersRoute,
   AppReceiptsRoute: AppReceiptsRoute,
   AppSettleRoute: AppSettleRoute,
@@ -256,13 +277,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ElementType, ReactNode } from "react";
-import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus, ScrollText } from "lucide-react";
+import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus, ScrollText, Landmark } from "lucide-react";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
@@ -23,6 +23,7 @@ const primary = [
 const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
+  { to: "/app/lend", label: "Lend & Borrow", icon: Landmark },
 ] as const;
 
 function useActive(path: string, exact = false) {
