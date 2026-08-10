@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { X, UserPlus, Loader2 } from "lucide-react";
 import { isAddress } from "viem";
@@ -37,21 +36,18 @@ export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose:
     }
   };
 
+  if (!open) return null;
+
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+        <div
           onClick={onClose}
+
           className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
         >
-          <motion.div
-            initial={{ y: 24, opacity: 0, scale: 0.98 }}
-            animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 24, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 620, damping: 34, mass: 0.6 }}
+          <div
+
+            
+            
             onClick={(e) => e.stopPropagation()}
             className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px]"
           >
@@ -92,9 +88,7 @@ export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose:
               )}{" "}
               Add onchain
             </button>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+          </div>
+        </div>
   );
 }

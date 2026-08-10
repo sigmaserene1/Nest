@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, Loader2, X, ArrowRight, QrCode, AlertTriangle, ExternalLink } from "lucide-react";
 import { isAddress, parseUnits } from "viem";
@@ -224,19 +223,16 @@ export function ActionModal({
   const stageIsBusy = stage === "confirming" || stage === "pending";
 
   return (
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+          <div
+
+        
         className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/50 backdrop-blur-sm sm:items-center"
         onClick={stageIsBusy ? undefined : onClose}
       >
-        <motion.div
-          initial={{ y: 24, opacity: 0, scale: 0.98 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          exit={{ y: 24, opacity: 0 }}
-          transition={{ type: "spring", stiffness: 620, damping: 34, mass: 0.6 }}
+        <div
+
+          
+          
           onClick={(e) => e.stopPropagation()}
           className="glass-strong max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[32px] p-6 sm:rounded-[32px]"
         >
@@ -492,13 +488,12 @@ export function ActionModal({
                 className={`mx-auto grid h-20 w-20 place-items-center rounded-full ${stage === "failed" ? "bg-brand/10" : "bg-brand-soft"}`}
               >
                 {stage === "done" ? (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                  <div
+
+                    
                   >
                     <Check className="h-10 w-10 text-brand" strokeWidth={2.5} />
-                  </motion.div>
+                  </div>
                 ) : stage === "failed" ? (
                   <AlertTriangle className="h-10 w-10 text-brand" />
                 ) : (
@@ -553,10 +548,9 @@ export function ActionModal({
               )}
             </div>
           )}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
+        </div>
+      </div>
+      );
 }
 
 /**

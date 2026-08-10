@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
 import { UsdcBadge } from "@/components/nest/chain";
@@ -155,21 +154,18 @@ function Expenses() {
         )}
       </div>
 
-      <AnimatePresence>
-        {modal && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.12 }}
+              {modal && (
+          <div
+
+            
+            
             onClick={close}
             className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
           >
-            <motion.div
-              initial={{ y: 24, opacity: 0, scale: 0.98 }}
-              animate={{ y: 0, opacity: 1, scale: 1 }}
-              exit={{ y: 24, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 620, damping: 34, mass: 0.6 }}
+            <div
+
+              
+              
               onClick={(e) => e.stopPropagation()}
               className="glass-strong max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-[32px] p-6 sm:rounded-[32px]"
             >
@@ -188,17 +184,16 @@ function Expenses() {
                     </button>
                   </div>
                   <ExpenseForm
-                    initial={modal.mode === "edit" ? modal.expense : undefined}
+                    
                     onSave={handleSave}
                   />
                 </>
               )}
               {modal.mode === "detail" && <ExpenseDetail expense={modal.expense} onClose={close} />}
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
-      </AnimatePresence>
-    </AppShell>
+          </AppShell>
   );
 }
 

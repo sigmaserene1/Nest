@@ -206,6 +206,37 @@ export function useNestWrites() {
     [send, roomId, ensureAllowance],
   );
 
+  // ------------------------------------------------------------------ lending
+
+  /** Supplies USDC into the lending pool (approve → supply). */
+  const supplyUsdc = useCallback(
+    async (amount: number, onStep?: TxStep) => {
+      await ensureAllowance(amount, onStep);
+      onStep?.("Supplying USDC…");
+      return send("supply", [toUnits(amount)]);
+    },
+    [send, ensureAllowance],
+  );
+
+  const withdrawUsdc = useCallback(
+    (amount: number) => send("withdraw", [toUnits(amount)]),
+    [send],
+  );
+
+  const borrowUsdc = useCallback((amount: number) => send("borrow", [toUnits(amount)]), [send]);
+
+  /** Repays outstanding debt (approve → repay). */
+  const repayUsdc = useCallback(
+    async (amount: number, onStep?: TxStep) => {
+      await ensureAllowance(amount, onStep);
+      onStep?.("Repaying USDC…");
+      return send("repay", [toUnits(amount)]);
+    },
+    [send, ensureAllowance],
+  );
+
+  const claimInterest = useCallback(() => send("claimInterest", []), [send]);
+
   return {
     deployContract,
     createRoom,
@@ -217,5 +248,11 @@ export function useNestWrites() {
     settleSplit,
     directTransfer,
     ensureAllowance,
+    supplyUsdc,
+    withdrawUsdc,
+    borrowUsdc,
+    repayUsdc,
+    claimInterest,
   };
 }
+

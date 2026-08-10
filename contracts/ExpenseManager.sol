@@ -2,7 +2,9 @@
 pragma solidity ^0.8.24;
 
 interface IERC20 {
+    function transfer(address to, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function balanceOf(address account) external view returns (uint256);
     function allowance(address owner, address spender) external view returns (uint256);
 }
 
@@ -280,5 +282,149 @@ contract ExpenseManager {
         uint256 n = idx.length < limit ? idx.length : limit;
         out = new ActivityView[](n);
         for (uint256 i; i < n; i++) out[i] = activityLog[idx[idx.length - 1 - i]];
+    }
+
+    // ----------------------------------------------------------------- lending
+
+    /// Simple USDC lending pool: supply USDC to earn, borrow against your supply.
+    /// Interest is linear (no compounding) and accrues per second.
+
+    uint256 public constant BORROW_APR_BPS = 800;   // 8.00% APR paid by borrowers
+    uint256 public constant SUPPLY_APR_BPS = 400;   // 4.00% APR earned by suppliers
+    uint256 public constant MAX_LTV_BPS = 5000;     // borrow up to 50% of your supply
+    uint256 private constant YEAR = 365 days;
+    uint256 private constant BPS = 10000;
+
+    struct Loan {
+        uint256 supplied;
+        uint256 supplyAccrued;
+        uint64 supplyUpdatedAt;
+        uint256 borrowed;
+        uint256 borrowAccrued;
+        uint64 borrowUpdatedAt;
+    }
+
+    struct LendingPosition {
+        uint256 supplied;
+        uint256 supplyInterest;
+        uint256 borrowed;
+        uint256 borrowInterest;
+        uint256 debt;
+        uint256 borrowLimit;
+        uint256 available;
+        uint256 poolSupplied;
+        uint256 poolBorrowed;
+        uint256 liquidity;
+    }
+
+    mapping(address => Loan) private loans;
+    uint256 public totalSupplied;
+    uint256 public totalBorrowed;
+
+    event Supplied(address indexed user, uint256 amount);
+    event Withdrawn(address indexed user, uint256 amount);
+    event Borrowed(address indexed user, uint256 amount);
+    event Repaid(address indexed user, uint256 amount);
+
+    /// @notice Marker so the app can detect a lending-capable deployment.
+    function lendingEnabled() external pure returns (bool) {
+        return true;
+    }
+
+    function _accrue(address user) internal {
+        Loan storage l = loans[user];
+        if (l.supplyUpdatedAt == 0) l.supplyUpdatedAt = uint64(block.timestamp);
+        if (l.borrowUpdatedAt == 0) l.borrowUpdatedAt = uint64(block.timestamp);
+        l.supplyAccrued += _interest(l.supplied, SUPPLY_APR_BPS, block.timestamp - l.supplyUpdatedAt);
+        l.borrowAccrued += _interest(l.borrowed, BORROW_APR_BPS, block.timestamp - l.borrowUpdatedAt);
+        l.supplyUpdatedAt = uint64(block.timestamp);
+        l.borrowUpdatedAt = uint64(block.timestamp);
+    }
+
+    function _interest(uint256 principal, uint256 aprBps, uint256 elapsed) internal pure returns (uint256) {
+        if (principal == 0 || elapsed == 0) return 0;
+        return (principal * aprBps * elapsed) / (BPS * YEAR);
+    }
+
+    function supply(uint256 amount) external {
+        require(amount > 0, "amount required");
+        _accrue(msg.sender);
+        require(usdc.transferFrom(msg.sender, address(this), amount), "USDC transfer failed");
+        loans[msg.sender].supplied += amount;
+        totalSupplied += amount;
+        emit Supplied(msg.sender, amount);
+    }
+
+    function withdraw(uint256 amount) external {
+        _accrue(msg.sender);
+        Loan storage l = loans[msg.sender];
+        require(amount > 0 && amount <= l.supplied, "amount exceeds supply");
+        uint256 remaining = l.supplied - amount;
+        uint256 debt = l.borrowed + l.borrowAccrued;
+        require((remaining * MAX_LTV_BPS) / BPS >= debt, "would exceed borrow limit");
+        require(usdc.balanceOf(address(this)) >= amount, "insufficient pool liquidity");
+        l.supplied = remaining;
+        totalSupplied -= amount;
+        require(usdc.transfer(msg.sender, amount), "USDC transfer failed");
+        emit Withdrawn(msg.sender, amount);
+    }
+
+    /// @notice Claims accrued supply interest, when the pool has spare liquidity.
+    function claimInterest() external {
+        _accrue(msg.sender);
+        Loan storage l = loans[msg.sender];
+        uint256 amount = l.supplyAccrued;
+        require(amount > 0, "nothing to claim");
+        require(usdc.balanceOf(address(this)) >= amount, "insufficient pool liquidity");
+        l.supplyAccrued = 0;
+        require(usdc.transfer(msg.sender, amount), "USDC transfer failed");
+    }
+
+    function borrow(uint256 amount) external {
+        require(amount > 0, "amount required");
+        _accrue(msg.sender);
+        Loan storage l = loans[msg.sender];
+        uint256 limit = (l.supplied * MAX_LTV_BPS) / BPS;
+        uint256 debt = l.borrowed + l.borrowAccrued;
+        require(debt + amount <= limit, "exceeds borrow limit");
+        require(usdc.balanceOf(address(this)) >= amount, "insufficient pool liquidity");
+        l.borrowed += amount;
+        totalBorrowed += amount;
+        require(usdc.transfer(msg.sender, amount), "USDC transfer failed");
+        emit Borrowed(msg.sender, amount);
+    }
+
+    function repay(uint256 amount) external {
+        require(amount > 0, "amount required");
+        _accrue(msg.sender);
+        Loan storage l = loans[msg.sender];
+        uint256 debt = l.borrowed + l.borrowAccrued;
+        require(debt > 0, "nothing to repay");
+        uint256 pay = amount > debt ? debt : amount;
+        require(usdc.transferFrom(msg.sender, address(this), pay), "USDC transfer failed");
+        uint256 toInterest = pay > l.borrowAccrued ? l.borrowAccrued : pay;
+        l.borrowAccrued -= toInterest;
+        uint256 toPrincipal = pay - toInterest;
+        l.borrowed -= toPrincipal;
+        totalBorrowed -= toPrincipal;
+        emit Repaid(msg.sender, pay);
+    }
+
+    function getLendingPosition(address user) external view returns (LendingPosition memory p) {
+        Loan storage l = loans[user];
+        uint256 sSince = l.supplyUpdatedAt == 0 ? 0 : block.timestamp - l.supplyUpdatedAt;
+        uint256 bSince = l.borrowUpdatedAt == 0 ? 0 : block.timestamp - l.borrowUpdatedAt;
+        p.supplied = l.supplied;
+        p.supplyInterest = l.supplyAccrued + _interest(l.supplied, SUPPLY_APR_BPS, sSince);
+        p.borrowed = l.borrowed;
+        p.borrowInterest = l.borrowAccrued + _interest(l.borrowed, BORROW_APR_BPS, bSince);
+        p.debt = p.borrowed + p.borrowInterest;
+        p.borrowLimit = (l.supplied * MAX_LTV_BPS) / BPS;
+        uint256 liquidity = usdc.balanceOf(address(this));
+        uint256 headroom = p.borrowLimit > p.debt ? p.borrowLimit - p.debt : 0;
+        p.available = headroom < liquidity ? headroom : liquidity;
+        p.poolSupplied = totalSupplied;
+        p.poolBorrowed = totalBorrowed;
+        p.liquidity = liquidity;
     }
 }

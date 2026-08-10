@@ -1,7 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ElementType, ReactNode } from "react";
-import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus, ScrollText } from "lucide-react";
-import { motion } from "framer-motion";
+import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus, ScrollText, Landmark } from "lucide-react";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
@@ -24,6 +23,7 @@ const primary = [
 const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
+  { to: "/app/lend", label: "Lend & Borrow", icon: Landmark },
 ] as const;
 
 function useActive(path: string, exact = false) {
@@ -73,13 +73,12 @@ function BottomTab({
   const active = useActive(to, exact);
   return (
     <Link to={to} className="flex flex-1 flex-col items-center gap-1 py-2">
-      <motion.span
-        whileTap={{ scale: 0.88 }}
-        transition={{ type: "spring", stiffness: 520, damping: 24 }}
+      <span
+
         className={`grid h-9 w-12 place-items-center rounded-2xl transition-all duration-300 ${active ? "bg-foreground text-background shadow-soft" : "text-muted-foreground"}`}
       >
         <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.5 : 2} />
-      </motion.span>
+      </span>
       <span
         className={`text-[10px] font-semibold tracking-wide transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`}
       >
@@ -187,10 +186,9 @@ export function AppShell({
         <div className="glass-strong relative flex items-center rounded-[28px] px-2 py-1">
           <BottomTab to="/app" label="Home" icon={Home} exact />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
-          <motion.div
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 22 }}
+          <div
+
+            
             className="relative -mt-8 mx-1"
           >
             {onFabClick ? (
@@ -210,7 +208,7 @@ export function AppShell({
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
               </Link>
             )}
-          </motion.div>
+          </div>
           <BottomTab to="/app/activity" label="Activity" icon={Activity} />
           <BottomTab to="/app/analytics" label="Insights" icon={PieChart} />
         </div>

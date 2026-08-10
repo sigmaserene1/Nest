@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck, X } from "lucide-react";
 import { useNestChain } from "@/lib/chain/nest-chain";
@@ -26,17 +25,15 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
+
+      
       className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
     >
-      <motion.div
-        initial={{ y: 24, opacity: 0, scale: 0.98 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: 24, opacity: 0 }}
-        transition={{ type: "spring", stiffness: 620, damping: 34, mass: 0.6 }}
+      <div
+
+        
+        
         className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px]"
       >
         <div className="flex items-center justify-between">
@@ -83,13 +80,14 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           )}{" "}
           Claim onchain
         </button>
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 }
 
 export function ProfileNameModal({ open, onClose }: { open: boolean; onClose: () => void }) {
-  return <AnimatePresence>{open && <NameForm onDone={onClose} dismissible />}</AnimatePresence>;
+  if (!open) return null;
+  return <NameForm onDone={onClose} dismissible />;
 }
 
 export function ProfileOnboarding() {
@@ -98,9 +96,6 @@ export function ProfileOnboarding() {
   useEffect(() => setSkipped(false), [me]);
   const inRoom = !!me && members.some((m) => m.id === me);
   const show = !isDemo && inRoom && !myName && !skipped;
-  return (
-    <AnimatePresence>
-      {show && <NameForm onDone={() => setSkipped(true)} dismissible />}
-    </AnimatePresence>
-  );
+  if (!show) return null;
+  return <NameForm onDone={() => setSkipped(true)} dismissible />;
 }
