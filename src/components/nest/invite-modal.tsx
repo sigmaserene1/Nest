@@ -36,12 +36,12 @@ export function InviteRoommateModal({ open, onClose }: { open: boolean; onClose:
     }
   };
 
-  return (
-          {open && (
-        <div
+  if (!open) return null;
 
-          
+  return (
+        <div
           onClick={onClose}
+
           className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
         >
           <div
