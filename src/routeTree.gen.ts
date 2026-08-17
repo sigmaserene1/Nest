@@ -13,12 +13,15 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppSyndicateRouteImport } from './routes/app.syndicate'
 import { Route as AppSettleRouteImport } from './routes/app.settle'
 import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
 import { Route as AppMembersRouteImport } from './routes/app.members'
 import { Route as AppLendRouteImport } from './routes/app.lend'
 import { Route as AppExpensesRouteImport } from './routes/app.expenses'
+import { Route as AppBridgeRouteImport } from './routes/app.bridge'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
+import { Route as AppAgentRouteImport } from './routes/app.agent'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
 
 const AuthRoute = AuthRouteImport.update({
@@ -39,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSyndicateRoute = AppSyndicateRouteImport.update({
+  id: '/syndicate',
+  path: '/syndicate',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettleRoute = AppSettleRouteImport.update({
@@ -66,9 +74,19 @@ const AppExpensesRoute = AppExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBridgeRoute = AppBridgeRouteImport.update({
+  id: '/bridge',
+  path: '/bridge',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAgentRoute = AppAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
   getParentRoute: () => AppRoute,
 } as any)
 const AppActivityRoute = AppActivityRouteImport.update({
@@ -82,24 +100,30 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
+  '/app/bridge': typeof AppBridgeRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/syndicate': typeof AppSyndicateRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
+  '/app/bridge': typeof AppBridgeRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/syndicate': typeof AppSyndicateRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -108,12 +132,15 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
+  '/app/bridge': typeof AppBridgeRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/syndicate': typeof AppSyndicateRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -123,24 +150,30 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/activity'
+    | '/app/agent'
     | '/app/analytics'
+    | '/app/bridge'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/syndicate'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/app/activity'
+    | '/app/agent'
     | '/app/analytics'
+    | '/app/bridge'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/syndicate'
     | '/app'
   id:
     | '__root__'
@@ -148,12 +181,15 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/activity'
+    | '/app/agent'
     | '/app/analytics'
+    | '/app/bridge'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/syndicate'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -193,6 +229,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/syndicate': {
+      id: '/app/syndicate'
+      path: '/syndicate'
+      fullPath: '/app/syndicate'
+      preLoaderRoute: typeof AppSyndicateRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/settle': {
       id: '/app/settle'
       path: '/settle'
@@ -228,11 +271,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExpensesRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/bridge': {
+      id: '/app/bridge'
+      path: '/bridge'
+      fullPath: '/app/bridge'
+      preLoaderRoute: typeof AppBridgeRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/analytics': {
       id: '/app/analytics'
       path: '/analytics'
       fullPath: '/app/analytics'
       preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/agent': {
+      id: '/app/agent'
+      path: '/agent'
+      fullPath: '/app/agent'
+      preLoaderRoute: typeof AppAgentRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/activity': {
@@ -247,23 +304,29 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppActivityRoute: typeof AppActivityRoute
+  AppAgentRoute: typeof AppAgentRoute
   AppAnalyticsRoute: typeof AppAnalyticsRoute
+  AppBridgeRoute: typeof AppBridgeRoute
   AppExpensesRoute: typeof AppExpensesRoute
   AppLendRoute: typeof AppLendRoute
   AppMembersRoute: typeof AppMembersRoute
   AppReceiptsRoute: typeof AppReceiptsRoute
   AppSettleRoute: typeof AppSettleRoute
+  AppSyndicateRoute: typeof AppSyndicateRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppActivityRoute: AppActivityRoute,
+  AppAgentRoute: AppAgentRoute,
   AppAnalyticsRoute: AppAnalyticsRoute,
+  AppBridgeRoute: AppBridgeRoute,
   AppExpensesRoute: AppExpensesRoute,
   AppLendRoute: AppLendRoute,
   AppMembersRoute: AppMembersRoute,
   AppReceiptsRoute: AppReceiptsRoute,
   AppSettleRoute: AppSettleRoute,
+  AppSyndicateRoute: AppSyndicateRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
