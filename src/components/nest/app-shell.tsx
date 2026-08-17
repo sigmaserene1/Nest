@@ -22,6 +22,9 @@ const primary = [
 
 const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
+  { to: "/app/agent", label: "Auto-settle agent", icon: Bot },
+  { to: "/app/bridge", label: "Cross-chain deposit", icon: Waypoints },
+  { to: "/app/syndicate", label: "Syndicate mode", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
   { to: "/app/lend", label: "Lend & Borrow", icon: Landmark },
 ] as const;
