@@ -19,6 +19,7 @@ import { Route as AppMembersRouteImport } from './routes/app.members'
 import { Route as AppLendRouteImport } from './routes/app.lend'
 import { Route as AppExpensesRouteImport } from './routes/app.expenses'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
+import { Route as AppAgentRouteImport } from './routes/app.agent'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
 
 const AuthRoute = AuthRouteImport.update({
@@ -71,6 +72,11 @@ const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
   path: '/analytics',
   getParentRoute: () => AppRoute,
 } as any)
+const AppAgentRoute = AppAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppActivityRoute = AppActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
   '/app/activity': typeof AppActivityRoute
+  '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/activity'
+    | '/app/agent'
     | '/app/analytics'
     | '/app/expenses'
     | '/app/lend'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app/activity'
+    | '/app/agent'
     | '/app/analytics'
     | '/app/expenses'
     | '/app/lend'
@@ -148,6 +159,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/auth'
     | '/app/activity'
+    | '/app/agent'
     | '/app/analytics'
     | '/app/expenses'
     | '/app/lend'
@@ -235,6 +247,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAnalyticsRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/agent': {
+      id: '/app/agent'
+      path: '/agent'
+      fullPath: '/app/agent'
+      preLoaderRoute: typeof AppAgentRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/activity': {
       id: '/app/activity'
       path: '/activity'
@@ -247,6 +266,7 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppActivityRoute: typeof AppActivityRoute
+  AppAgentRoute: typeof AppAgentRoute
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppExpensesRoute: typeof AppExpensesRoute
   AppLendRoute: typeof AppLendRoute
@@ -258,6 +278,7 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppActivityRoute: AppActivityRoute,
+  AppAgentRoute: AppAgentRoute,
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppExpensesRoute: AppExpensesRoute,
   AppLendRoute: AppLendRoute,
