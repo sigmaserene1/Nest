@@ -2,6 +2,7 @@ import { MemberAvatar, AvatarStack } from "./avatar";
 import { UsdcBadge } from "./chain";
 import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
 import { X, Calendar } from "lucide-react";
+import { ProofAttach } from "./proof-attach";
 
 export function ExpenseDetail({ expense, onClose }: { expense: Expense; onClose: () => void }) {
   const payer = getMember(expense.payerId);
