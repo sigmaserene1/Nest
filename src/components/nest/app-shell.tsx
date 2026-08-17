@@ -178,6 +178,21 @@ export function AppShell({
           <RpcBanner />
           <WalletHeader />
         </div>
+        {/* Secondary sections — the bottom bar only holds the five primary tabs */}
+        <div className="mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 xl:hidden">
+          <div className="flex w-max gap-2">
+            {desktopExtra.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+              >
+                <item.icon className="h-3.5 w-3.5" />
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </div>
         {greeting && <div className="px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>}
         <main className="mx-auto max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">
           <PageTransition>{children}</PageTransition>
