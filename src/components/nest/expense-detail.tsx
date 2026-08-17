@@ -79,6 +79,7 @@ export function ExpenseDetail({ expense, onClose }: { expense: Expense; onClose:
             <div className="mt-1 text-sm">{expense.note}</div>
           </div>
         )}
+        <ProofAttach expenseId={expense.id} />
       </div>
     </div>
   );
