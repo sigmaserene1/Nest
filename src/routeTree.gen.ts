@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
+import { Route as AppSyndicateRouteImport } from './routes/app.syndicate'
 import { Route as AppSettleRouteImport } from './routes/app.settle'
 import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
 import { Route as AppMembersRouteImport } from './routes/app.members'
@@ -41,6 +42,11 @@ const IndexRoute = IndexRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSyndicateRoute = AppSyndicateRouteImport.update({
+  id: '/syndicate',
+  path: '/syndicate',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettleRoute = AppSettleRouteImport.update({
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/syndicate': typeof AppSyndicateRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -116,6 +123,7 @@ export interface FileRoutesByTo {
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/syndicate': typeof AppSyndicateRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/app/members': typeof AppMembersRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/syndicate': typeof AppSyndicateRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -149,6 +158,7 @@ export interface FileRouteTypes {
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/syndicate'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -163,6 +173,7 @@ export interface FileRouteTypes {
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/syndicate'
     | '/app'
   id:
     | '__root__'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/app/members'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/syndicate'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -215,6 +227,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/syndicate': {
+      id: '/app/syndicate'
+      path: '/syndicate'
+      fullPath: '/app/syndicate'
+      preLoaderRoute: typeof AppSyndicateRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/settle': {
@@ -293,6 +312,7 @@ interface AppRouteChildren {
   AppMembersRoute: typeof AppMembersRoute
   AppReceiptsRoute: typeof AppReceiptsRoute
   AppSettleRoute: typeof AppSettleRoute
+  AppSyndicateRoute: typeof AppSyndicateRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -306,6 +326,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMembersRoute: AppMembersRoute,
   AppReceiptsRoute: AppReceiptsRoute,
   AppSettleRoute: AppSettleRoute,
+  AppSyndicateRoute: AppSyndicateRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
