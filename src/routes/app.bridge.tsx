@@ -74,7 +74,7 @@ type TransferState =
 function BridgePage() {
   const me = useMe();
 
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected } = useAccount();
 
   const { switchChainAsync } = useSwitchChain();
 
@@ -143,7 +143,7 @@ function BridgePage() {
 
       if (getAccount(wagmiConfig).chainId !== source.chainId) {
         await switchChainAsync({
-          chainId: source.chainId,
+          chainId: source.chainId as any,
         });
       }
 
@@ -301,7 +301,7 @@ function BridgePage() {
 
       if (getAccount(wagmiConfig).chainId !== ARC_CHAIN_ID) {
         await switchChainAsync({
-          chainId: ARC_CHAIN_ID,
+          chainId: ARC_CHAIN_ID as any,
         });
       }
 
