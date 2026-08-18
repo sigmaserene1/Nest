@@ -14,7 +14,10 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { useAccount, usePublicClient, useSwitchChain, useWalletClient } from "wagmi";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
+import { getAccount, getPublicClient, getWalletClient } from "@wagmi/core";
+
+import { wagmiConfig } from "@/lib/wagmi";
 
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { UsdcBadge, WalletChip } from "@/components/nest/chain";
@@ -53,6 +56,13 @@ export const Route = createFileRoute("/app/bridge")({
         content:
           "Move native USDC from Ethereum Sepolia, Arbitrum Sepolia, Base Sepolia, OP Sepolia, Avalanche Fuji or Polygon Amoy into Arc using Circle CCTP v2.",
       },
+      { property: "og:title", content: "Bridge USDC to Arc · Nest" },
+      {
+        property: "og:description",
+        content: "Burn native USDC on six testnets and mint it on Arc with Circle CCTP v2.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
@@ -71,7 +81,7 @@ type TransferState =
 function BridgePage() {
   const me = useMe();
 
-  const { address, isConnected, chainId } = useAccount();
+  const { address, isConnected } = useAccount();
 
   const { switchChainAsync } = useSwitchChain();
 
@@ -138,9 +148,9 @@ function BridgePage() {
       setState("switching");
       setStatusText(`Switching wallet to ${source.name}…`);
 
-      if (chainId !== source.chainId) {
+      if (getAccount(wagmiConfig).chainId !== source.chainId) {
         await switchChainAsync({
-          chainId: source.chainId,
+          chainId: source.chainId as any,
         });
       }
 
@@ -296,9 +306,9 @@ function BridgePage() {
       setState("switching");
       setStatusText("Switching wallet to Arc Testnet…");
 
-      if (chainId !== ARC_CHAIN_ID) {
+      if (getAccount(wagmiConfig).chainId !== ARC_CHAIN_ID) {
         await switchChainAsync({
-          chainId: ARC_CHAIN_ID,
+          chainId: ARC_CHAIN_ID as any,
         });
       }
 
@@ -667,34 +677,11 @@ function BridgePage() {
  * source chains, add that chain to src/lib/wagmi.ts.
  */
 async function getWalletClientForChain(chainId: number) {
-  /**
-   * This route relies on the wagmi-configured
-   * wallet client after switchChainAsync().
-   *
-   * The dynamic import avoids creating another
-   * wallet connection implementation.
-   */
-  const { getWalletClient } = await import("@wagmi/core");
-
-  const { wagmiConfig } = await import("@/lib/wagmi");
-
-  return getWalletClient(wagmiConfig, {
-    chainId,
-  });
+  return getWalletClient(wagmiConfig, { chainId: chainId as any });
 }
 
 function getPublicClientForChain(chainId: number) {
-  /**
-   * Lazy import is used so the page remains compatible
-   * with the project's existing wagmi setup.
-   */
-  const { getPublicClient } = require("@wagmi/core");
-
-  const { wagmiConfig } = require("@/lib/wagmi");
-
-  return getPublicClient(wagmiConfig, {
-    chainId,
-  });
+  return getPublicClient(wagmiConfig, { chainId: chainId as any });
 }
 
 function TxLink({ label, hash, explorer }: { label: string; hash: string; explorer: string }) {
