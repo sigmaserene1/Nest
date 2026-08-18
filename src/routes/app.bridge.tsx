@@ -56,6 +56,13 @@ export const Route = createFileRoute("/app/bridge")({
         content:
           "Move native USDC from Ethereum Sepolia, Arbitrum Sepolia, Base Sepolia, OP Sepolia, Avalanche Fuji or Polygon Amoy into Arc using Circle CCTP v2.",
       },
+      { property: "og:title", content: "Bridge USDC to Arc · Nest" },
+      {
+        property: "og:description",
+        content: "Burn native USDC on six testnets and mint it on Arc with Circle CCTP v2.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
