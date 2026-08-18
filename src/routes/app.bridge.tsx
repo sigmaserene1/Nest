@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
-import { getPublicClient, getWalletClient } from "@wagmi/core";
+import { getAccount, getPublicClient, getWalletClient } from "@wagmi/core";
 
 import { wagmiConfig } from "@/lib/wagmi";
 
@@ -299,7 +299,7 @@ function BridgePage() {
       setState("switching");
       setStatusText("Switching wallet to Arc Testnet…");
 
-      if (chainId !== ARC_CHAIN_ID) {
+      if (getAccount(wagmiConfig).chainId !== ARC_CHAIN_ID) {
         await switchChainAsync({
           chainId: ARC_CHAIN_ID,
         });
