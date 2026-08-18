@@ -667,34 +667,11 @@ function BridgePage() {
  * source chains, add that chain to src/lib/wagmi.ts.
  */
 async function getWalletClientForChain(chainId: number) {
-  /**
-   * This route relies on the wagmi-configured
-   * wallet client after switchChainAsync().
-   *
-   * The dynamic import avoids creating another
-   * wallet connection implementation.
-   */
-  const { getWalletClient } = await import("@wagmi/core");
-
-  const { wagmiConfig } = await import("@/lib/wagmi");
-
-  return getWalletClient(wagmiConfig, {
-    chainId,
-  });
+  return getWalletClient(wagmiConfig, { chainId: chainId as any });
 }
 
 function getPublicClientForChain(chainId: number) {
-  /**
-   * Lazy import is used so the page remains compatible
-   * with the project's existing wagmi setup.
-   */
-  const { getPublicClient } = require("@wagmi/core");
-
-  const { wagmiConfig } = require("@/lib/wagmi");
-
-  return getPublicClient(wagmiConfig, {
-    chainId,
-  });
+  return getPublicClient(wagmiConfig, { chainId: chainId as any });
 }
 
 function TxLink({ label, hash, explorer }: { label: string; hash: string; explorer: string }) {
