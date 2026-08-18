@@ -1,4 +1,12 @@
 import { defineChain, fallback } from "viem";
+import {
+  arbitrumSepolia,
+  avalancheFuji,
+  baseSepolia,
+  optimismSepolia,
+  polygonAmoy,
+  sepolia,
+} from "viem/chains";
 import { createConfig, http } from "wagmi";
 import {
   metaMaskWallet,
