@@ -125,13 +125,21 @@ const connectors = connectorsForWallets([{ groupName: "Recommended", wallets }],
 });
 
 export const wagmiConfig = createConfig({
-  chains: [arcTestnet],
+  // Arc first (default), plus every CCTP v2 testnet source chain so the
+  // bridge can switch networks, read balances and burn USDC there.
+  chains: [arcTestnet, sepolia, avalancheFuji, optimismSepolia, arbitrumSepolia, baseSepolia, polygonAmoy],
   connectors,
   transports: {
     [arcTestnet.id]: fallback(
       ARC_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
       { rank: false },
     ),
+    [sepolia.id]: http(),
+    [avalancheFuji.id]: http(),
+    [optimismSepolia.id]: http(),
+    [arbitrumSepolia.id]: http(),
+    [baseSepolia.id]: http(),
+    [polygonAmoy.id]: http(),
   },
   ssr: true,
 });
