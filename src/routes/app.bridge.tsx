@@ -141,7 +141,7 @@ function BridgePage() {
       setState("switching");
       setStatusText(`Switching wallet to ${source.name}…`);
 
-      if (chainId !== source.chainId) {
+      if (getAccount(wagmiConfig).chainId !== source.chainId) {
         await switchChainAsync({
           chainId: source.chainId,
         });
