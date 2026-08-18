@@ -333,6 +333,17 @@ export async function getAttestation(
 }> {
   const response = await fetch(`${CCTP_MESSAGE_API}/${sourceDomain}?transactionHash=${transactionHash}`);
 
+  /**
+   * Circle returns 404 until the burn message
+   * has been indexed. That is a pending state,
+   * not a failure.
+   */
+  if (response.status === 404) {
+    return {
+      status: "pending",
+    };
+  }
+
   if (!response.ok) {
     throw new Error(`Circle attestation API returned ${response.status}`);
   }
