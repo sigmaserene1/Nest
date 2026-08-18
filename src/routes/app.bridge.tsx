@@ -14,7 +14,10 @@ import {
   XCircle,
 } from "lucide-react";
 
-import { useAccount, usePublicClient, useSwitchChain, useWalletClient } from "wagmi";
+import { useAccount, useSwitchChain, useWalletClient } from "wagmi";
+import { getPublicClient, getWalletClient } from "@wagmi/core";
+
+import { wagmiConfig } from "@/lib/wagmi";
 
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { UsdcBadge, WalletChip } from "@/components/nest/chain";
