@@ -69,6 +69,7 @@ function Expenses() {
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search expenses…"
+            aria-label="Search expenses"
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
@@ -201,7 +202,7 @@ function Header({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <div className="text-sm font-medium text-muted-foreground">Bedford Loft</div>
+        <div className="text-sm font-medium text-muted-foreground">Your household</div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Expenses</h1>
       </div>
       <button

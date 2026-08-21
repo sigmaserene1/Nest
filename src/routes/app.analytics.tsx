@@ -8,7 +8,17 @@ export const Route = createFileRoute("/app/analytics")({
   head: () => ({
     meta: [
       { title: "Insights · Nest" },
-      { name: "description", content: "See where your home spends money." },
+      {
+        name: "description",
+        content:
+          "See where your household money goes: spend by category, by roommate and over time, based on your real onchain Nest expenses.",
+      },
+      { property: "og:title", content: "Insights · Nest" },
+      {
+        property: "og:description",
+        content: "Category and per-roommate spending breakdowns for your shared household.",
+      },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

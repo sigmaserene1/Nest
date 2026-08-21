@@ -52,7 +52,7 @@ function MembersPage() {
     <AppShell
       greeting={
         <div>
-          <div className="text-sm font-medium text-muted-foreground">Bedford Loft</div>
+          <div className="text-sm font-medium text-muted-foreground">Your household</div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Members</h1>
         </div>
       }
