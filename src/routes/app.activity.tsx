@@ -11,7 +11,20 @@ import { ArrowLeftRight, UserPlus, Receipt, Send } from "lucide-react";
 export const Route = createFileRoute("/app/activity")({
   component: ActivityPage,
   head: () => ({
-    meta: [{ title: "Activity · Nest" }, { name: "description", content: "Every onchain event in your home." }],
+    meta: [
+      { title: "Activity · Nest" },
+      {
+        name: "description",
+        content:
+          "A full timeline of your household's onchain activity: expenses added, members joined and USDC settlements confirmed on Arc.",
+      },
+      { property: "og:title", content: "Activity · Nest" },
+      {
+        property: "og:description",
+        content: "Every expense, member change and USDC settlement in your home, in one timeline.",
+      },
+      { name: "twitter:card", content: "summary" },
+    ],
   }),
 });
 
