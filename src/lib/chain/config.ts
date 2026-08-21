@@ -1,13 +1,13 @@
-// Where the shared ExpenseManager contract lives, and which room is active.
-// The address is global (all roommates must point at the same deployment);
-// the selected room is remembered per wallet.
+// The canonical shared ExpenseManager contract and the active room.
+// Contract selection is intentionally immutable so returning wallets always
+// read and write the original shared deployment rather than a browser-local V2.
 
 import { useCallback, useSyncExternalStore } from "react";
 
-const ADDR_KEY = "nest.contract.address";
 const ROOM_KEY = (w: string) => `nest.room.${w.toLowerCase()}`;
 
-const ENV_ADDRESS = (import.meta.env.VITE_EXPENSE_MANAGER_ADDRESS as string | undefined)?.trim();
+export const CANONICAL_EXPENSE_MANAGER_ADDRESS =
+  "0x709cbad88162b999882788155cde79ade46a6d42" as const;
 
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
@@ -26,20 +26,17 @@ export function isAddress(v: string): v is `0x${string}` {
 }
 
 export function getContractAddress(): `0x${string}` | null {
-  if (ENV_ADDRESS && isAddress(ENV_ADDRESS)) return ENV_ADDRESS as `0x${string}`;
-  if (typeof window === "undefined") return null;
-  const v = localStorage.getItem(ADDR_KEY);
-  return v && isAddress(v) ? (v as `0x${string}`) : null;
+  return CANONICAL_EXPENSE_MANAGER_ADDRESS;
 }
 
 export function setContractAddress(address: string) {
-  if (typeof window === "undefined" || !isAddress(address)) return;
-  localStorage.setItem(ADDR_KEY, address);
-  notify();
+  if (!isAddress(address) || address.toLowerCase() !== CANONICAL_EXPENSE_MANAGER_ADDRESS) {
+    throw new Error("This invite belongs to a retired Nest contract.");
+  }
 }
 
 export function useContractAddress(): `0x${string}` | null {
-  return useSyncExternalStore(subscribe, getContractAddress, () => null);
+  return useSyncExternalStore(subscribe, getContractAddress, getContractAddress);
 }
 
 export function getActiveRoom(wallet?: string | null): number | null {
