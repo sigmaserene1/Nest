@@ -2,7 +2,7 @@
 // then create or join a home. Everything here writes to Arc Testnet.
 
 import { useState } from "react";
-import { Loader2, Home, Plus, LinkIcon, Rocket } from "lucide-react";
+import { Loader2, Home, Plus, LinkIcon } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
@@ -28,9 +28,7 @@ function Panel({ children }: { children: React.ReactNode }) {
 }
 
 export function ContractSetup() {
-  const { deployContract } = useNestWrites();
   const [code, setCode] = useState("");
-  const [busy, setBusy] = useState<"deploy" | "join" | null>(null);
   const [error, setError] = useState("");
 
   const useExisting = () => {
@@ -47,25 +45,12 @@ export function ContractSetup() {
     setError("Paste the invite link your roommate sent you.");
   };
 
-  const deploy = async () => {
-    setError("");
-    setBusy("deploy");
-    try {
-      const addr = await deployContract();
-      setContractAddress(addr);
-    } catch (e) {
-      setError((e as Error).message.split("\n")[0]);
-    } finally {
-      setBusy(null);
-    }
-  };
-
   return (
     <Panel>
       <h1 className="text-xl font-bold tracking-tight">Connect to a Nest home</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Nest stores every expense, split and settlement onchain. Paste the invite link from your
-        roommates, or launch a new Nest home on Arc Testnet.
+        Nest stores every expense, split and settlement in the original shared contract. Paste the
+        invite link from your roommates to open their home.
       </p>
 
       <div className="mt-6">
@@ -86,23 +71,6 @@ export function ContractSetup() {
           <LinkIcon className="h-4 w-4" /> Continue
         </button>
       </div>
-
-      <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
-      </div>
-
-      <button
-        onClick={deploy}
-        disabled={busy === "deploy"}
-        className="flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold disabled:opacity-60"
-      >
-        {busy === "deploy" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Rocket className="h-4 w-4" />
-        )}
-        {busy === "deploy" ? "Setting up onchain…" : "Start a new Nest home"}
-      </button>
       {error && (
         <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">
           {error}
