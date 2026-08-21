@@ -69,7 +69,7 @@ function Settle() {
           </Card>
 
           <Card>
-            <h3 className="text-sm font-bold">Breakdown</h3>
+            <h2 className="text-sm font-bold">Breakdown</h2>
             <ul className="mt-4 space-y-2">
               {mine.map((d, i) => {
                 const to = getMember(d.toId);
@@ -107,7 +107,7 @@ function Settle() {
         </div>
 
         <Card className="lg:col-span-2 !p-6">
-          <h3 className="text-sm font-bold">How settlement works</h3>
+          <h2 className="text-sm font-bold">How settlement works</h2>
           <ol className="mt-4 space-y-4">
             {[
               { t: "Exact amount", d: "We send the precise USDC you owe — nothing more." },
