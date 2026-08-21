@@ -33,7 +33,17 @@ export const Route = createFileRoute("/app/")({
   head: () => ({
     meta: [
       { title: "Home · Nest" },
-      { name: "description", content: "Your Nest wallet on Arc Testnet." },
+      {
+        name: "description",
+        content:
+          "Your Nest home dashboard: see what you owe, what you're owed, and settle shared household costs in USDC on Arc Testnet.",
+      },
+      { property: "og:title", content: "Home · Nest" },
+      {
+        property: "og:description",
+        content: "Balances, recent shared expenses and one-tap USDC settlement for your household.",
+      },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
