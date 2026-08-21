@@ -100,13 +100,17 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     [roomsQ.data],
   );
 
-  // An invited wallet may not be a member yet — honour the stored room anyway so
-  // the invite link resolves straight into the right home.
-  const roomId = storedRoom ?? rooms[0]?.id ?? null;
+  // Room selections from a retired deployment may still exist in localStorage.
+  // Once the canonical contract responds, discard selections that do not belong
+  // to this wallet there and restore the wallet's first original room.
+  const storedRoomExists = storedRoom ? rooms.some((room) => room.id === storedRoom) : false;
+  const roomId = storedRoomExists ? storedRoom : rooms[0]?.id ?? storedRoom ?? null;
 
   useEffect(() => {
-    if (address && roomId && roomId !== storedRoom) select(roomId);
-  }, [address, roomId, storedRoom, select]);
+    if (!address || roomsQ.isLoading) return;
+    const canonicalRoom = storedRoomExists ? storedRoom : rooms[0]?.id ?? null;
+    if (canonicalRoom !== storedRoom) select(canonicalRoom);
+  }, [address, rooms, roomsQ.isLoading, select, storedRoom, storedRoomExists]);
 
   const roomArgs = roomId ? ([BigInt(roomId)] as const) : undefined;
 

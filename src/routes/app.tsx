@@ -41,7 +41,14 @@ function AppLayout() {
     const pending = localStorage.getItem(PENDING_INVITE);
     if (!pending || !address) return;
     const invite = resolveInvite(pending);
-    if (invite) applyInvite(address, invite);
+    if (invite) {
+      try {
+        applyInvite(address, invite);
+      } catch {
+        // Retired-deployment invites are intentionally ignored. Room discovery
+        // below restores this wallet's homes from the canonical contract.
+      }
+    }
     localStorage.removeItem(PENDING_INVITE);
   }, [address]);
 
