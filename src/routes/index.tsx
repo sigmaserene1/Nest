@@ -20,6 +20,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
+import { Reveal } from "@/components/nest/reveal";
+import { ThemeToggle } from "@/components/nest/theme-toggle";
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -53,44 +55,63 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur">
+    <div className="min-h-screen overflow-x-hidden">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <NestLogo />
           <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
-            <a href="#product" className="hover:text-foreground">Product</a>
-            <a href="#features" className="hover:text-foreground">How it works</a>
-            <a href="#network" className="hover:text-foreground">Network</a>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
+            <a href="#product" className="transition-colors hover:text-foreground">Product</a>
+            <a href="#features" className="transition-colors hover:text-foreground">How it works</a>
+            <a href="#network" className="transition-colors hover:text-foreground">Network</a>
+            <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
           </nav>
-          <Link
-            to="/app"
-            className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
-          >
-            Open app <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="flex items-center gap-2.5">
+            <ThemeToggle />
+            <Link
+              to="/app"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-transform hover:-translate-y-0.5 hover:opacity-90"
+            >
+              Open app <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-5 pt-14 pb-20 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-2 text-sm font-semibold text-brand">
+      <section className="relative mx-auto max-w-6xl px-5 pt-16 pb-20 text-center">
+        <div
+          aria-hidden
+          className="animate-soft-float pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[720px] max-w-[110vw] -translate-x-1/2 rounded-full bg-brand/15 blur-[120px]"
+        />
+        <span
+          className="animate-pop-in inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-2 text-sm font-semibold text-brand"
+          style={{ animationDelay: "40ms" }}
+        >
           <span className="h-2 w-2 rounded-full bg-brand" />
           Live on Arc testnet · Circle USDC gas
         </span>
 
-        <h1 className="mx-auto mt-6 max-w-4xl font-display text-5xl leading-[1.03] tracking-tight sm:text-6xl md:text-[4.5rem]">
-          Shared money,
+        <h1
+          className="animate-float-in mx-auto mt-6 max-w-4xl font-display text-5xl leading-[1.03] tracking-tight sm:text-6xl md:text-[4.5rem]"
+          style={{ animationDelay: "90ms" }}
+        >
+          <span className="shine-text">Shared money,</span>
           <br />
           <span className="text-brand">settled onchain</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+        <p
+          className="animate-float-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground"
+          style={{ animationDelay: "170ms" }}
+        >
           Nest turns messy roommate spreadsheets into real, verifiable settlements. Track shared
           expenses, simplify who owes who, and pay in USDC on Arc — with cross-chain deposits,
           idle-balance yield, and an agent that can settle for you.
         </p>
 
-        <div className="mt-9 flex flex-wrap justify-center gap-3">
+        <div
+          className="animate-float-in mt-9 flex flex-wrap justify-center gap-3"
+          style={{ animationDelay: "240ms" }}
+        >
           <Link
             to="/app"
             className="inline-flex items-center gap-2 rounded-full btn-gradient px-7 py-3.5 text-sm font-semibold"
@@ -99,15 +120,19 @@ function Landing() {
           </Link>
           <a
             href="#product"
-            className="inline-flex items-center gap-2 rounded-full bg-card px-7 py-3.5 text-sm font-semibold ring-1 ring-border hover:bg-muted"
+            className="inline-flex items-center gap-2 rounded-full bg-card px-7 py-3.5 text-sm font-semibold ring-1 ring-border transition-all hover:-translate-y-0.5 hover:bg-muted"
           >
             Explore the product
           </a>
         </div>
 
         <dl className="mx-auto mt-14 grid max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-2xl bg-border ring-1 ring-border md:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label} className="bg-card px-5 py-7">
+          {STATS.map((s, i) => (
+            <div
+              key={s.label}
+              className="animate-float-in bg-card px-5 py-7 transition-colors hover:bg-muted/50"
+              style={{ animationDelay: `${320 + i * 70}ms` }}
+            >
               <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {s.label}
               </dt>
@@ -119,50 +144,59 @@ function Landing() {
 
       {/* Product bento */}
       <section id="product" className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-24">
-        <SectionHead
-          eyebrow="One app, full stack"
-          eyebrowIcon={Sparkles}
-          title="Everything a household needs, onchain"
-          body="Nest isn't a ledger with a wallet bolted on. Every core surface — expenses, settlement, lending, bridging, receipts — runs against the same ExpenseManager contract on Arc."
-        />
+        <Reveal>
+          <SectionHead
+            eyebrow="One app, full stack"
+            eyebrowIcon={Sparkles}
+            title="Everything a household needs, onchain"
+            body="Nest isn't a ledger with a wallet bolted on. Every core surface — expenses, settlement, lending, bridging, receipts — runs against the same ExpenseManager contract on Arc."
+          />
+        </Reveal>
 
-        <div className="mt-12 grid gap-5 md:grid-cols-3">
-          {PRODUCT.map((p) => (
-            <article
+        <div className="mt-12 grid auto-rows-[minmax(0,auto)] gap-5 md:grid-cols-6">
+          {PRODUCT.map((p, i) => (
+            <Reveal
               key={p.title}
-              className={`rounded-2xl bg-card p-7 ring-1 ring-border ${p.wide ? "md:col-span-2" : ""}`}
+              delay={(i % 3) * 90}
+              className={p.span ?? "md:col-span-2"}
             >
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
-                <p.icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-5 text-lg">{p.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
-              <ul className="mt-4 space-y-2">
-                {p.points.map((pt) => (
-                  <li key={pt} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                    {pt}
-                  </li>
-                ))}
-              </ul>
-            </article>
+              <article className="lift group h-full rounded-2xl bg-card p-7 ring-1 ring-border">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <p.icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-5 text-lg">{p.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
+                <ul className={`mt-4 gap-2 ${p.wide ? "grid sm:grid-cols-2" : "space-y-2"}`}>
+                  {p.points.map((pt) => (
+                    <li key={pt} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                      {pt}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </Reveal>
           ))}
         </div>
       </section>
 
+
       {/* How it works */}
       <section id="features" className="border-y border-border bg-surface-muted/60 py-24">
         <div className="mx-auto max-w-6xl scroll-mt-20 px-5">
+          <Reveal>
           <SectionHead
             eyebrow="Onchain settlement"
             eyebrowIcon={Link2}
             title="From grocery run to final transfer"
             body="Four steps, two of them onchain. No custodial float, no IOUs, no waiting for a bank."
           />
+          </Reveal>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
-              <div key={s.title} className="rounded-2xl bg-card p-6 text-left ring-1 ring-border">
+              <Reveal key={s.title} delay={i * 90}>
+              <div className="lift h-full rounded-2xl bg-card p-6 text-left ring-1 ring-border">
                 <div className="flex items-start justify-between">
                   <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
                     <s.icon className="h-5 w-5" />
@@ -183,6 +217,7 @@ function Landing() {
                 <h3 className="mt-1 text-lg">{s.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -190,15 +225,18 @@ function Landing() {
 
       {/* Network */}
       <section id="network" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24">
+        <Reveal>
         <SectionHead
           eyebrow="Built for Arc"
           eyebrowIcon={Globe2}
           title="Native USDC, cross-chain by default"
           body="Nest speaks Circle's CCTP so roommates can fund from the chain they already hold USDC on, and everything lands on Arc as native USDC."
         />
+        </Reveal>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
-          <div className="rounded-2xl bg-card p-8 ring-1 ring-border">
+          <Reveal className="h-full">
+          <div className="lift h-full rounded-2xl bg-card p-8 ring-1 ring-border">
             <div className="flex items-center gap-3">
               <img
                 src="/__l5e/assets-v1/f137cacf-9417-4a42-a5bf-c214ce115c80/arc-logo.png"
@@ -223,8 +261,10 @@ function Landing() {
               ))}
             </dl>
           </div>
+          </Reveal>
 
-          <div className="rounded-2xl bg-card p-8 ring-1 ring-border">
+          <Reveal delay={120} className="h-full">
+          <div className="lift h-full rounded-2xl bg-card p-8 ring-1 ring-border">
             <h3 className="text-lg">Fund from any supported testnet</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               Burn on the source chain, attest through Iris, mint on Arc — Nest walks the whole CCTP
@@ -234,7 +274,7 @@ function Landing() {
               {CHAINS.map((c) => (
                 <span
                   key={c}
-                  className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground"
+                  className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-brand-soft hover:text-brand"
                 >
                   {c}
                 </span>
@@ -247,27 +287,32 @@ function Landing() {
               Open the bridge <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Why different */}
       <section className="border-y border-border bg-surface-muted/60 py-24">
         <div className="mx-auto max-w-6xl px-5">
+          <Reveal>
           <SectionHead
             eyebrow="Why Nest"
             eyebrowIcon={ShieldCheck}
             title="Splitting apps stop at the number. Nest finishes the payment."
             body="Traditional expense apps track a balance and hand you off to a bank transfer. Nest closes the loop in the same tap."
           />
+          </Reveal>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {DIFFS.map((d) => (
-              <div key={d.title} className="rounded-2xl bg-card p-7 ring-1 ring-border">
+            {DIFFS.map((d, i) => (
+              <Reveal key={d.title} delay={i * 90}>
+              <div className="lift h-full rounded-2xl bg-card p-7 ring-1 ring-border">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
                   <d.icon className="h-5 w-5" />
                 </span>
                 <h3 className="mt-5 text-lg">{d.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{d.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -275,19 +320,26 @@ function Landing() {
 
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-5 py-24">
+        <Reveal>
         <h2 className="text-center font-display text-4xl tracking-tight">Questions, answered</h2>
-        <div className="mt-10 divide-y divide-border rounded-2xl bg-card ring-1 ring-border">
+        </Reveal>
+        <Reveal delay={100} className="mt-10">
+        <div className=" divide-y divide-border rounded-2xl bg-card ring-1 ring-border">
           {FAQ.map((f) => (
             <details key={f.q} className="group p-6">
-              <summary className="cursor-pointer list-none text-base font-semibold">{f.q}</summary>
+              <summary className="cursor-pointer list-none text-base font-semibold transition-colors group-open:text-brand hover:text-brand">
+                {f.q}
+              </summary>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
             </details>
           ))}
         </div>
+        </Reveal>
       </section>
 
       {/* CTA */}
       <section className="mx-auto max-w-5xl px-5 pb-24">
+        <Reveal>
         <div className="rounded-3xl bg-foreground px-8 py-14 text-center text-background">
           <h2 className="mx-auto max-w-2xl font-display text-4xl leading-tight tracking-tight">
             Stop chasing your roommates for money
@@ -303,6 +355,7 @@ function Landing() {
             Launch Nest <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
+        </Reveal>
       </section>
 
       <footer className="border-t border-border py-10">
@@ -346,11 +399,19 @@ const STATS = [
   { label: "Source chains", value: "6+" },
 ];
 
-const PRODUCT = [
+const PRODUCT: {
+  icon: typeof Zap;
+  title: string;
+  body: string;
+  points: string[];
+  wide?: boolean;
+  span?: string;
+}[] = [
   {
     icon: Receipt,
     title: "Shared expense ledger",
     wide: true,
+    span: "md:col-span-4",
     body: "Log rent, groceries, utilities and one-off costs. Nest splits equally or by custom share and keeps every participant in sync from onchain state — not a local cache.",
     points: [
       "Equal, custom and multi-payer splits",
@@ -386,6 +447,7 @@ const PRODUCT = [
     icon: Lock,
     title: "Verified receipts",
     wide: true,
+    span: "md:col-span-6",
     body: "Every settlement produces a tamper-evident receipt: SHA-256 content hash plus the Arc transaction hash, viewable on Arcscan. Proof you paid, without asking anyone to trust a screenshot.",
     points: [
       "Immutable receipt cards per settlement",
