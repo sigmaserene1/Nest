@@ -425,7 +425,7 @@ const PRODUCT: {
     icon: Lock,
     title: "Verified receipts",
     wide: true,
-    span: "md:col-span-4",
+    span: "md:col-span-6",
     body: "Every settlement produces a tamper-evident receipt: SHA-256 content hash plus the Arc transaction hash, viewable on Arcscan. Proof you paid, without asking anyone to trust a screenshot.",
     points: [
       "Immutable receipt cards per settlement",
