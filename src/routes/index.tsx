@@ -101,7 +101,7 @@ function Landing() {
         </h1>
         <p
           className="animate-float-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground"
-          style={{ animationDelay: "170mss".replace("mss", "ms") }}
+          style={{ animationDelay: "170ms" }}
         >
           Nest turns messy roommate spreadsheets into real, verifiable settlements. Track shared
           expenses, simplify who owes who, and pay in USDC on Arc — with cross-chain deposits,
@@ -377,11 +377,19 @@ const STATS = [
   { label: "Source chains", value: "6+" },
 ];
 
-const PRODUCT = [
+const PRODUCT: {
+  icon: typeof Zap;
+  title: string;
+  body: string;
+  points: string[];
+  wide?: boolean;
+  span?: string;
+}[] = [
   {
     icon: Receipt,
     title: "Shared expense ledger",
     wide: true,
+    span: "md:col-span-4",
     body: "Log rent, groceries, utilities and one-off costs. Nest splits equally or by custom share and keeps every participant in sync from onchain state — not a local cache.",
     points: [
       "Equal, custom and multi-payer splits",
@@ -417,6 +425,7 @@ const PRODUCT = [
     icon: Lock,
     title: "Verified receipts",
     wide: true,
+    span: "md:col-span-4",
     body: "Every settlement produces a tamper-evident receipt: SHA-256 content hash plus the Arc transaction hash, viewable on Arcscan. Proof you paid, without asking anyone to trust a screenshot.",
     points: [
       "Immutable receipt cards per settlement",
