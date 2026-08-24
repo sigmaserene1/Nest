@@ -6,6 +6,7 @@ import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
 import { ArcBadge, UsdcBadge, WalletChip } from "./chain";
 import { WalletHeader } from "./wallet-header";
+import { ThemeToggle } from "./theme-toggle";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { getMember } from "@/lib/nest-data";
@@ -176,7 +177,12 @@ export function AppShell({
       <div className="lg:pl-72">
         <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
           <RpcBanner />
-          <WalletHeader />
+          <div className="flex items-start gap-2">
+            <div className="min-w-0 flex-1">
+              <WalletHeader />
+            </div>
+            <ThemeToggle className="mt-1 shrink-0" />
+          </div>
         </div>
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}
         <div className="mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 xl:hidden">
