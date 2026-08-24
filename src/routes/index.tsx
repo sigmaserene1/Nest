@@ -55,44 +55,63 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur">
+    <div className="min-h-screen overflow-x-hidden">
+      <header className="sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <NestLogo />
           <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
-            <a href="#product" className="hover:text-foreground">Product</a>
-            <a href="#features" className="hover:text-foreground">How it works</a>
-            <a href="#network" className="hover:text-foreground">Network</a>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
+            <a href="#product" className="transition-colors hover:text-foreground">Product</a>
+            <a href="#features" className="transition-colors hover:text-foreground">How it works</a>
+            <a href="#network" className="transition-colors hover:text-foreground">Network</a>
+            <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
           </nav>
-          <Link
-            to="/app"
-            className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background hover:opacity-90"
-          >
-            Open app <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="flex items-center gap-2.5">
+            <ThemeToggle />
+            <Link
+              to="/app"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background transition-transform hover:-translate-y-0.5 hover:opacity-90"
+            >
+              Open app <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="mx-auto max-w-6xl px-5 pt-14 pb-20 text-center">
-        <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-2 text-sm font-semibold text-brand">
+      <section className="relative mx-auto max-w-6xl px-5 pt-16 pb-20 text-center">
+        <div
+          aria-hidden
+          className="animate-soft-float pointer-events-none absolute left-1/2 top-0 -z-10 h-[420px] w-[720px] max-w-[110vw] -translate-x-1/2 rounded-full bg-brand/15 blur-[120px]"
+        />
+        <span
+          className="animate-pop-in inline-flex items-center gap-2 rounded-full bg-brand-soft px-4 py-2 text-sm font-semibold text-brand"
+          style={{ animationDelay: "40ms" }}
+        >
           <span className="h-2 w-2 rounded-full bg-brand" />
           Live on Arc testnet · Circle USDC gas
         </span>
 
-        <h1 className="mx-auto mt-6 max-w-4xl font-display text-5xl leading-[1.03] tracking-tight sm:text-6xl md:text-[4.5rem]">
-          Shared money,
+        <h1
+          className="animate-float-in mx-auto mt-6 max-w-4xl font-display text-5xl leading-[1.03] tracking-tight sm:text-6xl md:text-[4.5rem]"
+          style={{ animationDelay: "90ms" }}
+        >
+          <span className="shine-text">Shared money,</span>
           <br />
           <span className="text-brand">settled onchain</span>
         </h1>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+        <p
+          className="animate-float-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground"
+          style={{ animationDelay: "170mss".replace("mss", "ms") }}
+        >
           Nest turns messy roommate spreadsheets into real, verifiable settlements. Track shared
           expenses, simplify who owes who, and pay in USDC on Arc — with cross-chain deposits,
           idle-balance yield, and an agent that can settle for you.
         </p>
 
-        <div className="mt-9 flex flex-wrap justify-center gap-3">
+        <div
+          className="animate-float-in mt-9 flex flex-wrap justify-center gap-3"
+          style={{ animationDelay: "240ms" }}
+        >
           <Link
             to="/app"
             className="inline-flex items-center gap-2 rounded-full btn-gradient px-7 py-3.5 text-sm font-semibold"
@@ -101,15 +120,19 @@ function Landing() {
           </Link>
           <a
             href="#product"
-            className="inline-flex items-center gap-2 rounded-full bg-card px-7 py-3.5 text-sm font-semibold ring-1 ring-border hover:bg-muted"
+            className="inline-flex items-center gap-2 rounded-full bg-card px-7 py-3.5 text-sm font-semibold ring-1 ring-border transition-all hover:-translate-y-0.5 hover:bg-muted"
           >
             Explore the product
           </a>
         </div>
 
         <dl className="mx-auto mt-14 grid max-w-4xl grid-cols-2 gap-px overflow-hidden rounded-2xl bg-border ring-1 ring-border md:grid-cols-4">
-          {STATS.map((s) => (
-            <div key={s.label} className="bg-card px-5 py-7">
+          {STATS.map((s, i) => (
+            <div
+              key={s.label}
+              className="animate-float-in bg-card px-5 py-7 transition-colors hover:bg-muted/50"
+              style={{ animationDelay: `${320 + i * 70}ms` }}
+            >
               <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {s.label}
               </dt>
@@ -121,36 +144,42 @@ function Landing() {
 
       {/* Product bento */}
       <section id="product" className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-24">
-        <SectionHead
-          eyebrow="One app, full stack"
-          eyebrowIcon={Sparkles}
-          title="Everything a household needs, onchain"
-          body="Nest isn't a ledger with a wallet bolted on. Every core surface — expenses, settlement, lending, bridging, receipts — runs against the same ExpenseManager contract on Arc."
-        />
+        <Reveal>
+          <SectionHead
+            eyebrow="One app, full stack"
+            eyebrowIcon={Sparkles}
+            title="Everything a household needs, onchain"
+            body="Nest isn't a ledger with a wallet bolted on. Every core surface — expenses, settlement, lending, bridging, receipts — runs against the same ExpenseManager contract on Arc."
+          />
+        </Reveal>
 
-        <div className="mt-12 grid gap-5 md:grid-cols-3">
-          {PRODUCT.map((p) => (
-            <article
+        <div className="mt-12 grid auto-rows-[minmax(0,auto)] gap-5 md:grid-cols-6">
+          {PRODUCT.map((p, i) => (
+            <Reveal
               key={p.title}
-              className={`rounded-2xl bg-card p-7 ring-1 ring-border ${p.wide ? "md:col-span-2" : ""}`}
+              delay={(i % 3) * 90}
+              className={p.span ?? "md:col-span-2"}
             >
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
-                <p.icon className="h-5 w-5" />
-              </span>
-              <h3 className="mt-5 text-lg">{p.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
-              <ul className="mt-4 space-y-2">
-                {p.points.map((pt) => (
-                  <li key={pt} className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
-                    {pt}
-                  </li>
-                ))}
-              </ul>
-            </article>
+              <article className="lift group h-full rounded-2xl bg-card p-7 ring-1 ring-border">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
+                  <p.icon className="h-5 w-5" />
+                </span>
+                <h3 className="mt-5 text-lg">{p.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{p.body}</p>
+                <ul className={`mt-4 gap-2 ${p.wide ? "grid sm:grid-cols-2" : "space-y-2"}`}>
+                  {p.points.map((pt) => (
+                    <li key={pt} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-success" />
+                      {pt}
+                    </li>
+                  ))}
+                </ul>
+              </article>
+            </Reveal>
           ))}
         </div>
       </section>
+
 
       {/* How it works */}
       <section id="features" className="border-y border-border bg-surface-muted/60 py-24">
