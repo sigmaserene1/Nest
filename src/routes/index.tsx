@@ -184,16 +184,19 @@ function Landing() {
       {/* How it works */}
       <section id="features" className="border-y border-border bg-surface-muted/60 py-24">
         <div className="mx-auto max-w-6xl scroll-mt-20 px-5">
+          <Reveal>
           <SectionHead
             eyebrow="Onchain settlement"
             eyebrowIcon={Link2}
             title="From grocery run to final transfer"
             body="Four steps, two of them onchain. No custodial float, no IOUs, no waiting for a bank."
           />
+          </Reveal>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
-              <div key={s.title} className="rounded-2xl bg-card p-6 text-left ring-1 ring-border">
+              <Reveal key={s.title} delay={i * 90}>
+              <div className="lift h-full rounded-2xl bg-card p-6 text-left ring-1 ring-border">
                 <div className="flex items-start justify-between">
                   <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
                     <s.icon className="h-5 w-5" />
@@ -214,6 +217,7 @@ function Landing() {
                 <h3 className="mt-1 text-lg">{s.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -221,15 +225,18 @@ function Landing() {
 
       {/* Network */}
       <section id="network" className="mx-auto max-w-6xl scroll-mt-20 px-5 py-24">
+        <Reveal>
         <SectionHead
           eyebrow="Built for Arc"
           eyebrowIcon={Globe2}
           title="Native USDC, cross-chain by default"
           body="Nest speaks Circle's CCTP so roommates can fund from the chain they already hold USDC on, and everything lands on Arc as native USDC."
         />
+        </Reveal>
 
         <div className="mt-12 grid gap-5 lg:grid-cols-[1.1fr_1fr]">
-          <div className="rounded-2xl bg-card p-8 ring-1 ring-border">
+          <Reveal className="h-full">
+          <div className="lift h-full rounded-2xl bg-card p-8 ring-1 ring-border">
             <div className="flex items-center gap-3">
               <img
                 src="/__l5e/assets-v1/f137cacf-9417-4a42-a5bf-c214ce115c80/arc-logo.png"
@@ -254,8 +261,10 @@ function Landing() {
               ))}
             </dl>
           </div>
+          </Reveal>
 
-          <div className="rounded-2xl bg-card p-8 ring-1 ring-border">
+          <Reveal delay={120} className="h-full">
+          <div className="lift h-full rounded-2xl bg-card p-8 ring-1 ring-border">
             <h3 className="text-lg">Fund from any supported testnet</h3>
             <p className="mt-2 text-sm text-muted-foreground">
               Burn on the source chain, attest through Iris, mint on Arc — Nest walks the whole CCTP
@@ -265,7 +274,7 @@ function Landing() {
               {CHAINS.map((c) => (
                 <span
                   key={c}
-                  className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground"
+                  className="rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-brand-soft hover:text-brand"
                 >
                   {c}
                 </span>
@@ -278,27 +287,32 @@ function Landing() {
               Open the bridge <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Why different */}
       <section className="border-y border-border bg-surface-muted/60 py-24">
         <div className="mx-auto max-w-6xl px-5">
+          <Reveal>
           <SectionHead
             eyebrow="Why Nest"
             eyebrowIcon={ShieldCheck}
             title="Splitting apps stop at the number. Nest finishes the payment."
             body="Traditional expense apps track a balance and hand you off to a bank transfer. Nest closes the loop in the same tap."
           />
+          </Reveal>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
-            {DIFFS.map((d) => (
-              <div key={d.title} className="rounded-2xl bg-card p-7 ring-1 ring-border">
+            {DIFFS.map((d, i) => (
+              <Reveal key={d.title} delay={i * 90}>
+              <div className="lift h-full rounded-2xl bg-card p-7 ring-1 ring-border">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
                   <d.icon className="h-5 w-5" />
                 </span>
                 <h3 className="mt-5 text-lg">{d.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{d.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -306,19 +320,26 @@ function Landing() {
 
       {/* FAQ */}
       <section id="faq" className="mx-auto max-w-3xl scroll-mt-20 px-5 py-24">
+        <Reveal>
         <h2 className="text-center font-display text-4xl tracking-tight">Questions, answered</h2>
-        <div className="mt-10 divide-y divide-border rounded-2xl bg-card ring-1 ring-border">
+        </Reveal>
+        <Reveal delay={100} className="mt-10">
+        <div className=" divide-y divide-border rounded-2xl bg-card ring-1 ring-border">
           {FAQ.map((f) => (
             <details key={f.q} className="group p-6">
-              <summary className="cursor-pointer list-none text-base font-semibold">{f.q}</summary>
+              <summary className="cursor-pointer list-none text-base font-semibold transition-colors group-open:text-brand hover:text-brand">
+                {f.q}
+              </summary>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{f.a}</p>
             </details>
           ))}
         </div>
+        </Reveal>
       </section>
 
       {/* CTA */}
       <section className="mx-auto max-w-5xl px-5 pb-24">
+        <Reveal>
         <div className="rounded-3xl bg-foreground px-8 py-14 text-center text-background">
           <h2 className="mx-auto max-w-2xl font-display text-4xl leading-tight tracking-tight">
             Stop chasing your roommates for money
@@ -334,6 +355,7 @@ function Landing() {
             Launch Nest <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
+        </Reveal>
       </section>
 
       <footer className="border-t border-border py-10">
