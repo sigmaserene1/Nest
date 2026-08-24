@@ -20,6 +20,8 @@ import {
   Sparkles,
 } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
+import { Reveal } from "@/components/nest/reveal";
+import { ThemeToggle } from "@/components/nest/theme-toggle";
 
 export const Route = createFileRoute("/")({
   component: Landing,
