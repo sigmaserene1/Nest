@@ -249,18 +249,18 @@
   }
 }
 
-/* Motion */
+/* Motion — transform/opacity only so every animation stays on the compositor */
 @keyframes nest-rise {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 @keyframes nest-fade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
-@keyframes nest-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+@keyframes nest-glow {
+  0%, 100% { opacity: 0.75; transform: translate3d(-50%, 0, 0) scale(1); }
+  50% { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1.06); }
 }
 @keyframes nest-shine {
   0% { background-position: -200% center; }
@@ -270,20 +270,27 @@
   to { transform: rotate(360deg); }
 }
 
-.animate-float-in { animation: nest-rise 0.55s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.animate-pop-in { animation: nest-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.animate-soft-float { animation: nest-float 6s ease-in-out infinite; }
+.animate-float-in { animation: nest-rise 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-pop-in { animation: nest-rise 0.28s cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* Large blurred hero glow: animate opacity/scale, never layout or filter. */
+.animate-soft-float {
+  animation: nest-glow 9s ease-in-out infinite;
+  will-change: opacity, transform;
+  contain: strict;
+}
 .animate-spin { animation: spin 1s linear infinite; }
 
 .reveal {
   opacity: 0;
-  transform: translateY(22px);
-  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1), transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, 16px, 0);
+  transition:
+    opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: opacity, transform;
 }
 .reveal.is-visible {
   opacity: 1;
-  transform: none;
+  transform: translate3d(0, 0, 0);
 }
 
 /* Dark-mode shine: dark text becomes bright shimmering white */
@@ -295,6 +302,7 @@
   color: transparent;
   animation: nest-shine 5s linear infinite;
 }
+
 
 html {
   scroll-behavior: smooth;
