@@ -93,7 +93,7 @@ function Landing() {
 
         <h1
           className="animate-float-in mx-auto mt-6 max-w-4xl font-display text-5xl leading-[1.03] tracking-tight sm:text-6xl md:text-[4.5rem]"
-          style={{ animationDelay: "90ms" }}
+          style={{ animationDelay: "60ms" }}
         >
           <span className="shine-text">Shared money,</span>
           <br />
@@ -101,16 +101,17 @@ function Landing() {
         </h1>
         <p
           className="animate-float-in mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground"
-          style={{ animationDelay: "170ms" }}
+          style={{ animationDelay: "120ms" }}
         >
-          Nest turns messy roommate spreadsheets into real, verifiable settlements. Track shared
-          expenses, simplify who owes who, and pay in USDC on Arc — with cross-chain deposits,
-          idle-balance yield, and an agent that can settle for you.
+          A shared-finance protocol on Arc. Record group expenses, net obligations down to the
+          minimum number of transfers, and settle peer-to-peer in native USDC with sub-second
+          finality — plus CCTP liquidity routing, idle-balance markets, and programmable
+          auto-settlement.
         </p>
 
         <div
           className="animate-float-in mt-9 flex flex-wrap justify-center gap-3"
-          style={{ animationDelay: "240ms" }}
+          style={{ animationDelay: "170ms" }}
         >
           <Link
             to="/app"
@@ -131,7 +132,7 @@ function Landing() {
             <div
               key={s.label}
               className="animate-float-in bg-card px-5 py-7 transition-colors hover:bg-muted/50"
-              style={{ animationDelay: `${320 + i * 70}ms` }}
+              style={{ animationDelay: `${260 + i * 45}ms` }}
             >
               <dt className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {s.label}
@@ -148,8 +149,8 @@ function Landing() {
           <SectionHead
             eyebrow="One app, full stack"
             eyebrowIcon={Sparkles}
-            title="Everything a household needs, onchain"
-            body="Nest isn't a ledger with a wallet bolted on. Every core surface — expenses, settlement, lending, bridging, receipts — runs against the same ExpenseManager contract on Arc."
+            title="The full stack for shared capital"
+            body="Every surface — the expense ledger, settlement, lending markets, CCTP routing and receipts — reads and writes the same ExpenseManager contract on Arc. One source of truth, verifiable by anyone."
           />
         </Reveal>
 
@@ -157,7 +158,7 @@ function Landing() {
           {PRODUCT.map((p, i) => (
             <Reveal
               key={p.title}
-              delay={(i % 3) * 90}
+              delay={(i % 3) * 60}
               className={p.span ?? "md:col-span-2"}
             >
               <article className="lift group h-full rounded-2xl bg-card p-7 ring-1 ring-border">
@@ -188,14 +189,14 @@ function Landing() {
           <SectionHead
             eyebrow="Onchain settlement"
             eyebrowIcon={Link2}
-            title="From grocery run to final transfer"
-            body="Four steps, two of them onchain. No custodial float, no IOUs, no waiting for a bank."
+            title="From obligation to final settlement"
+            body="Four steps, two of them settled onchain. Non-custodial throughout: no pooled float, no intermediated transfer, no counterparty risk."
           />
           </Reveal>
 
           <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((s, i) => (
-              <Reveal key={s.title} delay={i * 90}>
+              <Reveal key={s.title} delay={i * 60}>
               <div className="lift h-full rounded-2xl bg-card p-6 text-left ring-1 ring-border">
                 <div className="flex items-start justify-between">
                   <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
@@ -230,7 +231,7 @@ function Landing() {
           eyebrow="Built for Arc"
           eyebrowIcon={Globe2}
           title="Native USDC, cross-chain by default"
-          body="Nest speaks Circle's CCTP so roommates can fund from the chain they already hold USDC on, and everything lands on Arc as native USDC."
+          body="Nest integrates Circle's CCTP v2 (Arc domain 26). Participants deposit from any supported domain and receive canonical native USDC on Arc — burn-and-mint, never a wrapped representation."
         />
         </Reveal>
 
@@ -298,13 +299,13 @@ function Landing() {
           <SectionHead
             eyebrow="Why Nest"
             eyebrowIcon={ShieldCheck}
-            title="Splitting apps stop at the number. Nest finishes the payment."
-            body="Traditional expense apps track a balance and hand you off to a bank transfer. Nest closes the loop in the same tap."
+            title="Most expense apps stop at the balance. Nest clears it."
+            body="Conventional tools compute a number and hand settlement off to a banking rail. Nest closes the loop in the same transaction, with an onchain record at the end of it."
           />
           </Reveal>
           <div className="mt-12 grid gap-5 md:grid-cols-3">
             {DIFFS.map((d, i) => (
-              <Reveal key={d.title} delay={i * 90}>
+              <Reveal key={d.title} delay={i * 60}>
               <div className="lift h-full rounded-2xl bg-card p-7 ring-1 ring-border">
                 <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand">
                   <d.icon className="h-5 w-5" />
@@ -342,11 +343,11 @@ function Landing() {
         <Reveal>
         <div className="rounded-3xl bg-foreground px-8 py-14 text-center text-background">
           <h2 className="mx-auto max-w-2xl font-display text-4xl leading-tight tracking-tight">
-            Stop chasing your roommates for money
+            Group finance, settled with finality
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm text-background/70">
-            Connect a wallet, create your household, and settle your first expense in USDC on Arc in
-            under two minutes.
+            Connect a wallet and your group is provisioned onchain instantly. First USDC settlement on
+            Arc in under two minutes.
           </p>
           <Link
             to="/app"
@@ -409,38 +410,38 @@ const PRODUCT: {
 }[] = [
   {
     icon: Receipt,
-    title: "Shared expense ledger",
+    title: "Group expense ledger",
     wide: true,
     span: "md:col-span-4",
-    body: "Log rent, groceries, utilities and one-off costs. Nest splits equally or by custom share and keeps every participant in sync from onchain state — not a local cache.",
+    body: "Record recurring and one-off group costs with equal, weighted or multi-payer allocation. Every participant resolves the same state directly from the contract — no local cache, no server of record.",
     points: [
       "Equal, custom and multi-payer splits",
-      "Rent-specific payment flow with exact amounts",
-      "Everyone in the household reads the same contract",
+      "Exact base-unit settlement amounts",
+      "All participants read one contract",
     ],
   },
   {
     icon: Calculator,
-    title: "Debt simplification",
-    body: "Nest nets balances across the household so you make the fewest possible transfers.",
-    points: ["Exact base-unit math", "owedBetween reads from chain"],
+    title: "Obligation netting",
+    body: "Obligations are netted across the group so the graph collapses to the minimum number of transfers.",
+    points: ["Exact base-unit math", "owedBetween resolved onchain"],
   },
   {
     icon: Bot,
-    title: "AI agent co-signer",
-    body: "Schedule auto-settlements with spend caps so recurring costs clear themselves.",
+    title: "Agent co-signer",
+    body: "Delegate recurring settlement under an explicit spend cap and policy window.",
     points: ["Spend limits per period", "Approve-then-settle pipeline"],
   },
   {
     icon: Landmark,
-    title: "Lend idle balances",
-    body: "Park USDC you're holding for shared costs and earn while it waits, or borrow against it.",
+    title: "Idle-balance markets",
+    body: "Supply reserved USDC to the lending market to earn yield, or borrow against your position.",
     points: ["Supply and borrow markets", "Positions tracked onchain"],
   },
   {
     icon: Briefcase,
     title: "Syndicate mode",
-    body: "Flip the household into a freelance collective: split revenue instead of rent.",
+    body: "Reconfigure the group as a revenue-sharing entity: distribute income instead of costs.",
     points: ["Revenue splits", "Client-facing receipts"],
   },
   {
@@ -448,7 +449,7 @@ const PRODUCT: {
     title: "Verified receipts",
     wide: true,
     span: "md:col-span-6",
-    body: "Every settlement produces a tamper-evident receipt: SHA-256 content hash plus the Arc transaction hash, viewable on Arcscan. Proof you paid, without asking anyone to trust a screenshot.",
+    body: "Each settlement emits a tamper-evident receipt: a SHA-256 content commitment bound to the Arc transaction hash and verifiable on Arcscan. Independent proof of payment, with no trusted intermediary.",
     points: [
       "Immutable receipt cards per settlement",
       "Explorer links for independent verification",
@@ -461,25 +462,25 @@ const STEPS = [
   {
     icon: Receipt,
     title: "Track shared expenses",
-    body: "Roommates log rent, groceries and utilities. Nest records who paid and how the cost splits.",
+    body: "Group members record costs. Nest stores the payer, the total and the allocation per participant.",
     onchain: false,
   },
   {
     icon: Calculator,
     title: "Auto-simplify debts",
-    body: "Nest nets everything down to the fewest settlements needed to clear all balances.",
+    body: "The obligation graph is reduced to the minimum set of transfers that clears every balance.",
     onchain: false,
   },
   {
     icon: Send,
     title: "Settle in USDC",
-    body: "Approve once, then send the exact USDC amount straight to your roommate's wallet on Arc.",
+    body: "Approve once, then transfer the exact base-unit amount wallet-to-wallet in native USDC.",
     onchain: true,
   },
   {
     icon: CheckCircle2,
     title: "Confirmed in seconds",
-    body: "Arc's sub-second finality confirms the transfer, updates balances and mints your receipt.",
+    body: "Arc finalises the transfer sub-second, balances re-resolve from chain and the receipt is issued.",
     onchain: true,
   },
 ];
@@ -504,39 +505,39 @@ const DIFFS = [
   {
     icon: Wallet,
     title: "Self-custody, always",
-    body: "Nest never holds your money. Transfers move wallet-to-wallet; the contract only records who owes what.",
+    body: "Nest custodies nothing. Value moves wallet-to-wallet; the contract records obligations and settlement events only.",
   },
   {
     icon: Coins,
     title: "Stablecoin native",
-    body: "Balances, settlement and gas are all USDC, so the number you agreed on is the number that moves.",
+    body: "Accounting, settlement and gas are denominated in USDC, so the agreed amount is the amount that settles.",
   },
   {
     icon: LineChart,
     title: "Productive by default",
-    body: "Money set aside for shared bills doesn't sit dead — lend it, bridge it, or let the agent route it.",
+    body: "Reserved capital stays productive — supply it to the market, route it across domains, or delegate it to the agent.",
   },
 ];
 
 const FAQ = [
   {
-    q: "Do all my roommates need crypto experience?",
-    a: "No. They connect a wallet once and everything else looks like a normal expense app. Nest handles approvals, exact amounts and the settlement flow behind the scenes.",
+    q: "Does everyone in the group need onchain experience?",
+    a: "No. A wallet connection is the only prerequisite. Approvals, base-unit amounts and the settlement sequence are handled by the application.",
   },
   {
     q: "Where is the data stored?",
-    a: "Expenses, participants, balances and settlements live in the ExpenseManager contract on Arc Testnet, so every member of a household reads identical state.",
+    a: "Expenses, participants, obligations and settlements are stored in the ExpenseManager contract on Arc Testnet, so every member resolves identical state.",
   },
   {
     q: "What happens if the Arc RPC is unavailable?",
-    a: "Nest detects failed reads and drops into a clearly-labelled demo mode so the interface stays usable. Writes resume as soon as the network recovers.",
+    a: "Failed reads are detected and the interface falls back to a clearly-labelled read-only mode. Write paths resume as soon as the endpoint recovers.",
   },
   {
-    q: "Can I fund Nest from another chain?",
-    a: "Yes. The bridge uses Circle's CCTP: burn USDC on a supported testnet, wait for attestation, and mint native USDC on Arc — no wrapped assets.",
+    q: "Can I fund a position from another chain?",
+    a: "Yes. Deposits use Circle's CCTP: burn on the source domain, retrieve the attestation, mint canonical USDC on Arc. No wrapped assets, no third-party bridge.",
   },
   {
     q: "Is this real money?",
-    a: "It runs on Arc Testnet today with testnet USDC. The contracts, flows and receipts are production-shaped, so a mainnet deployment is a configuration change.",
+    a: "Nest runs on Arc Testnet with testnet USDC today. Contracts, settlement paths and receipts are production-shaped; mainnet is a configuration change.",
   },
 ];

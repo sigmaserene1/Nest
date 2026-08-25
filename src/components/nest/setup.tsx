@@ -1,8 +1,8 @@
 // First-run onchain setup: point at a shared Nest contract (or deploy one),
 // then create or join a home. Everything here writes to Arc Testnet.
 
-import { useState } from "react";
-import { Loader2, Home, Plus, LinkIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Loader2, LinkIcon, RefreshCw } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
@@ -80,109 +80,62 @@ export function ContractSetup() {
   );
 }
 
+/**
+ * First run for a wallet with no home yet: instead of asking people to name or
+ * pick a room, Nest provisions one onchain automatically and drops them into
+ * the app. Only a signature is required.
+ */
 export function RoomSetup() {
-  const { rooms, selectRoom } = useNestChain();
-  const { createRoom, joinRoom } = useNestWrites();
-  const [name, setName] = useState("");
-  const [joinId, setJoinId] = useState("");
-  const [busy, setBusy] = useState(false);
+  const { rooms, selectRoom, refresh } = useNestChain();
+  const { createRoom } = useNestWrites();
   const [error, setError] = useState("");
+  const started = useRef(false);
 
-  const run = async (fn: () => Promise<unknown>) => {
+  const provision = async () => {
     setError("");
-    setBusy(true);
     try {
-      await fn();
+      await createRoom("My household");
+      await refresh();
     } catch (e) {
       setError((e as Error).message.split("\n")[0]);
-    } finally {
-      setBusy(false);
     }
   };
 
+  useEffect(() => {
+    if (started.current) return;
+    started.current = true;
+    if (rooms.length > 0) {
+      selectRoom(rooms[0].id);
+      return;
+    }
+    void provision();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Panel>
-      <h1 className="text-xl font-bold tracking-tight">Set up your home</h1>
+      <h1 className="text-xl font-bold tracking-tight">Setting up your home</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        A home is an onchain room. Everyone in it sees the same expenses and balances.
+        Nest is creating your shared home on Arc. Approve the signature in your wallet — this
+        happens once, then you go straight into the app.
       </p>
 
-      {rooms.length > 0 && (
-        <div className="mt-5 space-y-2">
-          <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Your homes
+      {error ? (
+        <>
+          <div className="mt-5 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">
+            {error}
           </div>
-          {rooms.map((r) => (
-            <button
-              key={r.id}
-              onClick={() => selectRoom(r.id)}
-              className="flex w-full items-center gap-3 rounded-2xl bg-muted/60 p-3 text-left transition hover:bg-muted"
-            >
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand/10 text-brand">
-                <Home className="h-4 w-4" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-sm font-semibold">{r.name}</div>
-                <div className="text-[11px] text-muted-foreground">Shared home on Arc</div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
-
-      <div className="mt-6">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          New home name
-        </label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Bedford Loft"
-          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
-        />
-        <button
-          onClick={() => name.trim() && run(() => createRoom(name.trim()))}
-          disabled={busy || !name.trim()}
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold disabled:opacity-50"
-        >
-          {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}{" "}
-          Create home onchain
-        </button>
-      </div>
-
-      <div className="mt-6">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Have an invite link?
-        </label>
-        <div className="mt-1.5 flex gap-2">
-          <input
-            value={joinId}
-            onChange={(e) => setJoinId(e.target.value)}
-            placeholder="Paste your invite link"
-            className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
-          />
           <button
-            onClick={() => {
-              const invite = resolveInvite(joinId);
-              if (!invite) return setError("That invite link isn't valid.");
-              setError("");
-              setContractAddress(invite.address);
-              run(async () => {
-                await joinRoom(invite.roomId);
-                selectRoom(invite.roomId);
-              });
-            }}
-            disabled={busy || !joinId.trim()}
-            className="shrink-0 rounded-2xl bg-foreground px-5 text-sm font-bold text-background disabled:opacity-50"
+            onClick={provision}
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold"
           >
-            Join
+            <RefreshCw className="h-4 w-4" /> Try again
           </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="mt-4 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">
-          {error}
+        </>
+      ) : (
+        <div className="mt-6 flex items-center gap-3 rounded-2xl bg-muted/60 p-4 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin text-brand" />
+          Provisioning onchain…
         </div>
       )}
     </Panel>
