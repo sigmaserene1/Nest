@@ -1,117 +1,87 @@
-# Nest 🏠
+# Nest
 
-Nest is a decentralized roommate expense management application built on Arc Testnet. It helps roommates create shared spaces, split expenses, settle debts using native USDC, and manage shared finances with secure on-chain transactions.
+Nest is programmable group finance on Arc Testnet. A workspace records shared obligations, resolves exact balances, and lets members settle open shares peer-to-peer in native USDC.
 
-🌐 **Live:** https://nestarc.xyz
+The original household experience remains supported. The same contract-backed workflow also serves distributed teams, collectives, and project syndicates that need one transparent state for shared money.
 
----
+**Live application:** [nestarc.xyz](https://nestarc.xyz)
 
-# Features
+## What works today
 
-## 🏠 Shared Rooms
-- Create and manage roommate groups
-- Invite members using wallet addresses
-- Organize shared household expenses
+- Create group workspaces and invite wallet addresses.
+- Record recurring or one-off expenses with equal or custom member allocations.
+- Resolve each member's net position from the shared onchain ledger.
+- Group open shares by debtor and creditor.
+- Clear every open share owed to one counterparty with `settleWith`.
+- Settle wallet-to-wallet through the USDC ERC-20 interface on Arc Testnet.
+- Fund Arc from six EVM testnets through Circle CCTP v2.
+- Plan weighted syndicate payouts and send them directly in USDC.
+- Queue client-side assisted settlements with dust filters and per-run caps.
+- Retain transaction-linked receipts and inspect activity in Arcscan.
 
-## 💸 Expense Splitting
-- Add shared expenses
-- Automatically calculate each member's share
-- Track balances between roommates
+Nest does not claim a global minimum-transfer algorithm, autonomous custody, Circle Gateway integration, or a production SDK. The deployed contract is callable directly; a typed SDK and embeddable interface remain roadmap work.
 
-## 💳 On-chain Settlement
-- Settle debts using native Arc Testnet USDC
-- Secure blockchain transactions
-- Transaction status and confirmations
+## Deployed contract
 
-## 👛 Wallet Integration
-- Connect Arc-compatible wallets
-- View wallet balances
-- Easy transaction signing
+`ExpenseManager`
 
-## 📊 Dashboard
-- Expense history
-- Outstanding balances
-- Settlement history
-- Room overview
+```text
+0x709cbAd88162b999882788155cde79aDe46A6D42
+```
 
----
+[Inspect the deployment on Arcscan](https://testnet.arcscan.app/address/0x709cbAd88162b999882788155cde79aDe46A6D42).
 
-# Smart Contract
+The contract stores rooms, membership, expenses, member shares, settlement status, and activity. Expense settlement does not require Nest to pool customer funds: approved USDC moves from the caller to the expense payer.
 
-**ExpenseManager**
+## Arc Testnet configuration
 
-Contract Address:
+| Property | Value |
+| --- | --- |
+| Chain ID | `5042002` |
+| Native gas asset | `USDC` |
+| USDC ERC-20 interface | `0x3600000000000000000000000000000000000000` |
+| CCTP domain | `26` |
+| Primary RPC | `https://rpc.testnet.arc.network` |
+| Explorer | `https://testnet.arcscan.app` |
 
-`0x709cbAd88162b999882788155cde79aDe46A6D42`
+All balances and transactions shown by the current deployment use testnet assets with no real-world monetary value.
 
----
-
-# Tech Stack
+## Stack
 
 | Layer | Technology |
-|-------|------------|
-| Frontend | Next.js 14 |
+| --- | --- |
+| Application | TanStack Start, TanStack Router, React 19 |
 | Language | TypeScript |
-| Styling | Tailwind CSS |
-| Blockchain | Arc Testnet |
-| Smart Contracts | Solidity |
-| Library | ethers.js v6 |
-| Development | Hardhat |
+| UI | Tailwind CSS 4, Radix UI, Lucide |
+| Wallets | Wagmi, Viem, RainbowKit |
+| Contracts | Solidity 0.8.x |
+| Build and deployment | Vite, Nitro, Cloudflare module output |
 
----
-
-# Network Configuration
-
-**Network:** Arc Testnet
-
-**RPC**
-```
-https://arc-testnet.drpc.org
-```
-
-**Chain ID**
-```
-5042002
-```
-
-**Currency**
-```
-USDC
-```
-
-**Explorer**
-```
-https://testnet.arcscan.app
-```
-
----
-
-# Getting Started
+## Run locally
 
 ```bash
 git clone https://github.com/sigmaserene1/Nest.git
-
 cd Nest
-
 npm install
-
 npm run dev
 ```
 
-Open:
+Vite prints the local URL when the development server is ready.
 
+Useful checks:
+
+```bash
+npm run build
+npx tsc --noEmit
+npx eslint src/routes/index.tsx src/routes/__root.tsx
 ```
-http://localhost:3000
-```
 
----
+The repository currently contains pre-existing lint debt outside the landing page; a production build and TypeScript check are the reliable whole-app gates until that baseline is cleaned up.
 
-# Project Goals
+## Mainnet posture
 
-Nest simplifies shared living by combining modern Web3 wallets with on-chain payments, making roommate expense management transparent, secure, and easy to use.
+Nest currently runs on Arc Testnet. Mainnet deployment is not treated as a configuration switch: it requires independent contract review, verified deployment, production monitoring, and a deliberate migration plan.
 
----
-
-# License
+## License
 
 MIT

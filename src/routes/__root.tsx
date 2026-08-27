@@ -82,14 +82,37 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#E41E26" },
-      { title: "Nest — Shared living, effortlessly settled" },
-      { property: "og:title", content: "Nest — Shared living, effortlessly settled" },
-      { name: "twitter:title", content: "Nest — Shared living, effortlessly settled" },
-      { name: "description", content: "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc." },
-      { property: "og:description", content: "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc." },
-      { name: "twitter:description", content: "The premium way to split rent, groceries, and life with your roommates. Instant USDC settlement on Arc." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d" },
+      { title: "Nest — Group finance and USDC settlement on Arc" },
+      {
+        property: "og:title",
+        content: "Nest — One ledger. Clear every balance.",
+      },
+      { name: "twitter:title", content: "Nest — Group settlement on Arc" },
+      {
+        name: "description",
+        content:
+          "Programmable group finance on Arc: record shared obligations, resolve exact balances, and settle peer-to-peer in native USDC.",
+      },
+      {
+        property: "og:description",
+        content:
+          "Onchain obligations, transparent balances, native USDC settlement and transaction-linked receipts for teams and shared groups.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Record shared obligations, resolve exact balances and settle peer-to-peer in native USDC on Arc.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
+      },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
