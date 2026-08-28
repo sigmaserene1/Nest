@@ -1,85 +1,247 @@
 #!/usr/bin/env node
+/**
+ * Nest — ExpenseManager verification driver.
+ *
+ * Generates standard-JSON input variants, compiles each one locally with the
+ * exact deploy compiler, compares the produced runtime bytecode against the
+ * onchain code, and submits the matching variant to the Arcscan (Blockscout)
+ * verification API. It keeps retrying variants until the explorer reports a
+ * FULL match (or reports the contract is already fully verified).
+ *
+ * Usage:
+ *   node scripts/verify-contract.mjs
+ *   node scripts/verify-contract.mjs --dry-run      # compile + compare only
+ *   node scripts/verify-contract.mjs --address 0x…  # override target
+ */
 
-// Read-only deployment check for a user-deployed NestTreasuryV2 contract.
-// It recompiles the exact repository source and compares runtime bytecode while
-// masking constructor-written immutable slots.
+import fs from 'node:fs';
+import path from 'node:path';
+import process from 'node:process';
+import { fileURLToPath } from 'node:url';
+import solc from 'solc';
 
-import fs from "node:fs";
-import path from "node:path";
-import process from "node:process";
-import solc from "solc";
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const ROOT = path.resolve(__dirname, '..');
 
-const args = process.argv.slice(2);
-const addressIndex = args.indexOf("--address");
-const address = addressIndex >= 0 ? args[addressIndex + 1] : undefined;
-
-if (!address || !/^0x[0-9a-fA-F]{40}$/.test(address)) {
-  console.error("Usage: npm run verify:contract -- --address 0xYourTreasuryAddress");
-  process.exit(1);
-}
-
-const sourceName = "contracts/NestTreasuryV2.sol";
-const source = fs.readFileSync(path.join(process.cwd(), sourceName), "utf8");
-const input = {
-  language: "Solidity",
-  sources: { [sourceName]: { content: source } },
-  settings: {
-    viaIR: true,
-    optimizer: { enabled: true, runs: 200 },
-    metadata: { bytecodeHash: "ipfs" },
-    outputSelection: {
-      "*": { "*": ["evm.deployedBytecode.object", "evm.deployedBytecode.immutableReferences"] },
-    },
-  },
+const CONFIG = {
+  address: '0x709cbAd88162b999882788155cde79aDe46A6D42',
+  contractName: 'ExpenseManager',
+  sourcePath: 'contracts/ExpenseManager.sol',
+  compilerVersion: 'v0.8.28+commit.7893614a',
+  license: 'mit',
+  constructorArgs:
+    '0000000000000000000000003600000000000000000000000000000000000000',
+  rpcUrl: 'https://rpc.testnet.arc.network',
+  explorerApi: 'https://testnet.arcscan.app/api',
+  outDir: 'verification',
 };
 
-const output = JSON.parse(solc.compile(JSON.stringify(input)));
-const errors = (output.errors ?? []).filter((entry) => entry.severity === "error");
-if (errors.length > 0) {
-  for (const error of errors) console.error(error.formattedMessage);
-  process.exit(1);
+const args = process.argv.slice(2);
+const flag = (name) => {
+  const i = args.indexOf(`--${name}`);
+  return i === -1 ? undefined : (args[i + 1] ?? true);
+};
+if (flag('address')) CONFIG.address = String(flag('address'));
+const DRY_RUN = args.includes('--dry-run');
+
+/** Every settings combination worth trying, most likely first. */
+const VARIANTS = [
+  { label: 'ipfs-metadata / default evm', metadataHash: 'ipfs' },
+  { label: 'ipfs-metadata / paris', metadataHash: 'ipfs', evmVersion: 'paris' },
+  { label: 'ipfs-metadata / shanghai', metadataHash: 'ipfs', evmVersion: 'shanghai' },
+  { label: 'ipfs-metadata / cancun', metadataHash: 'ipfs', evmVersion: 'cancun' },
+  { label: 'bzzr1-metadata / default evm', metadataHash: 'bzzr1' },
+  { label: 'no-metadata-hash / default evm', metadataHash: 'none' },
+];
+
+const source = fs.readFileSync(path.join(ROOT, CONFIG.sourcePath), 'utf8');
+
+function buildInput({ metadataHash, evmVersion }) {
+  const input = {
+    language: 'Solidity',
+    sources: { [CONFIG.sourcePath]: { content: source } },
+    settings: {
+      optimizer: { enabled: true, runs: 200 },
+      metadata: { bytecodeHash: metadataHash, useLiteralContent: true },
+      outputSelection: {
+        '*': {
+          '*': ['abi', 'metadata', 'evm.bytecode', 'evm.deployedBytecode'],
+        },
+      },
+    },
+  };
+  if (evmVersion) input.settings.evmVersion = evmVersion;
+  return input;
 }
 
-const deployed = output.contracts[sourceName].NestTreasuryV2.evm.deployedBytecode;
-const localCode = deployed.object.toLowerCase();
+function compile(input) {
+  const out = JSON.parse(solc.compile(JSON.stringify(input)));
+  const fatal = (out.errors ?? []).filter((e) => e.severity === 'error');
+  if (fatal.length) throw new Error(fatal.map((e) => e.formattedMessage).join('\n'));
+  const artifact = out.contracts?.[CONFIG.sourcePath]?.[CONFIG.contractName];
+  if (!artifact) throw new Error(`${CONFIG.contractName} not found in compiler output`);
+  return {
+    code: artifact.evm.deployedBytecode.object.toLowerCase().replace(/^0x/, ''),
+    immutables: artifact.evm.deployedBytecode.immutableReferences ?? {},
+  };
+}
 
-const response = await fetch("https://rpc.testnet.arc.io", {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({
-    jsonrpc: "2.0",
-    id: 1,
-    method: "eth_getCode",
-    params: [address, "latest"],
-  }),
-});
-const payload = await response.json();
-if (payload.error) throw new Error(`Arc RPC error: ${payload.error.message}`);
-const chainCode = String(payload.result ?? "")
-  .toLowerCase()
-  .replace(/^0x/, "");
-if (!chainCode) throw new Error("No contract bytecode exists at that Arc Testnet address.");
+async function fetchOnchainRuntime() {
+  const res = await fetch(CONFIG.rpcUrl, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_getCode',
+      params: [CONFIG.address, 'latest'],
+    }),
+  });
+  const json = await res.json();
+  if (json.error) throw new Error(`RPC error: ${json.error.message}`);
+  const code = String(json.result ?? '').toLowerCase().replace(/^0x/, '');
+  if (!code || code === '') throw new Error('No code at address — wrong network or address?');
+  return code;
+}
 
-function maskImmutables(code) {
-  const chars = code.split("");
-  for (const slots of Object.values(deployed.immutableReferences ?? {})) {
-    for (const { start, length } of slots) {
-      chars.fill("0", start * 2, (start + length) * 2);
+/**
+ * Immutable slots (the USDC address) are written at deploy time and the CBOR
+ * metadata tail encodes the source hash, so both regions are masked out before
+ * comparing. Blockscout treats a metadata-only difference as a partial match.
+ */
+function mask(hex, immutables, withMetadata) {
+  const chars = hex.split('');
+  for (const refs of Object.values(immutables ?? {})) {
+    for (const { start, length } of refs) {
+      for (let i = start * 2; i < (start + length) * 2 && i < chars.length; i++) chars[i] = '0';
     }
   }
-  return chars.join("");
+  const masked = chars.join('');
+  return withMetadata ? masked : masked.slice(0, Math.max(0, masked.length - 106));
 }
 
-const matches =
-  localCode.length === chainCode.length && maskImmutables(localCode) === maskImmutables(chainCode);
+function classify(local, onchain, immutables) {
+  if (local.length !== onchain.length) return 'none';
+  if (mask(local, immutables, true) === mask(onchain, immutables, true)) return 'full';
+  if (mask(local, immutables, false) === mask(onchain, immutables, false)) return 'partial';
+  return 'none';
+}
 
-console.log(`NestTreasuryV2 ${address}`);
-console.log(`Local runtime: ${localCode.length / 2} bytes`);
-console.log(`Arc runtime:   ${chainCode.length / 2} bytes`);
-console.log(
-  matches
-    ? "MATCH: deployment was built from this V2 runtime."
-    : "MISMATCH: deployment differs from this V2 runtime.",
-);
+async function submit(input) {
+  const body = new URLSearchParams({
+    module: 'contract',
+    action: 'verifysourcecode',
+    codeformat: 'solidity-standard-json-input',
+    contractaddress: CONFIG.address,
+    contractname: `${CONFIG.sourcePath}:${CONFIG.contractName}`,
+    compilerversion: CONFIG.compilerVersion,
+    sourceCode: JSON.stringify(input),
+    constructorArguements: CONFIG.constructorArgs,
+    licenseType: CONFIG.license,
+  });
+  const res = await fetch(CONFIG.explorerApi, {
+    method: 'POST',
+    headers: { 'content-type': 'application/x-www-form-urlencoded' },
+    body,
+  });
+  const text = await res.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { status: '0', result: text.slice(0, 400) };
+  }
+}
 
-if (!matches) process.exit(2);
+async function pollStatus(guid, tries = 20) {
+  for (let i = 0; i < tries; i++) {
+    await new Promise((r) => setTimeout(r, 5000));
+    const url = `${CONFIG.explorerApi}?module=contract&action=checkverifystatus&guid=${encodeURIComponent(guid)}`;
+    const res = await fetch(url);
+    const json = await res.json().catch(() => ({}));
+    const result = String(json.result ?? '');
+    console.log(`   status(${i + 1}/${tries}): ${result || 'pending'}`);
+    if (/pending/i.test(result)) continue;
+    return json;
+  }
+  return { status: '0', result: 'timed out waiting for explorer' };
+}
+
+async function isFullyVerified() {
+  const url = `${CONFIG.explorerApi}/v2/smart-contracts/${CONFIG.address}`;
+  const res = await fetch(url);
+  if (!res.ok) return { verified: false, full: false };
+  const json = await res.json().catch(() => ({}));
+  const verified = Boolean(json.is_verified);
+  const full = verified && json.is_partially_verified === false;
+  return { verified, full, matchType: json.is_partially_verified ? 'partial' : verified ? 'full' : 'none' };
+}
+
+async function main() {
+  console.log(`Target ${CONFIG.address} on Arc Testnet\n`);
+  const onchain = await fetchOnchainRuntime();
+  console.log(`Onchain runtime bytecode: ${onchain.length / 2} bytes\n`);
+
+  fs.mkdirSync(path.join(ROOT, CONFIG.outDir), { recursive: true });
+
+  const ranked = [];
+  for (const variant of VARIANTS) {
+    process.stdout.write(`Compiling ${variant.label}… `);
+    const input = buildInput(variant);
+    let match = 'none';
+    try {
+      const compiled = compile(input);
+      match = classify(compiled.code, onchain, compiled.immutables);
+    } catch (err) {
+      console.log(`compile failed: ${err.message.split('\n')[0]}`);
+      continue;
+    }
+    console.log(match === 'full' ? 'FULL match' : match === 'partial' ? 'partial match' : 'no match');
+    ranked.push({ variant, input, match });
+    if (match === 'full') break;
+  }
+
+  ranked.sort((a, b) => ({ full: 0, partial: 1, none: 2 })[a.match] - ({ full: 0, partial: 1, none: 2 })[b.match]);
+  const best = ranked[0];
+  if (!best || best.match === 'none') {
+    console.error('\nNo variant reproduces the onchain bytecode. The deployed source differs.');
+    process.exit(1);
+  }
+
+  const outFile = path.join(ROOT, CONFIG.outDir, 'ExpenseManager-standard-input.json');
+  fs.writeFileSync(outFile, `${JSON.stringify(best.input, null, 2)}\n`);
+  console.log(`\nBest variant: ${best.variant.label} (${best.match})`);
+  console.log(`Wrote ${path.relative(ROOT, outFile)}`);
+
+  if (DRY_RUN) return;
+
+  const already = await isFullyVerified();
+  if (already.full) {
+    console.log('\nExplorer already reports a FULL match. Nothing to do.');
+    return;
+  }
+
+  for (const candidate of ranked.filter((r) => r.match !== 'none')) {
+    console.log(`\nSubmitting ${candidate.variant.label}…`);
+    const submitted = await submit(candidate.input);
+    console.log(`   response: ${submitted.result ?? submitted.message}`);
+    if (submitted.status === '1' && submitted.result) await pollStatus(String(submitted.result));
+
+    const state = await isFullyVerified();
+    console.log(`   explorer match type: ${state.matchType}`);
+    if (state.full) {
+      console.log('\nFULL match achieved.');
+      return;
+    }
+  }
+
+  console.error(
+    '\nStill only a partial match. The deployed metadata hash points at source bytes that differ ' +
+      'from contracts/ExpenseManager.sol — redeploy from this exact file for a full match.',
+  );
+  process.exit(2);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

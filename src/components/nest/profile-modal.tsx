@@ -5,13 +5,13 @@ import { useNestWrites } from "@/lib/chain/writes";
 
 function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: boolean }) {
   const { claimName } = useNestWrites();
-  const { isError, rpcMessage } = useNestChain();
+  const { isDemo, rpcMessage } = useNestChain();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const save = async () => {
-    if (!name.trim() || isError) return;
+    if (!name.trim() || isDemo) return;
     setBusy(true);
     setError("");
     try {
@@ -27,13 +27,13 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
   return (
     <div
 
-      
+
       className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
     >
       <div
 
-        
-        
+
+
         className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px]"
       >
         <div className="flex items-center justify-between">
@@ -63,14 +63,14 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
             {error}
           </div>
         )}
-        {isError && (
+        {isDemo && (
           <div className="mt-3 rounded-2xl bg-amber-50 p-3 text-[11px] font-semibold leading-relaxed text-amber-900">
             {rpcMessage}
           </div>
         )}
         <button
           onClick={save}
-          disabled={busy || isError || !name.trim()}
+          disabled={busy || isDemo || !name.trim()}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-50"
         >
           {busy ? (
@@ -91,11 +91,11 @@ export function ProfileNameModal({ open, onClose }: { open: boolean; onClose: ()
 }
 
 export function ProfileOnboarding() {
-  const { me, myName, members, isError } = useNestChain();
+  const { me, myName, members, isDemo } = useNestChain();
   const [skipped, setSkipped] = useState(false);
   useEffect(() => setSkipped(false), [me]);
   const inRoom = !!me && members.some((m) => m.id === me);
-  const show = !isError && inRoom && !myName && !skipped;
+  const show = !isDemo && inRoom && !myName && !skipped;
   if (!show) return null;
   return <NameForm onDone={() => setSkipped(true)} dismissible />;
 }

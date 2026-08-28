@@ -1,94 +1,90 @@
-// Client selection for a Nest Treasury V2 deployment. The selected address is
-// only navigation state; balances, members, policies, receipts, and activity
-// remain onchain in the selected treasury contract.
+// The canonical shared ExpenseManager contract and the active room.
+// Contract selection is intentionally immutable so returning wallets always
+// read and write the original shared deployment rather than a browser-local V2.
 
 import { useCallback, useSyncExternalStore } from "react";
 
-const CONTRACT_KEY = "nest.treasury.v2";
-const configuredAddress = (import.meta.env.VITE_NEST_TREASURY_ADDRESS as string | undefined) ?? "";
+const ROOM_KEY = (w: string) => `nest.room.${w.toLowerCase()}`;
+
+export const CANONICAL_EXPENSE_MANAGER_ADDRESS =
+  "0x709cbad88162b999882788155cde79ade46a6d42" as const;
 
 const listeners = new Set<() => void>();
-const notify = () => listeners.forEach((listener) => listener());
+const notify = () => listeners.forEach((l) => l());
 
-function subscribe(callback: () => void) {
-  listeners.add(callback);
-  if (typeof window !== "undefined") window.addEventListener("storage", callback);
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  if (typeof window !== "undefined") window.addEventListener("storage", cb);
   return () => {
-    listeners.delete(callback);
-    if (typeof window !== "undefined") window.removeEventListener("storage", callback);
+    listeners.delete(cb);
+    if (typeof window !== "undefined") window.removeEventListener("storage", cb);
   };
 }
 
-export function isAddress(value: string): value is `0x${string}` {
-  return /^0x[a-fA-F0-9]{40}$/.test(value.trim());
+export function isAddress(v: string): v is `0x${string}` {
+  return /^0x[a-fA-F0-9]{40}$/.test(v.trim());
 }
 
 export function getContractAddress(): `0x${string}` | null {
-  if (typeof window !== "undefined") {
-    const selected = window.localStorage.getItem(CONTRACT_KEY);
-    if (selected && isAddress(selected)) return selected as `0x${string}`;
-  }
-  return isAddress(configuredAddress) ? (configuredAddress as `0x${string}`) : null;
+  return CANONICAL_EXPENSE_MANAGER_ADDRESS;
 }
 
 export function setContractAddress(address: string) {
-  if (!isAddress(address)) throw new Error("Enter a valid Arc contract address.");
-  if (typeof window !== "undefined") window.localStorage.setItem(CONTRACT_KEY, address);
-  notify();
-}
-
-export function clearContractAddress() {
-  if (typeof window !== "undefined") window.localStorage.removeItem(CONTRACT_KEY);
-  notify();
+  if (!isAddress(address) || address.toLowerCase() !== CANONICAL_EXPENSE_MANAGER_ADDRESS) {
+    throw new Error("This invite belongs to a retired Nest contract.");
+  }
 }
 
 export function useContractAddress(): `0x${string}` | null {
   return useSyncExternalStore(subscribe, getContractAddress, getContractAddress);
 }
 
-// Compatibility selectors for routes that still describe the selected
-// treasury as a room. V2 uses one treasury per deployment, so the id is 1.
-export function getActiveRoom(): number | null {
-  return getContractAddress() ? 1 : null;
+export function getActiveRoom(wallet?: string | null): number | null {
+  if (typeof window === "undefined" || !wallet) return null;
+  const v = localStorage.getItem(ROOM_KEY(wallet));
+  const n = v ? Number(v) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
-export function setActiveRoom(_wallet: string | null | undefined, roomId: number | null) {
-  if (roomId == null) clearContractAddress();
+export function setActiveRoom(wallet: string | null | undefined, roomId: number | null) {
+  if (typeof window === "undefined" || !wallet) return;
+  if (roomId) localStorage.setItem(ROOM_KEY(wallet), String(roomId));
+  else localStorage.removeItem(ROOM_KEY(wallet));
+  notify();
 }
 
-export function useActiveRoom(_wallet?: string | null) {
-  const address = useContractAddress();
-  const select = useCallback((id: number | null) => {
-    if (id == null) clearContractAddress();
-  }, []);
-  return { roomId: address ? 1 : null, select };
+export function useActiveRoom(wallet?: string | null) {
+  const roomId = useSyncExternalStore(
+    subscribe,
+    () => getActiveRoom(wallet),
+    () => null,
+  );
+  const select = useCallback((id: number | null) => setActiveRoom(wallet, id), [wallet]);
+  return { roomId, select };
 }
 
-export type TreasuryInvite = { address: `0x${string}`; roomId: 1; version: 2 };
+/** Internal join code: `<contract>-<roomId>` — never shown to users. */
+export function buildJoinCode(address: string, roomId: number) {
+  return `${address}-${roomId}`;
+}
+
+export function parseJoinCode(code: string): { address: `0x${string}`; roomId: number } | null {
+  const m = code.trim().match(/^(0x[a-fA-F0-9]{40})[-:](\d+)$/);
+  if (!m) return null;
+  return { address: m[1] as `0x${string}`, roomId: Number(m[2]) };
+}
 
 const b64url = {
-  encode: (value: string) => btoa(value).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
-  decode: (value: string) => atob(value.replace(/-/g, "+").replace(/_/g, "/")),
+  encode: (s: string) => btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""),
+  decode: (s: string) => atob(s.replace(/-/g, "+").replace(/_/g, "/")),
 };
 
-export function buildJoinCode(address: string, _roomId = 1) {
-  return `nest-v2:${address}`;
-}
-
-export function parseJoinCode(code: string): TreasuryInvite | null {
-  const modern = code.trim().match(/^nest-v2:(0x[a-fA-F0-9]{40})$/);
-  if (modern) return { address: modern[1] as `0x${string}`, roomId: 1, version: 2 };
-
-  const bare = code.trim();
-  if (isAddress(bare)) return { address: bare, roomId: 1, version: 2 };
-  return null;
-}
-
-export function encodeInvite(address: string, roomId = 1) {
+/** Opaque invite token embedding the contract + room, so users never see either. */
+export function encodeInvite(address: string, roomId: number) {
   return b64url.encode(buildJoinCode(address, roomId));
 }
 
-export function decodeInvite(token: string): TreasuryInvite | null {
+export function decodeInvite(token: string) {
   try {
     return parseJoinCode(b64url.decode(token.trim()));
   } catch {
@@ -96,18 +92,26 @@ export function decodeInvite(token: string): TreasuryInvite | null {
   }
 }
 
-export function buildInviteLink(address: string, roomId = 1) {
+/** Shareable link — the only thing a user ever copies. */
+export function buildInviteLink(address: string, roomId: number) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   return `${origin}/app?invite=${encodeInvite(address, roomId)}`;
 }
 
-export function resolveInvite(input: string): TreasuryInvite | null {
+/** Accepts a full invite link, a bare token, or a legacy `0x…-1` code. */
+export function resolveInvite(input: string): { address: `0x${string}`; roomId: number } | null {
   const raw = input.trim();
   if (!raw) return null;
-  const tokenFromUrl = raw.match(/[?&]invite=([A-Za-z0-9_-]+)/)?.[1];
-  return decodeInvite(tokenFromUrl ?? raw) ?? parseJoinCode(raw);
+  const fromUrl = raw.match(/[?&]invite=([A-Za-z0-9\-_]+)/);
+  const token = fromUrl ? fromUrl[1] : raw;
+  return decodeInvite(token) ?? parseJoinCode(raw);
 }
 
-export function applyInvite(_wallet: string | null | undefined, invite: TreasuryInvite) {
+/** Applies an invite: points at the right contract and selects the room. */
+export function applyInvite(
+  wallet: string | null | undefined,
+  invite: { address: string; roomId: number },
+) {
   setContractAddress(invite.address);
+  if (wallet) setActiveRoom(wallet, invite.roomId);
 }

@@ -8,10 +8,13 @@ export function useTheme() {
 
   useEffect(() => {
     const stored = (typeof window !== "undefined" && localStorage.getItem(KEY)) as
-      "light" | "dark" | null;
+      | "light"
+      | "dark"
+      | null;
     const initial =
       stored ??
-      (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
+      (typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light");
     setTheme(initial);

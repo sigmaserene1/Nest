@@ -6,8 +6,8 @@ import { useNestChain } from "@/lib/chain/nest-chain";
  * in place — the app simply renders sample data until reads succeed again.
  */
 export function RpcBanner() {
-  const { isError, rpcMessage } = useNestChain();
-  if (!isError) return null;
+  const { isDemo, rpcMessage } = useNestChain();
+  if (!isDemo) return null;
 
   return (
     <div

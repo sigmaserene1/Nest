@@ -19,15 +19,15 @@ import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 // Arc Testnet, served through reliable third-party RPC providers first and the
 // official public endpoint last (it rate-limits aggressively).
 export const ARC_RPC_URLS = [
-  "https://rpc.testnet.arc.io",
-  "https://rpc.drpc.testnet.arc.io",
-  "https://rpc.blockdaemon.testnet.arc.io",
+  "https://arc-testnet.drpc.org",
+  "https://5042002.rpc.thirdweb.com",
+  "https://rpc.testnet.arc.network",
 ] as const;
 
 export const arcTestnet = defineChain({
   id: 5042002,
   name: "Arc Testnet",
-  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 18 },
+  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
   rpcUrls: {
     default: { http: [...ARC_RPC_URLS] },
   },
@@ -96,6 +96,7 @@ export const ERC20_ABI = [
   },
 ] as const;
 
+
 // WalletConnect projectId — get one free at https://cloud.reown.com and set VITE_WALLETCONNECT_PROJECT_ID.
 const WC_RAW = (import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined) || "";
 const WC_VALID = /^[0-9a-f]{32}$/i.test(WC_RAW);
@@ -134,15 +135,7 @@ const connectors = connectorsForWallets([{ groupName: "Recommended", wallets }],
 export const wagmiConfig = createConfig({
   // Arc first (default), plus every CCTP v2 testnet source chain so the
   // bridge can switch networks, read balances and burn USDC there.
-  chains: [
-    arcTestnet,
-    sepolia,
-    avalancheFuji,
-    optimismSepolia,
-    arbitrumSepolia,
-    baseSepolia,
-    polygonAmoy,
-  ],
+  chains: [arcTestnet, sepolia, avalancheFuji, optimismSepolia, arbitrumSepolia, baseSepolia, polygonAmoy],
   connectors,
   transports: {
     [arcTestnet.id]: fallback(

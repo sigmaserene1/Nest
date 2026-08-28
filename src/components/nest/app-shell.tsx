@@ -212,7 +212,7 @@ export function AppShell({
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
           <div
 
-            
+
             className="relative -mt-8 mx-1"
           >
             {onFabClick ? (
@@ -260,4 +260,3 @@ export function Card({
     </As>
   );
 }
-
