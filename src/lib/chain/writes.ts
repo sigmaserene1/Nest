@@ -1,87 +1,24 @@
-// State-changing Nest Treasury V2 actions. Every successful action waits for
-// Arc's deterministic final receipt before refreshing the read model.
+// Every state-changing action in Nest is a real Arc Testnet transaction.
+// This hook wraps deployment, room management, expenses and USDC settlement.
 
 import { useCallback } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
-import {
-  decodeEventLog,
-  encodeFunctionData,
-  formatUnits,
-  keccak256,
-  parseUnits,
-  stringToHex,
-  type Hex,
-} from "viem";
-import {
-  NEST_TREASURY_V2_ABI,
-  NEST_TREASURY_V2_BYTECODE,
-} from "@/contracts/nest-treasury-v2-artifact";
+import { parseUnits } from "viem";
+import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { arcTestnet, ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
-import { setContractAddress } from "./config";
 import { useNestChain } from "./nest-chain";
 
 export type TxStep = (label: string) => void;
 
-export const ARC_MEMO_ADDRESS = "0x5294E9927c3306DcBaDb03fe70b92e01cCede505" as const;
-export const ERC8004_IDENTITY_REGISTRY = "0x8004A818BFB912233c491871b3d84c89A494BD9e" as const;
-const ERC721_TRANSFER_TOPIC = keccak256(stringToHex("Transfer(address,address,uint256)"));
-
-const MEMO_ABI = [
-  {
-    type: "function",
-    name: "memo",
-    stateMutability: "nonpayable",
-    inputs: [
-      { name: "target", type: "address" },
-      { name: "data", type: "bytes" },
-      { name: "memoId", type: "bytes32" },
-      { name: "memoData", type: "bytes" },
-    ],
-    outputs: [],
-  },
-] as const;
-
-const IDENTITY_REGISTRY_ABI = [
-  {
-    type: "function",
-    name: "register",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "metadataURI", type: "string" }],
-    outputs: [],
-  },
-  {
-    type: "event",
-    name: "Transfer",
-    anonymous: false,
-    inputs: [
-      { indexed: true, name: "from", type: "address" },
-      { indexed: true, name: "to", type: "address" },
-      { indexed: true, name: "tokenId", type: "uint256" },
-    ],
-  },
-] as const;
-
 export function toUnits(amount: number): bigint {
-  if (!Number.isFinite(amount) || amount < 0) throw new Error("Enter a valid USDC amount.");
   return parseUnits(amount.toFixed(6), 6);
-}
-
-function makeMemo(label: string) {
-  const stamp = `${label}:${Date.now()}:${crypto.randomUUID?.() ?? Math.random()}`;
-  return keccak256(stringToHex(stamp));
-}
-
-function cleanError(error: unknown): Error {
-  const message = error instanceof Error ? error.message : String(error);
-  const reason = message.match(/reason:\s*([^\n]+)/i)?.[1] ?? message.split("\n")[0];
-  return new Error(reason.replace(/^Error:\s*/i, ""));
 }
 
 export function useNestWrites() {
   const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId: arcTestnet.id });
-  const { contractAddress, refresh } = useNestChain();
+  const { contractAddress, roomId, refresh } = useNestChain();
 
   const requireEnv = useCallback(() => {
     if (!walletClient || !address) throw new Error("Connect your wallet first.");
@@ -90,132 +27,70 @@ export function useNestWrites() {
   }, [walletClient, address, publicClient]);
 
   const requireContract = useCallback(() => {
-    if (!contractAddress) throw new Error("Open or launch a Nest V2 treasury first.");
+    if (!contractAddress) throw new Error("No Nest contract configured yet.");
     return contractAddress;
   }, [contractAddress]);
 
-  const complete = useCallback(
-    async (hash: `0x${string}`) => {
-      const { publicClient } = requireEnv();
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      if (receipt.status !== "success") throw new Error("Transaction reverted on Arc.");
-      await refresh();
-      return { hash, receipt };
-    },
-    [refresh, requireEnv],
-  );
-
   const send = useCallback(
-    async (functionName: string, args: readonly unknown[], onStep?: TxStep) => {
-      try {
-        const { walletClient, address: account, publicClient } = requireEnv();
-        const contract = requireContract();
-        onStep?.("Simulating on Arc");
-        const simulation = await publicClient.simulateContract({
-          address: contract,
-          abi: NEST_TREASURY_V2_ABI,
-          functionName: functionName as never,
-          args: args as never,
-          account,
-        });
-        onStep?.("Confirm in wallet");
-        const hash = await walletClient.writeContract(simulation.request);
-        onStep?.("Finalizing on Arc");
-        return (await complete(hash)).hash;
-      } catch (error) {
-        throw cleanError(error);
-      }
+    async (functionName: string, args: readonly unknown[]) => {
+      const { walletClient, address, publicClient } = requireEnv();
+      const contract = requireContract();
+      const hash = await walletClient.writeContract({
+        address: contract,
+        abi: EXPENSE_MANAGER_ABI,
+        functionName: functionName as never,
+        args: args as never,
+        account: address,
+        chain: arcTestnet,
+      });
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (receipt.status !== "success") throw new Error("Transaction reverted onchain.");
+      await refresh();
+      return hash;
     },
-    [complete, requireContract, requireEnv],
+    [requireEnv, requireContract, refresh],
   );
 
-  const sendWithMemo = useCallback(
-    async (
-      functionName: string,
-      args: readonly unknown[],
-      memoId: Hex,
-      memoData: Record<string, unknown>,
-      onStep?: TxStep,
-    ) => {
-      try {
-        const { walletClient, address: account, publicClient } = requireEnv();
-        const contract = requireContract();
-        const data = encodeFunctionData({
-          abi: NEST_TREASURY_V2_ABI,
-          functionName: functionName as never,
-          args: args as never,
-        });
-        const encodedMemo = stringToHex(JSON.stringify(memoData));
-        onStep?.("Simulating memo call");
-        const simulation = await publicClient.simulateContract({
-          address: ARC_MEMO_ADDRESS,
-          abi: MEMO_ABI,
-          functionName: "memo",
-          args: [contract, data, memoId, encodedMemo],
-          account,
-        });
-        onStep?.("Confirm in wallet");
-        const hash = await walletClient.writeContract(simulation.request);
-        onStep?.("Finalizing on Arc");
-        return (await complete(hash)).hash;
-      } catch (error) {
-        throw cleanError(error);
-      }
-    },
-    [complete, requireContract, requireEnv],
-  );
-
-  const deployTreasury = useCallback(
-    async (input: { name: string; ownerName: string }, onStep?: TxStep) => {
-      try {
-        const { walletClient, address: account, publicClient } = requireEnv();
-        onStep?.("Confirm treasury deployment");
-        const hash = await walletClient.deployContract({
-          abi: NEST_TREASURY_V2_ABI,
-          bytecode: NEST_TREASURY_V2_BYTECODE,
-          args: [USDC_ADDRESS, input.name.trim(), input.ownerName.trim()],
-          account,
-          chain: arcTestnet,
-        });
-        onStep?.("Deploying on Arc");
-        const receipt = await publicClient.waitForTransactionReceipt({ hash });
-        if (receipt.status !== "success" || !receipt.contractAddress) {
-          throw new Error("Treasury deployment did not finalize.");
-        }
-        setContractAddress(receipt.contractAddress);
-        return { hash, address: receipt.contractAddress };
-      } catch (error) {
-        throw cleanError(error);
-      }
-    },
-    [requireEnv],
-  );
-
+  /** Approves the ExpenseManager to move `needed` USDC base units, when the allowance is short. */
   const ensureAllowanceUnits = useCallback(
     async (needed: bigint, onStep?: TxStep) => {
-      const { walletClient, address: account, publicClient } = requireEnv();
+      const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
-      const current = await publicClient.readContract({
+      const blockNumber = await publicClient.getBlockNumber();
+      const current = (await publicClient.readContract({
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
         functionName: "allowance",
-        args: [account, contract],
-      });
-      if (current >= needed) return null;
-      onStep?.("Approve capped USDC access");
-      const simulation = await publicClient.simulateContract({
+        args: [address, contract],
+        blockNumber,
+      })) as bigint;
+      if (current >= needed) return;
+      onStep?.("Approving USDC…");
+      const hash = await walletClient.writeContract({
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
         functionName: "approve",
         args: [contract, needed],
-        account,
+        account: address,
+        chain: arcTestnet,
       });
-      const hash = await walletClient.writeContract(simulation.request);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      if (receipt.status !== "success") throw new Error("USDC approval failed on Arc.");
-      return hash;
+      if (receipt.status !== "success") throw new Error("USDC approval failed onchain.");
+
+      // Do not race the settlement against an RPC node that has seen the
+      // approval receipt but is still serving an older allowance value.
+      const confirmed = (await publicClient.readContract({
+        address: USDC_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: "allowance",
+        args: [address, contract],
+        blockNumber: receipt.blockNumber,
+      })) as bigint;
+      if (confirmed < needed) {
+        throw new Error("USDC approval has not finalized yet. Please try settlement again.");
+      }
     },
-    [requireContract, requireEnv],
+    [requireEnv, requireContract],
   );
 
   const ensureAllowance = useCallback(
@@ -223,149 +98,140 @@ export function useNestWrites() {
     [ensureAllowanceUnits],
   );
 
+  const createRoom = useCallback((name: string) => send("createRoom", [name]), [send]);
+  const joinRoom = useCallback((id: number) => send("joinRoom", [BigInt(id)]), [send]);
   const inviteMember = useCallback(
-    (member: `0x${string}`, displayName = "", admin = false, onStep?: TxStep) =>
-      send("addMember", [member, displayName, admin], onStep),
-    [send],
+    (member: `0x${string}`) => {
+      if (!roomId) throw new Error("No active home.");
+      return send("inviteMember", [BigInt(roomId), member]);
+    },
+    [send, roomId],
   );
-
-  const claimName = useCallback(
-    (name: string, onStep?: TxStep) => send("setDisplayName", [name.trim()], onStep),
-    [send],
-  );
+  const claimName = useCallback((name: string) => send("setDisplayName", [name]), [send]);
 
   const addExpense = useCallback(
-    (
-      input: { title: string; category: string; amount: number; participants: string[] },
-      onStep?: TxStep,
-    ) => {
-      if (input.participants.length === 0) throw new Error("Select at least one participant.");
+    (input: { title: string; category: string; amount: number; participants: string[] }) => {
+      if (!roomId) throw new Error("No active home.");
       const total = toUnits(input.amount);
-      const count = BigInt(input.participants.length);
-      const base = total / count;
-      const remainder = total - base * count;
-      const shares = input.participants.map((_, index) => base + (index === 0 ? remainder : 0n));
-      const referenceId = makeMemo(`obligation:${input.title}`);
-      return send(
-        "addObligation",
-        [input.participants as `0x${string}`[], shares, input.category, input.title, referenceId],
-        onStep,
-      );
+      const n = BigInt(input.participants.length);
+      const base = total / n;
+      const shares = input.participants.map((_, i) => (i === 0 ? base + (total - base * n) : base));
+      return send("addExpense", [
+        BigInt(roomId),
+        input.participants as `0x${string}`[],
+        shares,
+        input.category,
+        input.title,
+        total,
+      ]);
     },
-    [send],
+    [send, roomId],
   );
 
-  const settleNet = useCallback(
-    async (amount = 0, onStep?: TxStep) => {
-      const { address: account, publicClient } = requireEnv();
+  /** Settles every open share the caller owes to `to` in the active home. */
+  const settleWith = useCallback(
+    async (to: `0x${string}`, _amount: number, onStep?: TxStep) => {
+      if (!roomId) throw new Error("No active home.");
+      const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
-      const requested = amount > 0 ? toUnits(amount) : 0n;
-      const preview = await publicClient.readContract({
+      // settleWith clears *every* open share, so the contract moves the exact
+      // base-unit total from owedBetween — never the rounded UI number.
+      const blockNumber = await publicClient.getBlockNumber();
+      const needed = (await publicClient.readContract({
         address: contract,
-        abi: NEST_TREASURY_V2_ABI,
-        functionName: "previewSettlement",
-        args: [account, requested],
-      });
-      const total = preview[2];
-      if (total <= 0n) throw new Error("Your onchain net balance is already clear.");
-      await ensureAllowanceUnits(total, onStep);
-      const memoId = makeMemo("net-settlement");
-      return sendWithMemo(
-        "settleMyBalance",
-        [requested, memoId],
-        memoId,
-        { type: "nest.net-settlement", account, amount: formatUnits(total, 6) },
-        onStep,
-      );
-    },
-    [ensureAllowanceUnits, requireContract, requireEnv, sendWithMemo],
-  );
+        abi: EXPENSE_MANAGER_ABI,
+        functionName: "owedBetween",
+        args: [BigInt(roomId), address, to],
+        blockNumber,
+      })) as bigint;
+      if (needed <= 0n) throw new Error("Nothing to settle with this roommate.");
+      await ensureAllowanceUnits(needed, onStep);
 
-  const setAgentPolicy = useCallback(
-    (
-      input: {
-        executor: `0x${string}`;
-        agentId: bigint;
-        maxPerRun: number;
-        maxPerPeriod: number;
-        minInterval: number;
-        validUntil?: number | null;
-        enabled: boolean;
-      },
-      onStep?: TxStep,
-    ) =>
-      send(
-        "setAgentPolicy",
-        [
-          input.executor,
-          input.agentId,
-          toUnits(input.maxPerRun),
-          toUnits(input.maxPerPeriod),
-          input.minInterval,
-          BigInt(input.validUntil ?? 0),
-          input.enabled,
-        ],
-        onStep,
-      ),
-    [send],
-  );
-
-  const runAgent = useCallback(
-    async (account: `0x${string}`, amount: number, onStep?: TxStep) => {
-      const memoId = makeMemo("agent-run");
-      return sendWithMemo(
-        "runAgent",
-        [account, amount > 0 ? toUnits(amount) : 0n, memoId],
-        memoId,
-        { type: "nest.agent-run", account, requested: amount },
-        onStep,
-      );
-    },
-    [sendWithMemo],
-  );
-
-  const registerAgent = useCallback(
-    async (metadataURI: string, onStep?: TxStep) => {
-      const { walletClient, address: account, publicClient } = requireEnv();
-      onStep?.("Register ERC-8004 identity");
+      // Simulate against current onchain state after approval. This prevents a
+      // doomed wallet transaction and preserves the contract's revert reason.
       const simulation = await publicClient.simulateContract({
-        address: ERC8004_IDENTITY_REGISTRY,
-        abi: IDENTITY_REGISTRY_ABI,
-        functionName: "register",
-        args: [metadataURI],
-        account,
+        address: contract,
+        abi: EXPENSE_MANAGER_ABI,
+        functionName: "settleWith",
+        args: [BigInt(roomId), to],
+        account: address,
       });
+
+      onStep?.("Sending USDC…");
       const hash = await walletClient.writeContract(simulation.request);
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
-      if (receipt.status !== "success") throw new Error("Agent registration reverted on Arc.");
-
-      const transferLog = receipt.logs.find(
-        (log) =>
-          log.address.toLowerCase() === ERC8004_IDENTITY_REGISTRY.toLowerCase() &&
-          log.topics[0]?.toLowerCase() === ERC721_TRANSFER_TOPIC.toLowerCase(),
-      );
-      if (!transferLog)
-        throw new Error("Agent identity was registered, but its token ID was not found.");
-      const decoded = decodeEventLog({
-        abi: IDENTITY_REGISTRY_ABI,
-        eventName: "Transfer",
-        data: transferLog.data,
-        topics: transferLog.topics,
-      });
-      return { hash, agentId: decoded.args.tokenId };
+      if (receipt.status !== "success") throw new Error("Settlement reverted onchain.");
+      await refresh();
+      return hash;
     },
-    [requireEnv],
+    [roomId, ensureAllowanceUnits, requireEnv, requireContract, refresh],
   );
 
+  /** Settles one specific expense share. */
+  const settleSplit = useCallback(
+    async (expenseId: string, amount: number, onStep?: TxStep) => {
+      await ensureAllowance(amount, onStep);
+      onStep?.("Sending USDC…");
+      return send("settleSplit", [BigInt(expenseId)]);
+    },
+    [send, ensureAllowance],
+  );
+
+  /** Arbitrary USDC transfer, logged onchain in the room's activity feed. */
+  const directTransfer = useCallback(
+    async (to: `0x${string}`, amount: number, note: string, onStep?: TxStep) => {
+      await ensureAllowance(amount, onStep);
+      onStep?.("Sending USDC…");
+      return send("directTransfer", [BigInt(roomId ?? 0), to, toUnits(amount), note]);
+    },
+    [send, roomId, ensureAllowance],
+  );
+
+  // ------------------------------------------------------------------ lending
+
+  /** Supplies USDC into the lending pool (approve → supply). */
+  const supplyUsdc = useCallback(
+    async (amount: number, onStep?: TxStep) => {
+      await ensureAllowance(amount, onStep);
+      onStep?.("Supplying USDC…");
+      return send("supply", [toUnits(amount)]);
+    },
+    [send, ensureAllowance],
+  );
+
+  const withdrawUsdc = useCallback(
+    (amount: number) => send("withdraw", [toUnits(amount)]),
+    [send],
+  );
+
+  const borrowUsdc = useCallback((amount: number) => send("borrow", [toUnits(amount)]), [send]);
+
+  /** Repays outstanding debt (approve → repay). */
+  const repayUsdc = useCallback(
+    async (amount: number, onStep?: TxStep) => {
+      await ensureAllowance(amount, onStep);
+      onStep?.("Repaying USDC…");
+      return send("repay", [toUnits(amount)]);
+    },
+    [send, ensureAllowance],
+  );
+
+  const claimInterest = useCallback(() => send("claimInterest", []), [send]);
+
   return {
-    deployTreasury,
+    createRoom,
+    joinRoom,
     inviteMember,
     claimName,
     addExpense,
-    settleNet,
+    settleWith,
+    settleSplit,
+    directTransfer,
     ensureAllowance,
-    setAgentPolicy,
-    runAgent,
-    registerAgent,
+    supplyUsdc,
+    withdrawUsdc,
+    borrowUsdc,
+    repayUsdc,
+    claimInterest,
   };
 }
