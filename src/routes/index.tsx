@@ -38,9 +38,8 @@ import { NestLogo } from "@/components/nest/logo";
 import { Reveal } from "@/components/nest/reveal";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
 
-const CONTRACT_ADDRESS = "0x709cbAd88162b999882788155cde79aDe46A6D42";
-const CONTRACT_URL = `https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`;
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
+const CONTRACT_SOURCE_URL = `${GITHUB_URL}/blob/main/contracts/NestTreasuryV2.sol`;
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -134,7 +133,7 @@ function Landing() {
                 style={{ animationDelay: "40ms" }}
               >
                 <span className="live-dot h-2 w-2 rounded-full bg-brand" />
-                Live on Arc Testnet
+                Built for Arc Testnet
                 <span className="h-3 w-px bg-brand/25" />
                 Native USDC
               </div>
@@ -164,15 +163,15 @@ function Landing() {
                   to="/app"
                   className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold"
                 >
-                  Open a workspace <ArrowRight className="h-4 w-4" />
+                  Launch a treasury <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
-                  href={CONTRACT_URL}
+                  href={CONTRACT_SOURCE_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-6 py-3.5 text-sm font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40"
                 >
-                  View contract <ArrowUpRight className="h-4 w-4" />
+                  Read V2 contract <ArrowUpRight className="h-4 w-4" />
                 </a>
               </div>
 
@@ -212,7 +211,7 @@ function Landing() {
               <SectionHeading
                 eyebrow="The protocol"
                 title="One shared state for money between people"
-                body="Nest turns informal IOUs into explicit onchain obligations. Every member resolves the same rooms, participants, balances and settlement history from ExpenseManager."
+                body="Nest turns informal IOUs into explicit onchain obligations. Each treasury deployment owns its members, net positions, policies, settlement receipts and activity on Arc."
               />
             </Reveal>
 
@@ -280,9 +279,9 @@ function Landing() {
                   body="The original roommate experience remains. The same obligation and settlement model also fits teams and project-based groups that need transparent shared balances."
                 />
                 <p className="max-w-xl text-sm leading-6 text-muted-foreground lg:justify-self-end">
-                  Nest is not positioning unbuilt modules as live products. These are supported
-                  workspace patterns built from the existing group ledger, balance views, direct
-                  settlement, capped client-side assistance and syndicate distribution mode.
+                  These are patterns supported by the same deployed treasury primitive: onchain
+                  membership, shared obligations, deterministic net positions, direct settlement and
+                  contract-enforced agent policies.
                 </p>
               </div>
             </Reveal>
@@ -339,12 +338,12 @@ function Landing() {
                   costs and fast finality—not because a blockchain badge belongs on the homepage.
                 </p>
                 <a
-                  href={CONTRACT_URL}
+                  href={CONTRACT_SOURCE_URL}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-8 inline-flex items-center gap-2 rounded-full border border-background/15 px-5 py-3 text-sm font-bold transition-colors hover:bg-background hover:text-foreground"
                 >
-                  Inspect ExpenseManager <ArrowUpRight className="h-4 w-4" />
+                  Inspect Treasury V2 source <ArrowUpRight className="h-4 w-4" />
                 </a>
               </div>
             </Reveal>
@@ -379,9 +378,9 @@ function Landing() {
                       Claims should resolve to evidence.
                     </h2>
                     <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      Nest exposes its deployed contract, transaction history and linked receipts.
-                      Testnet status is stated clearly, and mainnet readiness is treated as security
-                      work—not a configuration toggle.
+                      Every workspace exposes its treasury address, Arc activity and contract-built
+                      receipts. Testnet status is stated clearly, and mainnet readiness is treated
+                      as security work—not a configuration toggle.
                     </p>
                   </div>
 
@@ -502,12 +501,12 @@ function Landing() {
               App
             </Link>
             <a
-              href={CONTRACT_URL}
+              href={CONTRACT_SOURCE_URL}
               target="_blank"
               rel="noreferrer"
               className="hover:text-foreground"
             >
-              Contract
+              V2 contract
             </a>
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
               GitHub
@@ -701,7 +700,7 @@ type Capability = {
 
 const PROOF = [
   { label: "Settlement asset", value: "Native USDC" },
-  { label: "Finality", value: "Sub-second" },
+  { label: "Finality", value: "1 confirmation" },
   { label: "CCTP domain", value: "26" },
   { label: "Source testnets", value: "6" },
 ];
@@ -710,38 +709,38 @@ const CAPABILITIES: Capability[] = [
   {
     icon: ReceiptText,
     title: "Onchain obligation ledger",
-    body: "Record recurring or one-off costs with equal or custom member allocations. Members resolve the same contract state.",
-    proof: "Rooms, members, expenses and shares",
+    body: "Record costs with exact member shares. The treasury contract updates every participant's signed net position in the same transaction.",
+    proof: "Members, obligations and shares",
   },
   {
     icon: Calculator,
     title: "Balance resolution",
-    body: "Summarize each member's net position and group open shares by debtor and creditor so everyone sees the same settlement queue.",
-    proof: "Exact base-unit accounting",
+    body: "Read signed positions and a deterministic debtor-to-creditor payment route directly from the contract.",
+    proof: "Six-decimal USDC accounting",
   },
   {
     icon: CircleDollarSign,
-    title: "Counterparty settlement",
-    body: "After allowance is available, one settleWith call clears every open share the caller owes to a selected payee.",
-    proof: "Exact USDC amounts, no pooled float",
+    title: "Atomic net settlement",
+    body: "One call transfers USDC directly from a debtor to the current creditors and updates every affected net position atomically.",
+    proof: "No pooled customer float",
   },
   {
     icon: Bot,
-    title: "Spend-capped assistance",
-    body: "Queue eligible debts, skip dust, stop at a per-run cap and retain transaction logs while the wallet remains in control.",
-    proof: "Client-side controls, wallet approval",
+    title: "Onchain agent policy",
+    body: "Delegate settlement execution to one agent wallet with per-run, 30-day, expiry and cooldown limits enforced by Solidity.",
+    proof: "ERC-8004 identity and run receipts",
   },
   {
     icon: RouteIcon,
     title: "Crosschain funding",
-    body: "Bring canonical USDC from six supported testnets through Circle CCTP v2 before settling on Arc.",
-    proof: "Burn, attest and mint",
+    body: "Use Circle App Kit to bring native testnet USDC from six supported EVM networks to Arc through CCTP v2.",
+    proof: "Official Circle App Kit flow",
   },
   {
     icon: FileCheck2,
-    title: "Transaction-linked receipts",
-    body: "Keep settlement details beside the Arc transaction hash so payment history can be checked independently in the explorer.",
-    proof: "Explorer-verifiable transaction",
+    title: "Memo-linked receipts",
+    body: "Attach Arc transaction memos and retain payment routes, agent IDs and policy activity in contract state.",
+    proof: "Contract and explorer evidence",
   },
 ];
 
@@ -750,25 +749,25 @@ const FLOW = [
     icon: Layers3,
     label: "Contract write",
     title: "Record obligations",
-    body: "Add the payer, participants, allocation and amount to the shared ExpenseManager ledger.",
+    body: "Write the payer, participants, exact shares and reference ID to a Treasury V2 deployment.",
   },
   {
     icon: Combine,
     label: "Contract view",
     title: "Resolve net positions",
-    body: "Read workspace balances from one contract and reduce the obligation graph before money moves.",
+    body: "Read signed workspace positions and preview the deterministic creditor route before money moves.",
   },
   {
     icon: WalletCards,
     label: "USDC transfer",
     title: "Settle exact amounts",
-    body: "After sufficient allowance, one settleWith call clears every open share owed to a selected counterparty.",
+    body: "Approve only the required amount, then execute the route as one atomic USDC settlement.",
   },
   {
     icon: BadgeCheck,
     label: "Independent proof",
     title: "Verify the outcome",
-    body: "Re-resolve balances, inspect the Arc transaction and retain a transaction-linked receipt.",
+    body: "Re-resolve balances and inspect the memo-linked settlement or agent-run record on Arc.",
   },
 ];
 
@@ -793,10 +792,10 @@ const USE_CASES = [
   },
   {
     icon: House,
-    kicker: "Shared capital",
-    title: "Projects and syndicates",
-    body: "Switch the same group model from splitting costs to distributing incoming revenue across participants.",
-    points: ["Weighted payout planning", "Cost-first distribution", "Direct USDC payouts"],
+    kicker: "Project finance",
+    title: "Agencies and project groups",
+    body: "Track reimbursable tools, contractor costs and shared project spend without maintaining a second private ledger.",
+    points: ["Project references", "Exact allocation", "Atomic USDC settlement"],
   },
 ];
 
@@ -830,9 +829,9 @@ const EVIDENCE = [
     note: "Every live flow currently uses testnet assets with no real-world value.",
   },
   {
-    label: "ExpenseManager",
-    value: "0x709c…6D42",
-    note: "The canonical contract address is published and linked to Arcscan.",
+    label: "Treasury model",
+    value: "One V2 contract per workspace",
+    note: "The connected wallet deploys its treasury and the app publishes the resulting address.",
   },
   {
     label: "Custody model",
@@ -860,17 +859,17 @@ const FAQS = [
   {
     question: "What information is stored onchain?",
     answer:
-      "Rooms, membership, expenses, participant shares, settlement status and related activity are resolved from ExpenseManager. Onchain information is public, so users should not place private or sensitive information in descriptions.",
+      "Treasury membership, display names, obligations, participant shares, signed net positions, settlement routes, agent policies, agent runs and related activity live in Treasury V2. Onchain information is public, so users should not place private or sensitive information in descriptions.",
   },
   {
     question: "Does Nest hold or custody group funds?",
     answer:
-      "No pooled float is required for expense settlement. USDC moves wallet-to-wallet when the payer approves and executes settlement through the contract. Optional lending interactions have separate smart-contract risk.",
+      "No pooled float is required. A debtor approves the treasury for a capped amount, and settlement transfers USDC directly from that wallet to current creditors inside one atomic transaction.",
   },
   {
     question: "How does balance aggregation help?",
     answer:
-      "Nest summarizes what each member owes and is owed, then groups open expense shares by debtor and creditor. A settleWith call can clear every open share the caller owes to one counterparty; Nest does not claim a global minimum-transfer algorithm.",
+      "Every obligation updates signed net positions in the contract. Treasury V2 then derives a deterministic route from debtors to positive-balance creditors, allowing one call to settle some or all of a member's net debt.",
   },
   {
     question: "Why does Nest use Arc?",
@@ -880,17 +879,17 @@ const FAQS = [
   {
     question: "Can members fund Nest from another chain?",
     answer:
-      "Yes on testnet. The current bridge flow uses Circle CCTP v2 to burn native testnet USDC on a supported source chain, retrieve Circle's attestation and mint canonical testnet USDC on Arc.",
+      "Yes on testnet. The funding screen uses Circle App Kit to execute its supported CCTP v2 route from six EVM testnets to Arc, returning native USDC rather than a wrapped asset.",
   },
   {
     question: "What can an automated agent do?",
     answer:
-      "The current assistant is client-side: it builds a queue, applies a dust threshold and per-run cap, then walks approved settlements while logging transaction hashes. It does not receive unrestricted or autonomous treasury authority, and wallet authorization is still required.",
+      "A member can register an ERC-8004 identity and authorize one executor wallet. Treasury V2 enforces maximum spend per run and per 30-day period, policy expiry, cooldown, exact creditor routing and USDC allowance. Continuous autonomous operation still requires an external keeper or developer-controlled executor; Nest never stores its private key.",
   },
   {
     question: "Can another Arc application integrate Nest?",
     answer:
-      "The deployed ExpenseManager contract is publicly callable today. A polished typed SDK and embeddable settlement interface are roadmap items and are not claimed as currently available.",
+      "Treasury V2 is public Solidity with a generated typed ABI, so another Arc app can call the same obligations, preview, settlement and agent-policy functions. A packaged public SDK remains roadmap work.",
   },
   {
     question: "Is Nest ready for Arc mainnet?",

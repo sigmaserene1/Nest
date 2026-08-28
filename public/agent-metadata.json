@@ -1,0 +1,23 @@
+{
+  "type": "https://eips.ethereum.org/EIPS/eip-8004#registration-v1",
+  "name": "Nest Settlement Agent",
+  "description": "An ERC-8004 identity for executing contract-enforced net USDC settlements in Nest Treasury V2 on Arc.",
+  "image": "https://nestarc.xyz/favicon.ico",
+  "version": "2.0.0",
+  "active": true,
+  "services": [
+    {
+      "name": "web",
+      "endpoint": "https://nestarc.xyz/app/agent"
+    }
+  ],
+  "capabilities": [
+    "preview-net-settlement",
+    "execute-capped-usdc-settlement",
+    "emit-onchain-run-receipt"
+  ],
+  "chain": {
+    "name": "Arc Testnet",
+    "chainId": 5042002
+  }
+}

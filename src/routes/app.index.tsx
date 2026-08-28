@@ -1,390 +1,348 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppShell } from "@/components/nest/app-shell";
-import { MemberAvatar } from "@/components/nest/avatar";
-import { Stagger, Item, Tap, AnimatedNumber } from "@/components/nest/motion";
-import { EmptyState } from "@/components/nest/feedback";
-import { ActionModal, useActionModal, type ActionMode } from "@/components/nest/action-modal";
-import { ArcBadge, UsdcBadge, WalletChip, BlockTicker } from "@/components/nest/chain";
-import { useArcWallet } from "@/hooks/use-arc-wallet";
-
-import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
 import {
-  useExpenses,
-  useComputedBalances,
-  useHouseholdActivity,
-  useMembers,
-  useMe,
-  useNestChain,
-} from "@/lib/chain/nest-chain";
-import {
-  ArrowUpRight,
-  Send,
-  Download,
-  Split,
-  QrCode,
-  Plus,
+  ArrowDownRight,
   ArrowRight,
-  Sparkles,
-  TrendingUp,
+  Bot,
+  Braces,
+  CircleDollarSign,
+  FilePlus2,
+  Gauge,
+  Radio,
+  ReceiptText,
+  ShieldCheck,
+  Waypoints,
 } from "lucide-react";
+import { AppShell, Card } from "@/components/nest/app-shell";
+import { Button } from "@/components/ui/button";
+import { BlockTicker, WalletChip } from "@/components/nest/chain";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { fmtRelative, fmtUSD, getMember, shortAddress } from "@/lib/nest-data";
+import { useNestChain } from "@/lib/chain/nest-chain";
+import { explorerAddrUrl } from "@/lib/wagmi";
 
 export const Route = createFileRoute("/app/")({
   component: Dashboard,
   head: () => ({
     meta: [
-      { title: "Home · Nest" },
+      { title: "Treasury overview · Nest" },
       {
         name: "description",
-        content:
-          "Your Nest home dashboard: see what you owe, what you're owed, and settle shared household costs in USDC on Arc Testnet.",
+        content: "Live Arc treasury positions, settlements, agent limits, and contract activity.",
       },
-      { property: "og:title", content: "Home · Nest" },
-      {
-        property: "og:description",
-        content: "Balances, recent shared expenses and one-tap USDC settlement for your household.",
-      },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
 
-function Greeting() {
-  const { me: myId, myName: displayName } = useNestChain();
-  const me = { ...getMember(myId ?? ""), name: displayName ?? "You" };
-  const hour = new Date().getHours();
-  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const first = displayName ? displayName.split(" ")[0] : "there";
-  return (
-    <div className="flex items-center justify-between">
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-muted-foreground">{greet},</div>
-        <h1 className="truncate text-2xl font-bold tracking-tight sm:text-[28px]">{first} 👋</h1>
-      </div>
-      <div className="flex items-center gap-2">
-        <Link to="/app/members" aria-label="Profile">
-          <MemberAvatar member={me} size={44} ring />
-        </Link>
-      </div>
-    </div>
-  );
-}
-
 function Dashboard() {
-  const members = useMembers();
-  const expenses = useExpenses();
-  const currentUserId = useMe();
-
-  const activity = useHouseholdActivity();
-  const { net, debts } = useComputedBalances();
-  const iOwe = debts.filter((d) => d.fromId === currentUserId).reduce((s, d) => s + d.amount, 0);
-  const owedToMe = debts.filter((d) => d.toId === currentUserId).reduce((s, d) => s + d.amount, 0);
-  const myNet = net[currentUserId ?? ""] ?? 0;
-  const monthlySpend = expenses.reduce((s, e) => s + e.amount, 0);
-  const myShare = expenses.reduce((s, e) => s + e.amount / e.splitAmong.length, 0);
-  const topCat = Object.entries(
-    expenses.reduce<Record<string, number>>((acc, e) => {
-      acc[e.category] = (acc[e.category] ?? 0) + e.amount;
-      return acc;
-    }, {}),
-  ).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
-  const action = useActionModal();
   const wallet = useArcWallet();
+  const {
+    room,
+    contractAddress,
+    protocolVersion,
+    members,
+    expenses,
+    settlements,
+    agentPolicy,
+    net,
+    debts,
+    me,
+    usdcAllowance,
+  } = useNestChain();
+
+  const myNet = me ? (net[me] ?? 0) : 0;
+  const myDebts = debts.filter((debt) => debt.fromId === me);
+  const totalOwed = myDebts.reduce((sum, debt) => sum + debt.amount, 0);
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+  const monthVolume = expenses
+    .filter((expense) => new Date(expense.date) >= monthStart)
+    .reduce((sum, expense) => sum + expense.amount, 0);
 
   return (
-    <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
-      {/* Hero wallet card */}
-      <section
-
-        
-        className="mt-6"
-      >
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-6 text-background shadow-2xl">
-          {/* decorative blobs */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/40 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
-
-          <div className="relative flex items-center justify-between">
-            <ArcBadge variant="light" />
-            <div className="flex items-center gap-2">
+    <AppShell
+      greeting={
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Radio className="h-3.5 w-3.5 text-emerald-400" /> Live contract state
+              <span className="text-border">/</span>
               <BlockTicker />
-              <UsdcBadge />
             </div>
+            <h1 className="mt-2 text-2xl font-semibold sm:text-3xl">{room?.name ?? "Treasury"}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Net positions, payments, and agent authority verified from Arc.
+            </p>
           </div>
-
-          <div className="relative mt-8">
-            <div className="text-[11px] uppercase tracking-widest text-background/60">
-              Available balance
-            </div>
-            <div className="mt-1 flex items-baseline gap-2">
-              <div className="text-5xl font-bold tracking-tight tabular-nums">
-                {wallet.isConnected && wallet.isOnArc ? (
-                  <AnimatedNumber value={wallet.usdcBalance} decimals={2} />
-                ) : (
-                  "—"
-                )}
-              </div>
-              <div className="text-sm font-semibold text-background/70">USDC</div>
-            </div>
-            <div className="mt-2 flex items-center gap-2 text-xs text-background/60">
-              {wallet.address && <WalletChip address={wallet.address} variant="dark" />}
-              <span>
-                {wallet.isConnected
-                  ? wallet.isOnArc
-                    ? "Live on Arc Testnet"
-                    : "Wrong network"
-                  : "Connect your wallet to see your live balance"}
-              </span>
-            </div>
-          </div>
-
-          <div className="relative mt-6 grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-3 backdrop-blur">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-background/60">Net</div>
-              <div className={`mt-0.5 text-sm font-bold tabular-nums ${myNet >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
-                {myNet >= 0 ? "+" : ""}
-                <AnimatedNumber value={Math.abs(myNet)} prefix="$" />
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-background/60">You owe</div>
-              <div className="mt-0.5 text-sm font-bold tabular-nums text-rose-300">
-                <AnimatedNumber value={iOwe} prefix="$" />
-              </div>
-            </div>
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-background/60">To receive</div>
-              <div className="mt-0.5 text-sm font-bold tabular-nums text-emerald-300">
-                <AnimatedNumber value={owedToMe} prefix="$" />
-              </div>
-            </div>
-          </div>
-
-          <div className="relative mt-7 flex items-center gap-3">
-            <button
-              onClick={() => action.open("settle")}
-              className="group flex flex-1 items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold"
-            >
-              Settle Now
-              {iOwe > 0 && (
-                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">
-                  {fmtUSD(iOwe)}
-                </span>
-              )}
-              <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </button>
-            <button
-              onClick={() => action.open("send")}
-              className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition duration-200 hover:bg-white/20 active:scale-95"
-              aria-label="Send"
-            >
-              <Plus className="h-5 w-5" strokeWidth={2.5} />
-            </button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" asChild>
+              <Link to="/app/bridge">
+                <Waypoints /> Fund
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/app/expenses">
+                <FilePlus2 /> Record obligation
+              </Link>
+            </Button>
           </div>
         </div>
+      }
+    >
+      <section className="protocol-divider-grid grid-cols-2 lg:grid-cols-4">
+        <Metric
+          label="Wallet balance"
+          value={`${wallet.usdcBalance.toFixed(2)} USDC`}
+          detail="Spendable plus gas"
+          icon={CircleDollarSign}
+        />
+        <Metric
+          label="Net position"
+          value={`${myNet >= 0 ? "+" : "-"}${fmtUSD(Math.abs(myNet))}`}
+          detail={myNet >= 0 ? "Treasury owes you" : "You owe treasury"}
+          icon={Gauge}
+          tone={myNet < 0 ? "warning" : "positive"}
+        />
+        <Metric
+          label="Month recorded"
+          value={fmtUSD(monthVolume)}
+          detail={`${expenses.length} total obligations`}
+          icon={ReceiptText}
+        />
+        <Metric
+          label="Agent policy"
+          value={agentPolicy?.enabled ? "Active" : "Paused"}
+          detail={
+            agentPolicy?.enabled
+              ? `${fmtUSD(agentPolicy.maxPerRun)} per run`
+              : "No delegated execution"
+          }
+          icon={Bot}
+          tone={agentPolicy?.enabled ? "positive" : "default"}
+        />
       </section>
 
-      {/* Quick action pills */}
-      <Stagger className="mt-5 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <QuickPill
-          onClick={() => action.open("send")}
-          label="Send"
-          icon={<Send className="h-[18px] w-[18px]" />}
-          tint="bg-brand/10 text-brand"
-        />
-        <QuickPill
-          onClick={() => action.open("request")}
-          label="Request"
-          icon={<Download className="h-[18px] w-[18px]" />}
-          tint="bg-emerald-500/10 text-emerald-600"
-        />
-        <QuickPill
-          onClick={() => action.open("split")}
-          label="Split"
-          icon={<Split className="h-[18px] w-[18px]" />}
-          tint="bg-indigo-500/10 text-indigo-600"
-        />
-        <QuickPill
-          onClick={() => action.open("scan")}
-          label="Scan QR"
-          icon={<QrCode className="h-[18px] w-[18px]" />}
-          tint="bg-amber-500/10 text-amber-600"
-        />
-      </Stagger>
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.25fr_.75fr]">
+        <Card>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="protocol-label">Deterministic settlement</div>
+              <h2 className="mt-1 text-base font-semibold">Your next net route</h2>
+            </div>
+            <Button variant="outline" size="sm" asChild>
+              <Link to="/app/settle">
+                Open settlement <ArrowRight />
+              </Link>
+            </Button>
+          </div>
 
-      {/* Roommate carousel */}
-      <section className="mt-7">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold">Roommates</h2>
-          <Link to="/app/members" className="text-xs font-semibold text-brand">
-            View all
-          </Link>
-        </div>
-        <div className="mt-3 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {members.map((m) => {
-            const balance = net[m.id] ?? 0;
-            const positive = balance >= 0;
-            const isMe = m.id === currentUserId;
-            return (
-              <Tap key={m.id} className="snap-start">
-                <div className="card-premium flex w-[128px] flex-col items-center p-4">
-                  <div className="relative">
-                    <MemberAvatar member={m} size={58} />
-                    <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-white text-xs shadow-sm ring-1 ring-black/5">
-                      {m.emoji}
-                    </span>
-                  </div>
-                  <div className="mt-3 truncate text-sm font-semibold">
-                    {isMe ? "You" : m.name.split(" ")[0]}
-                  </div>
+          {myDebts.length > 0 ? (
+            <div className="mt-5 divide-y divide-border border-y border-border">
+              {myDebts.map((debt, index) => {
+                const creditor = getMember(debt.toId);
+                return (
                   <div
-                    className={`mt-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                      positive ? "bg-emerald-50 text-emerald-600" : "bg-brand/10 text-brand"
-                    }`}
+                    key={`${debt.toId}-${index}`}
+                    className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-3.5"
                   >
-                    {positive ? "+" : ""}
-                    {fmtUSD(balance)}
+                    <span className="grid h-8 w-8 place-items-center rounded-md bg-amber-400/10 text-amber-300">
+                      <ArrowDownRight className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-medium">Pay {creditor.name}</div>
+                      <div className="mt-0.5 font-mono text-[10px] text-muted-foreground">
+                        {shortAddress(debt.toId)}
+                      </div>
+                    </div>
+                    <div className="protocol-value text-sm text-amber-300">
+                      {fmtUSD(debt.amount)}
+                    </div>
                   </div>
-                </div>
-              </Tap>
-            );
-          })}
-          <Tap className="snap-start">
-            <Link
-              to="/app/members"
-              className="flex h-full w-[128px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-muted-foreground/25 p-4 text-muted-foreground transition hover:border-brand hover:text-brand"
-            >
-              <div className="grid h-[58px] w-[58px] place-items-center rounded-full bg-muted/60">
-                <Plus className="h-5 w-5" />
+                );
+              })}
+              <div className="flex items-center justify-between py-3.5 text-sm">
+                <span className="text-muted-foreground">Total route</span>
+                <span className="protocol-value font-semibold">{fmtUSD(totalOwed)}</span>
               </div>
-              <div className="mt-3 text-xs font-semibold">Invite</div>
-            </Link>
-          </Tap>
-        </div>
-      </section>
+            </div>
+          ) : (
+            <div className="mt-5 flex items-start gap-3 rounded-md border border-emerald-400/20 bg-emerald-400/5 p-4">
+              <ShieldCheck className="mt-0.5 h-4 w-4 text-emerald-300" />
+              <div>
+                <div className="text-sm font-medium text-emerald-200">
+                  Your net position is clear
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  The contract currently has no outgoing settlement route for this wallet.
+                </p>
+              </div>
+            </div>
+          )}
+        </Card>
 
-      {/* Monthly insight */}
-      <section
+        <Card>
+          <div className="protocol-label">Protocol state</div>
+          <h2 className="mt-1 text-base font-semibold">Verified deployment</h2>
+          <dl className="mt-5 space-y-3 text-xs">
+            <ProtocolRow label="Version" value={`Nest Treasury V${protocolVersion ?? "-"}`} />
+            <ProtocolRow label="Members" value={String(members.length)} />
+            <ProtocolRow label="Settlements" value={String(settlements.length)} />
+            <ProtocolRow label="USDC allowance" value={`${usdcAllowance.toFixed(2)} USDC`} />
+          </dl>
+          {contractAddress && (
+            <a
+              href={explorerAddrUrl(contractAddress)}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-5 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2.5 font-mono text-[10px] text-muted-foreground hover:border-primary/40 hover:text-primary"
+            >
+              <span>{shortAddress(contractAddress)}</span>
+              <Braces className="h-3.5 w-3.5" />
+            </a>
+          )}
+        </Card>
+      </div>
 
-        
-        className="mt-6"
-      >
-        <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 p-5 text-white shadow-lg">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
-              <Sparkles className="h-3 w-3" /> Monthly insight
-            </span>
-            <TrendingUp className="h-4 w-4 opacity-80" />
+      <Card className="mt-5 !p-0">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div>
+            <div className="protocol-label">Onchain ledger</div>
+            <h2 className="mt-1 text-base font-semibold">Recent obligations</h2>
           </div>
-          <div className="mt-5">
-            <div className="text-[11px] uppercase tracking-widest text-white/70">
-              You spent this month
-            </div>
-            <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">
-              {fmtUSD(myShare)}
-            </div>
-            <div className="mt-1 text-xs text-white/80">
-              Household total {fmtUSD(monthlySpend)} · Most on {topCat?.[0] ?? "—"}{" "}
-              {topCat ? categoryMeta[topCat[0] as keyof typeof categoryMeta]?.icon : ""}
-            </div>
-          </div>
-          <Link
-            to="/app/analytics"
-            className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
-          >
-            See insights <ArrowRight className="h-3.5 w-3.5" />
+          <Link to="/app/expenses" className="text-xs font-medium text-primary hover:underline">
+            View ledger
           </Link>
         </div>
-      </section>
-
-      {/* Recent activity */}
-      <section className="mt-7">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold">Recent activity</h2>
-          <Link to="/app/activity" className="text-xs font-semibold text-brand">
-            See all
-          </Link>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px] text-left text-xs">
+            <thead className="border-b border-border text-muted-foreground">
+              <tr>
+                <th className="px-5 py-3 font-medium">Reference</th>
+                <th className="px-3 py-3 font-medium">Payer</th>
+                <th className="px-3 py-3 font-medium">Category</th>
+                <th className="px-3 py-3 font-medium">Recorded</th>
+                <th className="px-5 py-3 text-right font-medium">Amount</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {expenses.slice(0, 6).map((expense) => (
+                <tr key={expense.id} className="hover:bg-muted/30">
+                  <td className="px-5 py-3.5">
+                    <div className="font-medium">{expense.title}</div>
+                    <div className="mt-0.5 font-mono text-[9px] text-muted-foreground">
+                      OBL-{expense.id.padStart(4, "0")}
+                    </div>
+                  </td>
+                  <td className="px-3 py-3.5">{getMember(expense.payerId).name}</td>
+                  <td className="px-3 py-3.5 text-muted-foreground">{expense.category}</td>
+                  <td className="px-3 py-3.5 text-muted-foreground">{fmtRelative(expense.date)}</td>
+                  <td className="protocol-value px-5 py-3.5 text-right font-medium">
+                    {fmtUSD(expense.amount)}
+                  </td>
+                </tr>
+              ))}
+              {expenses.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-10 text-center text-muted-foreground">
+                    No obligations have been recorded on this contract.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
-        <Stagger className="mt-3 space-y-2.5">
-          {activity.slice(0, 5).map((a) => {
-            const m = getMember(a.actorId);
-            const meta = a.category ? categoryMeta[a.category] : null;
-            const isIncoming = a.kind === "settlement";
-            return (
-              <Item key={a.id}>
-                <Tap>
-                  <div className="card-premium flex items-center gap-3 p-3.5">
-                    <div className="relative shrink-0">
-                      <MemberAvatar member={m} size={42} />
-                      {meta && (
-                        <span
-                          className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full text-[10px] ring-2 ring-white"
-                          style={{ background: meta.bg }}
-                        >
-                          {meta.icon}
-                        </span>
-                      )}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm">
-                        <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
-                        <span className="text-muted-foreground">{a.text}</span>
-                      </div>
-                      <div className="mt-0.5 flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <span>{fmtRelative(a.date)}</span>
-                      </div>
-                    </div>
-                    {a.amount != null && (
-                      <div
-                        className={`shrink-0 text-sm font-bold tabular-nums ${
-                          isIncoming ? "text-emerald-600" : "text-foreground"
-                        }`}
-                      >
-                        {isIncoming ? "+" : ""}
-                        {fmtUSD(a.amount)}
-                      </div>
-                    )}
-                  </div>
-                </Tap>
-              </Item>
-            );
-          })}
-        </Stagger>
-        {activity.length === 0 && (
-          <EmptyState
-            emoji="🪶"
-            title="No activity yet"
-            description="Add a shared expense or settle up — every event lands here, straight from Arc."
-          />
-        )}
+      </Card>
+
+      <section className="mt-5 grid gap-3 sm:grid-cols-3">
+        <ActionLink
+          to="/app/settle"
+          icon={CircleDollarSign}
+          title="Settle net position"
+          detail="Atomic USDC route with Arc memo"
+        />
+        <ActionLink
+          to="/app/agent"
+          icon={Bot}
+          title="Configure executor"
+          detail="Onchain caps, expiry, cooldown"
+        />
+        <ActionLink
+          to="/app/bridge"
+          icon={Waypoints}
+          title="Fund from another chain"
+          detail="Circle App Kit and CCTP"
+        />
       </section>
-      <ActionModal mode={action.mode} onClose={action.close} />
     </AppShell>
   );
 }
 
-function QuickPill({
-  onClick,
+function Metric({
   label,
-  icon,
-  tint,
+  value,
+  detail,
+  icon: Icon,
+  tone = "default",
 }: {
-  onClick: () => void;
   label: string;
-  icon: React.ReactNode;
-  tint: string;
+  value: string;
+  detail: string;
+  icon: typeof Gauge;
+  tone?: "default" | "positive" | "warning";
+}) {
+  const toneClass =
+    tone === "positive"
+      ? "text-emerald-300"
+      : tone === "warning"
+        ? "text-amber-300"
+        : "text-foreground";
+  return (
+    <div className="bg-card p-4 sm:p-5">
+      <div className="flex items-center justify-between">
+        <span className="protocol-label">{label}</span>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <div className={`protocol-value mt-4 text-xl font-semibold sm:text-2xl ${toneClass}`}>
+        {value}
+      </div>
+      <div className="mt-1 text-[11px] text-muted-foreground">{detail}</div>
+    </div>
+  );
+}
+
+function ProtocolRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-border pb-3 last:border-0 last:pb-0">
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="protocol-value text-right">{value}</dd>
+    </div>
+  );
+}
+
+function ActionLink({
+  to,
+  icon: Icon,
+  title,
+  detail,
+}: {
+  to: "/app/settle" | "/app/agent" | "/app/bridge";
+  icon: typeof Gauge;
+  title: string;
+  detail: string;
 }) {
   return (
-    <Item className="snap-start">
-      <Tap>
-        <button
-          onClick={onClick}
-          className="card-premium flex min-w-[104px] flex-col items-center gap-2 p-3.5"
-        >
-          <span className={`grid h-11 w-11 place-items-center rounded-xl ${tint}`}>{icon}</span>
-          <span className="text-xs font-semibold">{label}</span>
-        </button>
-      </Tap>
-    </Item>
+    <Link
+      to={to}
+      className="group flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition hover:border-primary/40"
+    >
+      <span className="grid h-9 w-9 place-items-center rounded-md bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{title}</span>
+        <span className="mt-0.5 block text-[11px] text-muted-foreground">{detail}</span>
+      </span>
+      <ArrowRight className="h-4 w-4 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-primary" />
+    </Link>
   );
 }

@@ -1,39 +1,68 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { AlertTriangle, Loader2 } from "lucide-react";
-import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { arcTestnet } from "@/lib/wagmi";
+import { ChevronDown, Loader2, Unplug, Wallet } from "lucide-react";
 
 export function WalletHeader() {
-  const { isConnected, isOnArc, switchToArc, isSwitching } = useArcWallet();
-
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-end gap-2">
-        <ConnectButton
-          accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
-          chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
-          showBalance={false}
-        />
-      </div>
+    <ConnectButton.Custom>
+      {({ account, chain, mounted, openAccountModal, openChainModal, openConnectModal }) => {
+        const connected = mounted && account && chain;
 
-      {isConnected && !isOnArc && (
-        <button
-          onClick={switchToArc}
-          disabled={isSwitching}
-          className="flex items-center justify-between gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-left text-sm ring-1 ring-amber-200 transition hover:bg-amber-100 disabled:opacity-70"
-        >
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <span className="font-semibold text-amber-900">
-              Wrong network — switch to {arcTestnet.name}
-            </span>
+        if (!connected) {
+          return (
+            <button
+              type="button"
+              onClick={openConnectModal}
+              disabled={!mounted}
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground transition hover:brightness-110 disabled:opacity-50"
+            >
+              {!mounted ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Wallet className="h-3.5 w-3.5" />
+              )}
+              Connect
+            </button>
+          );
+        }
+
+        if (chain.unsupported) {
+          return (
+            <button
+              type="button"
+              onClick={openChainModal}
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-amber-400/35 bg-amber-400/10 px-3 text-xs font-semibold text-amber-300"
+            >
+              <Unplug className="h-3.5 w-3.5" /> Switch network
+            </button>
+          );
+        }
+
+        return (
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={openChainModal}
+              className="hidden h-9 items-center gap-2 rounded-md border border-border bg-card px-2.5 text-xs text-muted-foreground hover:border-primary/40 sm:inline-flex"
+              aria-label="Change network"
+            >
+              {chain.hasIcon && chain.iconUrl ? (
+                <img src={chain.iconUrl} alt="" className="h-4 w-4 rounded" />
+              ) : (
+                <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              )}
+              <span>{chain.name}</span>
+            </button>
+            <button
+              type="button"
+              onClick={openAccountModal}
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-border bg-card px-2.5 font-mono text-xs hover:border-primary/40"
+            >
+              {account.displayName}
+              <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
           </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-600 px-3 py-1 text-xs font-bold text-white">
-            {isSwitching && <Loader2 className="h-3 w-3 animate-spin" />}
-            Switch
-          </span>
-        </button>
-      )}
-    </div>
+        );
+      }}
+    </ConnectButton.Custom>
   );
 }
