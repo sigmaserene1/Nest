@@ -5,13 +5,13 @@ import { useNestWrites } from "@/lib/chain/writes";
 
 function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: boolean }) {
   const { claimName } = useNestWrites();
-  const { isDemo, rpcMessage } = useNestChain();
+  const { isError, rpcMessage } = useNestChain();
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
   const save = async () => {
-    if (!name.trim() || isDemo) return;
+    if (!name.trim() || isError) return;
     setBusy(true);
     setError("");
     try {
@@ -63,14 +63,14 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
             {error}
           </div>
         )}
-        {isDemo && (
+        {isError && (
           <div className="mt-3 rounded-2xl bg-amber-50 p-3 text-[11px] font-semibold leading-relaxed text-amber-900">
             {rpcMessage}
           </div>
         )}
         <button
           onClick={save}
-          disabled={busy || isDemo || !name.trim()}
+          disabled={busy || isError || !name.trim()}
           className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-50"
         >
           {busy ? (
@@ -91,11 +91,11 @@ export function ProfileNameModal({ open, onClose }: { open: boolean; onClose: ()
 }
 
 export function ProfileOnboarding() {
-  const { me, myName, members, isDemo } = useNestChain();
+  const { me, myName, members, isError } = useNestChain();
   const [skipped, setSkipped] = useState(false);
   useEffect(() => setSkipped(false), [me]);
   const inRoom = !!me && members.some((m) => m.id === me);
-  const show = !isDemo && inRoom && !myName && !skipped;
+  const show = !isError && inRoom && !myName && !skipped;
   if (!show) return null;
   return <NameForm onDone={() => setSkipped(true)} dismissible />;
 }
