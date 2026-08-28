@@ -40,6 +40,13 @@ import { ThemeToggle } from "@/components/nest/theme-toggle";
 
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const CONTRACT_SOURCE_URL = `${GITHUB_URL}/blob/main/contracts/NestTreasuryV2.sol`;
+const NAV_LINKS = [
+  { label: "Product", href: "#protocol" },
+  { label: "How it works", href: "#flow" },
+  { label: "Use cases", href: "#use-cases" },
+  { label: "Why Arc", href: "#arc" },
+  { label: "FAQ", href: "#faq" },
+] as const;
 
 export const Route = createFileRoute("/")({
   component: Landing,
@@ -84,21 +91,15 @@ function Landing() {
             aria-label="Primary navigation"
             className="hidden items-center gap-7 text-[13px] font-semibold text-muted-foreground lg:flex"
           >
-            <a href="#protocol" className="transition-colors hover:text-foreground">
-              Protocol
-            </a>
-            <a href="#flow" className="transition-colors hover:text-foreground">
-              Settlement flow
-            </a>
-            <a href="#use-cases" className="transition-colors hover:text-foreground">
-              Use cases
-            </a>
-            <a href="#arc" className="transition-colors hover:text-foreground">
-              Why Arc
-            </a>
-            <a href="#faq" className="transition-colors hover:text-foreground">
-              FAQ
-            </a>
+            {NAV_LINKS.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="transition-colors hover:text-foreground"
+              >
+                {item.label}
+              </a>
+            ))}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -119,6 +120,21 @@ function Landing() {
             </Link>
           </div>
         </div>
+
+        <nav
+          aria-label="Landing page sections"
+          className="mx-auto flex max-w-7xl snap-x gap-2 overflow-x-auto px-5 pb-3 lg:hidden lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {NAV_LINKS.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
       </header>
 
       <main>
@@ -166,12 +182,10 @@ function Landing() {
                   Launch a treasury <ArrowRight className="h-4 w-4" />
                 </Link>
                 <a
-                  href={CONTRACT_SOURCE_URL}
-                  target="_blank"
-                  rel="noreferrer"
+                  href="#protocol"
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-6 py-3.5 text-sm font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40"
                 >
-                  Read V2 contract <ArrowUpRight className="h-4 w-4" />
+                  Explore product <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
 
@@ -205,7 +219,7 @@ function Landing() {
           </dl>
         </section>
 
-        <section id="protocol" className="scroll-mt-24 px-5 py-24 sm:py-32 lg:px-8">
+        <section id="protocol" className="scroll-mt-32 px-5 py-24 sm:py-32 lg:scroll-mt-24 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <SectionHeading
@@ -227,7 +241,7 @@ function Landing() {
 
         <section
           id="flow"
-          className="scroll-mt-24 border-y border-border bg-surface-muted/60 py-24 sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:py-32 lg:scroll-mt-24"
         >
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <Reveal>
@@ -268,7 +282,10 @@ function Landing() {
           </div>
         </section>
 
-        <section id="use-cases" className="scroll-mt-24 px-5 py-24 sm:py-32 lg:px-8">
+        <section
+          id="use-cases"
+          className="scroll-mt-32 px-5 py-24 sm:py-32 lg:scroll-mt-24 lg:px-8"
+        >
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <div className="grid items-end gap-8 lg:grid-cols-[0.9fr_1.1fr]">
@@ -321,7 +338,7 @@ function Landing() {
 
         <section
           id="arc"
-          className="scroll-mt-24 border-y border-border bg-foreground py-24 text-background sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-foreground py-24 text-background sm:py-32 lg:scroll-mt-24"
         >
           <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
             <Reveal>
@@ -406,7 +423,7 @@ function Landing() {
 
         <section
           id="faq"
-          className="scroll-mt-24 border-y border-border bg-surface-muted/60 py-24 sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:py-32 lg:scroll-mt-24"
         >
           <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
             <Reveal>
