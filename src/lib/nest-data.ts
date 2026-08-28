@@ -1,5 +1,5 @@
 // Shared types + presentation helpers for Nest.
-// All application state lives onchain in the ExpenseManager contract — there is
+// All financial application state lives onchain in NestTreasuryV2 — there is
 // no mock data here, only formatting and deterministic avatar styling.
 
 export type Member = {
@@ -11,6 +11,7 @@ export type Member = {
   gradient: string;
   wallet?: string;
   emoji: string;
+  admin?: boolean;
 };
 
 export const CATEGORIES = [
@@ -37,30 +38,43 @@ export type Expense = {
   settled: Record<string, boolean>;
   date: string;
   note?: string;
-};
-
-export type Settlement = {
-  id: string;
-  fromId: string;
-  toId: string;
-  amount: number;
-  txHash: string;
-  status: "confirmed" | "pending";
-  date: string;
+  referenceId?: `0x${string}`;
 };
 
 export type ActivityEvent = {
   id: string;
-  kind: "expense" | "settlement" | "member" | "transfer";
+  kind: "treasury" | "expense" | "settlement" | "member" | "transfer" | "policy" | "agent";
   actorId: string;
   counterpartyId?: string;
   text: string;
   date: string;
   amount?: number;
   category?: Category;
+  memoId?: `0x${string}`;
 };
 
 export type Debt = { fromId: string; toId: string; amount: number };
+
+/** Mirrors the contract's deterministic creditor order for preview surfaces. */
+export function computeNetDebts(members: Member[], net: Record<string, number>): Debt[] {
+  const creditors = members
+    .map((member) => ({ id: member.id, amount: Math.max(0, net[member.id] ?? 0) }))
+    .filter((entry) => entry.amount > 0.000001);
+  const debts: Debt[] = [];
+
+  for (const debtor of members) {
+    let remaining = Math.max(0, -(net[debtor.id] ?? 0));
+    for (const creditor of creditors) {
+      if (remaining <= 0.000001 || creditor.amount <= 0.000001) continue;
+      const amount = Math.min(remaining, creditor.amount);
+      debts.push({ fromId: debtor.id, toId: creditor.id, amount: +amount.toFixed(6) });
+      remaining -= amount;
+      creditor.amount -= amount;
+    }
+  }
+
+  return debts;
+}
 
 export function normalizeCategory(raw: string): Category {
   return (CATEGORIES as readonly string[]).includes(raw) ? (raw as Category) : "Other";
@@ -90,7 +104,7 @@ export function shortAddress(a: string): string {
 }
 
 /** Builds the display identity for a wallet address (name comes from the contract). */
-export function makeMember(address: string, name?: string): Member {
+export function makeMember(address: string, name?: string, admin = false): Member {
   const id = address.toLowerCase();
   const skin = PALETTE[hashAddr(id) % PALETTE.length];
   const display = name && name.trim() ? name.trim() : shortAddress(address);
@@ -106,6 +120,7 @@ export function makeMember(address: string, name?: string): Member {
             .replace(/[^a-z0-9]/g, "")}`
         : shortAddress(address),
     wallet: address,
+    admin,
     ...skin,
   };
 }
@@ -132,46 +147,6 @@ export function getMember(id: string): Member {
   );
 }
 
-// ------------------------------------------------------------------ balances
-
-/**
- * Net position per member derived from onchain expenses.
- * Positive = the household owes them; negative = they owe the household.
- * Settled shares are excluded because settlement moves real USDC.
- */
-export function computeBalances(expensesList: Expense[]): {
-  net: Record<string, number>;
-  debts: Debt[];
-} {
-  const net: Record<string, number> = {};
-  const pair = new Map<string, number>(); // `${debtor}|${creditor}` -> amount
-
-  for (const m of runtimeMembers) net[m.id] = 0;
-
-  for (const e of expensesList) {
-    net[e.payerId] ??= 0;
-    for (const uid of e.splitAmong) {
-      if (uid === e.payerId) continue;
-      if (e.settled[uid]) continue;
-      const amt = e.shares[uid] ?? 0;
-      if (amt <= 0) continue;
-      net[uid] = (net[uid] ?? 0) - amt;
-      net[e.payerId] = (net[e.payerId] ?? 0) + amt;
-      const k = `${uid}|${e.payerId}`;
-      pair.set(k, (pair.get(k) ?? 0) + amt);
-    }
-  }
-
-  const debts: Debt[] = [];
-  for (const [k, amount] of pair) {
-    if (amount < 0.005) continue;
-    const [fromId, toId] = k.split("|");
-    debts.push({ fromId, toId, amount: +amount.toFixed(2) });
-  }
-  debts.sort((a, b) => b.amount - a.amount);
-  return { net, debts };
-}
-
 // ----------------------------------------------------------------- formatting
 
 export function fmtUSD(n: number): string {
@@ -194,12 +169,3 @@ export function fmtRelative(iso: string): string {
   if (d < 30) return `${d}d ago`;
   return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
-
-export const categoryMeta: Record<Category, { icon: string; color: string; bg: string }> = {
-  Rent: { icon: "🏠", color: "#e53935", bg: "#ffe9e8" },
-  Groceries: { icon: "🛒", color: "#f59e0b", bg: "#fff4e0" },
-  Utilities: { icon: "⚡", color: "#6366f1", bg: "#eceffe" },
-  Internet: { icon: "📶", color: "#3b82f6", bg: "#e5eefe" },
-  Dining: { icon: "🍜", color: "#ec4899", bg: "#fde7f1" },
-  Other: { icon: "✨", color: "#10b981", bg: "#dcf7ec" },
-};

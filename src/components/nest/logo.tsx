@@ -2,22 +2,29 @@ export function NestLogo({ size = 32, showWord = true }: { size?: number; showWo
   return (
     <span className="inline-flex items-center gap-2">
       <span
-        className="grid place-items-center rounded-2xl text-white shadow-brand"
+        className="grid place-items-center rounded-md border border-primary/30 bg-primary/10 text-primary"
         style={{
           width: size,
           height: size,
-          background: "linear-gradient(135deg, #ff6a5b, #e53935)",
         }}
         aria-hidden
       >
         <svg viewBox="0 0 24 24" width={size * 0.55} height={size * 0.55} fill="none">
           <path
-            d="M4 11L12 4l8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1v-8z"
-            fill="currentColor"
+            d="M4.5 15.5c2.2-5.6 12.8-5.6 15 0M7.5 18.5c1.4-3.7 7.6-3.7 9 0"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
           />
+          <circle cx="12" cy="7" r="1.5" fill="currentColor" />
         </svg>
       </span>
-      {showWord && <span className="text-[19px] font-bold tracking-tight">Nest</span>}
+      {showWord && (
+        <span className="flex items-baseline gap-1.5">
+          <span className="text-[18px] font-semibold">Nest</span>
+          <span className="font-mono text-[9px] uppercase text-muted-foreground">Arc</span>
+        </span>
+      )}
     </span>
   );
 }
