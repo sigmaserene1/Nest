@@ -56,18 +56,18 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  --shadow-card: none;
-  --shadow-elevated: none;
-  --shadow-brand: none;
-  --shadow-glow: none;
-  --shadow-soft: none;
-  --shadow-lift: none;
+  --shadow-card: 0 1px 2px 0 rgb(15 23 42 / 0.04), 0 8px 24px -12px rgb(15 23 42 / 0.08);
+  --shadow-elevated: 0 20px 45px -20px rgb(15 23 42 / 0.18), 0 8px 20px -10px rgb(15 23 42 / 0.08);
+  --shadow-brand: 0 18px 40px -14px rgb(229 57 53 / 0.45);
+  --shadow-glow: 0 0 0 6px rgb(229 57 53 / 0.08);
+  --shadow-soft: 0 1px 2px rgb(15 23 42 / 0.04), 0 6px 18px -10px rgb(15 23 42 / 0.1);
+  --shadow-lift: 0 18px 40px -18px rgb(15 23 42 / 0.22), 0 6px 16px -8px rgb(15 23 42 / 0.1);
 }
 
 :root {
-  --radius: 0.5rem;
+  --radius: 0.75rem;
 
-  --background: #ffffff;
+  --background: #f7f8fa;
   --foreground: #0b1020;
 
   --surface: #ffffff;
@@ -133,6 +133,20 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image:
+      radial-gradient(
+        1200px 600px at 90% -10%,
+        color-mix(in oklab, var(--brand) 7%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        900px 500px at -10% 20%,
+        color-mix(in oklab, var(--info) 6%, transparent),
+        transparent 60%
+      );
+    background-attachment: fixed;
   }
   h1,
   h2,
@@ -285,13 +299,17 @@
 }
 
 @utility glass {
-  background: var(--card);
-  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--card) 78%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid color-mix(in oklab, var(--card) 60%, var(--color-border));
+  box-shadow: var(--shadow-card);
 }
 
 @utility glass-strong {
-  background: var(--card);
-  border: 1px solid var(--color-border);
+  background: color-mix(in oklab, var(--card) 92%, transparent);
+  backdrop-filter: saturate(180%) blur(24px);
+  border: 1px solid color-mix(in oklab, var(--card) 70%, var(--color-border));
+  box-shadow: var(--shadow-elevated);
 }
 
 @utility hairline {
@@ -299,20 +317,28 @@
 }
 
 @utility card-premium {
-  background: var(--card);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+  background: color-mix(in oklab, var(--card) 96%, transparent);
+  backdrop-filter: saturate(150%) blur(14px);
+  border: 1px solid color-mix(in oklab, var(--card) 75%, var(--color-border));
+  border-radius: 20px;
+  box-shadow:
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 10px 30px -18px rgb(15 23 42 / 0.18);
+  transition:
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @utility lift {
-  border-radius: 6px;
+  border-radius: 20px;
   transition:
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s cubic-bezier(0.22, 1, 0.36, 1);
   &:hover {
-    transform: translateY(-4px);
+    transform: translateY(-2px);
     border-color: color-mix(in oklab, var(--brand) 45%, transparent);
+    box-shadow: var(--shadow-lift);
   }
 }
 
@@ -394,6 +420,19 @@
   to {
     transform: rotate(360deg);
   }
+}
+@keyframes pulse-brand {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 14px color-mix(in oklab, var(--brand) 0%, transparent);
+  }
+}
+
+.animate-pulse-brand {
+  animation: pulse-brand 2s ease-in-out infinite;
 }
 
 .animate-float-in {
