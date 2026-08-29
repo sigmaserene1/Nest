@@ -21,6 +21,8 @@ import {
 } from "@/lib/nest-data";
 
 const REFRESH_MS = 20_000;
+const RPC_DOWN_MESSAGE =
+  "Arc RPC is temporarily unavailable. Nest will resume the verified onchain view automatically.";
 
 type RawRoom = { id: bigint; name: string; creator: string; createdAt: bigint };
 type RawExpense = {
