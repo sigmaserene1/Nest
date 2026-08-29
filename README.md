@@ -82,6 +82,41 @@ npx eslint src/routes/index.tsx src/routes/__root.tsx
 
 The repository currently contains pre-existing lint debt outside the landing page; a production build and TypeScript check are the reliable whole-app gates until that baseline is cleaned up.
 
+## Business V2 (new workspaces)
+
+The deployed `ExpenseManager` cannot lend or grant an unattended settlement
+authority. `NestBusinessV2.sol` is a separate Arc Testnet contract for new
+business workspaces; it leaves every legacy Nest home unchanged.
+
+It provides a 50%-LTV, USDC-collateral credit line and a revocable session-key
+policy. A session key can settle only genuine open shares for the workspace
+member who authorized it, within an onchain expiry plus per-run and per-period
+USDC caps. It cannot create expenses or make arbitrary transfers.
+
+Deploy only to Arc Testnet after a review:
+
+```bash
+# Store this only as a Codespaces secret; never put it in .env committed to git.
+export DEPLOYER_PRIVATE_KEY=0x...
+npm run deploy:business-v2
+```
+
+Set the emitted contract address in the app environment before publishing:
+
+```bash
+VITE_NEST_BUSINESS_V2_ADDRESS=0x...
+```
+
+The checked-in GitHub workflow can run the capped settlement key hourly after
+these GitHub Actions secrets are added: `NEST_BUSINESS_V2_ADDRESS`,
+`NEST_AGENT_ROOM_ID`, `NEST_AGENT_PRIVATE_KEY`, and optionally `ARC_RPC_URL`.
+Use a dedicated funded session key, not an owner wallet. The runner can also be
+started directly with `node scripts/run-business-agent.mjs`.
+
+Business V2 is testnet code, not an audited lending product. It must receive an
+independent security review, including economic and liquidation design review,
+before any mainnet or real-value deployment.
+
 ## Mainnet posture
 
 Nest currently runs on Arc Testnet. Mainnet deployment is not treated as a configuration switch: it requires independent contract review, verified deployment, production monitoring, and a deliberate migration plan.

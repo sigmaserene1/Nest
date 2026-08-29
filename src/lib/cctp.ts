@@ -30,6 +30,19 @@ export const ARC_CCTP_CONTRACTS = {
   usdc: ARC_USDC,
 } as const;
 
+/** Arc can be a CCTP source as well as a destination. */
+export const ARC_CCTP_CHAIN: CctpChain = {
+  id: "arc",
+  name: "Arc Testnet",
+  domain: ARC_DOMAIN,
+  chainId: ARC_CHAIN_ID,
+  usdc: ARC_USDC,
+  tokenMessengerV2: TOKEN_MESSENGER_V2,
+  messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
+  explorer: "https://testnet.arcscan.app",
+  eta: "~8 sec+",
+};
+
 /**
  * Circle CCTP v2 testnet.
  *
@@ -109,6 +122,9 @@ export const CCTP_SOURCES: CctpChain[] = [
     eta: "~8 sec+",
   },
 ];
+
+/** Every EVM testnet route Nest can present in either direction. */
+export const CCTP_CHAINS: CctpChain[] = [ARC_CCTP_CHAIN, ...CCTP_SOURCES];
 
 export const IRIS_SANDBOX_URL = "https://iris-api-sandbox.circle.com";
 
@@ -299,7 +315,8 @@ export async function getCctpFee(
     throw new Error("Circle returned no CCTP fee quote.");
   }
 
-  const fast = data.find((item: any) => Number(item.finalityThreshold) === FINALITY_FAST) ?? data[0];
+  const quotes = data as Array<{ finalityThreshold?: unknown; minimumFee?: unknown }>;
+  const fast = quotes.find((item) => Number(item.finalityThreshold) === FINALITY_FAST) ?? quotes[0];
 
   const minimumFee = Number(fast.minimumFee ?? 0);
 
@@ -331,7 +348,9 @@ export async function getAttestation(
   message?: Hex;
   attestation?: Hex;
 }> {
-  const response = await fetch(`${CCTP_MESSAGE_API}/${sourceDomain}?transactionHash=${transactionHash}`);
+  const response = await fetch(
+    `${CCTP_MESSAGE_API}/${sourceDomain}?transactionHash=${transactionHash}`,
+  );
 
   /**
    * Circle returns 404 until the burn message
@@ -407,7 +426,9 @@ export async function waitForAttestation(
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
 
-  throw new Error("CCTP attestation timed out. The burn succeeded, but Circle has not returned the attestation yet.");
+  throw new Error(
+    "CCTP attestation timed out. The burn succeeded, but Circle has not returned the attestation yet.",
+  );
 }
 
 export type RouteStep = {
@@ -415,7 +436,7 @@ export type RouteStep = {
   detail: string;
 };
 
-export function buildRoute(source: CctpChain, amount: string): RouteStep[] {
+export function buildRoute(source: CctpChain, destination: CctpChain, amount: string): RouteStep[] {
   return [
     {
       title: `Approve native USDC`,
@@ -433,20 +454,23 @@ export function buildRoute(source: CctpChain, amount: string): RouteStep[] {
     },
 
     {
-      title: "Mint on Arc",
+      title: `Mint on ${destination.name}`,
       detail:
-        "MessageTransmitterV2.receiveMessage verifies the attestation and mints native USDC directly to your Arc wallet.",
+        "MessageTransmitterV2.receiveMessage verifies the attestation and mints native USDC directly to your wallet.",
     },
 
     {
-      title: "Settle your Nest balance",
-      detail: "The USDC arriving on Arc becomes available for your household settlement.",
+      title: "Transfer complete",
+      detail:
+        destination.id === "arc"
+          ? "The USDC arriving on Arc is ready for Nest settlement."
+          : "The USDC arrives natively on the selected destination chain.",
     },
   ];
 }
 
 export const CCTP_STATUS =
-  "CCTP v2 uses Circle's burn-and-mint model. Native USDC is burned on the selected source chain, Circle attests the message, and MessageTransmitterV2 mints native USDC on Arc. No wrapped USDC is involved.";
+  "CCTP v2 burns native USDC on the source chain, Circle attests the message, and mints native USDC on the destination. No wrapped token or bridge liquidity pool is used.";
 
 export function formatUsdc(units: bigint): string {
   const whole = units / 1_000_000n;

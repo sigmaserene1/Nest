@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "verify:contract": "node scripts/verify-contract.mjs --dry-run",
-    "verify:contract:publish": "node scripts/verify-contract.mjs"
+    "verify:contract:publish": "node scripts/verify-contract.mjs",
+    "deploy:business-v2": "node scripts/deploy-business-v2.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

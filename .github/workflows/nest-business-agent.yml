@@ -1,0 +1,28 @@
+name: Nest Business agent
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  settle-open-shares:
+    runs-on: ubuntu-latest
+    # Configure these in GitHub Actions secrets after V2 deployment. The
+    # session key is capped and revocable onchain; never use an owner key.
+    env:
+      ARC_RPC_URL: ${{ secrets.ARC_RPC_URL }}
+      NEST_BUSINESS_V2_ADDRESS: ${{ secrets.NEST_BUSINESS_V2_ADDRESS }}
+      NEST_AGENT_ROOM_ID: ${{ secrets.NEST_AGENT_ROOM_ID }}
+      NEST_AGENT_PRIVATE_KEY: ${{ secrets.NEST_AGENT_PRIVATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/run-business-agent.mjs
