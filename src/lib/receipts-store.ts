@@ -1,74 +1,135 @@
-// Append-only receipt ledger for completed onchain settlements.
-// Records are keyed by tx hash and never mutated once written — a receipt is
-// proof of a confirmed Arc Testnet transaction, so editing it makes no sense.
+// Canonical payment receipts derived directly from Arc event logs.
+// The chain is the source of truth; nothing is persisted in browser storage.
 
-import { useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { parseAbiItem } from "viem";
+import { usePublicClient } from "wagmi";
+import { useContractAddress } from "./chain/config";
+import { arcTestnet } from "./wagmi";
+
+/** Kept wide so existing screens that label a payment keep working. */
+export type ReceiptKind = "settle" | "pay" | "rent" | "qr" | "transfer";
 
 export type Receipt = {
   hash: string;
   from: string;
   to: string;
   amount: number;
-  /** ISO timestamp of when the transaction confirmed. */
+  /** ISO timestamp of the Arc block that confirmed the transaction. */
   date: string;
-  kind: "settle" | "pay" | "rent" | "qr" | "transfer";
+  kind: ReceiptKind;
   note?: string;
-  chainId: number;
+  chainId?: number;
 };
 
-const KEY = "nest.receipts.v1";
+const SPLIT_SETTLED = parseAbiItem(
+  "event SplitSettled(uint256 indexed expenseId, address indexed from, address indexed to, uint256 amount)",
+);
 
-const listeners = new Set<() => void>();
-const notify = () => listeners.forEach((l) => l());
+const DIRECT_TRANSFER = parseAbiItem(
+  "event DirectTransfer(uint256 indexed roomId, address indexed from, address indexed to, uint256 amount, string note)",
+);
 
-function subscribe(cb: () => void) {
-  listeners.add(cb);
-  if (typeof window !== "undefined") window.addEventListener("storage", cb);
-  return () => {
-    listeners.delete(cb);
-    if (typeof window !== "undefined") window.removeEventListener("storage", cb);
-  };
-}
+const toUsdc = (value: bigint | undefined) => Number(value ?? 0n) / 1_000_000;
+const lower = (value: string | undefined) => (value ?? "").toLowerCase();
 
-let cache: Receipt[] | null = null;
+/**
+ * Compatibility shim for existing callers.
+ * A confirmed Arc transaction already exists in the event log, so there is
+ * intentionally nothing to persist here.
+ */
+export function recordReceipt(_receipt: Receipt) {}
 
-function readAll(): Receipt[] {
-  if (typeof window === "undefined") return [];
-  if (cache) return cache;
-  try {
-    const raw = localStorage.getItem(KEY);
-    const parsed = raw ? (JSON.parse(raw) as Receipt[]) : [];
-    cache = Array.isArray(parsed) ? parsed : [];
-  } catch {
-    cache = [];
-  }
-  return cache;
-}
-
-const EMPTY: Receipt[] = [];
-
+/** Browser-local receipt storage is retired. Use useReceipts() for Arc history. */
 export function getReceipts(): Receipt[] {
-  return readAll();
-}
-
-/** Writes a receipt once. Existing hashes are ignored — receipts are immutable. */
-export function recordReceipt(r: Receipt) {
-  if (typeof window === "undefined" || !r.hash) return;
-  const all = readAll();
-  if (all.some((x) => x.hash.toLowerCase() === r.hash.toLowerCase())) return;
-  const next = [Object.freeze({ ...r }), ...all];
-  cache = next;
-  try {
-    localStorage.setItem(KEY, JSON.stringify(next));
-  } catch {
-    /* storage full — the onchain record is still the source of truth */
-  }
-  notify();
+  return [];
 }
 
 export function useReceipts(wallet?: string | null): Receipt[] {
-  const all = useSyncExternalStore(subscribe, readAll, () => EMPTY);
-  if (!wallet) return all;
-  const w = wallet.toLowerCase();
-  return all.filter((r) => r.from.toLowerCase() === w || r.to.toLowerCase() === w);
+  const contractAddress = useContractAddress();
+  const publicClient = usePublicClient({ chainId: arcTestnet.id });
+  const [receipts, setReceipts] = useState<Receipt[]>([]);
+
+  useEffect(() => {
+    if (!contractAddress || !publicClient) {
+      setReceipts([]);
+      return;
+    }
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const [settlements, transfers] = await Promise.all([
+          publicClient.getLogs({ address: contractAddress, event: SPLIT_SETTLED, fromBlock: 0n }),
+          publicClient.getLogs({ address: contractAddress, event: DIRECT_TRANSFER, fromBlock: 0n }),
+        ]);
+
+        const logs = [
+          ...settlements.map((log) => ({
+            hash: log.transactionHash,
+            blockNumber: log.blockNumber,
+            from: lower(log.args.from),
+            to: lower(log.args.to),
+            amount: toUsdc(log.args.amount),
+            kind: "settle" as const,
+            note: "Expense settlement",
+          })),
+          ...transfers.map((log) => ({
+            hash: log.transactionHash,
+            blockNumber: log.blockNumber,
+            from: lower(log.args.from),
+            to: lower(log.args.to),
+            amount: toUsdc(log.args.amount),
+            kind: "transfer" as const,
+            note: log.args.note || "USDC transfer",
+          })),
+        ].filter((log) => Boolean(log.hash && log.blockNumber));
+
+        const uniqueBlocks = Array.from(new Set(logs.map((log) => log.blockNumber!)));
+        const timestampEntries = await Promise.all(
+          uniqueBlocks.map(async (blockNumber) => {
+            const block = await publicClient.getBlock({ blockNumber });
+            return [blockNumber.toString(), Number(block.timestamp)] as const;
+          }),
+        );
+        const timestamps = new Map(timestampEntries);
+
+        const next = logs
+          .map(
+            (log): Receipt => ({
+              hash: log.hash!,
+              from: log.from,
+              to: log.to,
+              amount: log.amount,
+              date: new Date(
+                (timestamps.get(log.blockNumber!.toString()) ?? 0) * 1000,
+              ).toISOString(),
+              kind: log.kind,
+              note: log.note,
+              chainId: arcTestnet.id,
+            }),
+          )
+          .sort((a, b) => b.date.localeCompare(a.date));
+
+        if (!cancelled) setReceipts(next);
+      } catch {
+        // Keep the last verified onchain view. Never substitute fabricated data.
+      }
+    };
+
+    void load();
+    const timer = window.setInterval(() => void load(), 20_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [contractAddress, publicClient]);
+
+  return useMemo(() => {
+    if (!wallet) return receipts;
+    const owner = wallet.toLowerCase();
+    return receipts.filter((r) => r.from === owner || r.to === owner);
+  }, [receipts, wallet]);
 }
