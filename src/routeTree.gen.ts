@@ -17,6 +17,7 @@ import { Route as AppActivityRouteImport } from './routes/app.activity'
 import { Route as AppAgentRouteImport } from './routes/app.agent'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppBridgeRouteImport } from './routes/app.bridge'
+import { Route as AppBusinessRouteImport } from './routes/app.business'
 import { Route as AppExpensesRouteImport } from './routes/app.expenses'
 import { Route as AppLendRouteImport } from './routes/app.lend'
 import { Route as AppMembersRouteImport } from './routes/app.members'
@@ -64,6 +65,11 @@ const AppBridgeRoute = AppBridgeRouteImport.update({
   path: '/bridge',
   getParentRoute: () => AppRoute,
 } as any)
+const AppBusinessRoute = AppBusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppExpensesRoute = AppExpensesRouteImport.update({
   id: '/expenses',
   path: '/expenses',
@@ -103,6 +109,7 @@ export interface FileRoutesByFullPath {
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bridge': typeof AppBridgeRoute
+  '/app/business': typeof AppBusinessRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
@@ -118,6 +125,7 @@ export interface FileRoutesByTo {
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bridge': typeof AppBridgeRoute
+  '/app/business': typeof AppBusinessRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
@@ -135,6 +143,7 @@ export interface FileRoutesById {
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bridge': typeof AppBridgeRoute
+  '/app/business': typeof AppBusinessRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/app/agent'
     | '/app/analytics'
     | '/app/bridge'
+    | '/app/business'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/app/agent'
     | '/app/analytics'
     | '/app/bridge'
+    | '/app/business'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
@@ -184,6 +195,7 @@ export interface FileRouteTypes {
     | '/app/agent'
     | '/app/analytics'
     | '/app/bridge'
+    | '/app/business'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
@@ -257,6 +269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppBridgeRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/business': {
+      id: '/app/business'
+      path: '/business'
+      fullPath: '/app/business'
+      preLoaderRoute: typeof AppBusinessRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/expenses': {
       id: '/app/expenses'
       path: '/expenses'
@@ -307,6 +326,7 @@ interface AppRouteChildren {
   AppAgentRoute: typeof AppAgentRoute
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppBridgeRoute: typeof AppBridgeRoute
+  AppBusinessRoute: typeof AppBusinessRoute
   AppExpensesRoute: typeof AppExpensesRoute
   AppLendRoute: typeof AppLendRoute
   AppMembersRoute: typeof AppMembersRoute
@@ -321,6 +341,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAgentRoute: AppAgentRoute,
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppBridgeRoute: AppBridgeRoute,
+  AppBusinessRoute: AppBusinessRoute,
   AppExpensesRoute: AppExpensesRoute,
   AppLendRoute: AppLendRoute,
   AppMembersRoute: AppMembersRoute,

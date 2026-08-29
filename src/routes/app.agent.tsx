@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Bot, Loader2, ShieldCheck, Zap, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Bot, Loader2, ShieldCheck, Timer, Zap, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
@@ -10,21 +10,22 @@ import { useNestWrites } from "@/lib/chain/writes";
 import { fmtUSD, getMember, fmtRelative } from "@/lib/nest-data";
 import { recordReceipt } from "@/lib/receipts-store";
 import { arcTestnet } from "@/lib/wagmi";
-import { useAgentConfig, useAgentRuns, type AgentRun } from "@/lib/agent-store";
+import { fmtCountdown, nextRunDate, useAgentConfig, useAgentRuns, type AgentRun } from "@/lib/agent-store";
 
 export const Route = createFileRoute("/app/agent")({
   component: AgentPage,
   head: () => ({
     meta: [
-      { title: "Settlement assistant · Nest" },
+      { title: "Auto-settle agent · Nest" },
       {
         name: "description",
-        content: "Review open household debts and submit wallet-confirmed USDC settlements on Arc.",
+        content:
+          "Let a Nest agent net your household debts and settle them in USDC on Arc automatically each month.",
       },
-      { property: "og:title", content: "Settlement assistant · Nest" },
+      { property: "og:title", content: "Auto-settle agent · Nest" },
       {
         property: "og:description",
-        content: "Non-custodial, wallet-confirmed USDC settlements on Arc.",
+        content: "Scheduled, spend-capped USDC settlements executed by an agent on Arc.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -48,6 +49,7 @@ function AgentPage() {
   );
   const queueTotal = queue.reduce((s, d) => s + d.amount, 0);
   const withinCap = queueTotal <= cfg.maxPerRun;
+  const next = nextRunDate(cfg.dayOfMonth);
 
   async function runNow() {
     if (!me) return toast.error("Connect your wallet first.");
@@ -110,7 +112,7 @@ function AgentPage() {
       greeting={
         <div>
           <div className="text-sm font-medium text-muted-foreground">Automation</div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Settlement assistant</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Auto-settle agent</h1>
         </div>
       }
     >
@@ -123,7 +125,7 @@ function AgentPage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-base font-bold">Nest settlement assistant</div>
+                  <div className="text-base font-bold">Nest co-signer</div>
                   <button
                     onClick={() => setCfg((p) => ({ ...p, enabled: !p.enabled }))}
                     className={`rounded-full px-3 py-1.5 text-xs font-bold ${
@@ -132,27 +134,37 @@ function AgentPage() {
                         : "bg-muted text-muted-foreground"
                     }`}
                   >
-                    {cfg.enabled ? "Ready" : "Off"}
+                    {cfg.enabled ? "Active" : "Paused"}
                   </button>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Review the current onchain debts, then submit the selected USDC settlements from
-                  your connected wallet. Nest holds no keys, cannot run while closed, and every
-                  payment still requires a wallet signature.
+                  The agent nets every open debt in this home and settles them in USDC on Arc —
+                  within the limits you set below. You stay non-custodial: nothing moves beyond your
+                  cap.
                 </p>
               </div>
             </div>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <Field label="Settle on day">
+                <input
+                  type="number"
+                  min={1}
+                  max={28}
+                  value={cfg.dayOfMonth}
+                  onChange={(e) =>
+                    setCfg((p) => ({ ...p, dayOfMonth: Number(e.target.value) || 1 }))
+                  }
+                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-semibold"
+                />
+              </Field>
               <Field label="Max per run (USDC)">
                 <input
                   type="number"
                   min={0}
                   step={10}
                   value={cfg.maxPerRun}
-                  onChange={(e) =>
-                    setCfg((p) => ({ ...p, maxPerRun: Number(e.target.value) || 0 }))
-                  }
+                  onChange={(e) => setCfg((p) => ({ ...p, maxPerRun: Number(e.target.value) || 0 }))}
                   className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-semibold"
                 />
               </Field>
@@ -165,6 +177,14 @@ function AgentPage() {
                   onChange={(e) => setCfg((p) => ({ ...p, minDebt: Number(e.target.value) || 0 }))}
                   className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-semibold"
                 />
+              </Field>
+              <Field label="Signature policy">
+                <button
+                  onClick={() => setCfg((p) => ({ ...p, requireApproval: !p.requireApproval }))}
+                  className="w-full rounded-lg border bg-background px-3 py-2 text-left text-sm font-semibold"
+                >
+                  {cfg.requireApproval ? "Confirm each transfer" : "Batch without prompts"}
+                </button>
               </Field>
             </div>
           </Card>
@@ -204,18 +224,16 @@ function AgentPage() {
 
             <button
               onClick={runNow}
-              disabled={running || queue.length === 0 || !cfg.enabled}
+              disabled={running || queue.length === 0}
               className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg btn-gradient py-3 text-sm font-bold disabled:opacity-50"
             >
               {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
-              {running
-                ? step || "Preparing settlements…"
-                : `Review & settle · ${fmtUSD(queueTotal)}`}
+              {running ? step || "Running agent…" : `Run agent now · ${fmtUSD(queueTotal)}`}
             </button>
           </Card>
 
           <Card>
-            <h3 className="text-sm font-bold">Run history on this device</h3>
+            <h3 className="text-sm font-bold">Run history</h3>
             <ul className="mt-4 space-y-2">
               {runs.map((r) => (
                 <li key={r.id} className="rounded-lg bg-muted/50 p-3">
@@ -255,12 +273,19 @@ function AgentPage() {
 
         <div className="space-y-4 lg:col-span-2">
           <Card className="!p-6">
-            <div className="text-sm font-bold">Review controls</div>
+            <div className="flex items-center gap-2 text-sm font-bold">
+              <Timer className="h-4 w-4 text-brand" /> Next scheduled run
+            </div>
+            <div className="mt-3 text-2xl font-bold tracking-tight">
+              {next.toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            </div>
+            <div className="text-sm text-muted-foreground">{fmtCountdown(next)}</div>
             <div className="mt-4 space-y-2 text-xs text-muted-foreground">
-              <div>Last run: {cfg.lastRunAt ? fmtRelative(cfg.lastRunAt) : "never"}</div>
-              <div>Run cap: {fmtUSD(cfg.maxPerRun)}</div>
+              <div>
+                Last run: {cfg.lastRunAt ? fmtRelative(cfg.lastRunAt) : "never"}
+              </div>
+              <div>Spend cap: {fmtUSD(cfg.maxPerRun)} per run</div>
               <div>Dust filter: under {fmtUSD(cfg.minDebt)} ignored</div>
-              <div>Settings and run history are stored only in this browser.</div>
             </div>
           </Card>
 
@@ -270,13 +295,11 @@ function AgentPage() {
             </div>
             <ul className="mt-3 space-y-3 text-xs text-muted-foreground">
               <li>Only settles debts you already owe — the agent can never create one.</li>
-              <li>The run cap and dust filter are checked before any transaction is requested.</li>
+              <li>Every transfer is capped and executed against the exact onchain amount.</li>
+              <li>Runs are logged with tx hashes and mirrored into your receipts.</li>
               <li>
-                Every payment is simulated against the current chain state, then signed by you.
-              </li>
-              <li>
-                Confirmed payments are independently visible in onchain receipts by transaction
-                hash.
+                While the browser is closed the agent stays queued; open Nest and the pending run
+                fires with one tap.
               </li>
             </ul>
           </Card>

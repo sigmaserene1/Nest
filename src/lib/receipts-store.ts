@@ -2,7 +2,8 @@
 // The chain is the source of truth; nothing is persisted in browser storage.
 
 import { useEffect, useMemo, useState } from "react";
-import { decodeEventLog, parseAbiItem, toEventSelector, type Hex } from "viem";
+import { parseAbiItem } from "viem";
+import { usePublicClient } from "wagmi";
 import { useContractAddress } from "./chain/config";
 import { arcTestnet } from "./wagmi";
 
@@ -28,84 +29,9 @@ const SPLIT_SETTLED = parseAbiItem(
 const DIRECT_TRANSFER = parseAbiItem(
   "event DirectTransfer(uint256 indexed roomId, address indexed from, address indexed to, uint256 amount, string note)",
 );
-const SPLIT_SETTLED_TOPIC = toEventSelector("SplitSettled(uint256,address,address,uint256)");
-const DIRECT_TRANSFER_TOPIC = toEventSelector(
-  "DirectTransfer(uint256,address,address,uint256,string)",
-);
 
 const toUsdc = (value: bigint | undefined) => Number(value ?? 0n) / 1_000_000;
 const lower = (value: string | undefined) => (value ?? "").toLowerCase();
-const EXPLORER_API = "https://testnet.arcscan.app/api";
-const DEPLOYMENT_BLOCK = 54_971_156;
-
-type ExplorerLog = {
-  data: Hex;
-  timeStamp: string;
-  topics: Array<Hex | null>;
-  transactionHash: Hex;
-};
-
-async function getExplorerLogs(address: string, topic: Hex): Promise<ExplorerLog[]> {
-  const params = new URLSearchParams({
-    module: "logs",
-    action: "getLogs",
-    fromBlock: String(DEPLOYMENT_BLOCK),
-    toBlock: "latest",
-    address,
-    topic0: topic,
-  });
-  const response = await fetch(`${EXPLORER_API}?${params}`);
-  if (!response.ok) throw new Error("Arcscan log request failed");
-  const payload = (await response.json()) as { result?: ExplorerLog[] | string };
-  return Array.isArray(payload.result) ? payload.result : [];
-}
-
-function blockDate(timestamp: string) {
-  const seconds = Number.parseInt(timestamp, 16);
-  return new Date(seconds * 1000).toISOString();
-}
-
-function eventTopics(log: ExplorerLog) {
-  return log.topics.filter((topic): topic is Hex => topic !== null) as [Hex, ...Hex[]];
-}
-
-function splitReceipt(log: ExplorerLog): Receipt {
-  const decoded = decodeEventLog({
-    abi: [SPLIT_SETTLED],
-    data: log.data,
-    topics: eventTopics(log),
-  });
-  const args = decoded.args as { from?: string; to?: string; amount?: bigint };
-  return {
-    hash: log.transactionHash,
-    from: lower(args.from),
-    to: lower(args.to),
-    amount: toUsdc(args.amount),
-    date: blockDate(log.timeStamp),
-    kind: "settle",
-    note: "Expense settlement",
-    chainId: arcTestnet.id,
-  };
-}
-
-function transferReceipt(log: ExplorerLog): Receipt {
-  const decoded = decodeEventLog({
-    abi: [DIRECT_TRANSFER],
-    data: log.data,
-    topics: eventTopics(log),
-  });
-  const args = decoded.args as { from?: string; to?: string; amount?: bigint; note?: string };
-  return {
-    hash: log.transactionHash,
-    from: lower(args.from),
-    to: lower(args.to),
-    amount: toUsdc(args.amount),
-    date: blockDate(log.timeStamp),
-    kind: "transfer",
-    note: args.note || "USDC transfer",
-    chainId: arcTestnet.id,
-  };
-}
 
 /**
  * Compatibility shim for existing callers.
@@ -121,10 +47,11 @@ export function getReceipts(): Receipt[] {
 
 export function useReceipts(wallet?: string | null): Receipt[] {
   const contractAddress = useContractAddress();
+  const publicClient = usePublicClient({ chainId: arcTestnet.id });
   const [receipts, setReceipts] = useState<Receipt[]>([]);
 
   useEffect(() => {
-    if (!contractAddress) {
+    if (!contractAddress || !publicClient) {
       setReceipts([]);
       return;
     }
@@ -133,16 +60,57 @@ export function useReceipts(wallet?: string | null): Receipt[] {
 
     const load = async () => {
       try {
-        // Arc's public RPC nodes prune historical event logs. Arcscan indexes
-        // the same finalized events and exposes their block timestamps, so this
-        // remains chain-derived even for receipts older than RPC retention.
         const [settlements, transfers] = await Promise.all([
-          getExplorerLogs(contractAddress, SPLIT_SETTLED_TOPIC),
-          getExplorerLogs(contractAddress, DIRECT_TRANSFER_TOPIC),
+          publicClient.getLogs({ address: contractAddress, event: SPLIT_SETTLED, fromBlock: 0n }),
+          publicClient.getLogs({ address: contractAddress, event: DIRECT_TRANSFER, fromBlock: 0n }),
         ]);
-        const next = [...settlements.map(splitReceipt), ...transfers.map(transferReceipt)].sort(
-          (a, b) => b.date.localeCompare(a.date),
+
+        const logs = [
+          ...settlements.map((log) => ({
+            hash: log.transactionHash,
+            blockNumber: log.blockNumber,
+            from: lower(log.args.from),
+            to: lower(log.args.to),
+            amount: toUsdc(log.args.amount),
+            kind: "settle" as const,
+            note: "Expense settlement",
+          })),
+          ...transfers.map((log) => ({
+            hash: log.transactionHash,
+            blockNumber: log.blockNumber,
+            from: lower(log.args.from),
+            to: lower(log.args.to),
+            amount: toUsdc(log.args.amount),
+            kind: "transfer" as const,
+            note: log.args.note || "USDC transfer",
+          })),
+        ].filter((log) => Boolean(log.hash && log.blockNumber));
+
+        const uniqueBlocks = Array.from(new Set(logs.map((log) => log.blockNumber!)));
+        const timestampEntries = await Promise.all(
+          uniqueBlocks.map(async (blockNumber) => {
+            const block = await publicClient.getBlock({ blockNumber });
+            return [blockNumber.toString(), Number(block.timestamp)] as const;
+          }),
         );
+        const timestamps = new Map(timestampEntries);
+
+        const next = logs
+          .map(
+            (log): Receipt => ({
+              hash: log.hash!,
+              from: log.from,
+              to: log.to,
+              amount: log.amount,
+              date: new Date(
+                (timestamps.get(log.blockNumber!.toString()) ?? 0) * 1000,
+              ).toISOString(),
+              kind: log.kind,
+              note: log.note,
+              chainId: arcTestnet.id,
+            }),
+          )
+          .sort((a, b) => b.date.localeCompare(a.date));
 
         if (!cancelled) setReceipts(next);
       } catch {
@@ -157,7 +125,7 @@ export function useReceipts(wallet?: string | null): Receipt[] {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [contractAddress]);
+  }, [contractAddress, publicClient]);
 
   return useMemo(() => {
     if (!wallet) return receipts;

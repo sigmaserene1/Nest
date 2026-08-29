@@ -1,6 +1,20 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import type { ElementType, ReactNode } from "react";
-import { Home, Receipt, ArrowLeftRight, Activity, Users, PieChart, Plus, ScrollText, Landmark, Bot, Waypoints, Briefcase } from "lucide-react";
+import {
+  Home,
+  Receipt,
+  ArrowLeftRight,
+  Activity,
+  Users,
+  PieChart,
+  Plus,
+  ScrollText,
+  Landmark,
+  Bot,
+  Waypoints,
+  Briefcase,
+  Building2,
+} from "lucide-react";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
@@ -27,7 +41,8 @@ const desktopExtra = [
   { to: "/app/bridge", label: "Cross-chain deposit", icon: Waypoints },
   { to: "/app/syndicate", label: "Syndicate mode", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
-  { to: "/app/lend", label: "Lend & Borrow", icon: Landmark },
+  { to: "/app/lend", label: "Lending status", icon: Landmark },
+  { to: "/app/business", label: "Business V2", icon: Building2 },
 ] as const;
 
 function useActive(path: string, exact = false) {
@@ -83,7 +98,6 @@ function BottomTab({
       className="flex flex-1 flex-col items-center gap-1 py-2 active:scale-[0.985]"
     >
       <span
-
         className={`grid h-9 w-12 place-items-center rounded-2xl transition-all duration-300 ${active ? "bg-foreground text-background shadow-soft" : "text-muted-foreground"}`}
       >
         <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.5 : 2} />
@@ -94,7 +108,6 @@ function BottomTab({
         {label}
       </span>
     </Link>
-
   );
 }
 
@@ -216,11 +229,7 @@ export function AppShell({
         <div className="glass-strong relative flex items-center rounded-[28px] px-2 py-1">
           <BottomTab to="/app" label="Home" icon={Home} exact />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
-          <div
-
-
-            className="relative -mt-8 mx-1"
-          >
+          <div className="relative -mt-8 mx-1">
             {onFabClick ? (
               <button
                 onClick={onFabClick}

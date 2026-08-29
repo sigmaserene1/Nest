@@ -1,30 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
 
 const KEY = "nest-theme";
 
 export function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const switchTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => {
     const stored = (typeof window !== "undefined" && localStorage.getItem(KEY)) as
-      "light" | "dark" | null;
+      | "light"
+      | "dark"
+      | null;
     const initial =
       stored ??
-      (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
+      (typeof window !== "undefined" &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
         ? "dark"
         : "light");
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
   }, []);
-
-  useEffect(
-    () => () => {
-      if (switchTimer.current !== undefined) window.clearTimeout(switchTimer.current);
-    },
-    [],
-  );
 
   const toggle = () => {
     setTheme((prev) => {
@@ -34,8 +29,8 @@ export function useTheme() {
       // Enable colour-only transitions for the duration of the swap so the
       // change reads as one continuous fade instead of an instant flip.
       root.classList.add("theme-switching");
-      if (switchTimer.current !== undefined) window.clearTimeout(switchTimer.current);
-      switchTimer.current = window.setTimeout(() => root.classList.remove("theme-switching"), 500);
+      window.clearTimeout(switchTimer);
+      switchTimer = window.setTimeout(() => root.classList.remove("theme-switching"), 500);
 
       root.classList.toggle("dark", next === "dark");
       root.style.colorScheme = next;
@@ -47,6 +42,8 @@ export function useTheme() {
       return next;
     });
   };
+
+
   return { theme, toggle };
 }
 
