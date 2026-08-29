@@ -1,10 +1,13 @@
-// Animations were removed in favour of a plain, static UI.
-// These components keep the previous API but render plain markup.
+// Lightweight CSS-only motion primitives. The exported API is unchanged.
 
 import type { HTMLAttributes, ReactNode } from "react";
 
 export function PageTransition({ children }: { children: ReactNode }) {
-  return <div>{children}</div>;
+  return (
+    <div className="animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out motion-reduce:animate-none">
+      {children}
+    </div>
+  );
 }
 
 export function Stagger({
@@ -15,7 +18,11 @@ export function Stagger({
   delay?: number;
   className?: string;
 }) {
-  return <div className={className}>{children}</div>;
+  return (
+    <div className={`animate-in fade-in duration-150 motion-reduce:animate-none ${className ?? ""}`}>
+      {children}
+    </div>
+  );
 }
 
 export function Item({
@@ -30,7 +37,10 @@ export function Item({
 } & HTMLAttributes<HTMLElement>) {
   const Tag = as as "div";
   return (
-    <Tag className={className} {...rest}>
+    <Tag
+      className={`animate-in fade-in slide-in-from-bottom-1 duration-150 motion-reduce:animate-none ${className ?? ""}`}
+      {...rest}
+    >
       {children}
     </Tag>
   );
@@ -42,7 +52,10 @@ export function Tap({
   ...rest
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
-    <div className={className} {...rest}>
+    <div
+      className={`transition-transform duration-150 active:scale-[0.99] motion-reduce:transition-none ${className ?? ""}`}
+      {...rest}
+    >
       {children}
     </div>
   );
@@ -56,7 +69,13 @@ export function Reveal({
   delay?: number;
   className?: string;
 }) {
-  return <div className={className}>{children}</div>;
+  return (
+    <div
+      className={`animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none ${className ?? ""}`}
+    >
+      {children}
+    </div>
+  );
 }
 
 /** Plain formatted number (no counting animation). */
