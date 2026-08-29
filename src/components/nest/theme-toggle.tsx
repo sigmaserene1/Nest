@@ -24,7 +24,16 @@ export function useTheme() {
   const toggle = () => {
     setTheme((prev) => {
       const next = prev === "dark" ? "light" : "dark";
-      document.documentElement.classList.toggle("dark", next === "dark");
+      const root = document.documentElement;
+
+      // Enable colour-only transitions for the duration of the swap so the
+      // change reads as one continuous fade instead of an instant flip.
+      root.classList.add("theme-switching");
+      window.clearTimeout(switchTimer);
+      switchTimer = window.setTimeout(() => root.classList.remove("theme-switching"), 500);
+
+      root.classList.toggle("dark", next === "dark");
+      root.style.colorScheme = next;
       try {
         localStorage.setItem(KEY, next);
       } catch {
@@ -33,6 +42,7 @@ export function useTheme() {
       return next;
     });
   };
+
 
   return { theme, toggle };
 }
