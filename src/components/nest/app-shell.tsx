@@ -9,6 +9,7 @@ import {
   PieChart,
   Plus,
   ScrollText,
+  Landmark,
   Bot,
   Waypoints,
   Briefcase,
@@ -36,16 +37,13 @@ const primary = [
 
 const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
-  { to: "/app/agent", label: "Settlement assistant", icon: Bot },
-  { to: "/app/bridge", label: "Bridge", icon: Waypoints },
-  { to: "/app/syndicate", label: "Payouts", icon: Briefcase },
+  { to: "/app/agent", label: "Auto-settle agent", icon: Bot },
+  { to: "/app/bridge", label: "Cross-chain deposit", icon: Waypoints },
+  { to: "/app/syndicate", label: "Syndicate mode", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
+  { to: "/app/lend", label: "Lending status", icon: Landmark },
+  { to: "/app/business", label: "Business V2", icon: Building2 },
 ] as const;
-
-const businessV2Configured = Boolean(import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS);
-const visibleDesktopExtra = businessV2Configured
-  ? [...desktopExtra, { to: "/app/business", label: "Business", icon: Building2 }]
-  : desktopExtra;
 
 function useActive(path: string, exact = false) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -181,7 +179,7 @@ export function AppShell({
             <div className="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Treasury & tools
             </div>
-            {visibleDesktopExtra.map((item) => (
+            {desktopExtra.map((item) => (
               <NavItem
                 key={item.to}
                 to={item.to}
@@ -222,7 +220,7 @@ export function AppShell({
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}
         <div className="mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 xl:hidden">
           <div className="flex w-max gap-2">
-            {visibleDesktopExtra.map((item) => (
+            {desktopExtra.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
