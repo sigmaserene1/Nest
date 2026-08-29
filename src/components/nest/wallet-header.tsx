@@ -9,6 +9,12 @@ export function WalletHeader() {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-end gap-2">
+        <span className="hidden items-center gap-1.5 rounded-full border bg-card/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground shadow-sm sm:inline-flex">
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${isConnected && isOnArc ? "bg-emerald-500" : "bg-muted-foreground/50"}`}
+          />
+          {isConnected && isOnArc ? "Arc ready" : "Wallet"}
+        </span>
         <ConnectButton
           accountStatus={{ smallScreen: "avatar", largeScreen: "full" }}
           chainStatus={{ smallScreen: "icon", largeScreen: "full" }}
@@ -20,11 +26,11 @@ export function WalletHeader() {
         <button
           onClick={switchToArc}
           disabled={isSwitching}
-          className="flex items-center justify-between gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-left text-sm ring-1 ring-amber-200 transition hover:bg-amber-100 disabled:opacity-70"
+          className="glass flex items-center justify-between gap-3 rounded-2xl border-amber-400/35 px-4 py-3 text-left text-sm transition hover:border-amber-400/60 disabled:opacity-70"
         >
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <span className="font-semibold text-amber-900">
+            <span className="font-semibold text-foreground">
               Wrong network — switch to {arcTestnet.name}
             </span>
           </div>

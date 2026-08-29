@@ -9,7 +9,6 @@ import {
   PieChart,
   Plus,
   ScrollText,
-  Landmark,
   Bot,
   Waypoints,
   Briefcase,
@@ -37,13 +36,16 @@ const primary = [
 
 const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
-  { to: "/app/agent", label: "Auto-settle agent", icon: Bot },
-  { to: "/app/bridge", label: "Cross-chain deposit", icon: Waypoints },
-  { to: "/app/syndicate", label: "Syndicate mode", icon: Briefcase },
+  { to: "/app/agent", label: "Settlement assistant", icon: Bot },
+  { to: "/app/bridge", label: "Bridge", icon: Waypoints },
+  { to: "/app/syndicate", label: "Payouts", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
-  { to: "/app/lend", label: "Lending status", icon: Landmark },
-  { to: "/app/business", label: "Business V2", icon: Building2 },
 ] as const;
+
+const businessV2Configured = Boolean(import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS);
+const visibleDesktopExtra = businessV2Configured
+  ? [...desktopExtra, { to: "/app/business", label: "Business", icon: Building2 }]
+  : desktopExtra;
 
 function useActive(path: string, exact = false) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -126,7 +128,7 @@ export function AppShell({
   const myName = displayName ?? "You";
 
   return (
-    <div className="min-h-screen text-foreground">
+    <div className="app-canvas min-h-screen text-foreground">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-80 flex-col p-6 xl:flex">
         <div className="glass-strong flex h-full flex-col rounded-3xl p-5">
@@ -164,13 +166,28 @@ export function AppShell({
           </div>
 
           <nav className="mt-6 flex-1 space-y-1">
-            {[...primary, ...desktopExtra].map((item) => (
+            <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Workspace
+            </div>
+            {primary.map((item) => (
               <NavItem
                 key={item.to}
                 to={item.to}
                 label={item.label}
                 icon={item.icon}
                 exact={"exact" in item ? item.exact : false}
+              />
+            ))}
+            <div className="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Treasury & tools
+            </div>
+            {visibleDesktopExtra.map((item) => (
+              <NavItem
+                key={item.to}
+                to={item.to}
+                label={item.label}
+                icon={item.icon}
+                exact={false}
               />
             ))}
           </nav>
@@ -205,7 +222,7 @@ export function AppShell({
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}
         <div className="mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 xl:hidden">
           <div className="flex w-max gap-2">
-            {desktopExtra.map((item) => (
+            {visibleDesktopExtra.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
@@ -226,14 +243,14 @@ export function AppShell({
 
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-3 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 lg:hidden">
-        <div className="glass-strong relative flex items-center rounded-[28px] px-2 py-1">
+        <div className="glass-strong relative flex items-center rounded-[28px] px-2 py-1.5">
           <BottomTab to="/app" label="Home" icon={Home} exact />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
           <div className="relative -mt-8 mx-1">
             {onFabClick ? (
               <button
                 onClick={onFabClick}
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-white/60"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-background"
                 aria-label="Quick action"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
@@ -242,7 +259,7 @@ export function AppShell({
               <Link
                 to="/app/settle"
                 preload="intent"
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-white/60"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-background"
                 aria-label="Settle up"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
