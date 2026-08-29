@@ -210,23 +210,15 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
 
   const me = address ? address.toLowerCase() : null;
 
-  // Arc's public RPC rate-limits aggressively and occasionally drops requests.
-  // When reads fail outright we fall back to a read-only sample home so the
-  // product stays navigable; live data resumes on the next successful poll.
-  const isDemo = Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
+  // Never replace chain failures with mock household state. When Arc's RPC is
+  // temporarily unavailable the UI keeps its last verified query cache and
+  // automatically retries on the next poll.
+  const hasRpcError =
+    Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
 
-  const members = useMemo(
-    () => (isDemo ? demoMembers(me) : liveMembers),
-    [isDemo, me, liveMembers],
-  );
-  const expenses = useMemo(
-    () => (isDemo ? demoExpenses(me) : liveExpenses),
-    [isDemo, me, liveExpenses],
-  );
-  const activity = useMemo(
-    () => (isDemo ? demoActivity(me) : liveActivity),
-    [isDemo, me, liveActivity],
-  );
+  const members = liveMembers;
+  const expenses = liveExpenses;
+  const activity = liveActivity;
 
   useEffect(() => {
     if (members.length > 0) setRuntimeMembers(members);
