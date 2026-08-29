@@ -8,7 +8,7 @@ import { formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { arcTestnet } from "@/lib/wagmi";
 import { useActiveRoom, useContractAddress } from "./config";
-import { demoActivity, demoExpenses, demoMembers, demoRoom, RPC_DOWN_MESSAGE } from "./demo";
+
 import {
   computeBalances,
   makeMember,
@@ -21,6 +21,8 @@ import {
 } from "@/lib/nest-data";
 
 const REFRESH_MS = 20_000;
+const RPC_DOWN_MESSAGE =
+  "Arc RPC is temporarily unavailable. Nest will resume the verified onchain view automatically.";
 
 type RawRoom = { id: bigint; name: string; creator: string; createdAt: bigint };
 type RawExpense = {
@@ -210,23 +212,15 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
 
   const me = address ? address.toLowerCase() : null;
 
-  // Arc's public RPC rate-limits aggressively and occasionally drops requests.
-  // When reads fail outright we fall back to a read-only sample home so the
-  // product stays navigable; live data resumes on the next successful poll.
-  const isDemo = Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
+  // Never replace chain failures with mock household state. When Arc's RPC is
+  // temporarily unavailable the UI keeps its last verified query cache and
+  // automatically retries on the next poll.
+  const hasRpcError =
+    Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
 
-  const members = useMemo(
-    () => (isDemo ? demoMembers(me) : liveMembers),
-    [isDemo, me, liveMembers],
-  );
-  const expenses = useMemo(
-    () => (isDemo ? demoExpenses(me) : liveExpenses),
-    [isDemo, me, liveExpenses],
-  );
-  const activity = useMemo(
-    () => (isDemo ? demoActivity(me) : liveActivity),
-    [isDemo, me, liveActivity],
-  );
+  const members = liveMembers;
+  const expenses = liveExpenses;
+  const activity = liveActivity;
 
   useEffect(() => {
     if (members.length > 0) setRuntimeMembers(members);
@@ -247,18 +241,18 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     contractAddress,
     me,
     myName,
-    rooms: isDemo && rooms.length === 0 ? [demoRoom] : rooms,
+    rooms,
     roomId,
-    room: rooms.find((r) => r.id === roomId) ?? (isDemo ? demoRoom : null),
+    room: rooms.find((r) => r.id === roomId) ?? null,
     selectRoom: select,
     members,
     expenses,
     activity,
     net,
     debts,
-    isLoading: !isDemo && (roomsQ.isLoading || roomQ.isLoading),
-    isDemo,
-    rpcMessage: RPC_DOWN_MESSAGE,
+    isLoading: !hasRpcError && (roomsQ.isLoading || roomQ.isLoading),
+    isDemo: false,
+    rpcMessage: hasRpcError ? RPC_DOWN_MESSAGE : "",
     refresh,
   };
 
