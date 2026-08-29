@@ -126,6 +126,9 @@
   * {
     border-color: var(--color-border);
   }
+  html {
+    text-rendering: optimizeLegibility;
+  }
   html,
   body {
     font-family: var(--font-sans);
@@ -133,6 +136,15 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a {
+    touch-action: manipulation;
+  }
+  button:not(:disabled),
+  a[href] {
+    cursor: pointer;
   }
   h1,
   h2,
@@ -234,14 +246,23 @@
   );
   color: #fff;
   transition:
-    transform 0.2s ease,
-    filter 0.2s ease;
+    transform 0.15s ease,
+    filter 0.15s ease,
+    opacity 0.15s ease;
+  will-change: transform;
   &:hover {
     transform: translateY(-1px);
     filter: brightness(1.06);
   }
+  &:active {
+    transform: translateY(0) scale(0.985);
+    filter: brightness(0.99);
+  }
   &:disabled {
     opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+    filter: none;
   }
 }
 
