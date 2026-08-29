@@ -1,21 +1,19 @@
-// Configuration + run log for the Nest auto-settle agent.
+// Local preferences and run history for Nest's settlement assistant.
 //
-// The agent is a client-side co-signer: it watches your net debts in the active
-// home and, once the schedule is due, walks every open debt and submits the
-// real onchain settlement for you. Spend limits are enforced before signing so
-// the agent can never move more USDC than you authorised.
+// The assistant prepares a wallet-confirmed batch while this browser is open.
+// It is not an autonomous signer, scheduler, or onchain policy engine.
 
 import { useLocalStore } from "./local-store";
 
 export type AgentConfig = {
   enabled: boolean;
-  /** Day of month (1-28) the agent nets and settles balances. */
+  /** Legacy local reminder preference, kept so existing browser data remains readable. */
   dayOfMonth: number;
-  /** Hard cap, in USDC, the agent may move in a single run. */
+  /** Local review cap, in USDC, checked before a transaction is requested. */
   maxPerRun: number;
   /** Skip debts smaller than this to avoid dust transactions. */
   minDebt: number;
-  /** Require a manual tap before each signature (agent still batches the work). */
+  /** Legacy local preference, retained for backwards compatibility. */
   requireApproval: boolean;
   /** ISO timestamp of the last completed run. */
   lastRunAt: string | null;

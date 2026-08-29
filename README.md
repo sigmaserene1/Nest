@@ -35,27 +35,27 @@ The contract stores rooms, membership, expenses, member shares, settlement statu
 
 ## Arc Testnet configuration
 
-| Property | Value |
-| --- | --- |
-| Chain ID | `5042002` |
-| Native gas asset | `USDC` |
+| Property              | Value                                        |
+| --------------------- | -------------------------------------------- |
+| Chain ID              | `5042002`                                    |
+| Native gas asset      | `USDC`                                       |
 | USDC ERC-20 interface | `0x3600000000000000000000000000000000000000` |
-| CCTP domain | `26` |
-| Primary RPC | `https://rpc.testnet.arc.network` |
-| Explorer | `https://testnet.arcscan.app` |
+| CCTP domain           | `26`                                         |
+| Primary RPC           | `https://rpc.testnet.arc.network`            |
+| Explorer              | `https://testnet.arcscan.app`                |
 
 All balances and transactions shown by the current deployment use testnet assets with no real-world monetary value.
 
 ## Stack
 
-| Layer | Technology |
-| --- | --- |
-| Application | TanStack Start, TanStack Router, React 19 |
-| Language | TypeScript |
-| UI | Tailwind CSS 4, Radix UI, Lucide |
-| Wallets | Wagmi, Viem, RainbowKit |
-| Contracts | Solidity 0.8.x |
-| Build and deployment | Vite, Nitro, Cloudflare module output |
+| Layer                | Technology                                |
+| -------------------- | ----------------------------------------- |
+| Application          | TanStack Start, TanStack Router, React 19 |
+| Language             | TypeScript                                |
+| UI                   | Tailwind CSS 4, Radix UI, Lucide          |
+| Wallets              | Wagmi, Viem, RainbowKit                   |
+| Contracts            | Solidity 0.8.x                            |
+| Build and deployment | Vite, Nitro, Cloudflare module output     |
 
 ## Run locally
 
@@ -67,6 +67,10 @@ npm run dev
 ```
 
 Vite prints the local URL when the development server is ready.
+
+`npm run preview` starts the same local development server. A production-like
+Cloudflare Worker preview must run in a Worker runtime; `vite preview` is not
+compatible with this Nitro Cloudflare build.
 
 Useful checks:
 

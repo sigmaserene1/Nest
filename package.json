@@ -7,10 +7,11 @@
     "dev": "vite dev",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "preview": "npm run dev",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "verify:contract": "node scripts/verify-contract.mjs"
+    "verify:contract": "node scripts/verify-contract.mjs --dry-run",
+    "verify:contract:publish": "node scripts/verify-contract.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
