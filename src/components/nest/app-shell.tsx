@@ -51,7 +51,8 @@ function NavItem({
   return (
     <Link
       to={to}
-      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-all ${
+      preload="intent"
+      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-150 active:scale-[0.985] ${
         active
           ? "bg-foreground text-background shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -76,7 +77,11 @@ function BottomTab({
 }) {
   const active = useActive(to, exact);
   return (
-    <Link to={to} className="flex flex-1 flex-col items-center gap-1 py-2">
+    <Link
+      to={to}
+      preload="intent"
+      className="flex flex-1 flex-col items-center gap-1 py-2 active:scale-[0.985]"
+    >
       <span
 
         className={`grid h-9 w-12 place-items-center rounded-2xl transition-all duration-300 ${active ? "bg-foreground text-background shadow-soft" : "text-muted-foreground"}`}
@@ -191,6 +196,7 @@ export function AppShell({
               <Link
                 key={item.to}
                 to={item.to}
+                preload="intent"
                 className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
               >
                 <item.icon className="h-3.5 w-3.5" />
@@ -226,6 +232,7 @@ export function AppShell({
             ) : (
               <Link
                 to="/app/settle"
+                preload="intent"
                 className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-white/60"
                 aria-label="Settle up"
               >
