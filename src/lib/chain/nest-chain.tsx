@@ -8,7 +8,7 @@ import { formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { arcTestnet } from "@/lib/wagmi";
 import { useActiveRoom, useContractAddress } from "./config";
-import { demoActivity, demoExpenses, demoMembers, demoRoom, RPC_DOWN_MESSAGE } from "./demo";
+
 import {
   computeBalances,
   makeMember,
