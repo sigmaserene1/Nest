@@ -281,21 +281,57 @@ contract NestBusinessV2 {
         emit AgentSettlement(roomId, debtor, creditor, msg.sender, amount);
     }
 
-    function _settleWith(uint256 roomId, address debtor, address creditor) internal returns (uint256 total) {
-        require(isMember[roomId][debtor] && isMember[roomId][creditor], "invalid counterparties");
+    /// @notice Marks every open share owed by `debtor` to `creditor` as settled and returns the total.
+    /// @dev State-only: the caller performs the single USDC transfer afterwards (checks-effects-interactions).
+    function _collect(uint256 roomId, address debtor, address creditor) internal returns (uint256 total) {
+        if (!isMember[roomId][debtor] || !isMember[roomId][creditor]) revert NotAMember();
         uint256[] storage ids = roomExpenses[roomId];
         for (uint256 i; i < ids.length; i++) {
             uint256 expenseId = ids[i];
             if (expenses[expenseId].payer != creditor) continue;
             uint256 amount = openShare(expenseId, debtor);
             if (amount == 0) continue;
-            require(usdc.transferFrom(debtor, creditor, amount), "USDC transfer failed");
             expenseSettled[expenseId][debtor] = true;
             total += amount;
             emit SplitSettled(expenseId, debtor, creditor, amount);
         }
-        require(total > 0, "nothing to settle");
     }
+
+    function _settleWith(uint256 roomId, address debtor, address creditor) internal returns (uint256 total) {
+        total = _collect(roomId, debtor, creditor);
+        if (total == 0) revert NothingToSettle();
+        if (!usdc.transferFrom(debtor, creditor, total)) revert TransferFailed();
+    }
+
+    /// @notice Settles every open obligation with up to 32 creditors in one transaction.
+    /// @dev One aggregated USDC transferFrom per creditor. Reverts the whole batch on any failure.
+    function settleBatch(uint256 roomId, address[] calldata creditors)
+        external
+        onlyMember(roomId)
+        returns (uint256 total)
+    {
+        uint256 count = creditors.length;
+        if (count == 0) revert EmptyBatch();
+        if (count > MAX_BATCH_COUNTERPARTIES) revert BatchTooLarge();
+
+        uint256[] memory amounts = new uint256[](count);
+        for (uint256 i; i < count; i++) {
+            for (uint256 j = i + 1; j < count; j++) {
+                if (creditors[i] == creditors[j]) revert DuplicateCreditor();
+            }
+            uint256 amount = _collect(roomId, msg.sender, creditors[i]);
+            amounts[i] = amount;
+            total += amount;
+        }
+        if (total == 0) revert NothingToSettle();
+
+        for (uint256 i; i < count; i++) {
+            if (amounts[i] == 0) continue;
+            if (!usdc.transferFrom(msg.sender, creditors[i], amounts[i])) revert TransferFailed();
+        }
+        emit BatchSettled(roomId, msg.sender, msg.sender, total, count);
+    }
+
 
     function supply(uint256 amount) external {
         require(amount > 0, "amount required");
