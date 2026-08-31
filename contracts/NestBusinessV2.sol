@@ -14,8 +14,23 @@ contract NestBusinessV2 {
     IBusinessUSDC public immutable usdc;
     uint256 public constant MAX_LTV_BPS = 5_000;
     uint256 public constant BORROW_APR_BPS = 800;
+    uint256 public constant MAX_BATCH_COUNTERPARTIES = 32;
+    uint256 public constant MAX_EXPENSE_PARTICIPANTS = 64;
     uint256 private constant BPS = 10_000;
     uint256 private constant YEAR = 365 days;
+
+    error InvalidSplits();
+    error TooManyParticipants();
+    error DuplicateParticipant();
+    error InvalidExpense();
+    error SharesMismatch();
+    error NotAMember();
+    error EmptyBatch();
+    error BatchTooLarge();
+    error DuplicateCreditor();
+    error NothingToSettle();
+    error TransferFailed();
+
 
     struct Room {
         uint256 id;
