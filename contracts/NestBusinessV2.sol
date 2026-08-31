@@ -113,6 +113,8 @@ contract NestBusinessV2 {
     event ManagerSet(uint256 indexed roomId, address indexed manager, bool enabled);
     event ExpenseAdded(uint256 indexed expenseId, uint256 indexed roomId, address indexed payer, uint256 amount);
     event SplitSettled(uint256 indexed expenseId, address indexed from, address indexed to, uint256 amount);
+    event BatchSettled(uint256 indexed roomId, address indexed debtor, address indexed submittedBy, uint256 amount, uint256 counterparties);
+
     event AgentPolicySet(uint256 indexed roomId, address indexed owner, address indexed agent, uint64 validUntil, uint256 maxPerRun, uint256 maxPerPeriod, uint64 periodSeconds);
     event AgentPolicyRevoked(uint256 indexed roomId, address indexed owner, address indexed agent);
     event AgentSettlement(uint256 indexed roomId, address indexed debtor, address indexed creditor, address agent, uint256 amount);
