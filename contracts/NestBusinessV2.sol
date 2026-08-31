@@ -165,14 +165,21 @@ contract NestBusinessV2 {
         string calldata description,
         uint256 totalAmount
     ) external onlyMember(roomId) returns (uint256 expenseId) {
-        require(participants.length > 0 && participants.length == shares.length, "invalid splits");
-        require(totalAmount > 0 && bytes(description).length > 0, "invalid expense");
+        if (participants.length == 0 || participants.length != shares.length) revert InvalidSplits();
+        if (participants.length > MAX_EXPENSE_PARTICIPANTS) revert TooManyParticipants();
+        if (totalAmount == 0 || bytes(description).length == 0 || bytes(description).length > 200) {
+            revert InvalidExpense();
+        }
         uint256 sum;
         for (uint256 i; i < participants.length; i++) {
-            require(isMember[roomId][participants[i]], "participant not a member");
+            if (!isMember[roomId][participants[i]]) revert NotAMember();
+            for (uint256 j = i + 1; j < participants.length; j++) {
+                if (participants[i] == participants[j]) revert DuplicateParticipant();
+            }
             sum += shares[i];
         }
-        require(sum == totalAmount, "shares must equal total");
+        if (sum != totalAmount) revert SharesMismatch();
+
         expenseId = ++expenseCount;
         expenses[expenseId] = Expense(expenseId, roomId, msg.sender, totalAmount, category, description, uint64(block.timestamp));
         for (uint256 i; i < participants.length; i++) {
