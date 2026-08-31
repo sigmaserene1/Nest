@@ -14,8 +14,23 @@ contract NestBusinessV2 {
     IBusinessUSDC public immutable usdc;
     uint256 public constant MAX_LTV_BPS = 5_000;
     uint256 public constant BORROW_APR_BPS = 800;
+    uint256 public constant MAX_BATCH_COUNTERPARTIES = 32;
+    uint256 public constant MAX_EXPENSE_PARTICIPANTS = 64;
     uint256 private constant BPS = 10_000;
     uint256 private constant YEAR = 365 days;
+
+    error InvalidSplits();
+    error TooManyParticipants();
+    error DuplicateParticipant();
+    error InvalidExpense();
+    error SharesMismatch();
+    error NotAMember();
+    error EmptyBatch();
+    error BatchTooLarge();
+    error DuplicateCreditor();
+    error NothingToSettle();
+    error TransferFailed();
+
 
     struct Room {
         uint256 id;
@@ -98,6 +113,8 @@ contract NestBusinessV2 {
     event ManagerSet(uint256 indexed roomId, address indexed manager, bool enabled);
     event ExpenseAdded(uint256 indexed expenseId, uint256 indexed roomId, address indexed payer, uint256 amount);
     event SplitSettled(uint256 indexed expenseId, address indexed from, address indexed to, uint256 amount);
+    event BatchSettled(uint256 indexed roomId, address indexed debtor, address indexed submittedBy, uint256 amount, uint256 counterparties);
+
     event AgentPolicySet(uint256 indexed roomId, address indexed owner, address indexed agent, uint64 validUntil, uint256 maxPerRun, uint256 maxPerPeriod, uint64 periodSeconds);
     event AgentPolicyRevoked(uint256 indexed roomId, address indexed owner, address indexed agent);
     event AgentSettlement(uint256 indexed roomId, address indexed debtor, address indexed creditor, address agent, uint256 amount);
@@ -165,14 +182,21 @@ contract NestBusinessV2 {
         string calldata description,
         uint256 totalAmount
     ) external onlyMember(roomId) returns (uint256 expenseId) {
-        require(participants.length > 0 && participants.length == shares.length, "invalid splits");
-        require(totalAmount > 0 && bytes(description).length > 0, "invalid expense");
+        if (participants.length == 0 || participants.length != shares.length) revert InvalidSplits();
+        if (participants.length > MAX_EXPENSE_PARTICIPANTS) revert TooManyParticipants();
+        if (totalAmount == 0 || bytes(description).length == 0 || bytes(description).length > 200) {
+            revert InvalidExpense();
+        }
         uint256 sum;
         for (uint256 i; i < participants.length; i++) {
-            require(isMember[roomId][participants[i]], "participant not a member");
+            if (!isMember[roomId][participants[i]]) revert NotAMember();
+            for (uint256 j = i + 1; j < participants.length; j++) {
+                if (participants[i] == participants[j]) revert DuplicateParticipant();
+            }
             sum += shares[i];
         }
-        require(sum == totalAmount, "shares must equal total");
+        if (sum != totalAmount) revert SharesMismatch();
+
         expenseId = ++expenseCount;
         expenses[expenseId] = Expense(expenseId, roomId, msg.sender, totalAmount, category, description, uint64(block.timestamp));
         for (uint256 i; i < participants.length; i++) {
@@ -259,21 +283,57 @@ contract NestBusinessV2 {
         emit AgentSettlement(roomId, debtor, creditor, msg.sender, amount);
     }
 
-    function _settleWith(uint256 roomId, address debtor, address creditor) internal returns (uint256 total) {
-        require(isMember[roomId][debtor] && isMember[roomId][creditor], "invalid counterparties");
+    /// @notice Marks every open share owed by `debtor` to `creditor` as settled and returns the total.
+    /// @dev State-only: the caller performs the single USDC transfer afterwards (checks-effects-interactions).
+    function _collect(uint256 roomId, address debtor, address creditor) internal returns (uint256 total) {
+        if (!isMember[roomId][debtor] || !isMember[roomId][creditor]) revert NotAMember();
         uint256[] storage ids = roomExpenses[roomId];
         for (uint256 i; i < ids.length; i++) {
             uint256 expenseId = ids[i];
             if (expenses[expenseId].payer != creditor) continue;
             uint256 amount = openShare(expenseId, debtor);
             if (amount == 0) continue;
-            require(usdc.transferFrom(debtor, creditor, amount), "USDC transfer failed");
             expenseSettled[expenseId][debtor] = true;
             total += amount;
             emit SplitSettled(expenseId, debtor, creditor, amount);
         }
-        require(total > 0, "nothing to settle");
     }
+
+    function _settleWith(uint256 roomId, address debtor, address creditor) internal returns (uint256 total) {
+        total = _collect(roomId, debtor, creditor);
+        if (total == 0) revert NothingToSettle();
+        if (!usdc.transferFrom(debtor, creditor, total)) revert TransferFailed();
+    }
+
+    /// @notice Settles every open obligation with up to 32 creditors in one transaction.
+    /// @dev One aggregated USDC transferFrom per creditor. Reverts the whole batch on any failure.
+    function settleBatch(uint256 roomId, address[] calldata creditors)
+        external
+        onlyMember(roomId)
+        returns (uint256 total)
+    {
+        uint256 count = creditors.length;
+        if (count == 0) revert EmptyBatch();
+        if (count > MAX_BATCH_COUNTERPARTIES) revert BatchTooLarge();
+
+        uint256[] memory amounts = new uint256[](count);
+        for (uint256 i; i < count; i++) {
+            for (uint256 j = i + 1; j < count; j++) {
+                if (creditors[i] == creditors[j]) revert DuplicateCreditor();
+            }
+            uint256 amount = _collect(roomId, msg.sender, creditors[i]);
+            amounts[i] = amount;
+            total += amount;
+        }
+        if (total == 0) revert NothingToSettle();
+
+        for (uint256 i; i < count; i++) {
+            if (amounts[i] == 0) continue;
+            if (!usdc.transferFrom(msg.sender, creditors[i], amounts[i])) revert TransferFailed();
+        }
+        emit BatchSettled(roomId, msg.sender, msg.sender, total, count);
+    }
+
 
     function supply(uint256 amount) external {
         require(amount > 0, "amount required");
