@@ -1,15 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowDownUp,
   CheckCircle2,
-  ChevronDown,
-  CircleDollarSign,
+  Clock,
   ExternalLink,
+  History,
   Info,
   Loader2,
   Send,
   ShieldCheck,
+  Trash2,
   Wallet,
   XCircle,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { getAccount, getPublicClient, getWalletClient } from "@wagmi/core";
 import { useAccount, useSwitchChain } from "wagmi";
 
 import { AppShell, Card } from "@/components/nest/app-shell";
+import { ChainLogo, ChainPicker, BridgeStepTracker, type TrackerState } from "@/components/nest/bridge-widgets";
 import {
   ANY_DESTINATION_CALLER,
   CCTP_CHAINS,
@@ -27,12 +29,11 @@ import {
   MESSAGE_TRANSMITTER_V2_ABI,
   TOKEN_MESSENGER_V2_ABI,
   addressToBytes32,
-  buildRoute,
   formatUsdc,
   getCctpFee,
   waitForAttestation,
-  type CctpChain,
 } from "@/lib/cctp";
+import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
 import { wagmiConfig } from "@/lib/wagmi";
 
 export const Route = createFileRoute("/app/bridge")({
@@ -49,42 +50,89 @@ export const Route = createFileRoute("/app/bridge")({
   }),
 });
 
-type TransferState =
-  | "idle"
-  | "switching"
-  | "checking"
-  | "approving"
-  | "burning"
-  | "attesting"
-  | "minting"
-  | "complete"
-  | "error";
+const QUOTE_REFRESH_MS = 15_000;
 
 function BridgePage() {
   const { address, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
+  const { entries, addEntry, updateEntry, clearHistory } = useBridgeHistory();
+
   const [fromId, setFromId] = useState("arc");
   const [toId, setToId] = useState("base");
   const [amount, setAmount] = useState("1");
   const [recipientInput, setRecipientInput] = useState("");
-  const [state, setState] = useState<TransferState>("idle");
+  const [state, setState] = useState<TrackerState>("idle");
   const [error, setError] = useState("");
   const [statusText, setStatusText] = useState("");
   const [approvalHash, setApprovalHash] = useState<Hex | "">("");
   const [burnHash, setBurnHash] = useState<Hex | "">("");
   const [mintHash, setMintHash] = useState<Hex | "">("");
   const [maxFee, setMaxFee] = useState<bigint>(0n);
+  const [quoteAt, setQuoteAt] = useState<number | null>(null);
+  const [sourceBalance, setSourceBalance] = useState<bigint | null>(null);
+  const activeEntryId = useRef<string | null>(null);
 
   const source = CCTP_CHAINS.find((chain) => chain.id === fromId) ?? CCTP_CHAINS[0];
   const destination = CCTP_CHAINS.find((chain) => chain.id === toId) ?? CCTP_CHAINS[1];
   const value = Number(amount);
   const isBusy = !["idle", "complete", "error"].includes(state);
   const recipient = recipientInput.trim() || address || "";
-  const route = useMemo(
-    () => buildRoute(source, destination, Number.isFinite(value) ? value.toFixed(2) : "0.00"),
-    [source, destination, value],
-  );
   const minimumReceived = Math.max(0, value - Number(formatUsdc(maxFee)));
+
+  // Fetch the connected wallet's native USDC balance on the selected source chain.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadBalance() {
+      if (!address) {
+        setSourceBalance(null);
+        return;
+      }
+      try {
+        const client = getPublicClient(wagmiConfig, { chainId: source.chainId as never });
+        if (!client) return;
+        const balance = await client.readContract({
+          address: source.usdc,
+          abi: ERC20_ABI,
+          functionName: "balanceOf",
+          args: [address],
+        });
+        if (!cancelled) setSourceBalance(balance);
+      } catch {
+        if (!cancelled) setSourceBalance(null);
+      }
+    }
+    loadBalance();
+    const interval = setInterval(loadBalance, QUOTE_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [address, source.chainId, source.usdc, state]);
+
+  // Auto-refresh the CCTP fee quote while the form is idle and the amount is valid.
+  useEffect(() => {
+    if (isBusy || source.id === destination.id || !Number.isFinite(value) || value <= 0) return;
+    let cancelled = false;
+    async function refreshQuote() {
+      try {
+        const amountUnits = BigInt(Math.round(value * 1_000_000));
+        const fee = await getCctpFee(source.domain, destination.domain, amountUnits);
+        if (!cancelled) {
+          setMaxFee(fee);
+          setQuoteAt(Date.now());
+        }
+      } catch {
+        // Quote refresh failures are non-fatal; the pre-flight check inside
+        // executeBridge will surface a hard error if the amount truly can't be quoted.
+      }
+    }
+    refreshQuote();
+    const interval = setInterval(refreshQuote, QUOTE_REFRESH_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [isBusy, source.id, source.domain, destination.id, destination.domain, value]);
 
   const swapRoute = () => {
     if (isBusy) return;
@@ -107,6 +155,11 @@ function BridgePage() {
     setMaxFee(0n);
   };
 
+  const useMaxBalance = () => {
+    if (sourceBalance === null || isBusy) return;
+    setAmount(formatUsdc(sourceBalance));
+  };
+
   async function executeBridge() {
     if (!address) return setError("Connect the wallet that holds the source USDC.");
     if (!Number.isFinite(value) || value <= 0) return setError("Enter a valid USDC amount.");
@@ -117,7 +170,9 @@ function BridgePage() {
     setApprovalHash("");
     setBurnHash("");
     setMintHash("");
-    setMaxFee(0n);
+
+    const entryId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    activeEntryId.current = entryId;
 
     try {
       const amountUnits = BigInt(Math.round(value * 1_000_000));
@@ -129,8 +184,8 @@ function BridgePage() {
         await switchChainAsync({ chainId: source.chainId as never });
       }
 
-      const sourceWallet = await getWalletClientForChain(source.chainId);
-      const sourcePublic = getPublicClientForChain(source.chainId);
+      const sourceWallet = await getWalletClient(wagmiConfig, { chainId: source.chainId as never });
+      const sourcePublic = getPublicClient(wagmiConfig, { chainId: source.chainId as never });
       if (!sourceWallet || !sourcePublic) throw new Error(`Unable to connect to ${source.name}.`);
 
       setState("checking");
@@ -151,6 +206,20 @@ function BridgePage() {
       }
       if (fee >= amountUnits) throw new Error("The CCTP fee is greater than this transfer amount.");
       setMaxFee(fee);
+      setQuoteAt(Date.now());
+
+      addEntry({
+        id: entryId,
+        fromId: source.id,
+        toId: destination.id,
+        fromName: source.name,
+        toName: destination.name,
+        amount: value.toFixed(2),
+        status: "pending",
+        startedAt: Date.now(),
+        explorerFrom: source.explorer,
+        explorerTo: destination.explorer,
+      });
 
       const allowance = await sourcePublic.readContract({
         address: source.usdc,
@@ -190,6 +259,7 @@ function BridgePage() {
         ],
       });
       setBurnHash(burn);
+      updateEntry(entryId, { burnHash: burn });
       const burnReceipt = await sourcePublic.waitForTransactionReceipt({ hash: burn });
       if (burnReceipt.status !== "success") throw new Error("CCTP burn transaction reverted.");
 
@@ -206,8 +276,8 @@ function BridgePage() {
       if (getAccount(wagmiConfig).chainId !== destination.chainId) {
         await switchChainAsync({ chainId: destination.chainId as never });
       }
-      const destinationWallet = await getWalletClientForChain(destination.chainId);
-      const destinationPublic = getPublicClientForChain(destination.chainId);
+      const destinationWallet = await getWalletClient(wagmiConfig, { chainId: destination.chainId as never });
+      const destinationPublic = getPublicClient(wagmiConfig, { chainId: destination.chainId as never });
       if (!destinationWallet || !destinationPublic)
         throw new Error(`Unable to connect to ${destination.name}.`);
 
@@ -225,12 +295,23 @@ function BridgePage() {
 
       setState("complete");
       setStatusText(`${value.toFixed(2)} USDC is now native on ${destination.name}.`);
+      updateEntry(entryId, { status: "complete", mintHash: mint });
     } catch (caught) {
       console.error("CCTP bridge error:", caught);
       setState("error");
-      setError(getReadableError(caught));
+      const message = getReadableError(caught);
+      setError(message);
+      if (activeEntryId.current) {
+        updateEntry(activeEntryId.current, { status: "error", errorMessage: message });
+      }
     }
   }
+
+  const quoteAgeLabel = useMemo(() => {
+    if (!quoteAt) return null;
+    const seconds = Math.max(0, Math.round((Date.now() - quoteAt) / 1000));
+    return seconds < 5 ? "just now" : `${seconds}s ago`;
+  }, [quoteAt, statusText]);
 
   return (
     <AppShell
@@ -251,7 +332,7 @@ function BridgePage() {
           <div className="border-b px-5 py-4 sm:px-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-bold">
-                <CircleDollarSign className="h-5 w-5 text-brand" />
+                <ChainLogo id={source.id} size={6} />
                 Native USDC transfer
               </div>
               <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[10px] font-bold text-brand">
@@ -260,7 +341,7 @@ function BridgePage() {
             </div>
           </div>
           <div className="space-y-3 p-5 sm:p-6">
-            <ChainSelect label="From" chain={source} disabled={isBusy} onChange={chooseSource} />
+            <ChainPicker label="From" chain={source} disabled={isBusy} exclude={toId} onChange={chooseSource} />
             <div className="-my-1 flex justify-center">
               <button
                 type="button"
@@ -272,14 +353,22 @@ function BridgePage() {
                 <ArrowDownUp className="h-4 w-4" />
               </button>
             </div>
-            <ChainSelect
-              label="To"
-              chain={destination}
-              disabled={isBusy}
-              onChange={chooseDestination}
-            />
+            <ChainPicker label="To" chain={destination} disabled={isBusy} exclude={fromId} onChange={chooseDestination} />
+
             <div className="rounded-2xl border bg-muted/30 p-4">
-              <label className="block text-xs font-semibold text-muted-foreground">You send</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-semibold text-muted-foreground">You send</label>
+                {sourceBalance !== null && (
+                  <button
+                    type="button"
+                    onClick={useMaxBalance}
+                    disabled={isBusy}
+                    className="text-[11px] font-bold text-brand disabled:opacity-50"
+                  >
+                    Balance {formatUsdc(sourceBalance)} · Max
+                  </button>
+                )}
+              </div>
               <div className="mt-2 flex items-center gap-3">
                 <input
                   value={amount}
@@ -293,7 +382,11 @@ function BridgePage() {
                   USDC
                 </span>
               </div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                ≈ ${Number.isFinite(value) ? value.toFixed(2) : "0.00"} USD
+              </div>
             </div>
+
             <label className="block">
               <span className="text-xs font-semibold text-muted-foreground">Recipient</span>
               <div className="mt-1 flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5">
@@ -316,6 +409,7 @@ function BridgePage() {
                 )}
               </div>
             </label>
+
             <div className="rounded-xl bg-muted/60 px-4 py-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Estimated received</span>
@@ -325,7 +419,13 @@ function BridgePage() {
                 <span>Maximum CCTP fee</span>
                 <span>{formatUsdc(maxFee)} USDC</span>
               </div>
+              {quoteAgeLabel && (
+                <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground/70">
+                  <Clock className="h-3 w-3" /> Quote refreshed {quoteAgeLabel}
+                </div>
+              )}
             </div>
+
             <button
               type="button"
               disabled={!isConnected || isBusy || !Number.isFinite(value) || value <= 0}
@@ -346,43 +446,53 @@ function BridgePage() {
                   <TxLink label="USDC approval" hash={approvalHash} explorer={source.explorer} />
                 )}
                 {burnHash && (
-                  <TxLink
-                    label={`Burn on ${source.name}`}
-                    hash={burnHash}
-                    explorer={source.explorer}
-                  />
+                  <TxLink label={`Burn on ${source.name}`} hash={burnHash} explorer={source.explorer} />
                 )}
                 {mintHash && (
-                  <TxLink
-                    label={`Mint on ${destination.name}`}
-                    hash={mintHash}
-                    explorer={destination.explorer}
-                  />
+                  <TxLink label={`Mint on ${destination.name}`} hash={mintHash} explorer={destination.explorer} />
                 )}
               </div>
             )}
           </div>
         </Card>
+
         <div className="space-y-4">
           <Card className="!p-5">
             <div className="flex items-center gap-2 text-sm font-bold">
               <ShieldCheck className="h-4 w-4 text-brand" />
-              Route preview
+              Transfer status
             </div>
-            <ol className="mt-4 space-y-4">
-              {route.map((step, index) => (
-                <li key={step.title} className="flex gap-3">
-                  <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brand-soft text-[11px] font-bold text-brand">
-                    {index + 1}
-                  </span>
-                  <div>
-                    <div className="text-xs font-bold">{step.title}</div>
-                    <p className="mt-1 text-xs leading-5 text-muted-foreground">{step.detail}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <BridgeStepTracker state={state} sourceName={source.name} destinationName={destination.name} />
           </Card>
+
+          <Card className="!p-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <History className="h-4 w-4 text-brand" />
+                Recent transfers
+              </div>
+              {entries.length > 0 && (
+                <button
+                  type="button"
+                  onClick={clearHistory}
+                  aria-label="Clear history"
+                  className="text-muted-foreground hover:text-red-500"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+            {entries.length === 0 ? (
+              <p className="mt-3 text-xs text-muted-foreground">Your bridge transfers will show up here.</p>
+            ) : (
+              <ul className="mt-3 space-y-2">
+                {entries.map((entry) => (
+                  <HistoryRow key={entry.id} entry={entry} />
+                ))}
+              </ul>
+            )}
+          </Card>
+
           <Card className="!p-5 text-xs leading-5 text-muted-foreground">
             <div className="flex items-start gap-2">
               <Info className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
@@ -400,54 +510,44 @@ function BridgePage() {
   );
 }
 
-function ChainSelect({
-  label,
-  chain,
-  disabled,
-  onChange,
-}: {
-  label: string;
-  chain: CctpChain;
-  disabled: boolean;
-  onChange: (id: string) => void;
-}) {
-  return (
-    <label className="block rounded-2xl border bg-background p-4 transition focus-within:border-brand">
-      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-      <div className="mt-2 flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand-soft text-sm font-black text-brand">
-          {chain.name.slice(0, 1)}
-        </span>
-        <select
-          value={chain.id}
-          onChange={(event) => onChange(event.target.value)}
-          disabled={disabled}
-          className="min-w-0 flex-1 appearance-none bg-transparent text-base font-bold outline-none disabled:opacity-50"
-        >
-          {CCTP_CHAINS.map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.name}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="h-4 w-4 text-muted-foreground" />
+function HistoryRow({ entry }: { entry: BridgeHistoryEntry }) {
+  const icon =
+    entry.status === "complete" ? (
+      <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+    ) : entry.status === "error" ? (
+      <XCircle className="h-3.5 w-3.5 text-red-500" />
+    ) : (
+      <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />
+    );
+  const link = entry.mintHash
+    ? `${entry.explorerTo}/tx/${entry.mintHash}`
+    : entry.burnHash
+      ? `${entry.explorerFrom}/tx/${entry.burnHash}`
+      : null;
+
+  const row = (
+    <div className="flex items-center gap-3 rounded-xl border px-3 py-2.5 transition hover:bg-muted">
+      <div className="flex items-center gap-1">
+        <ChainLogo id={entry.fromId} size={6} />
+        <ChainLogo id={entry.toId} size={6} />
       </div>
-      <span className="mt-2 block text-[11px] text-muted-foreground">
-        Native USDC · CCTP domain {chain.domain} · {chain.eta}
-      </span>
-    </label>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-xs font-bold">
+          {entry.fromName} → {entry.toName}
+        </div>
+        <div className="text-[11px] text-muted-foreground">{entry.amount} USDC</div>
+      </div>
+      <div className="flex items-center gap-1">
+        {icon}
+        {link && <ExternalLink className="h-3 w-3 text-muted-foreground" />}
+      </div>
+    </div>
   );
+
+  return <li>{link ? <a href={link} target="_blank" rel="noreferrer">{row}</a> : row}</li>;
 }
 
-function TransferNotice({
-  state,
-  statusText,
-  error,
-}: {
-  state: TransferState;
-  statusText: string;
-  error: string;
-}) {
+function TransferNotice({ state, statusText, error }: { state: TrackerState; statusText: string; error: string }) {
   if (error)
     return (
       <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-600">
@@ -459,9 +559,7 @@ function TransferNotice({
   const Icon = state === "complete" ? CheckCircle2 : state === "error" ? XCircle : Loader2;
   return (
     <div className="flex items-start gap-2 rounded-xl bg-muted/60 p-3 text-xs">
-      <Icon
-        className={`mt-0.5 h-4 w-4 shrink-0 ${state === "complete" ? "text-green-600" : state === "error" ? "text-red-500" : "animate-spin"}`}
-      />
+      <Icon className={`mt-0.5 h-4 w-4 shrink-0 ${state === "complete" ? "text-green-600" : state === "error" ? "text-red-500" : "animate-spin"}`} />
       <span>{statusText}</span>
     </div>
   );
@@ -483,18 +581,7 @@ function TxLink({ label, hash, explorer }: { label: string; hash: Hex; explorer:
   );
 }
 
-async function getWalletClientForChain(chainId: number) {
-  // The route is selected at runtime from the configured CCTP chain list.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return getWalletClient(wagmiConfig, { chainId: chainId as any });
-}
-
-function getPublicClientForChain(chainId: number) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return getPublicClient(wagmiConfig, { chainId: chainId as any });
-}
-
-function actionLabel(state: TransferState) {
+function actionLabel(state: TrackerState) {
   if (state === "approving") return "Approving USDC…";
   if (state === "burning") return "Burning native USDC…";
   if (state === "attesting") return "Waiting for Circle…";
@@ -504,12 +591,9 @@ function actionLabel(state: TransferState) {
 
 function getReadableError(error: unknown): string {
   const maybeError = error as { shortMessage?: string; details?: string; message?: string };
-  const message =
-    maybeError.shortMessage || maybeError.details || maybeError.message || "Unknown wallet error.";
+  const message = maybeError.shortMessage || maybeError.details || maybeError.message || "Unknown wallet error.";
   if (message.includes("User rejected")) return "You rejected the transaction in your wallet.";
-  if (message.toLowerCase().includes("insufficient funds"))
-    return "The wallet does not have enough funds for this transaction.";
-  if (message.includes("used nonce"))
-    return "This CCTP message has already been received on the destination chain.";
+  if (message.toLowerCase().includes("insufficient funds")) return "The wallet does not have enough funds for this transaction.";
+  if (message.includes("used nonce")) return "This CCTP message has already been received on the destination chain.";
   return message;
 }
