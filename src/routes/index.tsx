@@ -42,10 +42,8 @@ const CONTRACT_ADDRESS = "0x709cbAd88162b999882788155cde79aDe46A6D42";
 const CONTRACT_URL = `https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`;
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const NAV_LINKS = [
-  { label: "Product", href: "#protocol" },
   { label: "How it works", href: "#flow" },
   { label: "Use cases", href: "#use-cases" },
-  { label: "Why Arc", href: "#arc" },
   { label: "FAQ", href: "#faq" },
 ] as const;
 
@@ -105,14 +103,6 @@ function Landing() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="hidden items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:inline-flex"
-            >
-              GitHub <ArrowUpRight className="h-3.5 w-3.5" />
-            </a>
             <Link
               to="/app"
               className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-xs font-bold text-background transition-all hover:-translate-y-0.5 hover:opacity-90"
