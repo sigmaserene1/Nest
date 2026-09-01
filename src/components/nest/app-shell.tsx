@@ -17,7 +17,7 @@ import {
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
-import { ArcBadge, UsdcBadge, WalletChip } from "./chain";
+import { WalletChip } from "./chain";
 import { WalletHeader } from "./wallet-header";
 import { ThemeToggle } from "./theme-toggle";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
