@@ -910,11 +910,6 @@ const FAQS = [
       "The deployed ExpenseManager contract is publicly callable today. A polished typed SDK and embeddable settlement interface are roadmap items and are not claimed as currently available.",
   },
   {
-    question: "Is Nest ready for Arc mainnet?",
-    answer:
-      "Nest currently runs on Arc Testnet. Moving to mainnet is not described as a simple configuration change: it requires an independent security review, verified contracts, production monitoring and a deliberate deployment process.",
-  },
-  {
     question: "Is the USDC shown in the app real money?",
     answer:
       "No. Current balances and transactions use testnet USDC, which has no real-world monetary value. Users should verify the selected network before signing any transaction.",
