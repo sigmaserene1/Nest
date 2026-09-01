@@ -130,16 +130,13 @@ export function AppShell({
   return (
     <div className="app-canvas min-h-screen text-foreground">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-80 flex-col p-6 xl:flex">
-        <div className="glass-strong flex h-full flex-col rounded-3xl p-5">
-          <div className="flex items-center justify-between">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col p-4 lg:flex">
+        <div className="glass-strong flex h-full flex-col rounded-3xl p-4">
+          <div className="flex items-center justify-between px-1.5 py-1">
             <NestLogo />
           </div>
 
-
-
-
-          <nav className="mt-6 flex-1 space-y-1">
+          <nav className="scroll-clean mt-5 flex-1 space-y-1 overflow-y-auto">
             <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Workspace
             </div>
@@ -184,24 +181,32 @@ export function AppShell({
 
       {/* Main area */}
       <div className="lg:pl-72">
-        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8 lg:pt-6">
-          <RpcBanner />
-          <div className="flex items-start gap-2">
-            <div className="min-w-0 flex-1">
-              <WalletHeader />
+        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/70 backdrop-blur-xl">
+          <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center lg:hidden">
+              <NestLogo />
             </div>
-            <ThemeToggle className="mt-1 shrink-0" />
+            <div className="hidden min-w-0 lg:block" />
+            <div className="flex shrink-0 items-center gap-2">
+              <WalletHeader />
+              <ThemeToggle className="shrink-0" />
+            </div>
           </div>
+        </header>
+
+        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
+          <RpcBanner />
         </div>
+
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}
-        <div className="mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 xl:hidden">
+        <div className="scroll-clean mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 lg:hidden">
           <div className="flex w-max gap-2">
             {visibleDesktopExtra.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 preload="intent"
-                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-muted px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-muted/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
               >
                 <item.icon className="h-3.5 w-3.5" />
                 {item.label}
@@ -209,11 +214,14 @@ export function AppShell({
             ))}
           </div>
         </div>
-        {greeting && <div className="px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>}
+        {greeting && (
+          <div className="mx-auto max-w-6xl px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>
+        )}
         <main className="mx-auto max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
+
 
       {/* Mobile bottom nav */}
       <nav className="fixed bottom-3 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 lg:hidden">
