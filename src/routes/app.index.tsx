@@ -184,7 +184,7 @@ function Dashboard() {
       </section>
 
       {/* Quick action pills */}
-      <Stagger className="mt-5 -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <Stagger className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
         <QuickPill
           onClick={() => action.open("send")}
           label="Send"
@@ -210,6 +210,7 @@ function Dashboard() {
           tint="bg-amber-500/10 text-amber-600"
         />
       </Stagger>
+
 
       {/* Roommate carousel */}
       <section className="mt-7">
