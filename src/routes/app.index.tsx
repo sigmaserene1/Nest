@@ -264,39 +264,38 @@ function Dashboard() {
       </section>
 
       {/* Monthly insight */}
-      <section
-
-
-        className="mt-6"
-      >
-        <div className="relative overflow-hidden rounded-[24px] bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 p-5 text-white shadow-lg">
-          <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-white/15 blur-2xl" />
-          <div className="flex items-center justify-between">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider backdrop-blur">
+      <section className="mt-6">
+        <div className="card-premium relative overflow-hidden p-5">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-brand/10 blur-3xl" />
+          <div className="relative flex items-start justify-between gap-3">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
               <Sparkles className="h-3 w-3" /> Monthly insight
             </span>
-            <TrendingUp className="h-4 w-4 opacity-80" />
+            <TrendingUp className="h-4 w-4 shrink-0 text-muted-foreground" />
           </div>
-          <div className="mt-5">
-            <div className="text-[11px] uppercase tracking-widest text-white/70">
-              You spent this month
+          <div className="relative mt-5 grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+            <div className="min-w-0">
+              <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                You spent this month
+              </div>
+              <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">
+                {fmtUSD(myShare)}
+              </div>
+              <div className="mt-1 truncate text-xs text-muted-foreground">
+                Household total {fmtUSD(monthlySpend)} · Most on {topCat?.[0] ?? "—"}{" "}
+                {topCat ? categoryMeta[topCat[0] as keyof typeof categoryMeta]?.icon : ""}
+              </div>
             </div>
-            <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">
-              {fmtUSD(myShare)}
-            </div>
-            <div className="mt-1 text-xs text-white/80">
-              Household total {fmtUSD(monthlySpend)} · Most on {topCat?.[0] ?? "—"}{" "}
-              {topCat ? categoryMeta[topCat[0] as keyof typeof categoryMeta]?.icon : ""}
-            </div>
+            <Link
+              to="/app/analytics"
+              className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-muted/60 px-3.5 py-2 text-xs font-semibold transition hover:border-brand/40 hover:text-brand"
+            >
+              See insights <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
-          <Link
-            to="/app/analytics"
-            className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/25"
-          >
-            See insights <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
         </div>
       </section>
+
 
       {/* Recent activity */}
       <section className="mt-7">
