@@ -136,34 +136,8 @@ export function AppShell({
             <NestLogo />
           </div>
 
-          <div className="relative mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-4 text-background shadow-lg">
-            <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-brand/40 blur-2xl" />
-            <div className="pointer-events-none absolute -bottom-12 -left-8 h-32 w-32 rounded-full bg-indigo-500/30 blur-2xl" />
-            <div className="relative flex items-center justify-between">
-              <ArcBadge variant="light" />
-              <UsdcBadge />
-            </div>
-            <div className="relative mt-4">
-              <div className="text-[11px] text-background/60">Wallet balance</div>
-              <div className="mt-1 flex items-baseline gap-1.5">
-                {wallet.isConnected && wallet.isBalanceLoading ? (
-                  <div className="h-7 w-24 animate-pulse rounded-lg bg-white/15" />
-                ) : (
-                  <div className="text-2xl font-bold tracking-tight tabular-nums">
-                    {wallet.isConnected && wallet.isOnArc ? wallet.usdcBalance.toFixed(2) : "—"}
-                  </div>
-                )}
-                <span className="text-xs font-medium text-background/60">USDC</span>
-              </div>
-            </div>
-            <div className="relative mt-3">
-              {wallet.address ? (
-                <WalletChip address={wallet.address} variant="dark" />
-              ) : (
-                <span className="text-[11px] text-background/60">Wallet not connected</span>
-              )}
-            </div>
-          </div>
+
+
 
           <nav className="mt-6 flex-1 space-y-1">
             <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
