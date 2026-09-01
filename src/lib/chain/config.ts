@@ -9,6 +9,9 @@ const ROOM_KEY = (w: string) => `nest.room.${w.toLowerCase()}`;
 export const CANONICAL_EXPENSE_MANAGER_ADDRESS =
   "0x709cbad88162b999882788155cde79ade46a6d42" as const;
 
+/** Block the canonical ExpenseManager was deployed at — kept beside the address so a redeploy can't silently desync history. */
+export const EXPENSE_MANAGER_DEPLOYMENT_BLOCK = 54_971_156;
+
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((l) => l());
 

@@ -3,7 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { decodeEventLog, parseAbiItem, toEventSelector, type Hex } from "viem";
-import { useContractAddress } from "./chain/config";
+import { useContractAddress, EXPENSE_MANAGER_DEPLOYMENT_BLOCK as DEPLOYMENT_BLOCK } from "./chain/config";
 import { arcTestnet } from "./wagmi";
 
 /** Kept wide so existing screens that label a payment keep working. */
@@ -36,7 +36,6 @@ const DIRECT_TRANSFER_TOPIC = toEventSelector(
 const toUsdc = (value: bigint | undefined) => Number(value ?? 0n) / 1_000_000;
 const lower = (value: string | undefined) => (value ?? "").toLowerCase();
 const EXPLORER_API = "https://testnet.arcscan.app/api";
-const DEPLOYMENT_BLOCK = 54_971_156;
 
 type ExplorerLog = {
   data: Hex;
