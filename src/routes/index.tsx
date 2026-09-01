@@ -396,9 +396,8 @@ function Landing() {
                       Claims should resolve to evidence.
                     </h2>
                     <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      Nest exposes its deployed contract, transaction history and linked receipts.
-                      Testnet status is stated clearly, and mainnet readiness is treated as security
-                      work—not a configuration toggle.
+                      Nest exposes its deployed contract, transaction history and linked receipts,
+                      so every claim can be checked against onchain state rather than taken on faith.
                     </p>
                   </div>
 
@@ -437,8 +436,7 @@ function Landing() {
                   Questions builders and users should ask
                 </h2>
                 <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
-                  No hidden mainnet claims, no vague custody language and no pretending roadmap
-                  items already exist.
+                  No vague custody language and no pretending roadmap items already exist.
                 </p>
               </div>
             </Reveal>
@@ -855,11 +853,6 @@ const EVIDENCE = [
     label: "Custody model",
     value: "Wallet-to-wallet settlement",
     note: "Nest records obligations and settlement events; it does not operate a pooled customer balance.",
-  },
-  {
-    label: "Mainnet posture",
-    value: "Security work required",
-    note: "Mainnet deployment will require contract review, verified deployment and operational readiness.",
   },
 ];
 
