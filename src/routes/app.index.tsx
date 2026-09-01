@@ -376,16 +376,19 @@ function QuickPill({
   tint: string;
 }) {
   return (
-    <Item className="snap-start">
+    <Item>
       <Tap>
         <button
           onClick={onClick}
-          className="card-premium flex min-w-[104px] flex-col items-center gap-2 p-3.5"
+          className="card-premium flex w-full items-center gap-3 p-3.5 text-left transition hover:border-brand/40"
         >
-          <span className={`grid h-11 w-11 place-items-center rounded-xl ${tint}`}>{icon}</span>
-          <span className="text-xs font-semibold">{label}</span>
+          <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${tint}`}>
+            {icon}
+          </span>
+          <span className="truncate text-sm font-semibold">{label}</span>
         </button>
       </Tap>
     </Item>
+
   );
 }
