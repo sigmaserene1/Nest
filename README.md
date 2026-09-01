@@ -117,51 +117,6 @@ Business V2 is testnet code, not an audited lending product. It must receive an
 independent security review, including economic and liquidation design review,
 before any mainnet or real-value deployment.
 
-## Mainnet posture
-
-Nest currently runs on Arc Testnet. Mainnet deployment is not treated as a
-configuration switch: it requires independent contract review, verified
-deployment, production monitoring, and a deliberate migration plan. Arc's
-public mainnet is scheduled to launch September 16, 2026; the checklist below
-tracks Nest's own readiness against that date rather than Arc's.
-
-| Item | Status | Owner | Last reviewed |
-| --- | --- | --- | --- |
-| CI on every push/PR (typecheck, lint, build, contract tests) | ✅ Passing — see `.github/workflows/ci.yml` | @sigmaserene1 | 2026-09-01 |
-| `ExpenseManager.sol` test coverage | ✅ 12 Foundry tests — rooms, invites, display names, share validation, settlement, balance invariant | @sigmaserene1 | 2026-09-01 |
-| `NestBusinessV2.sol` test coverage | ✅ 30 Foundry tests — workspaces, LTV cap, interest accrual, agent policy caps/expiry/revocation | @sigmaserene1 | 2026-09-01 |
-| Independent security audit of `NestBusinessV2` credit-pool and agent-policy logic | ❌ Not started — Foundry tests are a safety net, not a substitute for an external audit | Unassigned | — |
-| Dependency vulnerability audit (`npm audit --omit=dev`) | ✅ Reviewed — 1 high-severity item (`ws`) accepted as low-risk, see below | @sigmaserene1 | 2026-09-01 |
-| Leaked credential rotation (Supabase key committed pre-2026-09-01) | ✅ Rotated; `.env` untracked and gitignored | @sigmaserene1 | 2026-09-01 |
-| Verified, reproducible deployment script for mainnet | ❌ `scripts/deploy-business-v2.mjs` exists for testnet; no mainnet-specific runbook yet | Unassigned | — |
-| Production monitoring / alerting (RPC errors, agent job failures, low-liquidity pool alerts) | ❌ Not implemented — the settlement agent's hourly GitHub Action has no failure alerting | Unassigned | — |
-| Compliance / sanctions screening before settlement | ❌ Not implemented | Unassigned | — |
-| Go/no-go decision for shipping `NestBusinessV2` at or after Arc mainnet launch | ❌ Pending the audit item above | Unassigned | — |
-
-Until the audit, monitoring, and compliance-screening rows above are checked
-off, `NestBusinessV2` should not be deployed with real value on Arc mainnet,
-regardless of whether the underlying Arc network itself has launched.
-
-## Known accepted risk — `ws` transitive dependency
-
-`npm audit` flags a high-severity advisory in `ws` (GHSA-58qx-3vcg-4xpx,
-GHSA-96hv-2xvq-fx4p), pulled in transitively via `@reown/appkit` /
-`@walletconnect/utils`. The only fix path is a semver-major bump to
-`wagmi@3.7.7`, which would cascade into breaking upgrades across
-`@rainbow-me/rainbowkit` and the WalletConnect/Reown stack — a combined
-~5 MB of the server bundle (see build output from 2026-09-01).
-
-Accepted for now because: `ws` is a Node.js-only WebSocket implementation;
-browser wallet-connect sessions use the native `WebSocket` API instead, so
-the vulnerable code path is only reachable if invoked server-side, which
-Nest's wallet flows do not do.
-
-Revisit after the Arc mainnet launch (Sep 16, 2026) once wallet libraries
-have stabilized against the new network, and re-run `npm audit --omit=dev`
-to confirm this is still the only high-severity item outstanding.
-
-Reviewed: 2026-09-01.
-
 ## License
 
 MIT
