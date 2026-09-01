@@ -124,3 +124,23 @@ Nest currently runs on Arc Testnet. Mainnet deployment is not treated as a confi
 ## License
 
 MIT
+
+## Known accepted risk — `ws` transitive dependency
+
+`npm audit` flags a high-severity advisory in `ws` (GHSA-58qx-3vcg-4xpx,
+GHSA-96hv-2xvq-fx4p), pulled in transitively via `@reown/appkit` /
+`@walletconnect/utils`. The only fix path is a semver-major bump to
+`wagmi@3.7.7`, which would cascade into breaking upgrades across
+`@rainbow-me/rainbowkit` and the WalletConnect/Reown stack — a combined
+~5 MB of the server bundle (see build output from 2026-09-01).
+
+Accepted for now because: `ws` is a Node.js-only WebSocket implementation;
+browser wallet-connect sessions use the native `WebSocket` API instead, so
+the vulnerable code path is only reachable if invoked server-side, which
+Nest's wallet flows do not do.
+
+Revisit after the Arc mainnet launch (Sep 16, 2026) once wallet libraries
+have stabilized against the new network, and re-run `npm audit --omit=dev`
+to confirm this is still the only high-severity item outstanding.
+
+Reviewed: 2026-09-01.
