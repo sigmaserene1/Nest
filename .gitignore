@@ -31,3 +31,11 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Foundry build artifacts
+cache/
+out/
+foundry.lock
+
+# ad-hoc audit exports
+audit-report.json

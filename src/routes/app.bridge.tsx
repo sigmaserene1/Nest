@@ -88,7 +88,7 @@ function BridgePage() {
         return;
       }
       try {
-        const client = getPublicClient(wagmiConfig, { chainId: source.chainId as never });
+        const client = getPublicClientForChain(source.chainId);
         if (!client) return;
         const balance = await client.readContract({
           address: source.usdc,
@@ -184,8 +184,8 @@ function BridgePage() {
         await switchChainAsync({ chainId: source.chainId as never });
       }
 
-      const sourceWallet = await getWalletClient(wagmiConfig, { chainId: source.chainId as never });
-      const sourcePublic = getPublicClient(wagmiConfig, { chainId: source.chainId as never });
+      const sourceWallet = await getWalletClientForChain(source.chainId);
+      const sourcePublic = getPublicClientForChain(source.chainId);
       if (!sourceWallet || !sourcePublic) throw new Error(`Unable to connect to ${source.name}.`);
 
       setState("checking");
@@ -276,8 +276,8 @@ function BridgePage() {
       if (getAccount(wagmiConfig).chainId !== destination.chainId) {
         await switchChainAsync({ chainId: destination.chainId as never });
       }
-      const destinationWallet = await getWalletClient(wagmiConfig, { chainId: destination.chainId as never });
-      const destinationPublic = getPublicClient(wagmiConfig, { chainId: destination.chainId as never });
+      const destinationWallet = await getWalletClientForChain(destination.chainId);
+      const destinationPublic = getPublicClientForChain(destination.chainId);
       if (!destinationWallet || !destinationPublic)
         throw new Error(`Unable to connect to ${destination.name}.`);
 
@@ -579,6 +579,18 @@ function TxLink({ label, hash, explorer }: { label: string; hash: Hex; explorer:
       </span>
     </a>
   );
+}
+
+async function getWalletClientForChain(chainId: number) {
+  // The route is selected at runtime from the configured CCTP chain list,
+  // so the chain id isn't known to wagmi's config type at compile time.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return getWalletClient(wagmiConfig, { chainId: chainId as any });
+}
+
+function getPublicClientForChain(chainId: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return getPublicClient(wagmiConfig, { chainId: chainId as any });
 }
 
 function actionLabel(state: TrackerState) {
