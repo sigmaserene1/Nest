@@ -60,7 +60,7 @@ function Landing() {
     <div className="landing min-h-screen overflow-x-hidden">
       <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#060a14]/85 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 lg:px-8">
-          <a href="#" aria-label="Nest home" className="rounded-xl">
+          <a href="#" aria-label="Nest home" className="rounded-xl text-white">
             <NestLogo />
           </a>
 
@@ -281,7 +281,7 @@ function Landing() {
 
       <footer className="border-t border-white/[0.07] py-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 sm:flex-row sm:items-center sm:justify-between lg:px-8">
-          <div>
+          <div className="text-white">
             <NestLogo />
             <p className="mt-3 max-w-sm text-xs leading-5 text-white/40">
               Programmable group finance on Arc Testnet. Testnet assets have no real-world value.
