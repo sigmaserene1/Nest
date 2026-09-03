@@ -603,6 +603,24 @@
   animation: nest-shine 5s linear infinite;
 }
 
+/* Dark landing page (Vitale-style night sky) */
+.landing {
+  background: #060a14;
+  color: #f5f7fb;
+}
+
+.landing-stars {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / 0.5) 50%, transparent 50%),
+    radial-gradient(1px 1px at 34% 6%, rgb(255 255 255 / 0.35) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 56% 14%, rgb(255 255 255 / 0.45) 50%, transparent 50%),
+    radial-gradient(1px 1px at 78% 24%, rgb(255 255 255 / 0.3) 50%, transparent 50%),
+    radial-gradient(1px 1px at 90% 8%, rgb(255 255 255 / 0.4) 50%, transparent 50%),
+    radial-gradient(1.5px 1.5px at 24% 34%, rgb(255 255 255 / 0.3) 50%, transparent 50%),
+    radial-gradient(1px 1px at 66% 32%, rgb(255 255 255 / 0.35) 50%, transparent 50%),
+    radial-gradient(1px 1px at 44% 26%, rgb(255 255 255 / 0.25) 50%, transparent 50%);
+}
+
 .app-canvas {
   position: relative;
   isolation: isolate;
