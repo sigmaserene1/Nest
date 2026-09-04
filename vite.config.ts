@@ -12,4 +12,10 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // Allow proxied preview hosts (e.g. *.sandbox.novita.ai) to reach the dev server.
+      allowedHosts: true,
+    },
+  },
 });
