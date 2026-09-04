@@ -45,7 +45,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       onClick={toggle}
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
       title={isDark ? "Light mode" : "Dark mode"}
-      className={`relative grid h-9 w-9 place-items-center rounded-full bg-muted text-foreground ring-1 ring-border transition-transform hover:scale-105 ${className}`}
+      className={`relative grid h-9 w-9 place-items-center rounded-lg border border-border bg-card text-foreground transition-[background-color,border-color,color,transform] duration-200 hover:bg-muted active:scale-95 ${className}`}
     >
       <Sun
         className={`absolute h-4 w-4 transition-all duration-300 ${

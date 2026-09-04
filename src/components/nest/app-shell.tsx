@@ -69,10 +69,10 @@ function NavItem({
     <Link
       to={to}
       preload="intent"
-      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-150 active:scale-[0.985] ${
+      className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-[background-color,color,transform] duration-150 active:scale-[0.985] ${
         active
-          ? "bg-foreground text-background shadow-sm"
-          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:bg-muted/70 hover:text-foreground"
       }`}
     >
       <Icon className="h-[18px] w-[18px]" strokeWidth={active ? 2.4 : 2} />
@@ -97,15 +97,15 @@ function BottomTab({
     <Link
       to={to}
       preload="intent"
-      className="flex flex-1 flex-col items-center gap-1 py-2 active:scale-[0.985]"
+        className="flex min-w-0 flex-1 flex-col items-center gap-1 py-2 active:scale-[0.985]"
     >
       <span
-        className={`grid h-9 w-12 place-items-center rounded-2xl transition-all duration-300 ${active ? "bg-foreground text-background shadow-soft" : "text-muted-foreground"}`}
+        className={`grid h-8 w-11 place-items-center rounded-lg transition-all duration-200 ${active ? "bg-primary/10 text-primary" : "text-muted-foreground"}`}
       >
         <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.5 : 2} />
       </span>
       <span
-        className={`text-[10px] font-semibold tracking-wide transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`}
+        className={`truncate text-[10px] font-medium transition-colors ${active ? "text-primary" : "text-muted-foreground"}`}
       >
         {label}
       </span>
@@ -128,16 +128,16 @@ export function AppShell({
   const myName = displayName ?? "You";
 
   return (
-    <div className="app-canvas min-h-screen text-foreground">
+    <div className="app-canvas min-h-screen bg-background text-foreground">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col p-4 lg:flex">
-        <div className="glass-strong flex h-full flex-col rounded-3xl p-4">
-          <div className="flex items-center justify-between px-1.5 py-1">
-            <NestLogo />
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-border bg-sidebar lg:flex">
+        <div className="flex h-full flex-col px-4 py-5">
+          <div className="flex items-center justify-between px-2 py-1">
+            <NestLogo size={34} />
           </div>
 
-          <nav className="scroll-clean mt-5 flex-1 space-y-1 overflow-y-auto">
-            <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+          <nav className="scroll-clean mt-8 flex-1 space-y-1 overflow-y-auto">
+            <div className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Workspace
             </div>
             {primary.map((item) => (
@@ -149,7 +149,7 @@ export function AppShell({
                 exact={"exact" in item ? item.exact : false}
               />
             ))}
-            <div className="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+            <div className="mb-2 mt-7 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Treasury & tools
             </div>
             {visibleDesktopExtra.map((item) => (
@@ -163,7 +163,7 @@ export function AppShell({
             ))}
           </nav>
 
-          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+          <div className="mt-4 flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3">
             <MemberAvatar member={{ ...me, name: myName }} size={38} ring />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold">{myName}</div>
@@ -180,9 +180,9 @@ export function AppShell({
       </aside>
 
       {/* Main area */}
-      <div className="lg:pl-72">
-        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-          <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
+      <div className="lg:pl-64">
+        <header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur-xl">
+          <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center lg:hidden">
               <NestLogo />
             </div>
@@ -194,19 +194,19 @@ export function AppShell({
           </div>
         </header>
 
-        <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
           <RpcBanner />
         </div>
 
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}
-        <div className="scroll-clean mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 lg:hidden">
+        <div className="scroll-clean mx-auto max-w-7xl overflow-x-auto px-4 pt-3 sm:px-6 lg:hidden">
           <div className="flex w-max gap-2">
             {visibleDesktopExtra.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 preload="intent"
-                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-muted/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition hover:bg-muted hover:text-foreground"
               >
                 <item.icon className="h-3.5 w-3.5" />
                 {item.label}
@@ -215,24 +215,24 @@ export function AppShell({
           </div>
         </div>
         {greeting && (
-          <div className="mx-auto max-w-6xl px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>
+          <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">{greeting}</div>
         )}
-        <main className="mx-auto max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">
+        <main className="mx-auto max-w-7xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
 
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-3 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 lg:hidden">
-        <div className="glass-strong relative flex items-center rounded-[28px] px-2 py-1.5">
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 px-2 pb-[max(0.375rem,env(safe-area-inset-bottom))] backdrop-blur-xl lg:hidden">
+        <div className="relative mx-auto flex max-w-md items-center py-1">
           <BottomTab to="/app" label="Home" icon={Home} exact />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
           <div className="relative -mt-8 mx-1">
             {onFabClick ? (
               <button
                 onClick={onFabClick}
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-background"
+                className="grid h-12 w-12 place-items-center rounded-xl btn-gradient ring-4 ring-background"
                 aria-label="Quick action"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
@@ -241,7 +241,7 @@ export function AppShell({
               <Link
                 to="/app/settle"
                 preload="intent"
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-background"
+                className="grid h-12 w-12 place-items-center rounded-xl btn-gradient ring-4 ring-background"
                 aria-label="Settle up"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />

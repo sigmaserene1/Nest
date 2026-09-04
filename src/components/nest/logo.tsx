@@ -1,12 +1,11 @@
 export function NestLogo({ size = 32, showWord = true }: { size?: number; showWord?: boolean }) {
   return (
-    <span className="inline-flex items-center gap-2">
+    <span className="inline-flex items-center gap-2.5">
       <span
-        className="grid place-items-center rounded-2xl text-white shadow-brand"
+        className="grid place-items-center rounded-lg bg-primary text-primary-foreground shadow-brand"
         style={{
           width: size,
           height: size,
-          background: "linear-gradient(135deg, #ff6a5b, #e53935)",
         }}
         aria-hidden
       >
@@ -17,7 +16,7 @@ export function NestLogo({ size = 32, showWord = true }: { size?: number; showWo
           />
         </svg>
       </span>
-      {showWord && <span className="text-[19px] font-bold tracking-tight">Nest</span>}
+      {showWord && <span className="font-display text-[18px] font-semibold">Nest</span>}
     </span>
   );
 }
