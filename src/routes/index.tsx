@@ -58,7 +58,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <div className="landing min-h-screen overflow-x-hidden">
-      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#060a14]/85 backdrop-blur-2xl">
+      <header className="sticky top-0 z-50 border-b border-white/[0.07] bg-[#07051a]/85 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-3.5 lg:px-8">
           <a href="#" aria-label="Nest home" className="rounded-xl text-white">
             <NestLogo />
@@ -84,7 +84,7 @@ function Landing() {
 
           <Link
             to="/app"
-            className="inline-flex items-center gap-1.5 rounded-full bg-[#7c6cff] px-4 py-2.5 text-xs font-bold text-white shadow-[0_8px_24px_rgba(124,108,255,0.35)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+            className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#7c6cff] to-[#b45cf0] px-4 py-2.5 text-xs font-bold text-white shadow-[0_8px_24px_rgba(124,108,255,0.35)] transition-all hover:-translate-y-0.5 hover:brightness-110"
           >
             Launch app <ArrowRight className="h-3.5 w-3.5" />
           </Link>
@@ -100,9 +100,12 @@ function Landing() {
             className="absolute inset-x-0 top-0 -z-10 h-[720px]"
             style={{
               background:
-                "radial-gradient(circle at 68% 8%, rgba(124,108,255,0.22), transparent 32rem), radial-gradient(circle at 18% 22%, rgba(64,120,255,0.12), transparent 26rem)",
+                "radial-gradient(circle at 68% 8%, rgba(124,108,255,0.26), transparent 32rem), radial-gradient(circle at 18% 22%, rgba(34,211,238,0.13), transparent 26rem), radial-gradient(circle at 50% 60%, rgba(236,72,153,0.08), transparent 30rem)",
             }}
           />
+          <div aria-hidden className="aurora-orb aurora-orb--violet -z-10 left-[8%] top-24 h-72 w-72" />
+          <div aria-hidden className="aurora-orb aurora-orb--cyan -z-10 right-[6%] top-40 h-80 w-80" />
+          <div aria-hidden className="aurora-orb aurora-orb--pink -z-10 left-[40%] top-[26rem] h-64 w-64" />
 
           <div className="mx-auto flex max-w-6xl flex-col items-center px-5 pb-10 pt-20 text-center sm:pt-28 lg:px-8">
             <div
@@ -119,7 +122,7 @@ function Landing() {
             >
               One ledger.
               <br />
-              <span className="text-[#a394ff]">Clear every balance.</span>
+              <span className="text-gradient-web3">Clear every balance.</span>
             </h1>
 
             <p
@@ -136,7 +139,7 @@ function Landing() {
             >
               <Link
                 to="/app"
-                className="inline-flex items-center gap-2 rounded-full bg-[#7c6cff] px-6 py-3.5 text-sm font-bold text-white shadow-[0_12px_36px_rgba(124,108,255,0.4)] transition-all hover:-translate-y-0.5 hover:brightness-110"
+                className="pulse-ring inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#7c6cff] via-[#8a6bff] to-[#b45cf0] px-6 py-3.5 text-sm font-bold text-white shadow-[0_12px_36px_rgba(124,108,255,0.4)] transition-all hover:-translate-y-0.5 hover:brightness-110"
               >
                 Open a workspace <ArrowRight className="h-4 w-4" />
               </Link>
@@ -158,7 +161,7 @@ function Landing() {
         <section aria-label="Protocol facts" className="px-5 lg:px-8">
           <dl className="mx-auto grid max-w-6xl grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/[0.08] bg-white/[0.06] sm:grid-cols-4">
             {PROOF.map((item) => (
-              <div key={item.label} className="bg-[#0a0f1e] px-4 py-6 text-center">
+              <div key={item.label} className="bg-[#0c0925] px-4 py-6 text-center">
                 <dt className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/40">
                   {item.label}
                 </dt>
@@ -192,7 +195,7 @@ function Landing() {
             <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {FEATURES.map((feature, index) => (
                 <Reveal key={feature.title} delay={(index % 4) * 60}>
-                  <article className="group h-full rounded-2xl border border-white/[0.08] bg-white/[0.03] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-[#7c6cff]/40 hover:bg-white/[0.05]">
+                  <article className="holo-border group h-full rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:bg-white/[0.05]">
                     <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#7c6cff]/12 text-[#a394ff] transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110">
                       <feature.icon className="h-5 w-5" />
                     </span>
@@ -225,7 +228,7 @@ function Landing() {
             <ol className="mt-12 grid gap-4 md:grid-cols-3">
               {FLOW.map((step, index) => (
                 <Reveal key={step.title} delay={index * 70} as="li">
-                  <article className="relative h-full rounded-2xl border border-white/[0.08] bg-[#0a0f1e] p-6">
+                  <article className="relative h-full rounded-2xl border border-white/[0.08] bg-[#0c0925] p-6">
                     <span className="font-mono text-[11px] font-bold text-[#7c6cff]">
                       0{index + 1}
                     </span>
@@ -244,22 +247,24 @@ function Landing() {
         {/* CTA */}
         <section className="px-5 py-20 sm:py-28 lg:px-8">
           <Reveal>
-            <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-[#7c6cff]/25 bg-gradient-to-b from-[#16123a] to-[#0a0f1e] px-7 py-16 text-center sm:px-12 sm:py-20">
+            <div className="relative mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-[#7c6cff]/25 bg-gradient-to-b from-[#1a1244] to-[#0c0925] px-7 py-16 text-center sm:px-12 sm:py-20">
               <div
                 aria-hidden
                 className="pointer-events-none absolute inset-0"
                 style={{
                   background:
-                    "radial-gradient(circle at 50% 0%, rgba(124,108,255,0.28), transparent 60%)",
+                    "radial-gradient(circle at 50% 0%, rgba(124,108,255,0.3), transparent 60%), radial-gradient(circle at 12% 90%, rgba(34,211,238,0.12), transparent 40%), radial-gradient(circle at 88% 85%, rgba(236,72,153,0.12), transparent 40%)",
                 }}
               />
+              <div aria-hidden className="aurora-orb aurora-orb--cyan left-[-4rem] top-[-4rem] h-56 w-56" />
+              <div aria-hidden className="aurora-orb aurora-orb--pink bottom-[-5rem] right-[-3rem] h-64 w-64" />
               <div className="relative">
                 <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-3 py-1.5 text-xs font-bold text-white/75">
                   <CircleDollarSign className="h-3.5 w-3.5 text-[#a394ff]" />
                   Group settlement, without the spreadsheet
                 </span>
                 <h2 className="mx-auto mt-6 max-w-3xl font-display text-4xl leading-[1.05] tracking-[-0.045em] text-white sm:text-6xl">
-                  Give shared money one source of truth.
+                  Give shared money <span className="text-gradient-web3">one source of truth.</span>
                 </h2>
                 <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/55 sm:text-base">
                   Create a workspace and complete your first native-USDC settlement on Arc
@@ -268,7 +273,7 @@ function Landing() {
                 <div className="mt-9">
                   <Link
                     to="/app"
-                    className="inline-flex items-center gap-2 rounded-full bg-[#7c6cff] px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_40px_rgba(124,108,255,0.45)] transition-transform hover:-translate-y-0.5"
+                    className="pulse-ring inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#7c6cff] via-[#8a6bff] to-[#b45cf0] px-7 py-3.5 text-sm font-bold text-white shadow-[0_12px_40px_rgba(124,108,255,0.45)] transition-transform hover:-translate-y-0.5"
                   >
                     Launch Nest <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -321,7 +326,7 @@ function HeroPanel() {
           className="absolute -inset-10 -z-10 rounded-[3rem] blur-3xl"
           style={{ background: "rgba(124,108,255,0.14)" }}
         />
-        <div className="overflow-hidden rounded-3xl border border-white/[0.09] bg-[#0b101f]/95 shadow-[0_40px_120px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+        <div className="overflow-hidden rounded-3xl border border-white/[0.09] bg-[#0d0a26]/95 shadow-[0_40px_120px_rgba(0,0,0,0.5)] backdrop-blur-xl">
           <div className="flex items-center justify-between border-b border-white/[0.07] px-5 py-4 sm:px-6">
             <div className="flex items-center gap-2.5">
               <span className="live-dot h-2 w-2 rounded-full bg-[#7c6cff]" />

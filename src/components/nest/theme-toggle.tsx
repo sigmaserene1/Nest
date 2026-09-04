@@ -4,15 +4,12 @@ import { Moon, Sun } from "lucide-react";
 const KEY = "nest-theme";
 
 export function useTheme() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   useEffect(() => {
     const stored = (typeof window !== "undefined" && localStorage.getItem(KEY)) as
       "light" | "dark" | null;
-    const initial =
-      stored ??
-      (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light");
+    // Web3-first: default to dark unless the user explicitly chose light.
+    const initial = stored ?? "dark";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
     document.documentElement.style.colorScheme = initial;

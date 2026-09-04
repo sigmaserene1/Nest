@@ -81,7 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#E41E26" },
+      { name: "theme-color", content: "#7c6cff" },
       { title: "Nest — Group finance and USDC settlement on Arc" },
       {
         property: "og:title",

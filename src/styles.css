@@ -5,8 +5,8 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * Nest — premium consumer design system.
- * Off-white background, glass cards, red brand accent.
+ * Nest — web3 design system.
+ * Deep-space canvas, glass cards, electric violet brand with cyan/pink accents.
  */
 
 @theme inline {
@@ -69,59 +69,59 @@
 :root {
   --radius: 0.5rem;
 
-  --background: oklch(0.975 0.004 260);
-  --foreground: oklch(0.16 0.012 260);
+  --background: oklch(0.977 0.006 290);
+  --foreground: oklch(0.17 0.02 285);
 
-  --surface: oklch(0.995 0.002 260 / 0.92);
-  --surface-muted: oklch(0.95 0.005 260);
+  --surface: oklch(0.995 0.003 290 / 0.92);
+  --surface-muted: oklch(0.952 0.008 290);
 
-  --card: oklch(0.995 0.002 260);
-  --card-foreground: oklch(0.16 0.012 260);
+  --card: oklch(0.995 0.003 290);
+  --card-foreground: oklch(0.17 0.02 285);
 
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.012 260);
+  --popover-foreground: oklch(0.17 0.02 285);
 
-  --brand: oklch(0.62 0.21 28);
+  --brand: oklch(0.58 0.21 285);
   --brand-foreground: oklch(0.99 0 0);
-  --brand-soft: oklch(0.94 0.035 28);
+  --brand-soft: oklch(0.93 0.045 285);
 
-  --primary: oklch(0.59 0.22 28);
+  --primary: oklch(0.56 0.22 285);
   --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.94 0.006 260);
-  --secondary-foreground: oklch(0.18 0.012 260);
+  --secondary: oklch(0.94 0.01 290);
+  --secondary-foreground: oklch(0.19 0.02 285);
 
-  --muted: oklch(0.94 0.006 260);
-  --muted-foreground: oklch(0.5 0.012 260);
+  --muted: oklch(0.94 0.01 290);
+  --muted-foreground: oklch(0.5 0.02 285);
 
-  --accent: oklch(0.93 0.008 260);
-  --accent-foreground: oklch(0.18 0.012 260);
+  --accent: oklch(0.93 0.014 290);
+  --accent-foreground: oklch(0.19 0.02 285);
 
-  --destructive: #e53935;
+  --destructive: #e5484d;
   --destructive-foreground: #ffffff;
 
   --success: #10b981;
   --warning: #f59e0b;
-  --info: #3b82f6;
+  --info: #22d3ee;
 
-  --border: oklch(0.89 0.007 260);
-  --input: oklch(0.86 0.009 260);
-  --ring: oklch(0.59 0.22 28);
+  --border: oklch(0.89 0.012 290);
+  --input: oklch(0.86 0.014 290);
+  --ring: oklch(0.56 0.22 285);
 
-  --chart-1: #e53935;
-  --chart-2: #f59e0b;
+  --chart-1: #7c6cff;
+  --chart-2: #22d3ee;
   --chart-3: #10b981;
-  --chart-4: #6366f1;
+  --chart-4: #f59e0b;
   --chart-5: #ec4899;
 
-  --sidebar: oklch(0.992 0.002 260);
-  --sidebar-foreground: oklch(0.16 0.012 260);
-  --sidebar-primary: #e53935;
+  --sidebar: oklch(0.992 0.004 290);
+  --sidebar-foreground: oklch(0.17 0.02 285);
+  --sidebar-primary: #7c6cff;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f2f6;
-  --sidebar-accent-foreground: #0b1020;
-  --sidebar-border: #e6e8ef;
-  --sidebar-ring: #e53935;
+  --sidebar-accent: #f1f0f8;
+  --sidebar-accent-foreground: #0e0b20;
+  --sidebar-border: #e6e4f2;
+  --sidebar-ring: #7c6cff;
 }
 
 @layer base {
@@ -140,10 +140,11 @@
     background:
       radial-gradient(
         circle at 82% -12%,
-        color-mix(in oklab, var(--brand) 12%, transparent),
+        color-mix(in oklab, var(--brand) 14%, transparent),
         transparent 31rem
       ),
-      radial-gradient(circle at 3% 24%, rgb(99 102 241 / 0.06), transparent 27rem),
+      radial-gradient(circle at 3% 24%, rgb(34 211 238 / 0.07), transparent 27rem),
+      radial-gradient(circle at 60% 110%, rgb(236 72 153 / 0.05), transparent 30rem),
       var(--color-background);
     color: var(--color-foreground);
     -webkit-tap-highlight-color: transparent;
@@ -176,49 +177,61 @@
 }
 
 .dark {
-  --background: oklch(0.115 0.006 260);
-  --foreground: oklch(0.96 0.004 260);
+  --background: oklch(0.135 0.022 282);
+  --foreground: oklch(0.965 0.006 290);
 
-  --surface: oklch(0.15 0.008 260 / 0.94);
-  --surface-muted: oklch(0.18 0.009 260);
+  --surface: oklch(0.17 0.025 282 / 0.94);
+  --surface-muted: oklch(0.2 0.026 282);
 
-  --card: oklch(0.145 0.007 260);
-  --card-foreground: oklch(0.96 0.004 260);
+  --card: oklch(0.168 0.026 282);
+  --card-foreground: oklch(0.965 0.006 290);
 
-  --popover: oklch(0.14 0.007 260);
-  --popover-foreground: oklch(0.96 0.004 260);
+  --popover: oklch(0.16 0.025 282);
+  --popover-foreground: oklch(0.965 0.006 290);
 
-  --brand: oklch(0.7 0.19 28);
-  --brand-foreground: oklch(0.12 0.015 28);
-  --brand-soft: oklch(0.24 0.055 28);
+  --brand: oklch(0.68 0.19 285);
+  --brand-foreground: oklch(0.13 0.03 285);
+  --brand-soft: oklch(0.26 0.07 285);
 
-  --primary: oklch(0.68 0.2 28);
-  --primary-foreground: oklch(0.12 0.015 28);
+  --primary: oklch(0.68 0.2 285);
+  --primary-foreground: oklch(0.99 0 0);
 
-  --secondary: oklch(0.19 0.008 260);
-  --secondary-foreground: oklch(0.96 0.004 260);
+  --secondary: oklch(0.21 0.026 282);
+  --secondary-foreground: oklch(0.965 0.006 290);
 
-  --muted: oklch(0.19 0.008 260);
-  --muted-foreground: oklch(0.66 0.014 260);
+  --muted: oklch(0.21 0.026 282);
+  --muted-foreground: oklch(0.68 0.03 288);
 
-  --accent: oklch(0.22 0.01 260);
-  --accent-foreground: oklch(0.96 0.004 260);
+  --accent: oklch(0.24 0.032 282);
+  --accent-foreground: oklch(0.965 0.006 290);
 
-  --destructive: #ff5a52;
-  --destructive-foreground: #140605;
+  --destructive: #ff6369;
+  --destructive-foreground: #140609;
 
-  --border: oklch(0.25 0.01 260);
-  --input: oklch(0.29 0.012 260);
-  --ring: oklch(0.68 0.2 28);
+  --border: oklch(0.27 0.032 282);
+  --input: oklch(0.31 0.036 282);
+  --ring: oklch(0.68 0.2 285);
 
-  --sidebar: oklch(0.13 0.006 260);
-  --sidebar-foreground: oklch(0.96 0.004 260);
-  --sidebar-primary: #ff5a52;
-  --sidebar-primary-foreground: #140605;
-  --sidebar-accent: #15181f;
-  --sidebar-accent-foreground: #f5f7fb;
-  --sidebar-border: #22262f;
-  --sidebar-ring: #ff5a52;
+  --sidebar: oklch(0.15 0.024 282);
+  --sidebar-foreground: oklch(0.965 0.006 290);
+  --sidebar-primary: #8f7dff;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1b1930;
+  --sidebar-accent-foreground: #f5f4fd;
+  --sidebar-border: #2a2745;
+  --sidebar-ring: #8f7dff;
+}
+
+.dark body {
+  background:
+    radial-gradient(
+      circle at 80% -10%,
+      color-mix(in oklab, var(--brand) 20%, transparent),
+      transparent 34rem
+    ),
+    radial-gradient(circle at 4% 28%, rgb(34 211 238 / 0.09), transparent 28rem),
+    radial-gradient(circle at 62% 112%, rgb(236 72 153 / 0.08), transparent 32rem),
+    var(--color-background);
 }
 
 @utility glass {
@@ -264,8 +277,9 @@
 @utility btn-gradient {
   background: linear-gradient(
     135deg,
-    color-mix(in oklab, var(--brand) 82%, #ff9a82 18%),
-    color-mix(in oklab, var(--brand) 82%, #bb383e 18%)
+    color-mix(in oklab, var(--brand) 78%, #22d3ee 22%),
+    var(--brand) 45%,
+    color-mix(in oklab, var(--brand) 74%, #ec4899 26%)
   );
   color: #fff;
   box-shadow: var(--shadow-brand);
@@ -600,10 +614,126 @@
   animation: nest-shine 5s linear infinite;
 }
 
-/* Dark landing page (Vitale-style night sky) */
+/* Web3 atmosphere — animated gradient text */
+.text-gradient-web3 {
+  background: linear-gradient(
+    100deg,
+    #a394ff 0%,
+    #22d3ee 30%,
+    #a394ff 55%,
+    #ec4899 80%,
+    #a394ff 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: nest-shine 7s linear infinite;
+}
+
+/* Holographic gradient border for glass cards */
+.holo-border {
+  position: relative;
+  background: rgb(255 255 255 / 0.03);
+}
+.holo-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    130deg,
+    rgb(124 108 255 / 0.55),
+    rgb(34 211 238 / 0.25) 40%,
+    rgb(255 255 255 / 0.08) 60%,
+    rgb(236 72 153 / 0.35)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Slow-drifting aurora orbs (compositor-only transforms) */
+.aurora-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(72px);
+  opacity: 0.55;
+  pointer-events: none;
+  will-change: transform;
+  animation: aurora-drift 16s ease-in-out infinite alternate;
+}
+.aurora-orb--violet {
+  background: rgb(124 108 255 / 0.35);
+}
+.aurora-orb--cyan {
+  background: rgb(34 211 238 / 0.22);
+  animation-delay: -6s;
+  animation-duration: 20s;
+}
+.aurora-orb--pink {
+  background: rgb(236 72 153 / 0.18);
+  animation-delay: -11s;
+  animation-duration: 24s;
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, -4%, 0) scale(1.12);
+  }
+  100% {
+    transform: translate3d(-5%, 5%, 0) scale(0.94);
+  }
+}
+
+/* Conic “chain pulse” ring for hero/CTA accents */
+.pulse-ring {
+  position: relative;
+}
+.pulse-ring::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--pulse-angle, 0deg),
+    rgb(124 108 255 / 0.9),
+    rgb(34 211 238 / 0.6),
+    transparent 40%,
+    transparent 60%,
+    rgb(236 72 153 / 0.6),
+    rgb(124 108 255 / 0.9)
+  );
+  z-index: -1;
+  animation: pulse-ring-spin 5s linear infinite;
+  filter: blur(6px);
+  opacity: 0.75;
+}
+@property --pulse-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes pulse-ring-spin {
+  to {
+    --pulse-angle: 360deg;
+  }
+}
+
+/* Dark landing page (deep-space, violet-tinged) */
 .landing {
-  background: #060a14;
-  color: #f5f7fb;
+  background: #07051a;
+  color: #f5f4fd;
 }
 
 .landing-stars {
@@ -633,6 +763,11 @@ html {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .aurora-orb,
+  .pulse-ring::after {
+    animation: none !important;
+  }
+
   *,
   *::before,
   *::after {
