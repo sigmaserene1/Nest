@@ -159,8 +159,8 @@ function Docs() {
                 share owed to that counterparty.
               </li>
               <li>
-                <span className="font-mono text-[#a394ff]">04</span> Re-resolve balances and keep the
-                transaction-linked receipt for independent verification.
+                <span className="font-mono text-[#a394ff]">04</span> Re-resolve balances and keep
+                the transaction-linked receipt for independent verification.
               </li>
             </ol>
           </section>
@@ -189,7 +189,7 @@ function Docs() {
           <section id="local" className="mt-14 scroll-mt-28">
             <h2 className="font-display text-2xl text-white">Run locally</h2>
             <pre className="mt-4 overflow-x-auto rounded-2xl border border-white/[0.08] bg-[#080d18] p-5 font-mono text-xs leading-6 text-white/75">
-{`git clone https://github.com/sigmaserene1/Nest.git
+              {`git clone https://github.com/sigmaserene1/Nest.git
 cd Nest
 npm install
 npm run dev

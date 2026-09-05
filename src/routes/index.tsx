@@ -126,8 +126,8 @@ function Landing() {
               className="animate-float-in mx-auto mt-6 max-w-xl text-base leading-7 text-white/55 sm:text-lg"
               style={{ animationDelay: "130ms" }}
             >
-              Record shared obligations, resolve exact balances, then settle peer-to-peer in
-              native USDC — all from one calm command center on Arc.
+              Record shared obligations, resolve exact balances, then settle peer-to-peer in native
+              USDC — all from one calm command center on Arc.
             </p>
 
             <div
@@ -262,8 +262,8 @@ function Landing() {
                   Give shared money one source of truth.
                 </h2>
                 <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/55 sm:text-base">
-                  Create a workspace and complete your first native-USDC settlement on Arc
-                  Testnet in minutes.
+                  Create a workspace and complete your first native-USDC settlement on Arc Testnet
+                  in minutes.
                 </p>
                 <div className="mt-9">
                   <Link
@@ -367,9 +367,7 @@ function HeroPanel() {
               <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#a394ff]">
                 Settlement assistant
               </p>
-              <p className="mt-2 font-display text-xl font-bold text-white">
-                Your queue is ready.
-              </p>
+              <p className="mt-2 font-display text-xl font-bold text-white">Your queue is ready.</p>
               <p className="mt-1.5 text-xs leading-5 text-white/50">
                 3 settlements grouped under a 50 USDC per-run cap — wallet approval required for
                 each.
