@@ -142,10 +142,11 @@ function SyndicatePage() {
               </div>
             </label>
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-2">
-              <Stat label="Shared costs logged" value={fmtUSD(costs)} />
-              <Stat label="Distributable" value={fmtUSD(distributable)} />
-            </div>
+         <div className="mt-4 grid gap-3 sm:grid-cols-2">
+  <Stat label="Shared costs logged" value={fmtUSD(costs)} positive={false} />
+  <Stat label="Distributable" value={fmtUSD(distributable)} positive={true} />
+</div>
+
 
             <ul className="mt-4 space-y-2">
               {rows.map((r) => {
@@ -223,12 +224,12 @@ function SyndicatePage() {
     </AppShell>
   );
 }
-
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
   return (
-    <div className="rounded-lg bg-muted/50 p-3">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="mt-1 text-lg font-bold tabular-nums">{value}</div>
+    <div className={`stat-card ${positive ? "positive" : "negative"}`}>
+      <div className="text-xs text-muted-foreground font-medium">{label}</div>
+      <div className="value mt-1">{value}</div>
     </div>
   );
 }
+

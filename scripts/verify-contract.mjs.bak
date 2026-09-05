@@ -26,7 +26,7 @@ const ROOT = path.resolve(__dirname, '..');
 const CONFIG = {
   address: '0x709cbAd88162b999882788155cde79aDe46A6D42',
   contractName: 'ExpenseManager',
-  sourcePath: 'ExpenseManager.sol',
+  sourcePath: 'contracts/ExpenseManagerOriginal.sol',
   compilerVersion: 'v0.8.28+commit.7893614a',
   license: 'mit',
   constructorArgs:
@@ -62,7 +62,7 @@ function buildInput({ metadataHash, evmVersion }) {
     sources: { [CONFIG.sourcePath]: { content: source } },
     settings: {
       optimizer: { enabled: true, runs: 200 },
-      metadata: { bytecodeHash: metadataHash },
+      metadata: { bytecodeHash: metadataHash, useLiteralContent: true },
       outputSelection: {
         '*': {
           '*': ['abi', 'metadata', 'evm.bytecode', 'evm.deployedBytecode'],
@@ -236,7 +236,7 @@ async function main() {
 
   console.error(
     '\nStill only a partial match. The deployed metadata hash points at source bytes that differ ' +
-      'from ExpenseManager.sol — redeploy from this exact file for a full match.',
+      'from contracts/ExpenseManagerOriginal.sol — redeploy from this exact file for a full match.',
   );
   process.exit(2);
 }

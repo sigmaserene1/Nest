@@ -653,3 +653,253 @@ html {
   }
 }
 
+/* ============================================
+   POLISH UPGRADES — Modern DeFi Look
+   ============================================ */
+
+/* Darker, richer background */
+.dark body {
+  background: 
+    radial-gradient(circle at 82% -12%, color-mix(in oklab, var(--brand) 8%, transparent), transparent 31rem),
+    radial-gradient(circle at 3% 24%, rgb(99 102 241 / 0.04), transparent 27rem),
+    #050507;
+}
+
+/* Better card styling */
+.card-premium {
+  background: linear-gradient(145deg, #111114, #0a0a0d);
+  border: 1px solid #27272a;
+  border-radius: 16px;
+  box-shadow: 
+    0 4px 6px -1px rgb(0 0 0 / 0.3),
+    0 2px 4px -2px rgb(0 0 0 / 0.3),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.05);
+  transition: all 0.2s ease;
+}
+
+.card-premium:hover {
+  border-color: #3f3f46;
+  box-shadow: 
+    0 10px 15px -3px rgb(0 0 0 / 0.4),
+    0 4px 6px -4px rgb(0 0 0 / 0.4),
+    inset 0 1px 0 0 rgb(255 255 255 / 0.08);
+  transform: translateY(-2px);
+}
+
+/* Bigger, bolder headings */
+h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fafafa;
+}
+
+/* Better input styling */
+input[type="number"] {
+  background: #18181b !important;
+  border: 1px solid #27272a !important;
+  border-radius: 12px !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  padding: 1rem 1.25rem !important;
+  color: #fafafa;
+}
+
+input[type="number"]:focus {
+  border-color: #e53935 !important;
+  box-shadow: 0 0 0 3px rgb(229 57 53 / 0.15);
+  outline: none;
+}
+
+/* Sidebar improvements */
+.sidebar-nav-item {
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #a1a1aa;
+  transition: all 0.15s ease;
+}
+
+.sidebar-nav-item:hover {
+  background: #27272a;
+  color: #fafafa;
+}
+
+.sidebar-nav-item.active {
+  background: linear-gradient(135deg, #e53935, #c62828);
+  color: #fff;
+  box-shadow: 0 4px 12px rgb(229 57 53 / 0.3);
+}
+
+/* Stat cards with better contrast */
+.stat-card {
+  background: linear-gradient(145deg, #18181b, #111114);
+  border: 1px solid #27272a;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.stat-card .value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  font-family: "Space Grotesk", monospace;
+  letter-spacing: -0.02em;
+}
+
+.stat-card.positive .value {
+  color: #22c55e;
+}
+
+.stat-card.negative .value {
+  color: #ef4444;
+}
+
+/* Gradient button upgrade */
+.btn-gradient {
+  background: linear-gradient(135deg, #e53935 0%, #ff6f60 50%, #e53935 100%);
+  background-size: 200% auto;
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 
+    0 4px 14px rgb(229 57 53 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.2);
+  transition: all 0.2s ease;
+}
+
+.btn-gradient:hover {
+  background-position: right center;
+  transform: translateY(-1px);
+  box-shadow: 
+    0 6px 20px rgb(229 57 53 / 0.45),
+    inset 0 1px 0 rgb(255 255 255 / 0.25);
+}
+
+/* USDC badge */
+.usdc-badge {
+  background: linear-gradient(135deg, #2775ca, #1e5aa8);
+  color: #fff;
+  font-weight: 700;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+/* ==========================================================================
+   Web3 landing shell
+   ========================================================================== */
+
+/* Dark canvas for the marketing + docs routes. */
+.landing {
+  background: #060a14;
+  color: #ffffff;
+}
+
+/* Faint starfield behind the hero. */
+.landing-stars {
+  background-image:
+    radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / 0.22), transparent 2px),
+    radial-gradient(1px 1px at 78% 12%, rgb(255 255 255 / 0.16), transparent 2px),
+    radial-gradient(1px 1px at 42% 34%, rgb(255 255 255 / 0.13), transparent 2px),
+    radial-gradient(1px 1px at 88% 46%, rgb(255 255 255 / 0.1), transparent 2px),
+    radial-gradient(1px 1px at 26% 62%, rgb(255 255 255 / 0.1), transparent 2px);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
+}
+
+/* Web3 grid backdrop for the landing hero */
+.landing-grid {
+  background-image:
+    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
+}
+
+/* Pulsing network/status indicator. */
+@keyframes nest-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    opacity: 0.65;
+    box-shadow: 0 0 0 4px rgb(255 255 255 / 0);
+  }
+}
+.live-dot {
+  animation: nest-pulse 2.2s ease-in-out infinite;
+}
+
+/* Feature + use-case card hover lift. */
+.protocol-card,
+.use-case-card {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.28s ease,
+    background-color 0.28s ease;
+}
+.protocol-card:hover,
+.use-case-card:hover {
+  transform: translateY(-4px);
+  border-color: rgb(124 108 255 / 0.38);
+  background-color: rgb(255 255 255 / 0.05);
+}
+
+/* Final CTA panel glow. */
+.cta-panel {
+  box-shadow:
+    0 40px 120px rgb(124 108 255 / 0.16),
+    inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+/* Settlement queue transfer line. */
+.transfer-track {
+  overflow: hidden;
+}
+@keyframes nest-transfer {
+  from {
+    left: -8px;
+    opacity: 0;
+  }
+  20%,
+  80% {
+    opacity: 1;
+  }
+  to {
+    left: 100%;
+    opacity: 0;
+  }
+}
+.transfer-particle {
+  animation: nest-transfer 2.4s ease-in-out infinite;
+}
+
+/* FAQ accordion */
+.faq-item summary::marker,
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+.faq-item[open] > p {
+  animation: nest-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot,
+  .transfer-particle {
+    animation: none;
+  }
+  .protocol-card:hover,
+  .use-case-card:hover {
+    transform: none;
+  }
+}
