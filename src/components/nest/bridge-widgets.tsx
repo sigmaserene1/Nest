@@ -5,15 +5,38 @@ import { CCTP_CHAINS, type CctpChain } from "@/lib/cctp";
 
 export function ChainLogo({ id, size = 10 }: { id: string; size?: number }) {
   const brand = chainBrand(id);
+  const [failed, setFailed] = useState(false);
+  const px = size * 4;
+
+  if (brand.logo && !failed) {
+    return (
+      <span
+        className={`grid shrink-0 place-items-center overflow-hidden rounded-full ring-1 ring-black/5 ${brand.ring ?? "bg-white"}`}
+        style={{ width: px, height: px }}
+      >
+        <img
+          src={brand.logo}
+          alt=""
+          width={px}
+          height={px}
+          loading="lazy"
+          onError={() => setFailed(true)}
+          className="h-full w-full object-contain"
+        />
+      </span>
+    );
+  }
+
   return (
     <span
-      className={`grid shrink-0 place-items-center rounded-xl bg-gradient-to-br ${brand.gradient} text-[10px] font-black text-white shadow-sm`}
-      style={{ width: size * 4, height: size * 4 }}
+      className={`grid shrink-0 place-items-center rounded-full bg-gradient-to-br ${brand.gradient} text-[10px] font-black text-white shadow-sm`}
+      style={{ width: px, height: px }}
     >
       {brand.initials.slice(0, 4)}
     </span>
   );
 }
+
 
 export function ChainPicker({
   label,
