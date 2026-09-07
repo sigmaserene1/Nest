@@ -39,3 +39,4 @@ foundry.lock
 
 # ad-hoc audit exports
 audit-report.json
+*.bak
