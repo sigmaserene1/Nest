@@ -1,9 +1,9 @@
 name: Nest Business agent
 
+# Manual only. The hourly schedule was removed because the job fails (and
+# emails a failure notice) whenever the agent secrets are not configured.
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 * * * *"
 
 permissions:
   contents: read
@@ -11,18 +11,28 @@ permissions:
 jobs:
   settle-open-shares:
     runs-on: ubuntu-latest
-    # Configure these in GitHub Actions secrets after V2 deployment. The
-    # session key is capped and revocable onchain; never use an owner key.
     env:
       ARC_RPC_URL: ${{ secrets.ARC_RPC_URL }}
       NEST_BUSINESS_V2_ADDRESS: ${{ secrets.NEST_BUSINESS_V2_ADDRESS }}
       NEST_AGENT_ROOM_ID: ${{ secrets.NEST_AGENT_ROOM_ID }}
       NEST_AGENT_PRIVATE_KEY: ${{ secrets.NEST_AGENT_PRIVATE_KEY }}
     steps:
+      - name: Check agent secrets
+        id: guard
+        run: |
+          if [ -z "$NEST_AGENT_PRIVATE_KEY" ] || [ -z "$NEST_BUSINESS_V2_ADDRESS" ]; then
+            echo "Agent secrets not configured; skipping."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+        if: steps.guard.outputs.ready == 'true'
+      - uses: oven-sh/setup-bun@v2
+        if: steps.guard.outputs.ready == 'true'
         with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: node scripts/run-business-agent.mjs
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+        if: steps.guard.outputs.ready == 'true'
+      - run: bun scripts/run-business-agent.mjs
+        if: steps.guard.outputs.ready == 'true'
