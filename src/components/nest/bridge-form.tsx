@@ -504,9 +504,10 @@ function BridgePage() {
               reference.
             </p>
           </Card>
+            </>
+          )}
         </div>
       </div>
-    </AppShell>
   );
 }
 
