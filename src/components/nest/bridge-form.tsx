@@ -314,30 +314,46 @@ function BridgePage() {
   }, [quoteAt, statusText]);
 
   return (
-    <AppShell
-      greeting={
-        <div>
-          <div className="text-xs font-bold tracking-[0.16em] text-brand">CCTP ROUTER</div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-[28px]">
-            Move native USDC, simply.
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Arc ↔ supported testnets, powered by Circle’s burn-and-mint CCTP v2.
-          </p>
-        </div>
-      }
-    >
-      <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div
+        className={
+          compact
+            ? "grid gap-5"
+            : "mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]"
+        }
+      >
         <Card className="!p-0 overflow-hidden">
           <div className="border-b px-5 py-4 sm:px-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-bold">
                 <ChainLogo id={source.id} size={6} />
-                Native USDC transfer
+                Bridge
               </div>
               <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[10px] font-bold text-brand">
                 CCTP V2
               </span>
+            </div>
+            <div className="mt-3 inline-flex rounded-xl bg-muted/60 p-1">
+              {TOKENS.map((option) => (
+                <button
+                  key={option.symbol}
+                  type="button"
+                  disabled={!option.enabled || isBusy}
+                  onClick={() => setToken(option.symbol)}
+                  title={option.enabled ? undefined : option.note}
+                  className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+                    token === option.symbol
+                      ? "bg-background shadow-sm"
+                      : "text-muted-foreground"
+                  } ${option.enabled ? "" : "cursor-not-allowed opacity-60"}`}
+                >
+                  {option.symbol}
+                  {!option.enabled && (
+                    <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase">
+                      Soon
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
           </div>
           <div className="space-y-3 p-5 sm:p-6">
