@@ -465,6 +465,8 @@ function BridgePage() {
             <BridgeStepTracker state={state} sourceName={source.name} destinationName={destination.name} />
           </Card>
 
+          {!compact && (
+            <>
           <Card className="!p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-bold">
