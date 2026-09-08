@@ -17,8 +17,8 @@
   --radius-2xl: 1.5rem;
   --radius-3xl: 1.75rem;
 
-  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", "Figtree", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -69,33 +69,33 @@
 :root {
   --radius: 0.5rem;
 
-  --background: oklch(0.975 0.004 260);
-  --foreground: oklch(0.16 0.012 260);
+  --background: #f7f8fc;
+  --foreground: #0b1020;
 
-  --surface: oklch(0.995 0.002 260 / 0.92);
-  --surface-muted: oklch(0.95 0.005 260);
+  --surface: rgb(255 255 255 / 0.82);
+  --surface-muted: #f0f2f8;
 
-  --card: oklch(0.995 0.002 260);
-  --card-foreground: oklch(0.16 0.012 260);
+  --card: rgb(255 255 255 / 0.84);
+  --card-foreground: #0b1020;
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.012 260);
+  --popover: #ffffff;
+  --popover-foreground: #0b1020;
 
-  --brand: oklch(0.62 0.21 28);
-  --brand-foreground: oklch(0.99 0 0);
-  --brand-soft: oklch(0.94 0.035 28);
+  --brand: #e64a45;
+  --brand-foreground: #ffffff;
+  --brand-soft: #ffebe9;
 
-  --primary: oklch(0.59 0.22 28);
-  --primary-foreground: oklch(0.99 0 0);
+  --primary: #e53935;
+  --primary-foreground: #ffffff;
 
-  --secondary: oklch(0.94 0.006 260);
-  --secondary-foreground: oklch(0.18 0.012 260);
+  --secondary: #f1f2f6;
+  --secondary-foreground: #0b1020;
 
-  --muted: oklch(0.94 0.006 260);
-  --muted-foreground: oklch(0.5 0.012 260);
+  --muted: #f1f2f6;
+  --muted-foreground: #6b7280;
 
-  --accent: oklch(0.93 0.008 260);
-  --accent-foreground: oklch(0.18 0.012 260);
+  --accent: #eef0f5;
+  --accent-foreground: #0b1020;
 
   --destructive: #e53935;
   --destructive-foreground: #ffffff;
@@ -104,9 +104,9 @@
   --warning: #f59e0b;
   --info: #3b82f6;
 
-  --border: oklch(0.89 0.007 260);
-  --input: oklch(0.86 0.009 260);
-  --ring: oklch(0.59 0.22 28);
+  --border: #e3e7f0;
+  --input: #dfe4ee;
+  --ring: #e53935;
 
   --chart-1: #e53935;
   --chart-2: #f59e0b;
@@ -114,8 +114,8 @@
   --chart-4: #6366f1;
   --chart-5: #ec4899;
 
-  --sidebar: oklch(0.992 0.002 260);
-  --sidebar-foreground: oklch(0.16 0.012 260);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0b1020;
   --sidebar-primary: #e53935;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #f1f2f6;
@@ -176,43 +176,43 @@
 }
 
 .dark {
-  --background: oklch(0.115 0.006 260);
-  --foreground: oklch(0.96 0.004 260);
+  --background: #080a10;
+  --foreground: #f7f8fc;
 
-  --surface: oklch(0.15 0.008 260 / 0.94);
-  --surface-muted: oklch(0.18 0.009 260);
+  --surface: rgb(16 19 29 / 0.82);
+  --surface-muted: #121622;
 
-  --card: oklch(0.145 0.007 260);
-  --card-foreground: oklch(0.96 0.004 260);
+  --card: rgb(16 19 29 / 0.78);
+  --card-foreground: #f5f7fb;
 
-  --popover: oklch(0.14 0.007 260);
-  --popover-foreground: oklch(0.96 0.004 260);
+  --popover: #0d0f15;
+  --popover-foreground: #f5f7fb;
 
-  --brand: oklch(0.7 0.19 28);
-  --brand-foreground: oklch(0.12 0.015 28);
-  --brand-soft: oklch(0.24 0.055 28);
+  --brand: #ff685f;
+  --brand-foreground: #140605;
+  --brand-soft: #301717;
 
-  --primary: oklch(0.68 0.2 28);
-  --primary-foreground: oklch(0.12 0.015 28);
+  --primary: #ff5a52;
+  --primary-foreground: #140605;
 
-  --secondary: oklch(0.19 0.008 260);
-  --secondary-foreground: oklch(0.96 0.004 260);
+  --secondary: #171b28;
+  --secondary-foreground: #f5f7fb;
 
-  --muted: oklch(0.19 0.008 260);
-  --muted-foreground: oklch(0.66 0.014 260);
+  --muted: #171b28;
+  --muted-foreground: #9da6ba;
 
-  --accent: oklch(0.22 0.01 260);
-  --accent-foreground: oklch(0.96 0.004 260);
+  --accent: #1b2030;
+  --accent-foreground: #f5f7fb;
 
   --destructive: #ff5a52;
   --destructive-foreground: #140605;
 
-  --border: oklch(0.25 0.01 260);
-  --input: oklch(0.29 0.012 260);
-  --ring: oklch(0.68 0.2 28);
+  --border: #262c3b;
+  --input: #2a3040;
+  --ring: #ff5a52;
 
-  --sidebar: oklch(0.13 0.006 260);
-  --sidebar-foreground: oklch(0.96 0.004 260);
+  --sidebar: #10131d;
+  --sidebar-foreground: #f5f7fb;
   --sidebar-primary: #ff5a52;
   --sidebar-primary-foreground: #140605;
   --sidebar-accent: #15181f;
@@ -222,15 +222,17 @@
 }
 
 @utility glass {
-  background: var(--card);
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-soft);
+  background: color-mix(in oklab, var(--card) 91%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 88%, transparent);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(18px);
 }
 
 @utility glass-strong {
-  background: var(--popover);
-  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--card) 96%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 92%, transparent);
   box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(22px);
 }
 
 @utility hairline {
@@ -238,14 +240,15 @@
 }
 
 @utility card-premium {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  box-shadow: var(--shadow-soft);
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 92%, transparent);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(16px);
   transition:
-    transform 150ms ease,
-    border-color 150ms ease,
-    background-color 150ms ease;
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 @utility lift {
@@ -600,33 +603,35 @@
   animation: nest-shine 5s linear infinite;
 }
 
-/* Dark landing page (Vitale-style night sky) */
-.landing {
-  background: #060a14;
-  color: #f5f7fb;
-}
-
-.landing-stars {
-  background-image:
-    radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / 0.5) 50%, transparent 50%),
-    radial-gradient(1px 1px at 34% 6%, rgb(255 255 255 / 0.35) 50%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 56% 14%, rgb(255 255 255 / 0.45) 50%, transparent 50%),
-    radial-gradient(1px 1px at 78% 24%, rgb(255 255 255 / 0.3) 50%, transparent 50%),
-    radial-gradient(1px 1px at 90% 8%, rgb(255 255 255 / 0.4) 50%, transparent 50%),
-    radial-gradient(1.5px 1.5px at 24% 34%, rgb(255 255 255 / 0.3) 50%, transparent 50%),
-    radial-gradient(1px 1px at 66% 32%, rgb(255 255 255 / 0.35) 50%, transparent 50%),
-    radial-gradient(1px 1px at 44% 26%, rgb(255 255 255 / 0.25) 50%, transparent 50%);
-}
-
 .app-canvas {
   position: relative;
   isolation: isolate;
 }
 
 .app-canvas::before {
-  content: none;
+  position: fixed;
+  z-index: -1;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 22rem;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand) 5%, transparent), transparent),
+    radial-gradient(
+      circle at 72% 4%,
+      color-mix(in oklab, var(--brand) 13%, transparent),
+      transparent 22rem
+    );
+  content: "";
 }
 
+.dark .app-canvas::before {
+  background:
+    linear-gradient(180deg, rgb(255 104 95 / 0.06), transparent),
+    radial-gradient(circle at 74% 4%, rgb(255 104 95 / 0.12), transparent 24rem),
+    radial-gradient(circle at 8% 12%, rgb(99 102 241 / 0.08), transparent 20rem);
+}
 
 html {
   scroll-behavior: smooth;
@@ -653,253 +658,3 @@ html {
   }
 }
 
-/* ============================================
-   POLISH UPGRADES — Modern DeFi Look
-   ============================================ */
-
-/* Darker, richer background */
-.dark body {
-  background: 
-    radial-gradient(circle at 82% -12%, color-mix(in oklab, var(--brand) 8%, transparent), transparent 31rem),
-    radial-gradient(circle at 3% 24%, rgb(99 102 241 / 0.04), transparent 27rem),
-    #050507;
-}
-
-/* Better card styling */
-.card-premium {
-  background: linear-gradient(145deg, #111114, #0a0a0d);
-  border: 1px solid #27272a;
-  border-radius: 16px;
-  box-shadow: 
-    0 4px 6px -1px rgb(0 0 0 / 0.3),
-    0 2px 4px -2px rgb(0 0 0 / 0.3),
-    inset 0 1px 0 0 rgb(255 255 255 / 0.05);
-  transition: all 0.2s ease;
-}
-
-.card-premium:hover {
-  border-color: #3f3f46;
-  box-shadow: 
-    0 10px 15px -3px rgb(0 0 0 / 0.4),
-    0 4px 6px -4px rgb(0 0 0 / 0.4),
-    inset 0 1px 0 0 rgb(255 255 255 / 0.08);
-  transform: translateY(-2px);
-}
-
-/* Bigger, bolder headings */
-h1 {
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-h3 {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #fafafa;
-}
-
-/* Better input styling */
-input[type="number"] {
-  background: #18181b !important;
-  border: 1px solid #27272a !important;
-  border-radius: 12px !important;
-  font-size: 1.5rem !important;
-  font-weight: 700 !important;
-  padding: 1rem 1.25rem !important;
-  color: #fafafa;
-}
-
-input[type="number"]:focus {
-  border-color: #e53935 !important;
-  box-shadow: 0 0 0 3px rgb(229 57 53 / 0.15);
-  outline: none;
-}
-
-/* Sidebar improvements */
-.sidebar-nav-item {
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  font-weight: 600;
-  color: #a1a1aa;
-  transition: all 0.15s ease;
-}
-
-.sidebar-nav-item:hover {
-  background: #27272a;
-  color: #fafafa;
-}
-
-.sidebar-nav-item.active {
-  background: linear-gradient(135deg, #e53935, #c62828);
-  color: #fff;
-  box-shadow: 0 4px 12px rgb(229 57 53 / 0.3);
-}
-
-/* Stat cards with better contrast */
-.stat-card {
-  background: linear-gradient(145deg, #18181b, #111114);
-  border: 1px solid #27272a;
-  border-radius: 12px;
-  padding: 1.25rem;
-}
-
-.stat-card .value {
-  font-size: 1.75rem;
-  font-weight: 800;
-  font-family: "Space Grotesk", monospace;
-  letter-spacing: -0.02em;
-}
-
-.stat-card.positive .value {
-  color: #22c55e;
-}
-
-.stat-card.negative .value {
-  color: #ef4444;
-}
-
-/* Gradient button upgrade */
-.btn-gradient {
-  background: linear-gradient(135deg, #e53935 0%, #ff6f60 50%, #e53935 100%);
-  background-size: 200% auto;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  box-shadow: 
-    0 4px 14px rgb(229 57 53 / 0.35),
-    inset 0 1px 0 rgb(255 255 255 / 0.2);
-  transition: all 0.2s ease;
-}
-
-.btn-gradient:hover {
-  background-position: right center;
-  transform: translateY(-1px);
-  box-shadow: 
-    0 6px 20px rgb(229 57 53 / 0.45),
-    inset 0 1px 0 rgb(255 255 255 / 0.25);
-}
-
-/* USDC badge */
-.usdc-badge {
-  background: linear-gradient(135deg, #2775ca, #1e5aa8);
-  color: #fff;
-  font-weight: 700;
-  padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.875rem;
-}
-
-/* ==========================================================================
-   Web3 landing shell
-   ========================================================================== */
-
-/* Dark canvas for the marketing + docs routes. */
-.landing {
-  background: #060a14;
-  color: #ffffff;
-}
-
-/* Faint starfield behind the hero. */
-.landing-stars {
-  background-image:
-    radial-gradient(1px 1px at 12% 18%, rgb(255 255 255 / 0.22), transparent 2px),
-    radial-gradient(1px 1px at 78% 12%, rgb(255 255 255 / 0.16), transparent 2px),
-    radial-gradient(1px 1px at 42% 34%, rgb(255 255 255 / 0.13), transparent 2px),
-    radial-gradient(1px 1px at 88% 46%, rgb(255 255 255 / 0.1), transparent 2px),
-    radial-gradient(1px 1px at 26% 62%, rgb(255 255 255 / 0.1), transparent 2px);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 85%);
-}
-
-/* Web3 grid backdrop for the landing hero */
-.landing-grid {
-  background-image:
-    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 78%);
-}
-
-/* Pulsing network/status indicator. */
-@keyframes nest-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 currentColor;
-  }
-  50% {
-    opacity: 0.65;
-    box-shadow: 0 0 0 4px rgb(255 255 255 / 0);
-  }
-}
-.live-dot {
-  animation: nest-pulse 2.2s ease-in-out infinite;
-}
-
-/* Feature + use-case card hover lift. */
-.protocol-card,
-.use-case-card {
-  transition:
-    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.28s ease,
-    background-color 0.28s ease;
-}
-.protocol-card:hover,
-.use-case-card:hover {
-  transform: translateY(-4px);
-  border-color: rgb(124 108 255 / 0.38);
-  background-color: rgb(255 255 255 / 0.05);
-}
-
-/* Final CTA panel glow. */
-.cta-panel {
-  box-shadow:
-    0 40px 120px rgb(124 108 255 / 0.16),
-    inset 0 1px 0 rgb(255 255 255 / 0.06);
-}
-
-/* Settlement queue transfer line. */
-.transfer-track {
-  overflow: hidden;
-}
-@keyframes nest-transfer {
-  from {
-    left: -8px;
-    opacity: 0;
-  }
-  20%,
-  80% {
-    opacity: 1;
-  }
-  to {
-    left: 100%;
-    opacity: 0;
-  }
-}
-.transfer-particle {
-  animation: nest-transfer 2.4s ease-in-out infinite;
-}
-
-/* FAQ accordion */
-.faq-item summary::marker,
-.faq-item summary::-webkit-details-marker {
-  display: none;
-}
-.faq-item[open] > p {
-  animation: nest-rise 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .live-dot,
-  .transfer-particle {
-    animation: none;
-  }
-  .protocol-card:hover,
-  .use-case-card:hover {
-    transform: none;
-  }
-}

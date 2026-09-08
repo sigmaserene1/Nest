@@ -341,32 +341,6 @@ function BridgePage() {
             </div>
           </div>
           <div className="space-y-3 p-5 sm:p-6">
-            <div className="grid grid-cols-2 gap-2 rounded-2xl border bg-muted/30 p-1.5">
-              <button
-                type="button"
-                className="flex items-center justify-center gap-2 rounded-xl bg-background px-3 py-2 text-sm font-bold shadow-sm"
-              >
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-[#2775CA] text-[10px] font-black text-white">
-                  $
-                </span>
-                USDC
-              </button>
-              <button
-                type="button"
-                disabled
-                title="EURC routing to Arc is not live on Circle's testnet yet"
-                className="flex cursor-not-allowed items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-bold text-muted-foreground opacity-70"
-              >
-                <span className="grid h-5 w-5 place-items-center rounded-full bg-[#0A2540] text-[10px] font-black text-white">
-                  €
-                </span>
-                EURC
-                <span className="rounded-full bg-muted px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider">
-                  Soon
-                </span>
-              </button>
-            </div>
-
             <ChainPicker label="From" chain={source} disabled={isBusy} exclude={toId} onChange={chooseSource} />
             <div className="-my-1 flex justify-center">
               <button

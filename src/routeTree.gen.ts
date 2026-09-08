@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DocsRouteImport } from './routes/docs'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
@@ -20,18 +19,12 @@ import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
 import { Route as AppMembersRouteImport } from './routes/app.members'
 import { Route as AppLendRouteImport } from './routes/app.lend'
 import { Route as AppExpensesRouteImport } from './routes/app.expenses'
-import { Route as AppDocsRouteImport } from './routes/app.docs'
 import { Route as AppBusinessRouteImport } from './routes/app.business'
 import { Route as AppBridgeRouteImport } from './routes/app.bridge'
 import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppAgentRouteImport } from './routes/app.agent'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
 
-const DocsRoute = DocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -82,11 +75,6 @@ const AppExpensesRoute = AppExpensesRouteImport.update({
   path: '/expenses',
   getParentRoute: () => AppRoute,
 } as any)
-const AppDocsRoute = AppDocsRouteImport.update({
-  id: '/docs',
-  path: '/docs',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppBusinessRoute = AppBusinessRouteImport.update({
   id: '/business',
   path: '/business',
@@ -117,13 +105,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/docs': typeof DocsRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bridge': typeof AppBridgeRoute
   '/app/business': typeof AppBusinessRoute
-  '/app/docs': typeof AppDocsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
@@ -135,13 +121,11 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/docs': typeof DocsRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bridge': typeof AppBridgeRoute
   '/app/business': typeof AppBusinessRoute
-  '/app/docs': typeof AppDocsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
@@ -155,13 +139,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/auth': typeof AuthRoute
-  '/docs': typeof DocsRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
   '/app/bridge': typeof AppBridgeRoute
   '/app/business': typeof AppBusinessRoute
-  '/app/docs': typeof AppDocsRoute
   '/app/expenses': typeof AppExpensesRoute
   '/app/lend': typeof AppLendRoute
   '/app/members': typeof AppMembersRoute
@@ -176,13 +158,11 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
-    | '/docs'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
     | '/app/bridge'
     | '/app/business'
-    | '/app/docs'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
@@ -194,13 +174,11 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
-    | '/docs'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
     | '/app/bridge'
     | '/app/business'
-    | '/app/docs'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
@@ -213,13 +191,11 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/auth'
-    | '/docs'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
     | '/app/bridge'
     | '/app/business'
-    | '/app/docs'
     | '/app/expenses'
     | '/app/lend'
     | '/app/members'
@@ -233,18 +209,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   AuthRoute: typeof AuthRoute
-  DocsRoute: typeof DocsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/docs': {
-      id: '/docs'
-      path: '/docs'
-      fullPath: '/docs'
-      preLoaderRoute: typeof DocsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -315,13 +283,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppExpensesRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/docs': {
-      id: '/app/docs'
-      path: '/docs'
-      fullPath: '/app/docs'
-      preLoaderRoute: typeof AppDocsRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/business': {
       id: '/app/business'
       path: '/business'
@@ -366,7 +327,6 @@ interface AppRouteChildren {
   AppAnalyticsRoute: typeof AppAnalyticsRoute
   AppBridgeRoute: typeof AppBridgeRoute
   AppBusinessRoute: typeof AppBusinessRoute
-  AppDocsRoute: typeof AppDocsRoute
   AppExpensesRoute: typeof AppExpensesRoute
   AppLendRoute: typeof AppLendRoute
   AppMembersRoute: typeof AppMembersRoute
@@ -382,7 +342,6 @@ const AppRouteChildren: AppRouteChildren = {
   AppAnalyticsRoute: AppAnalyticsRoute,
   AppBridgeRoute: AppBridgeRoute,
   AppBusinessRoute: AppBusinessRoute,
-  AppDocsRoute: AppDocsRoute,
   AppExpensesRoute: AppExpensesRoute,
   AppLendRoute: AppLendRoute,
   AppMembersRoute: AppMembersRoute,
@@ -398,7 +357,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   AuthRoute: AuthRoute,
-  DocsRoute: DocsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
