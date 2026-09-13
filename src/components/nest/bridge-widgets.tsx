@@ -1,16 +1,28 @@
 import { useEffect, useRef, useState } from "react";
-import { CheckCircle2, ChevronDown, Loader2, Search, XCircle } from "lucide-react";
+import { Check, CheckCircle2, ChevronDown, Clock3, Loader2, Search, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { chainBrand } from "@/lib/chain-brand";
 import { CCTP_CHAINS, type CctpChain } from "@/lib/cctp";
 
 export function ChainLogo({ id, size = 10 }: { id: string; size?: number }) {
   const brand = chainBrand(id);
+  const [failed, setFailed] = useState(false);
   return (
     <span
-      className={`grid shrink-0 place-items-center rounded-xl bg-gradient-to-br ${brand.gradient} text-[10px] font-black text-white shadow-sm`}
+      className={`grid shrink-0 place-items-center overflow-hidden rounded-full border border-border/70 bg-card text-[9px] font-black text-primary-foreground shadow-sm ${failed || !brand.logo ? brand.accent : ""}`}
       style={{ width: size * 4, height: size * 4 }}
     >
-      {brand.initials.slice(0, 4)}
+      {brand.logo && !failed ? (
+        <img
+          src={brand.logo}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        brand.initials.slice(0, 4)
+      )}
     </span>
   );
 }
@@ -47,25 +59,31 @@ export function ChainPicker({
   );
 
   return (
-    <div ref={containerRef} className="relative rounded-2xl border bg-background p-4 transition focus-within:border-brand">
-      <span className="text-xs font-semibold text-muted-foreground">{label}</span>
-      <button
+    <div ref={containerRef} className="relative">
+      <span className="mb-2 block text-[11px] font-bold uppercase text-muted-foreground">{label} network</span>
+      <Button
+        variant="outline"
         type="button"
         disabled={disabled}
         onClick={() => setOpen((value) => !value)}
-        className="mt-2 flex w-full items-center gap-3 disabled:opacity-50"
+        className="h-auto min-h-16 w-full justify-start rounded-xl border-border bg-card px-3 py-3 shadow-none hover:bg-muted/50"
       >
-        <ChainLogo id={chain.id} />
-        <span className="flex-1 text-left text-base font-bold">{chain.name}</span>
+        <ChainLogo id={chain.id} size={10} />
+        <span className="min-w-0 flex-1 text-left">
+          <span className="flex items-center gap-2">
+            <span className="truncate text-sm font-bold text-foreground">{chain.name}</span>
+            <span className="rounded-md bg-warning/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning">Testnet</span>
+          </span>
+          <span className="mt-1 block text-[10px] font-medium text-muted-foreground">
+            Chain {chain.chainId} · Domain {chain.domain}
+          </span>
+        </span>
         <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
-      </button>
-      <span className="mt-2 block text-[11px] text-muted-foreground">
-        Native USDC · CCTP domain {chain.domain} · {chain.eta}
-      </span>
+      </Button>
 
       {open && (
-        <div className="absolute left-0 right-0 top-full z-20 mt-2 rounded-2xl border bg-background p-2 shadow-lg">
-          <div className="flex items-center gap-2 rounded-xl border bg-muted/40 px-3 py-2">
+        <div className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-xl border bg-popover p-2 shadow-elevated">
+          <div className="flex items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
             <Search className="h-3.5 w-3.5 text-muted-foreground" />
             <input
               autoFocus
@@ -75,9 +93,10 @@ export function ChainPicker({
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
-          <div className="mt-2 max-h-64 space-y-1 overflow-y-auto">
+          <div className="scroll-clean mt-2 max-h-72 space-y-1 overflow-y-auto">
             {options.map((option) => (
-              <button
+              <Button
+                variant="ghost"
                 key={option.id}
                 type="button"
                 disabled={option.id === exclude}
@@ -86,18 +105,22 @@ export function ChainPicker({
                   setOpen(false);
                   setQuery("");
                 }}
-                className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`h-auto w-full justify-start gap-3 rounded-lg px-3 py-2.5 text-left disabled:opacity-40 ${
                   option.id === chain.id ? "bg-brand-soft" : ""
                 }`}
               >
-                <ChainLogo id={option.id} size={8} />
-                <span className="flex-1">
-                  <span className="block text-sm font-bold">{option.name}</span>
-                  <span className="block text-[11px] text-muted-foreground">
-                    domain {option.domain} · {option.eta}
+                <ChainLogo id={option.id} size={9} />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2">
+                    <span className="truncate text-sm font-bold">{option.name}</span>
+                    <span className="rounded bg-warning/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-warning">Testnet</span>
+                  </span>
+                  <span className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <Clock3 className="h-3 w-3" /> {option.eta} · Chain {option.chainId} · CCTP {option.domain}
                   </span>
                 </span>
-              </button>
+                {option.id === chain.id && <Check className="h-4 w-4 text-brand" />}
+              </Button>
             ))}
             {options.length === 0 && (
               <p className="px-3 py-4 text-center text-xs text-muted-foreground">No chains match “{query}”.</p>
