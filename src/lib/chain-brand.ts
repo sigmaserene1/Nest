@@ -1,22 +1,30 @@
+import arcLogo from "@/assets/arc-logo.png.asset.json";
+import arbitrumLogo from "@/assets/chains/arbitrum.webp.asset.json";
+import avalancheLogo from "@/assets/chains/avalanche.webp.asset.json";
+import baseLogo from "@/assets/chains/base.webp.asset.json";
+import ethereumLogo from "@/assets/chains/ethereum.webp.asset.json";
+import optimismLogo from "@/assets/chains/optimism.webp.asset.json";
+import polygonLogo from "@/assets/chains/polygon.webp.asset.json";
+
 export type ChainBrand = {
-  gradient: string;
+  logo?: string;
   initials: string;
+  accent: string;
 };
 
-/**
- * Purely cosmetic per-chain accent used for the bridge UI's chain badges.
- * No logo assets required — colors approximate each chain's brand color.
- */
 export const CHAIN_BRAND: Record<string, ChainBrand> = {
-  arc: { gradient: "from-brand to-brand/60", initials: "ARC" },
-  ethereum: { gradient: "from-[#627EEA] to-[#8AA0F0]", initials: "ETH" },
-  avalanche: { gradient: "from-[#E84142] to-[#F4787A]", initials: "AVAX" },
-  optimism: { gradient: "from-[#FF0420] to-[#FF6B6B]", initials: "OP" },
-  arbitrum: { gradient: "from-[#28A0F0] to-[#69C4FF]", initials: "ARB" },
-  base: { gradient: "from-[#0052FF] to-[#6A97FF]", initials: "BASE" },
-  polygon: { gradient: "from-[#8247E5] to-[#B08AF0]", initials: "POL" },
+  arc: { logo: arcLogo.url, initials: "ARC", accent: "bg-foreground" },
+  ethereum: { logo: ethereumLogo.url, initials: "ETH", accent: "bg-info" },
+  avalanche: { logo: avalancheLogo.url, initials: "AVAX", accent: "bg-destructive" },
+  optimism: { logo: optimismLogo.url, initials: "OP", accent: "bg-destructive" },
+  arbitrum: { logo: arbitrumLogo.url, initials: "ARB", accent: "bg-info" },
+  base: { logo: baseLogo.url, initials: "BASE", accent: "bg-info" },
+  polygon: { logo: polygonLogo.url, initials: "POL", accent: "bg-primary" },
 };
 
 export function chainBrand(id: string): ChainBrand {
-  return CHAIN_BRAND[id] ?? { gradient: "from-muted-foreground/40 to-muted-foreground/20", initials: id.slice(0, 3).toUpperCase() };
+  return CHAIN_BRAND[id] ?? {
+    initials: id.slice(0, 4).toUpperCase(),
+    accent: "bg-muted-foreground",
+  };
 }
