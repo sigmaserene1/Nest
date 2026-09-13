@@ -19,13 +19,20 @@ export type BridgeHistoryEntry = {
   errorMessage?: string;
 };
 
-const STORAGE_KEY = "nest.bridge.history";
+const LEGACY_STORAGE_KEY = "nest.bridge.history";
+const STORAGE_PREFIX = "nest.bridge.history.";
 const MAX_ENTRIES = 12;
 
-function readHistory(): BridgeHistoryEntry[] {
+function storageKey(owner?: string | null) {
+  return owner ? `${STORAGE_PREFIX}${owner.toLowerCase()}` : null;
+}
+
+function readHistory(owner?: string | null): BridgeHistoryEntry[] {
   if (typeof window === "undefined") return [];
+  const key = storageKey(owner);
+  if (!key) return [];
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(key);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -34,38 +41,48 @@ function readHistory(): BridgeHistoryEntry[] {
   }
 }
 
-function writeHistory(entries: BridgeHistoryEntry[]) {
+function writeHistory(entries: BridgeHistoryEntry[], owner?: string | null) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
+  const key = storageKey(owner);
+  if (!key) return;
+  window.localStorage.setItem(key, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
 }
 
-export function useBridgeHistory() {
+export function useBridgeHistory(owner?: string | null) {
   const [entries, setEntries] = useState<BridgeHistoryEntry[]>([]);
 
   useEffect(() => {
-    setEntries(readHistory());
-  }, []);
+    // Remove the old shared history so wallets never see each other's transfers.
+    if (typeof window !== "undefined") window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+    setEntries(readHistory(owner));
+  }, [owner]);
 
-  const addEntry = useCallback((entry: BridgeHistoryEntry) => {
-    setEntries((previous) => {
-      const next = [entry, ...previous].slice(0, MAX_ENTRIES);
-      writeHistory(next);
-      return next;
-    });
-  }, []);
+  const addEntry = useCallback(
+    (entry: BridgeHistoryEntry) => {
+      setEntries((previous) => {
+        const next = [entry, ...previous].slice(0, MAX_ENTRIES);
+        writeHistory(next, owner);
+        return next;
+      });
+    },
+    [owner],
+  );
 
-  const updateEntry = useCallback((id: string, patch: Partial<BridgeHistoryEntry>) => {
-    setEntries((previous) => {
-      const next = previous.map((item) => (item.id === id ? { ...item, ...patch } : item));
-      writeHistory(next);
-      return next;
-    });
-  }, []);
+  const updateEntry = useCallback(
+    (id: string, patch: Partial<BridgeHistoryEntry>) => {
+      setEntries((previous) => {
+        const next = previous.map((item) => (item.id === id ? { ...item, ...patch } : item));
+        writeHistory(next, owner);
+        return next;
+      });
+    },
+    [owner],
+  );
 
   const clearHistory = useCallback(() => {
-    writeHistory([]);
+    writeHistory([], owner);
     setEntries([]);
-  }, []);
+  }, [owner]);
 
   return { entries, addEntry, updateEntry, clearHistory };
 }
