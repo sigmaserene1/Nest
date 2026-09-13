@@ -55,7 +55,7 @@ const QUOTE_REFRESH_MS = 15_000;
 function BridgePage() {
   const { address, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
-  const { entries, addEntry, updateEntry, clearHistory } = useBridgeHistory();
+  const { entries, addEntry, updateEntry, clearHistory } = useBridgeHistory(address);
 
   const [fromId, setFromId] = useState("arc");
   const [toId, setToId] = useState("base");
