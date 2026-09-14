@@ -365,14 +365,14 @@ function BridgePage() {
                 <Button
                   variant="outline"
                   size="icon"
-                type="button"
-                onClick={swapRoute}
-                disabled={isBusy}
-                aria-label="Reverse bridge route"
+                  type="button"
+                  onClick={swapRoute}
+                  disabled={isBusy}
+                  aria-label="Reverse bridge route"
                   title="Reverse bridge route"
                   className="h-10 w-10 rounded-full border-4 border-card bg-background shadow-soft transition-transform hover:rotate-180"
-              >
-                <ArrowDownUp className="h-4 w-4" />
+                >
+                  <ArrowDownUp className="h-4 w-4" />
                 </Button>
               </div>
               <ChainPicker label="To" chain={destination} disabled={isBusy} exclude={fromId} onChange={chooseDestination} />
@@ -417,7 +417,7 @@ function BridgePage() {
 
             <label className="block">
               <span className="text-xs font-semibold text-muted-foreground">Recipient</span>
-               <div className="mt-2 flex items-center gap-2 rounded-xl border bg-background px-3 py-3 transition focus-within:border-brand">
+              <div className="mt-2 flex items-center gap-2 rounded-xl border bg-background px-3 py-3 transition focus-within:border-brand">
                 <Wallet className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <input
                   value={recipientInput}
@@ -506,21 +506,24 @@ function BridgePage() {
             <BridgeStepTracker state={state} sourceName={source.name} destinationName={destination.name} />
           </Card>
 
-           <Card className="!p-5">
+          <Card className="!p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-sm font-bold">
                 <History className="h-4 w-4 text-brand" />
                 Recent transfers
               </div>
               {entries.length > 0 && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   type="button"
                   onClick={clearHistory}
                   aria-label="Clear history"
-                  className="text-muted-foreground hover:text-red-500"
+                  title="Clear transfer history"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               )}
             </div>
             {entries.length === 0 ? (
