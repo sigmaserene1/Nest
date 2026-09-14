@@ -409,9 +409,9 @@ function BridgePage() {
                 </span>
               </div>
               <div className={`mt-2 text-xs ${insufficientBalance ? "text-destructive" : "text-muted-foreground"}`}>
-                {insufficientBalance ? `Insufficient USDC on ${source.name}` : 
-                ≈ ${Number.isFinite(value) ? value.toFixed(2) : "0.00"} USD
-                }
+                {insufficientBalance
+                  ? `Insufficient USDC on ${source.name}`
+                  : `≈ $${Number.isFinite(value) ? value.toFixed(2) : "0.00"} USD`}
               </div>
             </div>
 
