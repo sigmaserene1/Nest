@@ -148,10 +148,10 @@ type StepKey = "approve" | "burn" | "attest" | "mint";
 const STEP_ORDER: StepKey[] = ["approve", "burn", "attest", "mint"];
 
 const STEP_LABEL: Record<StepKey, { title: string; active: string }> = {
-  approve: { title: "Approve USDC", active: "Approving native USDC…" },
-  burn: { title: "Burn on source chain", active: "Burning native USDC…" },
-  attest: { title: "Circle attestation", active: "Waiting for Circle's attestation…" },
-  mint: { title: "Mint on destination", active: "Minting native USDC…" },
+  approve: { title: "Approve USDC", active: "Confirm approval in your wallet" },
+  burn: { title: "Burn on source chain", active: "Submitting the CCTP burn" },
+  attest: { title: "Circle attestation", active: "Waiting for Circle to attest" },
+  mint: { title: "Mint on destination", active: "Confirm the destination mint" },
 };
 
 function stepIndexForState(state: TrackerState): number {
@@ -174,7 +174,7 @@ export function BridgeStepTracker({ state, sourceName, destinationName }: {
   const isError = state === "error";
 
   return (
-    <ol className="mt-4 space-y-4">
+    <ol className="relative mt-4 space-y-1 before:absolute before:bottom-5 before:left-3 before:top-5 before:w-px before:bg-border">
       {STEP_ORDER.map((key, index) => {
         const label = STEP_LABEL[key];
         const done = activeIndex > index || state === "complete";
@@ -186,15 +186,15 @@ export function BridgeStepTracker({ state, sourceName, destinationName }: {
         if (key === "mint") title = `Mint on ${destinationName}`;
 
         return (
-          <li key={key} className="flex gap-3">
+          <li key={key} className="relative flex gap-3 rounded-lg py-2">
             <span
               className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
                 done
-                  ? "bg-green-500/15 text-green-600"
+                  ? "bg-success/15 text-success"
                   : active
                     ? "bg-brand-soft text-brand"
                     : failed
-                      ? "bg-red-500/15 text-red-500"
+                      ? "bg-destructive/15 text-destructive"
                       : "bg-muted text-muted-foreground"
               }`}
             >
@@ -210,8 +210,8 @@ export function BridgeStepTracker({ state, sourceName, destinationName }: {
             </span>
             <div>
               <div className={`text-xs font-bold ${active ? "text-brand" : ""}`}>{title}</div>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                {active ? label.active : done ? "Confirmed." : "Waiting."}
+              <p className="mt-0.5 text-[11px] leading-5 text-muted-foreground">
+                {active ? label.active : done ? "Confirmed onchain" : index === 2 ? "Usually 10–20 seconds" : "Waiting"}
               </p>
             </div>
           </li>

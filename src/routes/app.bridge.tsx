@@ -17,9 +17,12 @@ import {
 import { isAddress, type Address, type Hex } from "viem";
 import { getAccount, getPublicClient, getWalletClient } from "@wagmi/core";
 import { useAccount, useSwitchChain } from "wagmi";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { ChainLogo, ChainPicker, BridgeStepTracker, type TrackerState } from "@/components/nest/bridge-widgets";
+import { UsdcMark } from "@/components/nest/chain";
+import { Button } from "@/components/ui/button";
 import {
   ANY_DESTINATION_CALLER,
   CCTP_CHAINS,
@@ -46,6 +49,13 @@ export const Route = createFileRoute("/app/bridge")({
         content:
           "Move native USDC between Arc Testnet and supported EVM testnets using Circle CCTP v2.",
       },
+      { property: "og:title", content: "Bridge native USDC · Nest" },
+      {
+        property: "og:description",
+        content: "Move native USDC across Arc and supported testnets with Circle CCTP v2.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
@@ -75,9 +85,12 @@ function BridgePage() {
   const source = CCTP_CHAINS.find((chain) => chain.id === fromId) ?? CCTP_CHAINS[0];
   const destination = CCTP_CHAINS.find((chain) => chain.id === toId) ?? CCTP_CHAINS[1];
   const value = Number(amount);
+  const hasValidAmount = Number.isFinite(value) && value > 0;
   const isBusy = !["idle", "complete", "error"].includes(state);
   const recipient = recipientInput.trim() || address || "";
-  const minimumReceived = Math.max(0, value - Number(formatUsdc(maxFee)));
+  const amountUnits = hasValidAmount ? BigInt(Math.round(value * 1_000_000)) : 0n;
+  const insufficientBalance = sourceBalance !== null && amountUnits > sourceBalance;
+  const minimumReceived = hasValidAmount ? Math.max(0, value - Number(formatUsdc(maxFee))) : 0;
 
   // Fetch the connected wallet's native USDC balance on the selected source chain.
   useEffect(() => {
@@ -327,69 +340,84 @@ function BridgePage() {
         </div>
       }
     >
-      <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
-        <Card className="!p-0 overflow-hidden">
-          <div className="border-b px-5 py-4 sm:px-6">
+      <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <Card className="overflow-visible !p-0">
+          <div className="border-b border-border/70 px-4 py-4 sm:px-6">
             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2 text-sm font-bold">
-                <ChainLogo id={source.id} size={6} />
-                Native USDC transfer
+              <div>
+                <div className="flex items-center gap-2 text-sm font-bold">
+                  <span className="grid h-8 w-8 place-items-center rounded-full bg-info/10">
+                    <UsdcMark size={20} />
+                  </span>
+                  Bridge USDC
+                </div>
+                <p className="mt-1 text-[11px] text-muted-foreground">Native USDC · no wrapped assets</p>
               </div>
-              <span className="rounded-full bg-brand-soft px-2.5 py-1 text-[10px] font-bold text-brand">
+              <span className="rounded-lg border border-brand/20 bg-brand-soft px-2.5 py-1 text-[10px] font-bold text-brand">
                 CCTP V2
               </span>
             </div>
           </div>
-          <div className="space-y-3 p-5 sm:p-6">
-            <ChainPicker label="From" chain={source} disabled={isBusy} exclude={toId} onChange={chooseSource} />
-            <div className="-my-1 flex justify-center">
-              <button
-                type="button"
-                onClick={swapRoute}
-                disabled={isBusy}
-                aria-label="Reverse bridge route"
-                className="relative z-10 grid h-10 w-10 place-items-center rounded-xl border bg-background text-foreground shadow-sm transition hover:bg-muted disabled:opacity-50"
-              >
-                <ArrowDownUp className="h-4 w-4" />
-              </button>
+          <div className="space-y-4 p-4 sm:p-6">
+            <div className="relative grid gap-3 sm:grid-cols-2">
+              <ChainPicker label="From" chain={source} disabled={isBusy} exclude={toId} onChange={chooseSource} />
+              <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 max-sm:top-[calc(50%+10px)]">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  type="button"
+                  onClick={swapRoute}
+                  disabled={isBusy}
+                  aria-label="Reverse bridge route"
+                  title="Reverse bridge route"
+                  className="h-10 w-10 rounded-full border-4 border-card bg-background shadow-soft transition-transform hover:rotate-180"
+                >
+                  <ArrowDownUp className="h-4 w-4" />
+                </Button>
+              </div>
+              <ChainPicker label="To" chain={destination} disabled={isBusy} exclude={fromId} onChange={chooseDestination} />
             </div>
-            <ChainPicker label="To" chain={destination} disabled={isBusy} exclude={fromId} onChange={chooseDestination} />
 
-            <div className="rounded-2xl border bg-muted/30 p-4">
+            <div className="rounded-xl border bg-muted/30 p-4 transition focus-within:border-brand">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold text-muted-foreground">You send</label>
+                <label htmlFor="bridge-amount" className="text-[11px] font-bold uppercase text-muted-foreground">You send</label>
                 {sourceBalance !== null && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     type="button"
                     onClick={useMaxBalance}
                     disabled={isBusy}
-                    className="text-[11px] font-bold text-brand disabled:opacity-50"
+                    className="h-7 rounded-lg px-2 text-[11px] font-bold text-brand"
                   >
                     Balance {formatUsdc(sourceBalance)} · Max
-                  </button>
+                  </Button>
                 )}
               </div>
               <div className="mt-2 flex items-center gap-3">
                 <input
+                  id="bridge-amount"
                   value={amount}
                   onChange={(event) => setAmount(event.target.value.replace(/[^0-9.]/g, ""))}
                   inputMode="decimal"
                   placeholder="0.00"
                   disabled={isBusy}
-                  className="min-w-0 flex-1 bg-transparent text-3xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
+                  className="min-w-0 flex-1 bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
                 />
-                <span className="rounded-full bg-background px-3 py-2 text-sm font-bold shadow-sm">
-                  USDC
+                <span className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-bold shadow-sm">
+                  <UsdcMark size={20} /> USDC
                 </span>
               </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                ≈ ${Number.isFinite(value) ? value.toFixed(2) : "0.00"} USD
+              <div className={`mt-2 text-xs ${insufficientBalance ? "text-destructive" : "text-muted-foreground"}`}>
+                {insufficientBalance
+                  ? `Insufficient USDC on ${source.name}`
+                  : `≈ $${Number.isFinite(value) ? value.toFixed(2) : "0.00"} USD`}
               </div>
             </div>
 
             <label className="block">
               <span className="text-xs font-semibold text-muted-foreground">Recipient</span>
-              <div className="mt-1 flex items-center gap-2 rounded-xl border bg-background px-3 py-2.5">
+              <div className="mt-2 flex items-center gap-2 rounded-xl border bg-background px-3 py-3 transition focus-within:border-brand">
                 <Wallet className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <input
                   value={recipientInput}
@@ -399,21 +427,23 @@ function BridgePage() {
                   className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 />
                 {address && recipientInput && (
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     type="button"
                     onClick={() => setRecipientInput("")}
-                    className="shrink-0 text-xs font-bold text-brand"
+                    className="h-7 shrink-0 px-2 text-xs font-bold text-brand"
                   >
                     Use mine
-                  </button>
+                  </Button>
                 )}
               </div>
             </label>
 
-            <div className="rounded-xl bg-muted/60 px-4 py-3 text-sm">
+            <div className="rounded-xl border border-border/70 bg-muted/40 px-4 py-3 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Estimated received</span>
-                <span className="font-bold">{minimumReceived.toFixed(2)} USDC</span>
+                <span className="flex items-center gap-1.5 font-bold"><UsdcMark size={15} />{minimumReceived.toFixed(2)} USDC</span>
               </div>
               <div className="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>Maximum CCTP fee</span>
@@ -426,19 +456,30 @@ function BridgePage() {
               )}
             </div>
 
-            <button
-              type="button"
-              disabled={!isConnected || isBusy || !Number.isFinite(value) || value <= 0}
-              onClick={executeBridge}
-              className="flex w-full items-center justify-center gap-2 rounded-xl btn-gradient py-3.5 text-sm font-bold disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              {isBusy
-                ? actionLabel(state)
-                : isConnected
-                  ? `Bridge to ${destination.name}`
-                  : "Connect wallet"}
-            </button>
+            <ConnectButton.Custom>
+              {({ openConnectModal }) => (
+                <Button
+                  type="button"
+                  disabled={isConnected && (isBusy || !hasValidAmount || insufficientBalance)}
+                  onClick={isConnected ? executeBridge : openConnectModal}
+                  className="h-13 w-full rounded-xl btn-gradient text-sm font-bold"
+                >
+                  {isBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : isConnected ? <Send className="h-4 w-4" /> : <Wallet className="h-4 w-4" />}
+                  {isBusy
+                    ? actionLabel(state)
+                    : !isConnected
+                      ? "Connect wallet"
+                      : !hasValidAmount
+                        ? "Enter an amount"
+                        : insufficientBalance
+                          ? "Insufficient USDC balance"
+                          : `Bridge ${value.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC`}
+                </Button>
+              )}
+            </ConnectButton.Custom>
+            <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5 text-success" /> Secured by Circle CCTP · Native USDC
+            </div>
             <TransferNotice state={state} statusText={statusText} error={error} />
             {(approvalHash || burnHash || mintHash) && (
               <div className="space-y-2 border-t pt-4">
@@ -457,7 +498,7 @@ function BridgePage() {
         </Card>
 
         <div className="space-y-4">
-          <Card className="!p-5">
+          <Card className="!p-5 lg:sticky lg:top-24">
             <div className="flex items-center gap-2 text-sm font-bold">
               <ShieldCheck className="h-4 w-4 text-brand" />
               Transfer status
@@ -472,14 +513,17 @@ function BridgePage() {
                 Recent transfers
               </div>
               {entries.length > 0 && (
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   type="button"
                   onClick={clearHistory}
                   aria-label="Clear history"
-                  className="text-muted-foreground hover:text-red-500"
+                  title="Clear transfer history"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                </button>
+                </Button>
               )}
             </div>
             {entries.length === 0 ? (
