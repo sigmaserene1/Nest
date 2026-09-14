@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Bot, Loader2, ShieldCheck, Zap, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Bot, Loader2, ShieldCheck, Zap, CheckCircle2, AlertTriangle, SlidersHorizontal, WalletCards } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
@@ -11,6 +11,8 @@ import { fmtUSD, getMember, fmtRelative } from "@/lib/nest-data";
 import { recordReceipt } from "@/lib/receipts-store";
 import { arcTestnet } from "@/lib/wagmi";
 import { useAgentConfig, useAgentRuns, type AgentRun } from "@/lib/agent-store";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 
 export const Route = createFileRoute("/app/agent")({
   component: AgentPage,
@@ -116,35 +118,45 @@ function AgentPage() {
     >
       <div className="mt-6 grid gap-5 lg:grid-cols-5">
         <div className="space-y-4 lg:col-span-3">
-          <Card className="!p-6">
-            <div className="flex items-start gap-4">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-soft text-brand">
-                <Bot className="h-6 w-6" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="text-base font-bold">Nest settlement assistant</div>
-                  <button
-                    onClick={() => setCfg((p) => ({ ...p, enabled: !p.enabled }))}
-                    className={`rounded-full px-3 py-1.5 text-xs font-bold ${
-                      cfg.enabled
-                        ? "bg-emerald-100 text-emerald-700"
-                        : "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {cfg.enabled ? "Ready" : "Off"}
-                  </button>
+          <Card className={`overflow-hidden !p-0 ${cfg.enabled ? "border-brand/30 shadow-glow" : ""}`}>
+            <div className="border-b bg-brand-soft/55 p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand text-brand-foreground shadow-brand">
+                  <Bot className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-base font-bold">Settlement Assistant</div>
+                  <div className={`mt-0.5 text-xs font-semibold ${cfg.enabled ? "text-success" : "text-muted-foreground"}`}>
+                    {cfg.enabled ? "Ready to review your payments" : "Turn on to prepare payments"}
+                  </div>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Review the current onchain debts, then submit the selected USDC settlements from
-                  your connected wallet. Nest holds no keys, cannot run while closed, and every
-                  payment still requires a wallet signature.
-                </p>
+                <label className="flex shrink-0 items-center gap-2 rounded-full border bg-card px-2.5 py-1.5 shadow-sm">
+                  <span className="text-[11px] font-bold">{cfg.enabled ? "On" : "Off"}</span>
+                  <Switch
+                    checked={cfg.enabled}
+                    onCheckedChange={(enabled) => setCfg((p) => ({ ...p, enabled }))}
+                    aria-label="Turn Settlement Assistant on or off"
+                  />
+                </label>
+              </div>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-brand/15 bg-card/90 p-3">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground">Ready to pay</div>
+                  <div className="mt-1 text-xl font-bold tabular-nums">{fmtUSD(queueTotal)}</div>
+                </div>
+                <div className="rounded-xl border border-brand/15 bg-card/90 p-3">
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground">Payments</div>
+                  <div className="mt-1 text-xl font-bold tabular-nums">{queue.length}</div>
+                </div>
               </div>
             </div>
 
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <Field label="Max per run (USDC)">
+            <div className="p-5 sm:p-6">
+              <div className="mb-3 flex items-center gap-2 text-xs font-bold text-muted-foreground">
+                <SlidersHorizontal className="h-3.5 w-3.5" /> Your safety limits
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Most I can pay at once" hint="The assistant stops at this amount.">
                 <input
                   type="number"
                   min={0}
@@ -156,7 +168,7 @@ function AgentPage() {
                   className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-semibold"
                 />
               </Field>
-              <Field label="Ignore debts under (USDC)">
+              <Field label="Skip tiny payments under" hint="Example: 1 skips anything below $1.">
                 <input
                   type="number"
                   min={0}
@@ -166,6 +178,10 @@ function AgentPage() {
                   className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-semibold"
                 />
               </Field>
+              </div>
+              <div className="mt-4 flex items-center gap-2 rounded-lg bg-muted/60 px-3 py-2.5 text-xs text-muted-foreground">
+                <WalletCards className="h-4 w-4 shrink-0 text-brand" /> You approve every payment in your wallet.
+              </div>
             </div>
           </Card>
 
@@ -202,16 +218,23 @@ function AgentPage() {
               </div>
             )}
 
-            <button
+            <Button
               onClick={runNow}
               disabled={running || queue.length === 0 || !cfg.enabled}
-              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg btn-gradient py-3 text-sm font-bold disabled:opacity-50"
+              className="mt-4 h-12 w-full rounded-xl btn-gradient text-sm font-bold"
             >
               {running ? <Loader2 className="h-4 w-4 animate-spin" /> : <Zap className="h-4 w-4" />}
               {running
                 ? step || "Preparing settlements…"
-                : `Review & settle · ${fmtUSD(queueTotal)}`}
-            </button>
+                : !cfg.enabled
+                  ? "Turn on assistant to continue"
+                  : queue.length === 0
+                    ? "Nothing to settle"
+                    : `Review & pay ${fmtUSD(queueTotal)}`}
+            </Button>
+            {queue.length > 0 && cfg.enabled && !running && (
+              <p className="mt-2 text-center text-[11px] text-muted-foreground">You will review and approve each wallet request.</p>
+            )}
           </Card>
 
           <Card>
@@ -286,11 +309,12 @@ function AgentPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, hint, children }: { label: string; hint: string; children: React.ReactNode }) {
   return (
     <label className="block">
       <span className="text-xs font-semibold text-muted-foreground">{label}</span>
       <div className="mt-1">{children}</div>
+      <span className="mt-1 block text-[10px] text-muted-foreground">{hint}</span>
     </label>
   );
 }
