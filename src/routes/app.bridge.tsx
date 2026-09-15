@@ -568,6 +568,14 @@ function BridgePage() {
               <ShieldCheck className="h-3.5 w-3.5 text-success" /> Secured by Circle CCTP · Native {token.symbol}
             </div>
             <TransferNotice state={state} statusText={statusText} error={error} />
+            {state === "complete" && search.returnTo && (
+              <a
+                href={search.returnTo}
+                className="flex w-full items-center justify-center rounded-xl border border-brand/20 bg-brand-soft px-4 py-3 text-xs font-bold text-brand transition hover:bg-brand/10"
+              >
+                Return to your Nest flow
+              </a>
+            )}
             {(approvalHash || burnHash || mintHash) && (
               <div className="space-y-2 border-t pt-4">
                 {approvalHash && (
