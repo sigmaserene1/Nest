@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { formatUnits } from "viem";
+import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { UsdcBadge, WalletChip } from "@/components/nest/chain";
@@ -8,7 +10,8 @@ import { useComputedBalances, useMe } from "@/lib/chain/nest-chain";
 import { ActionModal } from "@/components/nest/action-modal";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
-import { Shield, Zap, ArrowRight, ArrowDownToLine } from "lucide-react";
+import { spendUnifiedUsdcToArc } from "@/lib/circle-unified";
+import { Shield, Zap, ArrowRight, ArrowDownToLine, Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/app/settle")({
   component: Settle,
@@ -30,6 +33,71 @@ function Settle() {
   const [active, setActive] = useState<Debt | null>(null);
   const [queue, setQueue] = useState(false);
   const [freeSend, setFreeSend] = useState(false);
+  const [fundingStep, setFundingStep] = useState<string | null>(null);
+
+  const startSettlement = () => {
+    if (mine.length === 0) {
+      setFreeSend(true);
+      return;
+    }
+
+    setQueue(mine.length > 1);
+    setActive(mine[0]);
+  };
+
+  const fundAndSettle = async () => {
+    if (shortfall <= 0) {
+      startSettlement();
+      return;
+    }
+
+    if (!wallet.address) {
+      toast.error("Connect your wallet first.");
+      return;
+    }
+
+    try {
+      setFundingStep(`Moving ${fmtUSD(shortfall)} to Arc…`);
+      await spendUnifiedUsdcToArc(shortfall.toFixed(6), wallet.address);
+
+      setFundingStep("Waiting for USDC on Arc…");
+      const deadline = Date.now() + 3 * 60 * 1000;
+      let funded = false;
+
+      while (Date.now() < deadline) {
+        const result = await wallet.refetchBalance();
+        const rawBalance = result.data;
+        const arcBalance =
+          typeof rawBalance === "bigint" ? Number(formatUnits(rawBalance, 6)) : 0;
+
+        if (arcBalance + 0.000001 >= total) {
+          funded = true;
+          break;
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 2_000));
+      }
+
+      if (!funded) {
+        throw new Error(
+          "Circle submitted the funding transfer, but the Arc balance has not updated yet. Refresh and settle once the USDC arrives.",
+        );
+      }
+
+      setFundingStep("Switching to Arc…");
+      if (!wallet.isOnArc) {
+        await wallet.switchToArcAsync();
+      }
+
+      await wallet.refetchBalance();
+      toast.success("Arc funded. Continue with settlement.");
+      setFundingStep(null);
+      startSettlement();
+    } catch (error) {
+      setFundingStep(null);
+      toast.error(error instanceof Error ? error.message : "Fund & Settle failed.");
+    }
+  };
 
   return (
     <AppShell
@@ -67,28 +135,31 @@ function Settle() {
                 <span>
                   Need {fmtUSD(shortfall)} more USDC on Arc
                   <span className="mt-0.5 block font-medium text-background/60">
-                    Fund the exact shortfall with CCTP
+                    Manual CCTP fallback for the exact shortfall
                   </span>
                 </span>
                 <ArrowDownToLine className="h-4 w-4" />
               </Link>
             )}
             <button
-              onClick={() => {
-                if (mine.length === 0) {
-                  setFreeSend(true);
-                  return;
-                }
-                setQueue(mine.length > 1);
-                setActive(mine[0]);
-              }}
-              className="mt-6 w-full rounded-2xl btn-gradient py-4 text-sm font-bold"
+              onClick={fundAndSettle}
+              disabled={!!fundingStep}
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-60"
             >
-              {mine.length === 0
-                ? "Send USDC to a roommate"
-                : mine.length > 1
-                  ? `Settle all onchain · ${fmtUSD(total)}`
-                  : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
+              {fundingStep ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  {fundingStep}
+                </>
+              ) : mine.length === 0 ? (
+                "Send USDC to a roommate"
+              ) : shortfall > 0 ? (
+                `Fund & settle · ${fmtUSD(total)}`
+              ) : mine.length > 1 ? (
+                `Settle all onchain · ${fmtUSD(total)}`
+              ) : (
+                `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`
+              )}
             </button>
           </Card>
 
