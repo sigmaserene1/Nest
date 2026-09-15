@@ -2,12 +2,15 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowDownToLine, Building2, KeyRound, Landmark, Loader2, ShieldCheck } from "lucide-react";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
+import { getWalletClient } from "@wagmi/core";
 import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { NEST_BUSINESS_V2_ABI } from "@/contracts/nest-business-v2-artifact";
-import { ERC20_ABI, arcTestnet, USDC_ADDRESS } from "@/lib/wagmi";
+import { ERC20_ABI, arcTestnet, USDC_ADDRESS, wagmiConfig } from "@/lib/wagmi";
 import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { spendUnifiedUsdcToArc } from "@/lib/circle-unified";
 
 export const Route = createFileRoute("/app/business")({
   component: BusinessPage,
@@ -38,6 +41,7 @@ const labels: Record<Action, string> = {
 
 function BusinessPage() {
   const { address, isConnected } = useAccount();
+  const arcWallet = useArcWallet();
   const { data: walletClient } = useWalletClient();
   const publicClient = usePublicClient({ chainId: arcTestnet.id });
   const [action, setAction] = useState<Action>("borrow");
@@ -50,6 +54,12 @@ function BusinessPage() {
   const [periodHours, setPeriodHours] = useState("24");
   const [expiryDays, setExpiryDays] = useState("30");
   const [busy, setBusy] = useState<string | null>(null);
+
+  const requestedAmount = Number(amount);
+  const supplyShortfall =
+    action === "supply" && Number.isFinite(requestedAmount) && requestedAmount > 0
+      ? Math.max(0, requestedAmount - arcWallet.usdcBalance)
+      : 0;
 
   const creditQuery = useReadContract({
     address: businessAddress ?? undefined,
@@ -123,8 +133,13 @@ function BusinessPage() {
     return { account: address, walletClient, publicClient };
   };
 
-  const ensureAllowance = async (units: bigint) => {
-    const { account, walletClient, publicClient } = requireWallet();
+  const ensureAllowance = async (
+    units: bigint,
+    walletOverride = walletClient,
+  ) => {
+    const { account, publicClient } = requireWallet();
+    if (!walletOverride) throw new Error("Connect an Arc wallet first.");
+
     const allowance = (await publicClient.readContract({
       address: USDC_ADDRESS,
       abi: ERC20_ABI,
@@ -132,8 +147,9 @@ function BusinessPage() {
       args: [account, businessAddress],
     })) as bigint;
     if (allowance >= units) return;
+
     setBusy("Approving USDC…");
-    const hash = await walletClient.writeContract({
+    const hash = await walletOverride.writeContract({
       address: USDC_ADDRESS,
       abi: ERC20_ABI,
       functionName: "approve",
@@ -149,12 +165,76 @@ function BusinessPage() {
     const number = Number(amount);
     if (!Number.isFinite(number) || number <= 0)
       return toast.error("Enter a positive USDC amount.");
+
     try {
-      const { account, walletClient, publicClient } = requireWallet();
+      const { account, publicClient } = requireWallet();
       const units = parseUnits(number.toFixed(6), 6);
-      if (action === "supply" || action === "repay") await ensureAllowance(units);
+      let activeWalletClient = walletClient;
+
+      if (action === "supply") {
+        const currentBalance = (await publicClient.readContract({
+          address: USDC_ADDRESS,
+          abi: ERC20_ABI,
+          functionName: "balanceOf",
+          args: [account],
+        })) as bigint;
+
+        if (currentBalance < units) {
+          const shortfallUnits = units - currentBalance;
+          const shortfall = formatUnits(shortfallUnits, 6);
+
+          setBusy(`Funding ${shortfall} USDC to Arc…`);
+          await spendUnifiedUsdcToArc(shortfall, account);
+
+          setBusy("Waiting for USDC on Arc…");
+          const deadline = Date.now() + 3 * 60 * 1000;
+          let funded = false;
+
+          while (Date.now() < deadline) {
+            const updatedBalance = (await publicClient.readContract({
+              address: USDC_ADDRESS,
+              abi: ERC20_ABI,
+              functionName: "balanceOf",
+              args: [account],
+            })) as bigint;
+
+            if (updatedBalance >= units) {
+              funded = true;
+              break;
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, 2_000));
+          }
+
+          if (!funded) {
+            throw new Error(
+              "Circle submitted the funding transfer, but the Arc balance has not updated yet. Retry Supply once the USDC arrives.",
+            );
+          }
+        }
+
+        if (!arcWallet.isOnArc) {
+          setBusy("Switching to Arc…");
+          await arcWallet.switchToArcAsync();
+        }
+
+        activeWalletClient = await getWalletClient(wagmiConfig, {
+          chainId: arcTestnet.id,
+        });
+
+        if (!activeWalletClient) {
+          throw new Error("Unable to get an Arc wallet client after network switch.");
+        }
+      }
+
+      if (!activeWalletClient) throw new Error("Connect an Arc wallet first.");
+
+      if (action === "supply" || action === "repay") {
+        await ensureAllowance(units, activeWalletClient);
+      }
+
       setBusy("Confirm in wallet…");
-      const hash = await walletClient.writeContract({
+      const hash = await activeWalletClient.writeContract({
         address: businessAddress,
         abi: NEST_BUSINESS_V2_ABI,
         functionName: action,
@@ -164,8 +244,9 @@ function BusinessPage() {
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Transaction reverted on Arc.");
+
       setAmount("");
-      await creditQuery.refetch();
+      await Promise.all([creditQuery.refetch(), arcWallet.refetchBalance()]);
       toast.success(`${labels[action]} confirmed`);
     } catch (error) {
       toast.error((error as Error).message.split("\n")[0]);
@@ -291,15 +372,17 @@ function BusinessPage() {
                     from: "base",
                     to: "arc",
                     amount:
-                      action === "supply" && Number.isFinite(Number(amount)) && Number(amount) > 0
-                        ? amount
+                      action === "supply" && supplyShortfall > 0
+                        ? supplyShortfall.toFixed(6)
                         : undefined,
                     returnTo: "/app/business",
                   }}
                   className="mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold text-brand transition hover:bg-brand-soft"
                 >
                   <ArrowDownToLine className="h-3.5 w-3.5" />
-                  Fund Arc collateral via CCTP
+                  {supplyShortfall > 0
+                    ? `Manual CCTP fallback · ${supplyShortfall.toFixed(2)} USDC`
+                    : "Fund Arc collateral via CCTP"}
                 </Link>
               </div>
             </div>
@@ -321,12 +404,12 @@ function BusinessPage() {
 
         <UnifiedBalancePanel
           compact
-          defaultSpendAmount={
-            action === "supply" && Number.isFinite(Number(amount)) && Number(amount) > 0
-              ? Number(amount)
-              : undefined
+          defaultSpendAmount={supplyShortfall > 0 ? supplyShortfall : undefined}
+          contextLabel={
+            supplyShortfall > 0
+              ? `Your Arc wallet is short ${supplyShortfall.toFixed(2)} USDC for this collateral supply. Fund only the shortfall with Gateway.`
+              : "Keep confirmed Gateway USDC ready for future Arc collateral funding."
           }
-          contextLabel="Move confirmed Gateway USDC to Arc before supplying collateral or repaying business credit."
         />
 
         <Card>
@@ -359,7 +442,10 @@ function BusinessPage() {
               className="inline-flex items-center gap-2 rounded-lg btn-gradient px-4 py-3 text-sm font-bold disabled:opacity-50"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {busy ?? labels[action]}
+              {busy ??
+                (action === "supply" && supplyShortfall > 0
+                  ? `Fund & supply · ${requestedAmount.toFixed(2)} USDC`
+                  : labels[action])}
             </button>
           </div>
         </Card>
