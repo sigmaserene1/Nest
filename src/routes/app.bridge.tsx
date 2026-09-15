@@ -37,6 +37,12 @@ import {
   waitForAttestation,
 } from "@/lib/cctp";
 import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
+import {
+  BRIDGE_TOKENS,
+  bridgeToken,
+  tokenAddressFor,
+  type BridgeTokenId,
+} from "@/lib/bridge-tokens";
 import { wagmiConfig } from "@/lib/wagmi";
 
 export const Route = createFileRoute("/app/bridge")({
@@ -70,6 +76,7 @@ function BridgePage() {
   const [fromId, setFromId] = useState("arc");
   const [toId, setToId] = useState("base");
   const [amount, setAmount] = useState("1");
+  const [tokenId, setTokenId] = useState<BridgeTokenId>("usdc");
   const [recipientInput, setRecipientInput] = useState("");
   const [state, setState] = useState<TrackerState>("idle");
   const [error, setError] = useState("");
@@ -84,6 +91,11 @@ function BridgePage() {
 
   const source = CCTP_CHAINS.find((chain) => chain.id === fromId) ?? CCTP_CHAINS[0];
   const destination = CCTP_CHAINS.find((chain) => chain.id === toId) ?? CCTP_CHAINS[1];
+  const token = bridgeToken(tokenId);
+  const routeSupported =
+    token.transferable &&
+    Boolean(tokenAddressFor(token, source.id)) &&
+    Boolean(tokenAddressFor(token, destination.id));
   const value = Number(amount);
   const hasValidAmount = Number.isFinite(value) && value > 0;
   const isBusy = !["idle", "complete", "error"].includes(state);
@@ -378,10 +390,46 @@ function BridgePage() {
               <ChainPicker label="To" chain={destination} disabled={isBusy} exclude={fromId} onChange={chooseDestination} />
             </div>
 
+            <div>
+              <span className="mb-2 block text-[11px] font-bold uppercase text-muted-foreground">Token</span>
+              <div className="grid grid-cols-2 gap-2">
+                {BRIDGE_TOKENS.map((option) => {
+                  const active = option.id === tokenId;
+                  return (
+                    <Button
+                      key={option.id}
+                      variant="outline"
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => setTokenId(option.id)}
+                      className={`h-auto justify-start gap-2 rounded-xl px-3 py-3 ${
+                        active ? "border-brand bg-brand-soft" : "bg-card hover:border-brand/40"
+                      }`}
+                    >
+                      <UsdcMark size={22} className={option.id === "eurc" ? "opacity-60 grayscale" : ""} />
+                      <span className="min-w-0 text-left">
+                        <span className="block text-sm font-bold">{option.symbol}</span>
+                        <span className="block text-[10px] text-muted-foreground">
+                          {option.transferable ? option.name : "Not bridgeable yet"}
+                        </span>
+                      </span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {!routeSupported && (
+              <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2.5 text-xs text-foreground">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                <span>{token.unavailableReason ?? `${token.symbol} is not available on this route yet.`} Switch back to USDC to continue.</span>
+              </div>
+            )}
+
             <div className="rounded-xl border bg-muted/30 p-4 transition focus-within:border-brand">
               <div className="flex items-center justify-between">
                 <label htmlFor="bridge-amount" className="text-[11px] font-bold uppercase text-muted-foreground">You send</label>
-                {sourceBalance !== null && (
+                {sourceBalance !== null && tokenId === "usdc" && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -405,13 +453,13 @@ function BridgePage() {
                   className="min-w-0 flex-1 bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
                 />
                 <span className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-bold shadow-sm">
-                  <UsdcMark size={20} /> USDC
+                  <UsdcMark size={20} /> {token.symbol}
                 </span>
               </div>
               <div className={`mt-2 text-xs ${insufficientBalance ? "text-destructive" : "text-muted-foreground"}`}>
                 {insufficientBalance
-                  ? `Insufficient USDC on ${source.name}`
-                  : `≈ $${Number.isFinite(value) ? value.toFixed(2) : "0.00"} USD`}
+                  ? `Insufficient ${token.symbol} on ${source.name}`
+                  : `≈ ${Number.isFinite(value) ? value.toFixed(2) : "0.00"} ${token.symbol}`}
               </div>
             </div>
 
@@ -460,7 +508,9 @@ function BridgePage() {
               {({ openConnectModal }) => (
                 <Button
                   type="button"
-                  disabled={isConnected && (isBusy || !hasValidAmount || insufficientBalance)}
+                  disabled={
+                    isConnected && (isBusy || !hasValidAmount || insufficientBalance || !routeSupported)
+                  }
                   onClick={isConnected ? executeBridge : openConnectModal}
                   className="h-13 w-full rounded-xl btn-gradient text-sm font-bold"
                 >
@@ -469,16 +519,18 @@ function BridgePage() {
                     ? actionLabel(state)
                     : !isConnected
                       ? "Connect wallet"
-                      : !hasValidAmount
-                        ? "Enter an amount"
-                        : insufficientBalance
-                          ? "Insufficient USDC balance"
-                          : `Bridge ${value.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC`}
+                      : !routeSupported
+                        ? `${token.symbol} transfers unavailable`
+                        : !hasValidAmount
+                          ? "Enter an amount"
+                          : insufficientBalance
+                            ? `Insufficient ${token.symbol} balance`
+                            : `Confirm transfer · ${value.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${token.symbol} to ${destination.name}`}
                 </Button>
               )}
             </ConnectButton.Custom>
             <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-success" /> Secured by Circle CCTP · Native USDC
+              <ShieldCheck className="h-3.5 w-3.5 text-success" /> Secured by Circle CCTP · Native {token.symbol}
             </div>
             <TransferNotice state={state} statusText={statusText} error={error} />
             {(approvalHash || burnHash || mintHash) && (
