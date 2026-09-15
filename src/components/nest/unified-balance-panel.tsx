@@ -1,118 +1,23 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDownToLine, Loader2, RefreshCw, WalletCards, Zap } from "lucide-react";
-import { createClientOnlyFn } from "@tanstack/react-start";
-import { getAccount } from "@wagmi/core";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 
 import { Card } from "@/components/nest/app-shell";
-import { wagmiConfig } from "@/lib/wagmi";
+import {
+  depositUnifiedUsdc,
+  getUnifiedBalances,
+  spendUnifiedUsdcToArc,
+  type UnifiedBalanceSnapshot,
+  type UnifiedSourceChain,
+} from "@/lib/circle-unified";
 
-type SourceChain = "Base_Sepolia" | "Avalanche_Fuji";
-
-type UnifiedBalanceSnapshot = {
-  totalConfirmedBalance?: string;
-  totalPendingBalance?: string;
-  breakdown?: Array<{
-    totalConfirmed?: string;
-    totalPending?: string;
-    breakdown?: Array<{
-      chain?: string;
-      confirmedBalance?: string;
-      pendingBalance?: string;
-    }>;
-  }>;
-};
-
-type UnifiedBalancePanelProps = {
-  defaultSpendAmount?: number;
-  defaultDepositAmount?: number;
-  compact?: boolean;
-  contextLabel?: string;
-};
-
-type UnifiedAction =
-  | { type: "balances" }
-  | { type: "deposit"; source: SourceChain; amount: string }
-  | { type: "spend"; amount: string; recipientAddress: `0x${string}` };
+type SourceChain = UnifiedSourceChain;
 
 const SOURCE_OPTIONS: Array<{ id: SourceChain; label: string }> = [
   { id: "Base_Sepolia", label: "Base Sepolia" },
   { id: "Avalanche_Fuji", label: "Avalanche Fuji" },
 ];
-
-/**
- * Circle App Kit is intentionally loaded only in the browser.
- * Nest runs on Cloudflare Workers, while the connected EIP-1193 wallet and
- * Circle's browser adapter belong exclusively to the hydrated client.
- */
-const runUnifiedAction = createClientOnlyFn(async (action: UnifiedAction): Promise<unknown> => {
-  const [{ AppKit }, chains, adapterPackage] = await Promise.all([
-    import("@circle-fin/app-kit"),
-    import("@circle-fin/app-kit/chains"),
-    import("@circle-fin/adapter-viem-v2"),
-  ]);
-
-  const account = getAccount(wagmiConfig);
-  if (!account.connector) {
-    throw new Error("Connect your wallet first.");
-  }
-
-  const connector = account.connector as unknown as {
-    getProvider: () => Promise<unknown>;
-  };
-  const provider = await connector.getProvider();
-  if (!provider) {
-    throw new Error("The connected wallet did not expose an EIP-1193 provider.");
-  }
-
-  const adapter = await adapterPackage.createViemAdapterFromProvider({
-    provider: provider as Parameters<typeof adapterPackage.createViemAdapterFromProvider>[0]["provider"],
-    capabilities: {
-      addressContext: "user-controlled",
-      supportedChains: [chains.BaseSepolia, chains.AvalancheFuji, chains.ArcTestnet],
-    },
-  });
-
-  const kit = new AppKit();
-
-  if (action.type === "balances") {
-    return kit.unifiedBalance.getBalances({
-      sources: [{ adapter }],
-      networkType: "testnet",
-      includePending: true,
-    });
-  }
-
-  if (action.type === "deposit") {
-    const chain = adapterPackage.resolveChainIdentifier(action.source);
-    if (chain.type !== "evm") {
-      throw new Error(`${chain.name} is not an EVM chain.`);
-    }
-
-    await adapter.ensureChain(chain);
-
-    return kit.unifiedBalance.deposit({
-      from: { adapter, chain: action.source },
-      amount: action.amount,
-      token: "USDC",
-    });
-  }
-
-  const params = {
-    amount: action.amount,
-    token: "USDC" as const,
-    from: { adapter },
-    to: {
-      chain: "Arc_Testnet" as const,
-      recipientAddress: action.recipientAddress,
-      useForwarder: true,
-    },
-  };
-
-  await kit.unifiedBalance.estimateSpend(params);
-  return kit.unifiedBalance.spend(params);
-});
 
 function positiveAmount(value: string): boolean {
   const number = Number(value);
@@ -177,10 +82,7 @@ export function UnifiedBalancePanel({
     return [...totals.entries()].filter(([, value]) => value > 0);
   }, [snapshot]);
 
-  const loadBalances = async (): Promise<UnifiedBalanceSnapshot> => {
-    const balances = await runUnifiedAction({ type: "balances" });
-    return balances as UnifiedBalanceSnapshot;
-  };
+  const loadBalances = async (): Promise<UnifiedBalanceSnapshot> => getUnifiedBalances();
 
   const refresh = async () => {
     if (!isConnected) return;
@@ -203,11 +105,10 @@ export function UnifiedBalancePanel({
     try {
       setBusy("deposit");
       setLastExplorerUrl(null);
-      const result = await runUnifiedAction({
-        type: "deposit",
+      const result = await depositUnifiedUsdc(
         source,
-        amount: Number(depositAmount).toFixed(6),
-      });
+        Number(depositAmount).toFixed(6),
+      );
 
       const explorerUrl = (result as { explorerUrl?: string }).explorerUrl;
       setLastExplorerUrl(explorerUrl ?? null);
@@ -231,11 +132,10 @@ export function UnifiedBalancePanel({
       setBusy("spend");
       setLastExplorerUrl(null);
 
-      const result = await runUnifiedAction({
-        type: "spend",
-        amount: Number(spendAmount).toFixed(6),
-        recipientAddress: address,
-      });
+      const result = await spendUnifiedUsdcToArc(
+        Number(spendAmount).toFixed(6),
+        address,
+      );
 
       const explorerUrl = (result as { explorerUrl?: string }).explorerUrl;
       setLastExplorerUrl(explorerUrl ?? null);
