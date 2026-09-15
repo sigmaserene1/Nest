@@ -5,7 +5,7 @@ import { arcTestnet, USDC_ADDRESS, ERC20_ABI } from "@/lib/wagmi";
 export function useArcWallet() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount();
   const chainId = useChainId();
-  const { switchChain, isPending: isSwitching } = useSwitchChain();
+  const { switchChain, switchChainAsync, isPending: isSwitching } = useSwitchChain();
 
   const isOnArc = chainId === arcTestnet.id;
 
@@ -31,6 +31,7 @@ export function useArcWallet() {
     isOnArc,
     chainId,
     switchToArc: () => switchChain({ chainId: arcTestnet.id }),
+    switchToArcAsync: () => switchChainAsync({ chainId: arcTestnet.id }),
     isSwitching,
     usdcBalance,
     isBalanceLoading,
