@@ -28,10 +28,10 @@ import {
   CCTP_CHAINS,
   CCTP_STATUS,
   ERC20_ABI,
-  FINALITY_FAST,
   MESSAGE_TRANSMITTER_V2_ABI,
   TOKEN_MESSENGER_V2_ABI,
   addressToBytes32,
+  cctpFinalityForSource,
   formatUsdc,
   getCctpFee,
   waitForAttestation,
@@ -92,6 +92,7 @@ function BridgePage() {
   const source = CCTP_CHAINS.find((chain) => chain.id === fromId) ?? CCTP_CHAINS[0];
   const destination = CCTP_CHAINS.find((chain) => chain.id === toId) ?? CCTP_CHAINS[1];
   const token = bridgeToken(tokenId);
+  const finalityThreshold = cctpFinalityForSource(source);
   const routeSupported =
     token.transferable &&
     Boolean(tokenAddressFor(token, source.id)) &&
@@ -141,7 +142,12 @@ function BridgePage() {
     async function refreshQuote() {
       try {
         const amountUnits = BigInt(Math.round(value * 1_000_000));
-        const fee = await getCctpFee(source.domain, destination.domain, amountUnits);
+        const fee = await getCctpFee(
+          source.domain,
+          destination.domain,
+          amountUnits,
+          finalityThreshold,
+        );
         if (!cancelled) {
           setMaxFee(fee);
           setQuoteAt(Date.now());
@@ -157,7 +163,15 @@ function BridgePage() {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [isBusy, source.id, source.domain, destination.id, destination.domain, value]);
+  }, [
+    isBusy,
+    source.id,
+    source.domain,
+    destination.id,
+    destination.domain,
+    value,
+    finalityThreshold,
+  ]);
 
   const swapRoute = () => {
     if (isBusy) return;
@@ -222,7 +236,12 @@ function BridgePage() {
           functionName: "balanceOf",
           args: [address],
         }),
-        getCctpFee(source.domain, destination.domain, amountUnits),
+        getCctpFee(
+          source.domain,
+          destination.domain,
+          amountUnits,
+          finalityThreshold,
+        ),
       ]);
       if (balance < amountUnits) {
         throw new Error(
@@ -280,7 +299,7 @@ function BridgePage() {
           source.usdc,
           ANY_DESTINATION_CALLER,
           fee,
-          FINALITY_FAST,
+          finalityThreshold,
         ],
       });
       setBurnHash(burn);
