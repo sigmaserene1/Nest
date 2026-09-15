@@ -14,6 +14,13 @@ import {
 
 type SourceChain = UnifiedSourceChain;
 
+type UnifiedBalancePanelProps = {
+  defaultSpendAmount?: number;
+  defaultDepositAmount?: number;
+  compact?: boolean;
+  contextLabel?: string;
+};
+
 const SOURCE_OPTIONS: Array<{ id: SourceChain; label: string }> = [
   { id: "Base_Sepolia", label: "Base Sepolia" },
   { id: "Avalanche_Fuji", label: "Avalanche Fuji" },
