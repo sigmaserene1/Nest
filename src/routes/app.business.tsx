@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { NEST_BUSINESS_V2_ABI } from "@/contracts/nest-business-v2-artifact";
 import { ERC20_ABI, arcTestnet, USDC_ADDRESS } from "@/lib/wagmi";
+import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
 
 export const Route = createFileRoute("/app/business")({
   component: BusinessPage,
@@ -317,6 +318,16 @@ function BusinessPage() {
           <Stat label="Available" value={position.available} />
           <Stat label="Debt" value={position.debt} />
         </div>
+
+        <UnifiedBalancePanel
+          compact
+          defaultSpendAmount={
+            action === "supply" && Number.isFinite(Number(amount)) && Number(amount) > 0
+              ? Number(amount)
+              : undefined
+          }
+          contextLabel="Move confirmed Gateway USDC to Arc before supplying collateral or repaying business credit."
+        />
 
         <Card>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
