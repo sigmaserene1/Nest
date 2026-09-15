@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { Building2, KeyRound, Landmark, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowDownToLine, Building2, KeyRound, Landmark, Loader2, ShieldCheck } from "lucide-react";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { toast } from "sonner";
@@ -284,6 +284,22 @@ function BusinessPage() {
                   Supply collateral, then borrow up to 50% of your supplied USDC. Borrow interest is
                   accrued onchain at 8% APR.
                 </p>
+                <Link
+                  to="/app/bridge"
+                  search={{
+                    from: "base",
+                    to: "arc",
+                    amount:
+                      action === "supply" && Number.isFinite(Number(amount)) && Number(amount) > 0
+                        ? amount
+                        : undefined,
+                    returnTo: "/app/business",
+                  }}
+                  className="mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold text-brand transition hover:bg-brand-soft"
+                >
+                  <ArrowDownToLine className="h-3.5 w-3.5" />
+                  Fund Arc collateral via CCTP
+                </Link>
               </div>
             </div>
             <div className="text-right text-xs text-muted-foreground">
