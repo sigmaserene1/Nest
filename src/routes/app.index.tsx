@@ -26,6 +26,7 @@ import {
   ArrowRight,
   Sparkles,
   TrendingUp,
+  ArrowDownToLine,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
@@ -89,6 +90,7 @@ function Dashboard() {
   ).sort((a, b) => (b[1] as number) - (a[1] as number))[0];
   const action = useActionModal();
   const wallet = useArcWallet();
+  const settlementShortfall = Math.max(0, iOwe - wallet.usdcBalance);
 
   return (
     <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
@@ -180,6 +182,21 @@ function Dashboard() {
               <Plus className="h-5 w-5" strokeWidth={2.5} />
             </button>
           </div>
+          <Link
+            to="/app/bridge"
+            search={{
+              from: "base",
+              to: "arc",
+              amount: settlementShortfall > 0 ? settlementShortfall.toFixed(6) : undefined,
+              returnTo: "/app/",
+            }}
+            className="relative mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 py-3 text-xs font-bold text-background transition hover:bg-white/15"
+          >
+            <ArrowDownToLine className="h-4 w-4" />
+            {settlementShortfall > 0
+              ? `Fund ${fmtUSD(settlementShortfall)} from another chain`
+              : "Fund Arc from another chain"}
+          </Link>
         </div>
       </section>
 
