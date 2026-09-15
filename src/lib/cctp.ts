@@ -246,6 +246,22 @@ export const TOKEN_MESSENGER_V2_ABI = [
       },
     ],
   },
+  {
+    type: "function",
+    name: "depositForBurnWithHook",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "amount", type: "uint256" },
+      { name: "destinationDomain", type: "uint32" },
+      { name: "mintRecipient", type: "bytes32" },
+      { name: "burnToken", type: "address" },
+      { name: "destinationCaller", type: "bytes32" },
+      { name: "maxFee", type: "uint256" },
+      { name: "minFinalityThreshold", type: "uint32" },
+      { name: "hookData", type: "bytes" },
+    ],
+    outputs: [],
+  },
 ] as const;
 
 export const MESSAGE_TRANSMITTER_V2_ABI = [
@@ -294,6 +310,13 @@ export function cctpFinalityForSource(source: Pick<CctpChain, "supportsFastTrans
  * Allows any address to call receiveMessage on Arc.
  */
 export const ANY_DESTINATION_CALLER = `0x${"00".repeat(32)}` as Hex;
+
+/**
+ * Circle Forwarding Service hook data for EVM destinations.
+ * "cctp-forward" + version 0 + empty Circle data length.
+ */
+export const FORWARDING_SERVICE_HOOK_DATA =
+  "0x636374702d666f72776172640000000000000000000000000000000000000000" as Hex;
 
 /**
  * Convert an EVM address into the bytes32 representation
@@ -358,6 +381,128 @@ export async function getCctpFee(
    * Add a 20% safety buffer as recommended by Circle.
    */
   return (protocolFee * 120n) / 100n;
+}
+
+export type CctpForwardingQuote = {
+  protocolFee: bigint;
+  forwardingFee: bigint;
+  maxFee: bigint;
+  totalAmount: bigint;
+};
+
+/**
+ * Quote a CCTP transfer that uses Circle's Forwarding Service.
+ * The requested amount is what the recipient should receive; fees are added
+ * to the source burn amount so the destination payout is not reduced.
+ */
+export async function getCctpForwardingQuote(
+  sourceDomain: number,
+  destinationDomain: number,
+  amountUnits: bigint,
+  finalityThreshold: CctpFinalityThreshold,
+): Promise<CctpForwardingQuote> {
+  if (amountUnits <= 0n) {
+    return { protocolFee: 0n, forwardingFee: 0n, maxFee: 0n, totalAmount: 0n };
+  }
+
+  const response = await fetch(
+    `${CCTP_FEE_API}/${sourceDomain}/${destinationDomain}?forward=true`,
+  );
+
+  if (!response.ok) {
+    throw new Error(`Unable to retrieve CCTP forwarding fee (${response.status})`);
+  }
+
+  const data = await response.json();
+  if (!Array.isArray(data) || data.length === 0) {
+    throw new Error("Circle returned no CCTP forwarding quote.");
+  }
+
+  const quotes = data as Array<{
+    finalityThreshold?: unknown;
+    minimumFee?: unknown;
+    forwardFee?: {
+      low?: unknown;
+      med?: unknown;
+      medium?: unknown;
+      high?: unknown;
+    };
+  }>;
+
+  const quote = quotes.find(
+    (item) => Number(item.finalityThreshold) === finalityThreshold,
+  );
+  if (!quote) {
+    throw new Error(
+      `Circle returned no forwarding quote for finality threshold ${finalityThreshold}.`,
+    );
+  }
+
+  const minimumFee = Number(quote.minimumFee ?? 0);
+  const highForwardFee = Number(
+    quote.forwardFee?.high ??
+      quote.forwardFee?.med ??
+      quote.forwardFee?.medium ??
+      quote.forwardFee?.low ??
+      0,
+  );
+
+  if (!Number.isFinite(minimumFee) || !Number.isFinite(highForwardFee)) {
+    throw new Error("Circle returned an invalid CCTP forwarding fee.");
+  }
+
+  const rawProtocolFee =
+    (amountUnits * BigInt(Math.round(minimumFee * 100))) / 1_000_000n;
+  const protocolFee = (rawProtocolFee * 120n) / 100n;
+  const forwardingFee = BigInt(Math.ceil(highForwardFee));
+  const maxFee = protocolFee + forwardingFee;
+
+  return {
+    protocolFee,
+    forwardingFee,
+    maxFee,
+    totalAmount: amountUnits + maxFee,
+  };
+}
+
+/**
+ * Poll Circle until the Forwarding Service publishes the destination mint hash.
+ */
+export async function waitForForwardedMint(
+  sourceDomain: number,
+  transactionHash: Hex,
+  options?: {
+    timeoutMs?: number;
+    intervalMs?: number;
+    onPending?: () => void;
+  },
+): Promise<Hex> {
+  const timeoutMs = options?.timeoutMs ?? 30 * 60 * 1000;
+  const intervalMs = options?.intervalMs ?? 5_000;
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const response = await fetch(
+      `${CCTP_MESSAGE_API}/${sourceDomain}?transactionHash=${transactionHash}`,
+    );
+
+    if (response.ok) {
+      const data = await response.json();
+      const forwardTxHash = data?.messages?.[0]?.forwardTxHash;
+      if (typeof forwardTxHash === "string" && /^0x[0-9a-fA-F]{64}$/.test(forwardTxHash)) {
+        return forwardTxHash as Hex;
+      }
+    } else if (response.status !== 404) {
+      throw new Error(`Circle forwarding API returned ${response.status}`);
+    }
+
+    options?.onPending?.();
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+
+  throw new Error(
+    "CCTP forwarding timed out. The burn succeeded, but Circle has not published the destination mint yet.",
+  );
 }
 
 /**
@@ -472,14 +617,15 @@ export function buildRoute(source: CctpChain, destination: CctpChain, amount: st
     },
 
     {
-      title: "Circle attestation",
-      detail: "Nest polls Circle's CCTP attestation service until the source burn is attested.",
+      title: "Circle attestation + forwarding",
+      detail:
+        "Circle attests the burn and the Forwarding Service submits the destination mint for you.",
     },
 
     {
       title: `Mint on ${destination.name}`,
       detail:
-        "MessageTransmitterV2.receiveMessage verifies the attestation and mints native USDC directly to your wallet.",
+        "Circle's Forwarding Service mints native USDC to the recipient without a second wallet signature.",
     },
 
     {
@@ -493,7 +639,7 @@ export function buildRoute(source: CctpChain, destination: CctpChain, amount: st
 }
 
 export const CCTP_STATUS =
-  "CCTP v2 burns native USDC on the source chain, Circle attests the message, and mints native USDC on the destination. No wrapped token or bridge liquidity pool is used.";
+  "CCTP v2 burns native USDC on the source chain. Circle attests the message and the Forwarding Service submits the destination mint, so no wrapped asset, bridge liquidity pool, or destination-chain signature is required.";
 
 export function formatUsdc(units: bigint): string {
   const whole = units / 1_000_000n;
