@@ -5,6 +5,7 @@ export type CctpChain = {
   name: string;
   domain: number;
   chainId: number;
+  supportsFastTransfer: boolean;
   usdc: Address;
   tokenMessengerV2: Address;
   messageTransmitterV2: Address;
@@ -36,6 +37,7 @@ export const ARC_CCTP_CHAIN: CctpChain = {
   name: "Arc Testnet",
   domain: ARC_DOMAIN,
   chainId: ARC_CHAIN_ID,
+  supportsFastTransfer: false,
   usdc: ARC_USDC,
   tokenMessengerV2: TOKEN_MESSENGER_V2,
   messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
@@ -55,6 +57,7 @@ export const CCTP_SOURCES: CctpChain[] = [
     name: "Ethereum Sepolia",
     domain: 0,
     chainId: 11155111,
+    supportsFastTransfer: true,
     usdc: "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238",
     tokenMessengerV2: TOKEN_MESSENGER_V2,
     messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
@@ -67,6 +70,7 @@ export const CCTP_SOURCES: CctpChain[] = [
     name: "Avalanche Fuji",
     domain: 1,
     chainId: 43113,
+    supportsFastTransfer: false,
     usdc: "0x5425890298aed601595a70AB815c96711a31Bc65",
     tokenMessengerV2: TOKEN_MESSENGER_V2,
     messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
@@ -79,6 +83,7 @@ export const CCTP_SOURCES: CctpChain[] = [
     name: "OP Sepolia",
     domain: 2,
     chainId: 11155420,
+    supportsFastTransfer: true,
     usdc: "0x5fd84259d66Cd46123540766Be93DFE6D43130D7",
     tokenMessengerV2: TOKEN_MESSENGER_V2,
     messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
@@ -91,6 +96,7 @@ export const CCTP_SOURCES: CctpChain[] = [
     name: "Arbitrum Sepolia",
     domain: 3,
     chainId: 421614,
+    supportsFastTransfer: true,
     usdc: "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d",
     tokenMessengerV2: TOKEN_MESSENGER_V2,
     messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
@@ -103,6 +109,7 @@ export const CCTP_SOURCES: CctpChain[] = [
     name: "Base Sepolia",
     domain: 6,
     chainId: 84532,
+    supportsFastTransfer: true,
     usdc: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
     tokenMessengerV2: TOKEN_MESSENGER_V2,
     messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
@@ -115,6 +122,7 @@ export const CCTP_SOURCES: CctpChain[] = [
     name: "Polygon Amoy",
     domain: 7,
     chainId: 80002,
+    supportsFastTransfer: false,
     usdc: "0x41E94Eb019C0762f9Bfcf9Fb1E58725BfB0e7582",
     tokenMessengerV2: TOKEN_MESSENGER_V2,
     messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
@@ -274,6 +282,12 @@ export const FINALITY_FAST = 1000;
 
 export const FINALITY_STANDARD = 2000;
 
+export type CctpFinalityThreshold = typeof FINALITY_FAST | typeof FINALITY_STANDARD;
+
+export function cctpFinalityForSource(source: Pick<CctpChain, "supportsFastTransfer">): CctpFinalityThreshold {
+  return source.supportsFastTransfer ? FINALITY_FAST : FINALITY_STANDARD;
+}
+
 /**
  * bytes32(0)
  *
@@ -298,6 +312,7 @@ export async function getCctpFee(
   sourceDomain: number,
   destinationDomain: number,
   amountUnits: bigint,
+  finalityThreshold: CctpFinalityThreshold,
 ): Promise<bigint> {
   if (amountUnits <= 0n) {
     return 0n;
@@ -316,9 +331,17 @@ export async function getCctpFee(
   }
 
   const quotes = data as Array<{ finalityThreshold?: unknown; minimumFee?: unknown }>;
-  const fast = quotes.find((item) => Number(item.finalityThreshold) === FINALITY_FAST) ?? quotes[0];
+  const quote = quotes.find(
+    (item) => Number(item.finalityThreshold) === finalityThreshold,
+  );
 
-  const minimumFee = Number(fast.minimumFee ?? 0);
+  if (!quote) {
+    throw new Error(
+      `Circle returned no CCTP fee quote for finality threshold ${finalityThreshold}.`,
+    );
+  }
+
+  const minimumFee = Number(quote.minimumFee ?? 0);
 
   if (!Number.isFinite(minimumFee)) {
     throw new Error("Invalid CCTP fee returned by Circle.");
