@@ -1,13 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowDownToLine, Loader2, RefreshCw, WalletCards, Zap } from "lucide-react";
-import { AppKit } from "@circle-fin/app-kit";
-import { ArcTestnet, AvalancheFuji, BaseSepolia } from "@circle-fin/app-kit/chains";
-import {
-  createViemAdapterFromProvider,
-  resolveChainIdentifier,
-  type CreateViemAdapterFromProviderParams,
-  type ViemAdapter,
-} from "@circle-fin/adapter-viem-v2";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { getAccount } from "@wagmi/core";
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
@@ -15,7 +8,6 @@ import { toast } from "sonner";
 import { Card } from "@/components/nest/app-shell";
 import { wagmiConfig } from "@/lib/wagmi";
 
-type EvmProvider = CreateViemAdapterFromProviderParams["provider"];
 type SourceChain = "Base_Sepolia" | "Avalanche_Fuji";
 
 type UnifiedBalanceSnapshot = {
@@ -39,14 +31,28 @@ type UnifiedBalancePanelProps = {
   contextLabel?: string;
 };
 
-const kit = new AppKit();
+type UnifiedAction =
+  | { type: "balances" }
+  | { type: "deposit"; source: SourceChain; amount: string }
+  | { type: "spend"; amount: string; recipientAddress: `0x${string}` };
 
 const SOURCE_OPTIONS: Array<{ id: SourceChain; label: string }> = [
   { id: "Base_Sepolia", label: "Base Sepolia" },
   { id: "Avalanche_Fuji", label: "Avalanche Fuji" },
 ];
 
-async function createConnectedAdapter(): Promise<ViemAdapter> {
+/**
+ * Circle App Kit is intentionally loaded only in the browser.
+ * Nest runs on Cloudflare Workers, while the connected EIP-1193 wallet and
+ * Circle's browser adapter belong exclusively to the hydrated client.
+ */
+const runUnifiedAction = createClientOnlyFn(async (action: UnifiedAction): Promise<unknown> => {
+  const [{ AppKit }, chains, adapterPackage] = await Promise.all([
+    import("@circle-fin/app-kit"),
+    import("@circle-fin/app-kit/chains"),
+    import("@circle-fin/adapter-viem-v2"),
+  ]);
+
   const account = getAccount(wagmiConfig);
   if (!account.connector) {
     throw new Error("Connect your wallet first.");
@@ -60,14 +66,53 @@ async function createConnectedAdapter(): Promise<ViemAdapter> {
     throw new Error("The connected wallet did not expose an EIP-1193 provider.");
   }
 
-  return createViemAdapterFromProvider({
-    provider: provider as EvmProvider,
+  const adapter = await adapterPackage.createViemAdapterFromProvider({
+    provider: provider as Parameters<typeof adapterPackage.createViemAdapterFromProvider>[0]["provider"],
     capabilities: {
       addressContext: "user-controlled",
-      supportedChains: [BaseSepolia, AvalancheFuji, ArcTestnet],
+      supportedChains: [chains.BaseSepolia, chains.AvalancheFuji, chains.ArcTestnet],
     },
   });
-}
+
+  const kit = new AppKit();
+
+  if (action.type === "balances") {
+    return kit.unifiedBalance.getBalances({
+      sources: [{ adapter }],
+      networkType: "testnet",
+      includePending: true,
+    });
+  }
+
+  if (action.type === "deposit") {
+    const chain = adapterPackage.resolveChainIdentifier(action.source);
+    if (chain.type !== "evm") {
+      throw new Error(`${chain.name} is not an EVM chain.`);
+    }
+
+    await adapter.ensureChain(chain);
+
+    return kit.unifiedBalance.deposit({
+      from: { adapter, chain: action.source },
+      amount: action.amount,
+      token: "USDC",
+    });
+  }
+
+  const params = {
+    amount: action.amount,
+    token: "USDC" as const,
+    from: { adapter },
+    to: {
+      chain: "Arc_Testnet" as const,
+      recipientAddress: action.recipientAddress,
+      useForwarder: true,
+    },
+  };
+
+  await kit.unifiedBalance.estimateSpend(params);
+  return kit.unifiedBalance.spend(params);
+});
 
 function positiveAmount(value: string): boolean {
   const number = Number(value);
@@ -88,7 +133,6 @@ export function UnifiedBalancePanel({
   contextLabel,
 }: UnifiedBalancePanelProps) {
   const { address, isConnected } = useAccount();
-  const [adapter, setAdapter] = useState<ViemAdapter | null>(null);
   const [snapshot, setSnapshot] = useState<UnifiedBalanceSnapshot | null>(null);
   const [source, setSource] = useState<SourceChain>("Base_Sepolia");
   const [depositAmount, setDepositAmount] = useState(
@@ -97,7 +141,7 @@ export function UnifiedBalancePanel({
   const [spendAmount, setSpendAmount] = useState(
     defaultSpendAmount && defaultSpendAmount > 0 ? defaultSpendAmount.toFixed(6) : "1",
   );
-  const [busy, setBusy] = useState<"connect" | "refresh" | "deposit" | "spend" | null>(null);
+  const [busy, setBusy] = useState<"refresh" | "deposit" | "spend" | null>(null);
   const [lastExplorerUrl, setLastExplorerUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -114,71 +158,61 @@ export function UnifiedBalancePanel({
 
   useEffect(() => {
     if (!isConnected) {
-      setAdapter(null);
       setSnapshot(null);
       setLastExplorerUrl(null);
     }
   }, [isConnected, address]);
 
   const confirmed = Number(snapshot?.totalConfirmedBalance ?? 0);
-  const pending = Number(snapshot?.totalPendingBalance ?? 0);
 
   const chainBreakdown = useMemo(() => {
     const rows = snapshot?.breakdown?.flatMap((owner) => owner.breakdown ?? []) ?? [];
     const totals = new Map<string, number>();
+
     for (const row of rows) {
       const key = row.chain ?? "Unknown";
       totals.set(key, (totals.get(key) ?? 0) + Number(row.confirmedBalance ?? 0));
     }
+
     return [...totals.entries()].filter(([, value]) => value > 0);
   }, [snapshot]);
 
-  const ensureAdapter = useCallback(async () => {
-    if (adapter) return adapter;
-    setBusy("connect");
-    const next = await createConnectedAdapter();
-    setAdapter(next);
-    return next;
-  }, [adapter]);
+  const loadBalances = async (): Promise<UnifiedBalanceSnapshot> => {
+    const balances = await runUnifiedAction({ type: "balances" });
+    return balances as UnifiedBalanceSnapshot;
+  };
 
-  const refresh = useCallback(async () => {
+  const refresh = async () => {
     if (!isConnected) return;
+
     try {
       setBusy("refresh");
-      const activeAdapter = await ensureAdapter();
-      const balances = await kit.unifiedBalance.getBalances({
-        sources: [{ adapter: activeAdapter }],
-        networkType: "testnet",
-        includePending: true,
-      });
-      setSnapshot(balances as UnifiedBalanceSnapshot);
+      setSnapshot(await loadBalances());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to read Unified Balance.");
     } finally {
       setBusy(null);
     }
-  }, [ensureAdapter, isConnected]);
+  };
 
   const deposit = async () => {
-    if (!positiveAmount(depositAmount)) return toast.error("Enter a positive deposit amount.");
+    if (!positiveAmount(depositAmount)) {
+      return toast.error("Enter a positive deposit amount.");
+    }
+
     try {
       setBusy("deposit");
       setLastExplorerUrl(null);
-      const activeAdapter = await ensureAdapter();
-      const chain = resolveChainIdentifier(source);
-      if (chain.type !== "evm") throw new Error(`${chain.name} is not an EVM chain.`);
-      await activeAdapter.ensureChain(chain);
-
-      const result = await kit.unifiedBalance.deposit({
-        from: { adapter: activeAdapter, chain: source },
+      const result = await runUnifiedAction({
+        type: "deposit",
+        source,
         amount: Number(depositAmount).toFixed(6),
-        token: "USDC",
       });
 
       const explorerUrl = (result as { explorerUrl?: string }).explorerUrl;
       setLastExplorerUrl(explorerUrl ?? null);
       toast.success("USDC deposit submitted to Circle Unified Balance.");
-      await refresh();
+      setSnapshot(await loadBalances());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unified Balance deposit failed.");
     } finally {
@@ -196,35 +230,17 @@ export function UnifiedBalancePanel({
     try {
       setBusy("spend");
       setLastExplorerUrl(null);
-      const activeAdapter = await ensureAdapter();
-      const normalizedAmount = Number(spendAmount).toFixed(6);
 
-      await kit.unifiedBalance.estimateSpend({
-        amount: normalizedAmount,
-        token: "USDC",
-        from: { adapter: activeAdapter },
-        to: {
-          chain: "Arc_Testnet",
-          recipientAddress: address,
-          useForwarder: true,
-        },
-      });
-
-      const result = await kit.unifiedBalance.spend({
-        amount: normalizedAmount,
-        token: "USDC",
-        from: { adapter: activeAdapter },
-        to: {
-          chain: "Arc_Testnet",
-          recipientAddress: address,
-          useForwarder: true,
-        },
+      const result = await runUnifiedAction({
+        type: "spend",
+        amount: Number(spendAmount).toFixed(6),
+        recipientAddress: address,
       });
 
       const explorerUrl = (result as { explorerUrl?: string }).explorerUrl;
       setLastExplorerUrl(explorerUrl ?? null);
       toast.success("Unified USDC is being delivered to Arc.");
-      await refresh();
+      setSnapshot(await loadBalances());
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unified Balance spend failed.");
     } finally {
@@ -261,7 +277,7 @@ export function UnifiedBalancePanel({
           disabled={!isConnected || loading}
           className="inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold disabled:opacity-50"
         >
-          {busy === "refresh" || busy === "connect" ? (
+          {busy === "refresh" ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
             <RefreshCw className="h-3.5 w-3.5" />
@@ -275,20 +291,27 @@ export function UnifiedBalancePanel({
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Confirmed
           </div>
-          <div className="mt-1 text-2xl font-bold tabular-nums">{formatAmount(snapshot?.totalConfirmedBalance)} USDC</div>
+          <div className="mt-1 text-2xl font-bold tabular-nums">
+            {formatAmount(snapshot?.totalConfirmedBalance)} USDC
+          </div>
         </div>
         <div className="rounded-xl bg-muted/50 p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Pending
           </div>
-          <div className="mt-1 text-2xl font-bold tabular-nums">{formatAmount(snapshot?.totalPendingBalance)} USDC</div>
+          <div className="mt-1 text-2xl font-bold tabular-nums">
+            {formatAmount(snapshot?.totalPendingBalance)} USDC
+          </div>
         </div>
       </div>
 
       {chainBreakdown.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-2">
           {chainBreakdown.map(([chain, balance]) => (
-            <span key={chain} className="rounded-full border px-2.5 py-1 text-[10px] font-semibold text-muted-foreground">
+            <span
+              key={chain}
+              className="rounded-full border px-2.5 py-1 text-[10px] font-semibold text-muted-foreground"
+            >
               {chain.replaceAll("_", " ")} · {balance.toFixed(2)}
             </span>
           ))}
@@ -297,7 +320,8 @@ export function UnifiedBalancePanel({
 
       {!isConnected ? (
         <div className="mt-4 rounded-xl border border-dashed p-3 text-xs text-muted-foreground">
-          Connect your Nest wallet first. Unified Balance uses the same browser wallet—no private key or Circle API key is required.
+          Connect your Nest wallet first. Unified Balance uses the same browser wallet—no private
+          key or Circle API key is required.
         </div>
       ) : (
         <div className={`mt-4 grid gap-3 ${compact ? "" : "lg:grid-cols-2"}`}>
@@ -331,7 +355,11 @@ export function UnifiedBalancePanel({
               disabled={loading || !positiveAmount(depositAmount)}
               className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg border border-brand/20 bg-brand-soft px-3 py-2.5 text-xs font-bold text-brand disabled:opacity-50"
             >
-              {busy === "deposit" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <ArrowDownToLine className="h-3.5 w-3.5" />}
+              {busy === "deposit" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <ArrowDownToLine className="h-3.5 w-3.5" />
+              )}
               Deposit {positiveAmount(depositAmount) ? Number(depositAmount).toFixed(2) : "0.00"} USDC
             </button>
           </div>
@@ -355,7 +383,11 @@ export function UnifiedBalancePanel({
               disabled={loading || confirmed <= 0 || !positiveAmount(spendAmount)}
               className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-lg btn-gradient px-3 py-2.5 text-xs font-bold disabled:opacity-50"
             >
-              {busy === "spend" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+              {busy === "spend" ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Zap className="h-3.5 w-3.5" />
+              )}
               Deliver to Arc
             </button>
           </div>
@@ -374,7 +406,8 @@ export function UnifiedBalancePanel({
       )}
 
       <p className="mt-3 text-[10px] leading-4 text-muted-foreground">
-        Confirmed Gateway funds can be auto-allocated across supported source chains. Arc delivery uses Circle forwarding so a second destination-chain signature is not required.
+        Confirmed Gateway funds can be auto-allocated across supported source chains. Arc delivery
+        uses Circle forwarding so a second destination-chain signature is not required.
       </p>
     </Card>
   );
