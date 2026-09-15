@@ -37,6 +37,12 @@ import {
   waitForAttestation,
 } from "@/lib/cctp";
 import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
+import {
+  BRIDGE_TOKENS,
+  bridgeToken,
+  tokenAddressFor,
+  type BridgeTokenId,
+} from "@/lib/bridge-tokens";
 import { wagmiConfig } from "@/lib/wagmi";
 
 export const Route = createFileRoute("/app/bridge")({
@@ -70,6 +76,7 @@ function BridgePage() {
   const [fromId, setFromId] = useState("arc");
   const [toId, setToId] = useState("base");
   const [amount, setAmount] = useState("1");
+  const [tokenId, setTokenId] = useState<BridgeTokenId>("usdc");
   const [recipientInput, setRecipientInput] = useState("");
   const [state, setState] = useState<TrackerState>("idle");
   const [error, setError] = useState("");
@@ -84,6 +91,11 @@ function BridgePage() {
 
   const source = CCTP_CHAINS.find((chain) => chain.id === fromId) ?? CCTP_CHAINS[0];
   const destination = CCTP_CHAINS.find((chain) => chain.id === toId) ?? CCTP_CHAINS[1];
+  const token = bridgeToken(tokenId);
+  const routeSupported =
+    token.transferable &&
+    Boolean(tokenAddressFor(token, source.id)) &&
+    Boolean(tokenAddressFor(token, destination.id));
   const value = Number(amount);
   const hasValidAmount = Number.isFinite(value) && value > 0;
   const isBusy = !["idle", "complete", "error"].includes(state);
