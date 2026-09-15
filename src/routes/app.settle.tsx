@@ -7,6 +7,7 @@ import { getMember, fmtUSD, type Debt } from "@/lib/nest-data";
 import { useComputedBalances, useMe } from "@/lib/chain/nest-chain";
 import { ActionModal } from "@/components/nest/action-modal";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
 import { Shield, Zap, ArrowRight, ArrowDownToLine } from "lucide-react";
 
 export const Route = createFileRoute("/app/settle")({
@@ -90,6 +91,14 @@ function Settle() {
                   : `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`}
             </button>
           </Card>
+
+          {wallet.isConnected && shortfall > 0 && (
+            <UnifiedBalancePanel
+              compact
+              defaultSpendAmount={shortfall}
+              contextLabel={`Use your confirmed Gateway balance to cover the ${fmtUSD(shortfall)} Arc settlement shortfall, or deposit more USDC first.`}
+            />
+          )}
 
           <Card>
             <h2 className="text-sm font-bold">Breakdown</h2>
