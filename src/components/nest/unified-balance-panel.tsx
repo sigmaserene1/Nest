@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowDownToLine, Loader2, RefreshCw, WalletCards, Zap } from "lucide-react";
-import { AppKit, type Adapter } from "@circle-fin/app-kit";
+import { AppKit } from "@circle-fin/app-kit";
 import { ArcTestnet, AvalancheFuji, BaseSepolia } from "@circle-fin/app-kit/chains";
 import {
   createViemAdapterFromProvider,
   resolveChainIdentifier,
   type CreateViemAdapterFromProviderParams,
+  type ViemAdapter,
 } from "@circle-fin/adapter-viem-v2";
 import { getAccount } from "@wagmi/core";
 import { useAccount } from "wagmi";
@@ -45,7 +46,7 @@ const SOURCE_OPTIONS: Array<{ id: SourceChain; label: string }> = [
   { id: "Avalanche_Fuji", label: "Avalanche Fuji" },
 ];
 
-async function createConnectedAdapter(): Promise<Adapter> {
+async function createConnectedAdapter(): Promise<ViemAdapter> {
   const account = getAccount(wagmiConfig);
   if (!account.connector) {
     throw new Error("Connect your wallet first.");
@@ -87,7 +88,7 @@ export function UnifiedBalancePanel({
   contextLabel,
 }: UnifiedBalancePanelProps) {
   const { address, isConnected } = useAccount();
-  const [adapter, setAdapter] = useState<Adapter | null>(null);
+  const [adapter, setAdapter] = useState<ViemAdapter | null>(null);
   const [snapshot, setSnapshot] = useState<UnifiedBalanceSnapshot | null>(null);
   const [source, setSource] = useState<SourceChain>("Base_Sepolia");
   const [depositAmount, setDepositAmount] = useState(
