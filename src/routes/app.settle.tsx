@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
@@ -6,7 +6,8 @@ import { UsdcBadge, WalletChip } from "@/components/nest/chain";
 import { getMember, fmtUSD, type Debt } from "@/lib/nest-data";
 import { useComputedBalances, useMe } from "@/lib/chain/nest-chain";
 import { ActionModal } from "@/components/nest/action-modal";
-import { Shield, Zap, ArrowRight } from "lucide-react";
+import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { Shield, Zap, ArrowRight, ArrowDownToLine } from "lucide-react";
 
 export const Route = createFileRoute("/app/settle")({
   component: Settle,
@@ -23,6 +24,8 @@ function Settle() {
   const currentUserId = useMe();
   const mine = useMemo(() => debts.filter((d) => d.fromId === currentUserId), [debts]);
   const total = mine.reduce((s, d) => s + d.amount, 0);
+  const wallet = useArcWallet();
+  const shortfall = Math.max(0, total - wallet.usdcBalance);
   const [active, setActive] = useState<Debt | null>(null);
   const [queue, setQueue] = useState(false);
   const [freeSend, setFreeSend] = useState(false);
@@ -49,6 +52,26 @@ function Settle() {
             <div className="mt-3 flex items-center gap-2 text-xs text-background/70">
               <Zap className="h-3.5 w-3.5 text-brand" /> Instant on Arc · ~$0.001 fee
             </div>
+            {wallet.isConnected && shortfall > 0 && (
+              <Link
+                to="/app/bridge"
+                search={{
+                  from: "base",
+                  to: "arc",
+                  amount: shortfall.toFixed(6),
+                  returnTo: "/app/settle",
+                }}
+                className="mt-4 flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-background transition hover:bg-white/15"
+              >
+                <span>
+                  Need {fmtUSD(shortfall)} more USDC on Arc
+                  <span className="mt-0.5 block font-medium text-background/60">
+                    Fund the exact shortfall with CCTP
+                  </span>
+                </span>
+                <ArrowDownToLine className="h-4 w-4" />
+              </Link>
+            )}
             <button
               onClick={() => {
                 if (mine.length === 0) {
