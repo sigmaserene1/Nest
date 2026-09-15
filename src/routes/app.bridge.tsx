@@ -28,13 +28,13 @@ import {
   CCTP_CHAINS,
   CCTP_STATUS,
   ERC20_ABI,
-  MESSAGE_TRANSMITTER_V2_ABI,
+  FORWARDING_SERVICE_HOOK_DATA,
   TOKEN_MESSENGER_V2_ABI,
   addressToBytes32,
   cctpFinalityForSource,
   formatUsdc,
-  getCctpFee,
-  waitForAttestation,
+  getCctpForwardingQuote,
+  waitForForwardedMint,
 } from "@/lib/cctp";
 import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
 import {
@@ -45,7 +45,18 @@ import {
 } from "@/lib/bridge-tokens";
 import { wagmiConfig } from "@/lib/wagmi";
 
+const RETURN_PATHS = new Set(["/app/", "/app/settle", "/app/business"]);
+
 export const Route = createFileRoute("/app/bridge")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    from: typeof search.from === "string" ? search.from : undefined,
+    to: typeof search.to === "string" ? search.to : undefined,
+    amount: typeof search.amount === "string" ? search.amount : undefined,
+    returnTo:
+      typeof search.returnTo === "string" && RETURN_PATHS.has(search.returnTo)
+        ? search.returnTo
+        : undefined,
+  }),
   component: BridgePage,
   head: () => ({
     meta: [
@@ -69,13 +80,29 @@ export const Route = createFileRoute("/app/bridge")({
 const QUOTE_REFRESH_MS = 15_000;
 
 function BridgePage() {
+  const search = Route.useSearch();
   const { address, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { entries, addEntry, updateEntry, clearHistory } = useBridgeHistory(address);
 
-  const [fromId, setFromId] = useState("arc");
-  const [toId, setToId] = useState("base");
-  const [amount, setAmount] = useState("1");
+  const initialFrom =
+    search.from && CCTP_CHAINS.some((chain) => chain.id === search.from) ? search.from : "arc";
+  const initialTo =
+    search.to &&
+    search.to !== initialFrom &&
+    CCTP_CHAINS.some((chain) => chain.id === search.to)
+      ? search.to
+      : initialFrom === "arc"
+        ? "base"
+        : "arc";
+  const initialAmount =
+    search.amount && Number.isFinite(Number(search.amount)) && Number(search.amount) > 0
+      ? search.amount
+      : "1";
+
+  const [fromId, setFromId] = useState(initialFrom);
+  const [toId, setToId] = useState(initialTo);
+  const [amount, setAmount] = useState(initialAmount);
   const [tokenId, setTokenId] = useState<BridgeTokenId>("usdc");
   const [recipientInput, setRecipientInput] = useState("");
   const [state, setState] = useState<TrackerState>("idle");
@@ -102,8 +129,9 @@ function BridgePage() {
   const isBusy = !["idle", "complete", "error"].includes(state);
   const recipient = recipientInput.trim() || address || "";
   const amountUnits = hasValidAmount ? BigInt(Math.round(value * 1_000_000)) : 0n;
-  const insufficientBalance = sourceBalance !== null && amountUnits > sourceBalance;
-  const minimumReceived = hasValidAmount ? Math.max(0, value - Number(formatUsdc(maxFee))) : 0;
+  const totalRequired = amountUnits + maxFee;
+  const insufficientBalance = sourceBalance !== null && totalRequired > sourceBalance;
+  const estimatedReceived = hasValidAmount ? value : 0;
 
   // Fetch the connected wallet's native USDC balance on the selected source chain.
   useEffect(() => {
@@ -142,14 +170,14 @@ function BridgePage() {
     async function refreshQuote() {
       try {
         const amountUnits = BigInt(Math.round(value * 1_000_000));
-        const fee = await getCctpFee(
+        const quote = await getCctpForwardingQuote(
           source.domain,
           destination.domain,
           amountUnits,
           finalityThreshold,
         );
         if (!cancelled) {
-          setMaxFee(fee);
+          setMaxFee(quote.maxFee);
           setQuoteAt(Date.now());
         }
       } catch {
@@ -196,7 +224,8 @@ function BridgePage() {
 
   const useMaxBalance = () => {
     if (sourceBalance === null || isBusy) return;
-    setAmount(formatUsdc(sourceBalance));
+    const spendable = sourceBalance > maxFee ? sourceBalance - maxFee : 0n;
+    setAmount(formatUsdc(spendable));
   };
 
   async function executeBridge() {
@@ -228,28 +257,27 @@ function BridgePage() {
       if (!sourceWallet || !sourcePublic) throw new Error(`Unable to connect to ${source.name}.`);
 
       setState("checking");
-      setStatusText("Checking your USDC and the current CCTP fee…");
-      const [balance, fee] = await Promise.all([
+      setStatusText("Checking your USDC and Circle forwarding fee…");
+      const [balance, quote] = await Promise.all([
         sourcePublic.readContract({
           address: source.usdc,
           abi: ERC20_ABI,
           functionName: "balanceOf",
           args: [address],
         }),
-        getCctpFee(
+        getCctpForwardingQuote(
           source.domain,
           destination.domain,
           amountUnits,
           finalityThreshold,
         ),
       ]);
-      if (balance < amountUnits) {
+      if (balance < quote.totalAmount) {
         throw new Error(
-          `Insufficient USDC on ${source.name}. You have ${formatUsdc(balance)} USDC.`,
+          `Insufficient USDC on ${source.name}. You need ${formatUsdc(quote.totalAmount)} USDC including forwarding fees, and have ${formatUsdc(balance)} USDC.`,
         );
       }
-      if (fee >= amountUnits) throw new Error("The CCTP fee is greater than this transfer amount.");
-      setMaxFee(fee);
+      setMaxFee(quote.maxFee);
       setQuoteAt(Date.now());
 
       addEntry({
@@ -271,14 +299,14 @@ function BridgePage() {
         functionName: "allowance",
         args: [address, source.tokenMessengerV2],
       });
-      if (allowance < amountUnits) {
+      if (allowance < quote.totalAmount) {
         setState("approving");
-        setStatusText(`Approve ${value.toFixed(2)} USDC for Circle CCTP…`);
+        setStatusText(`Approve ${formatUsdc(quote.totalAmount)} USDC for Circle CCTP…`);
         const approval = await sourceWallet.writeContract({
           address: source.usdc,
           abi: ERC20_ABI,
           functionName: "approve",
-          args: [source.tokenMessengerV2, amountUnits],
+          args: [source.tokenMessengerV2, quote.totalAmount],
         });
         setApprovalHash(approval);
         const approvalReceipt = await sourcePublic.waitForTransactionReceipt({ hash: approval });
@@ -287,19 +315,20 @@ function BridgePage() {
       }
 
       setState("burning");
-      setStatusText(`Burning native USDC on ${source.name}…`);
+      setStatusText(`Burning native USDC on ${source.name} with Circle forwarding…`);
       const burn = await sourceWallet.writeContract({
         address: source.tokenMessengerV2,
         abi: TOKEN_MESSENGER_V2_ABI,
-        functionName: "depositForBurn",
+        functionName: "depositForBurnWithHook",
         args: [
-          amountUnits,
+          quote.totalAmount,
           destination.domain,
           addressToBytes32(recipient as Address),
           source.usdc,
           ANY_DESTINATION_CALLER,
-          fee,
+          quote.maxFee,
           finalityThreshold,
+          FORWARDING_SERVICE_HOOK_DATA,
         ],
       });
       setBurnHash(burn);
@@ -308,34 +337,21 @@ function BridgePage() {
       if (burnReceipt.status !== "success") throw new Error("CCTP burn transaction reverted.");
 
       setState("attesting");
-      setStatusText("Burn confirmed. Waiting for Circle attestation…");
-      const attestation = await waitForAttestation(source.domain, burn, {
+      setStatusText("Burn confirmed. Circle is attesting and forwarding the mint…");
+      const mint = await waitForForwardedMint(source.domain, burn, {
         timeoutMs: 30 * 60 * 1_000,
         intervalMs: 5_000,
-        onPending: () => setStatusText("Burn confirmed. Waiting for Circle attestation…"),
+        onPending: () =>
+          setStatusText("Burn confirmed. Circle is attesting and forwarding the mint…"),
       });
 
-      setState("switching");
-      setStatusText(`Switching to ${destination.name} to receive native USDC…`);
-      if (getAccount(wagmiConfig).chainId !== destination.chainId) {
-        await switchChainAsync({ chainId: destination.chainId as never });
-      }
-      const destinationWallet = await getWalletClientForChain(destination.chainId);
-      const destinationPublic = getPublicClientForChain(destination.chainId);
-      if (!destinationWallet || !destinationPublic)
-        throw new Error(`Unable to connect to ${destination.name}.`);
-
-      setState("minting");
-      setStatusText(`Minting native USDC on ${destination.name}…`);
-      const mint = await destinationWallet.writeContract({
-        address: destination.messageTransmitterV2,
-        abi: MESSAGE_TRANSMITTER_V2_ABI,
-        functionName: "receiveMessage",
-        args: [attestation.message!, attestation.attestation!],
-      });
       setMintHash(mint);
+      setState("minting");
+      setStatusText(`Circle submitted the mint on ${destination.name}. Confirming…`);
+      const destinationPublic = getPublicClientForChain(destination.chainId);
+      if (!destinationPublic) throw new Error(`Unable to connect to ${destination.name}.`);
       const mintReceipt = await destinationPublic.waitForTransactionReceipt({ hash: mint });
-      if (mintReceipt.status !== "success") throw new Error("CCTP mint transaction reverted.");
+      if (mintReceipt.status !== "success") throw new Error("Forwarded CCTP mint reverted.");
 
       setState("complete");
       setStatusText(`${value.toFixed(2)} USDC is now native on ${destination.name}.`);
@@ -363,10 +379,10 @@ function BridgePage() {
         <div>
           <div className="text-xs font-bold tracking-[0.16em] text-brand">CCTP ROUTER</div>
           <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-[28px]">
-            Move native USDC, simply.
+            Move USDC across chains, then keep working.
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Arc ↔ supported testnets, powered by Circle’s burn-and-mint CCTP v2.
+            Fund Nest or move USDC out with Circle CCTP v2 + destination forwarding.
           </p>
         </div>
       }
@@ -509,11 +525,11 @@ function BridgePage() {
 
             <div className="rounded-xl border border-border/70 bg-muted/40 px-4 py-3 text-sm">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-muted-foreground">Estimated received</span>
-                <span className="flex items-center gap-1.5 font-bold"><UsdcMark size={15} />{minimumReceived.toFixed(2)} USDC</span>
+                <span className="text-muted-foreground">Recipient receives</span>
+                <span className="flex items-center gap-1.5 font-bold"><UsdcMark size={15} />{estimatedReceived.toFixed(2)} USDC</span>
               </div>
               <div className="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">
-                <span>Maximum CCTP fee</span>
+                <span>Maximum CCTP + forwarding fee</span>
                 <span>{formatUsdc(maxFee)} USDC</span>
               </div>
               {quoteAgeLabel && (
@@ -552,6 +568,14 @@ function BridgePage() {
               <ShieldCheck className="h-3.5 w-3.5 text-success" /> Secured by Circle CCTP · Native {token.symbol}
             </div>
             <TransferNotice state={state} statusText={statusText} error={error} />
+            {state === "complete" && search.returnTo && (
+              <a
+                href={search.returnTo}
+                className="flex w-full items-center justify-center rounded-xl border border-brand/20 bg-brand-soft px-4 py-3 text-xs font-bold text-brand transition hover:bg-brand/10"
+              >
+                Return to your Nest flow
+              </a>
+            )}
             {(approvalHash || burnHash || mintHash) && (
               <div className="space-y-2 border-t pt-4">
                 {approvalHash && (
@@ -614,9 +638,9 @@ function BridgePage() {
               <p>{CCTP_STATUS}</p>
             </div>
             <p className="mt-3 border-t pt-3">
-              You will sign the source-chain burn and the destination-chain mint. Keep this page
-              open until the attestation completes; the burn transaction link remains your recovery
-              reference.
+              You sign on the source chain. Circle's Forwarding Service handles the destination
+              mint, so you do not need destination-chain gas or a second destination signature.
+              Keep the burn transaction link as your recovery reference.
             </p>
           </Card>
         </div>
