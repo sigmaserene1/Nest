@@ -390,10 +390,46 @@ function BridgePage() {
               <ChainPicker label="To" chain={destination} disabled={isBusy} exclude={fromId} onChange={chooseDestination} />
             </div>
 
+            <div>
+              <span className="mb-2 block text-[11px] font-bold uppercase text-muted-foreground">Token</span>
+              <div className="grid grid-cols-2 gap-2">
+                {BRIDGE_TOKENS.map((option) => {
+                  const active = option.id === tokenId;
+                  return (
+                    <Button
+                      key={option.id}
+                      variant="outline"
+                      type="button"
+                      disabled={isBusy}
+                      onClick={() => setTokenId(option.id)}
+                      className={`h-auto justify-start gap-2 rounded-xl px-3 py-3 ${
+                        active ? "border-brand bg-brand-soft" : "bg-card hover:border-brand/40"
+                      }`}
+                    >
+                      <UsdcMark size={22} className={option.id === "eurc" ? "opacity-60 grayscale" : ""} />
+                      <span className="min-w-0 text-left">
+                        <span className="block text-sm font-bold">{option.symbol}</span>
+                        <span className="block text-[10px] text-muted-foreground">
+                          {option.transferable ? option.name : "Not bridgeable yet"}
+                        </span>
+                      </span>
+                    </Button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {!routeSupported && (
+              <div className="flex items-start gap-2 rounded-xl border border-warning/30 bg-warning/10 px-3 py-2.5 text-xs text-foreground">
+                <Info className="mt-0.5 h-3.5 w-3.5 shrink-0 text-warning" />
+                <span>{token.unavailableReason ?? `${token.symbol} is not available on this route yet.`} Switch back to USDC to continue.</span>
+              </div>
+            )}
+
             <div className="rounded-xl border bg-muted/30 p-4 transition focus-within:border-brand">
               <div className="flex items-center justify-between">
                 <label htmlFor="bridge-amount" className="text-[11px] font-bold uppercase text-muted-foreground">You send</label>
-                {sourceBalance !== null && (
+                {sourceBalance !== null && tokenId === "usdc" && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -417,13 +453,13 @@ function BridgePage() {
                   className="min-w-0 flex-1 bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
                 />
                 <span className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-bold shadow-sm">
-                  <UsdcMark size={20} /> USDC
+                  <UsdcMark size={20} /> {token.symbol}
                 </span>
               </div>
               <div className={`mt-2 text-xs ${insufficientBalance ? "text-destructive" : "text-muted-foreground"}`}>
                 {insufficientBalance
-                  ? `Insufficient USDC on ${source.name}`
-                  : `≈ $${Number.isFinite(value) ? value.toFixed(2) : "0.00"} USD`}
+                  ? `Insufficient ${token.symbol} on ${source.name}`
+                  : `≈ ${Number.isFinite(value) ? value.toFixed(2) : "0.00"} ${token.symbol}`}
               </div>
             </div>
 
