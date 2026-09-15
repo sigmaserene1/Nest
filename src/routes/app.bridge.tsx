@@ -508,7 +508,9 @@ function BridgePage() {
               {({ openConnectModal }) => (
                 <Button
                   type="button"
-                  disabled={isConnected && (isBusy || !hasValidAmount || insufficientBalance)}
+                  disabled={
+                    isConnected && (isBusy || !hasValidAmount || insufficientBalance || !routeSupported)
+                  }
                   onClick={isConnected ? executeBridge : openConnectModal}
                   className="h-13 w-full rounded-xl btn-gradient text-sm font-bold"
                 >
@@ -517,16 +519,18 @@ function BridgePage() {
                     ? actionLabel(state)
                     : !isConnected
                       ? "Connect wallet"
-                      : !hasValidAmount
-                        ? "Enter an amount"
-                        : insufficientBalance
-                          ? "Insufficient USDC balance"
-                          : `Bridge ${value.toLocaleString(undefined, { maximumFractionDigits: 6 })} USDC`}
+                      : !routeSupported
+                        ? `${token.symbol} transfers unavailable`
+                        : !hasValidAmount
+                          ? "Enter an amount"
+                          : insufficientBalance
+                            ? `Insufficient ${token.symbol} balance`
+                            : `Confirm transfer · ${value.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${token.symbol} to ${destination.name}`}
                 </Button>
               )}
             </ConnectButton.Custom>
             <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-success" /> Secured by Circle CCTP · Native USDC
+              <ShieldCheck className="h-3.5 w-3.5 text-success" /> Secured by Circle CCTP · Native {token.symbol}
             </div>
             <TransferNotice state={state} statusText={statusText} error={error} />
             {(approvalHash || burnHash || mintHash) && (
