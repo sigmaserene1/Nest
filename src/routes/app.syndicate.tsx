@@ -9,7 +9,6 @@ import { useExpenses, useMembers, useMe, useNestChain } from "@/lib/chain/nest-c
 import { useNestWrites } from "@/lib/chain/writes";
 import { fmtUSD } from "@/lib/nest-data";
 import { recordReceipt } from "@/lib/receipts-store";
-import { arcTestnet } from "@/lib/wagmi";
 import { computePayouts, MODE_COPY, useWorkspaceMode } from "@/lib/workspace-mode";
 import { Button } from "@/components/ui/button";
 
@@ -67,7 +66,6 @@ function SyndicatePage() {
         date: new Date().toISOString(),
         kind: "transfer",
         note: "Syndicate payout",
-        chainId: arcTestnet.id,
       });
       toast.success("Payout sent onchain.");
     } catch (err) {
