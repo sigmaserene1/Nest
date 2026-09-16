@@ -12,8 +12,10 @@ import {
   ARC_MAINNET_RPC_URLS,
   ARC_TESTNET_RPC_URLS,
   ARC_USDC_ADDRESS,
+  arcExplorerFor,
   arcMainnet,
   arcTestnet,
+  getArcEnvironment,
 } from "@/lib/arc-network";
 import {
   metaMaskWallet,
@@ -89,10 +91,14 @@ const WC_VALID = /^[0-9a-f]{32}$/i.test(WC_RAW);
 export const WALLETCONNECT_PROJECT_ID = WC_VALID ? WC_RAW : "";
 
 // Explorer helpers
-export const explorerTxUrl = (hash: string, explorer = arcTestnet.blockExplorers.default.url) =>
-  `${explorer}/tx/${hash}`;
-export const explorerAddrUrl = (addr: string, explorer = arcTestnet.blockExplorers.default.url) =>
-  `${explorer}/address/${addr}`;
+export const explorerTxUrl = (
+  hash: string,
+  explorer = arcExplorerFor(getArcEnvironment()),
+) => `${explorer}/tx/${hash}`;
+export const explorerAddrUrl = (
+  addr: string,
+  explorer = arcExplorerFor(getArcEnvironment()),
+) => `${explorer}/address/${addr}`;
 
 /**
  * Opens an explorer link in a brand-new browsing context.
