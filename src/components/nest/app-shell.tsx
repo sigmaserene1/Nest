@@ -42,7 +42,10 @@ const desktopExtra = [
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
 ] as const;
 
-const businessV2Configured = Boolean(import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS);
+const businessV2Configured = Boolean(
+  import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS ||
+    import.meta.env.VITE_NEST_BUSINESS_V2_MAINNET_ADDRESS,
+);
 const visibleDesktopExtra = businessV2Configured
   ? [...desktopExtra, { to: "/app/business", label: "Business", icon: Building2 }]
   : desktopExtra;
