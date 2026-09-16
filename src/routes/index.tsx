@@ -515,9 +515,9 @@ function Landing() {
               App
             </Link>
             <a
-              href={CONTRACT_URL}
-              target="_blank"
-              rel="noreferrer"
+              href={contractUrl ?? "/app"}
+              target={contractUrl ? "_blank" : undefined}
+              rel={contractUrl ? "noreferrer" : undefined}
               className="hover:text-foreground"
             >
               Contract
