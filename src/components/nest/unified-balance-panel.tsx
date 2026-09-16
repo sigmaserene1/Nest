@@ -4,6 +4,7 @@ import { useAccount } from "wagmi";
 import { toast } from "sonner";
 
 import { Card } from "@/components/nest/app-shell";
+import { useArcEnvironment } from "@/lib/arc-network";
 import {
   depositUnifiedUsdc,
   getUnifiedBalances,
@@ -45,6 +46,7 @@ export function UnifiedBalancePanel({
   contextLabel,
 }: UnifiedBalancePanelProps) {
   const { address, isConnected } = useAccount();
+  const environment = useArcEnvironment();
   const [snapshot, setSnapshot] = useState<UnifiedBalanceSnapshot | null>(null);
   const [source, setSource] = useState<SourceChain>("Base_Sepolia");
   const [depositAmount, setDepositAmount] = useState(
@@ -156,6 +158,31 @@ export function UnifiedBalancePanel({
   };
 
   const loading = busy !== null;
+
+  if (environment === "mainnet") {
+    return (
+      <Card className={compact ? "!p-4" : "!p-5"}>
+        <div className="flex items-start gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">
+            <WalletCards className="h-5 w-5" />
+          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-bold">Circle Unified Balance</h2>
+              <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-600">
+                Testnet only
+              </span>
+            </div>
+            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+              Gateway funding remains isolated to Arc Testnet in this build. Mainnet payments use
+              only USDC already held in your Arc Mainnet wallet, preventing a real-USDC transfer
+              from being routed through testnet configuration.
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card className={compact ? "!p-4" : "!p-5"}>
