@@ -2,6 +2,7 @@ import { createClientOnlyFn } from "@tanstack/react-start";
 import { getAccount } from "@wagmi/core";
 
 import { wagmiConfig } from "@/lib/wagmi";
+import { getArcEnvironment } from "@/lib/arc-network";
 
 export type UnifiedSourceChain = "Base_Sepolia" | "Avalanche_Fuji";
 
@@ -30,6 +31,12 @@ type UnifiedAction =
  * Circle browser adapter belong exclusively to the hydrated client.
  */
 const runUnifiedAction = createClientOnlyFn(async (action: UnifiedAction): Promise<unknown> => {
+  if (getArcEnvironment() === "mainnet") {
+    throw new Error(
+      "Circle Gateway auto-funding is disabled on Arc Mainnet in this build. Switch Nest to Testnet to use Unified Balance.",
+    );
+  }
+
   const [{ AppKit }, chains, adapterPackage] = await Promise.all([
     import("@circle-fin/app-kit"),
     import("@circle-fin/app-kit/chains"),
