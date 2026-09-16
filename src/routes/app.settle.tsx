@@ -56,6 +56,11 @@ function Settle() {
       return;
     }
 
+    if (wallet.environment === "mainnet") {
+      toast.error("Add USDC to your Arc Mainnet wallet before settling. Gateway auto-funding is still testnet-only.");
+      return;
+    }
+
     try {
       setFundingStep(`Moving ${fmtUSD(shortfall)} to Arc…`);
       await spendUnifiedUsdcToArc(shortfall.toFixed(6), wallet.address);
@@ -121,7 +126,7 @@ function Settle() {
             <div className="mt-3 flex items-center gap-2 text-xs text-background/70">
               <Zap className="h-3.5 w-3.5 text-brand" /> Instant on Arc · ~$0.001 fee
             </div>
-            {wallet.isConnected && shortfall > 0 && (
+            {wallet.isConnected && shortfall > 0 && wallet.environment === "testnet" && (
               <Link
                 to="/app/bridge"
                 search={{
@@ -154,7 +159,9 @@ function Settle() {
               ) : mine.length === 0 ? (
                 "Send USDC to a roommate"
               ) : shortfall > 0 ? (
-                `Fund & settle · ${fmtUSD(total)}`
+                wallet.environment === "mainnet"
+                  ? `Need ${fmtUSD(shortfall)} more on Mainnet`
+                  : `Fund & settle · ${fmtUSD(total)}`
               ) : mine.length > 1 ? (
                 `Settle all onchain · ${fmtUSD(total)}`
               ) : (
