@@ -1,5 +1,6 @@
 // Canonical ExpenseManager selection for Arc Testnet and Arc Mainnet.
-// Room selection is namespaced by network so mainnet and testnet state never mix.
+// The selected workspace is a UI preference shared across the network toggle;
+// onchain contract state remains separate per network.
 
 import { useCallback, useSyncExternalStore } from "react";
 import {
@@ -8,8 +9,8 @@ import {
   type ArcEnvironment,
 } from "@/lib/arc-network";
 
-const LEGACY_ROOM_KEY = (w: string) => `nest.room.${w.toLowerCase()}`;
-const ROOM_KEY = (environment: ArcEnvironment, w: string) =>
+const ROOM_KEY = (w: string) => `nest.room.${w.toLowerCase()}`;
+const NETWORK_ROOM_KEY = (environment: ArcEnvironment, w: string) =>
   `nest.room.${environment}.${w.toLowerCase()}`;
 
 export const TESTNET_EXPENSE_MANAGER_ADDRESS =
@@ -79,58 +80,84 @@ export function useContractAddress(): `0x${string}` | null {
 
 export function getActiveRoom(wallet?: string | null): number | null {
   if (typeof window === "undefined" || !wallet) return null;
-  const environment = getArcEnvironment();
-  const key = ROOM_KEY(environment, wallet);
-  let v = localStorage.getItem(key);
 
-  // Preserve existing users' room selection when the new network-aware keys
-  // are first introduced. Legacy state was testnet-only.
-  if (!v && environment === "testnet") {
-    v = localStorage.getItem(LEGACY_ROOM_KEY(wallet));
-    if (v) localStorage.setItem(key, v);
+  const sharedKey = ROOM_KEY(wallet);
+  let value = localStorage.getItem(sharedKey);
+
+  // Migrate the short-lived per-network room keys back into one shared UI
+  // selection so toggling Arc networks never feels like a new Nest account.
+  if (!value) {
+    const environment = getArcEnvironment();
+    value =
+      localStorage.getItem(NETWORK_ROOM_KEY(environment, wallet)) ??
+      localStorage.getItem(NETWORK_ROOM_KEY("testnet", wallet)) ??
+      localStorage.getItem(NETWORK_ROOM_KEY("mainnet", wallet));
+
+    if (value) localStorage.setItem(sharedKey, value);
   }
 
-  const n = v ? Number(v) : NaN;
-  return Number.isFinite(n) && n > 0 ? n : null;
+  const room = value ? Number(value) : NaN;
+  return Number.isFinite(room) && room > 0 ? room : null;
 }
 
 export function setActiveRoom(wallet: string | null | undefined, roomId: number | null) {
   if (typeof window === "undefined" || !wallet) return;
-  const key = ROOM_KEY(getArcEnvironment(), wallet);
-  if (roomId) localStorage.setItem(key, String(roomId));
-  else localStorage.removeItem(key);
+
+  const sharedKey = ROOM_KEY(wallet);
+  if (roomId) {
+    localStorage.setItem(sharedKey, String(roomId));
+    // Keep the active environment key in sync for older builds still open in
+    // another tab; the shared key is the canonical preference going forward.
+    localStorage.setItem(NETWORK_ROOM_KEY(getArcEnvironment(), wallet), String(roomId));
+  } else {
+    localStorage.removeItem(sharedKey);
+  }
+
   notify();
 }
 
 export function useActiveRoom(wallet?: string | null) {
   const environment = useArcEnvironment();
+
   const roomId = useSyncExternalStore(
     subscribe,
     () => {
       if (typeof window === "undefined" || !wallet) return null;
-      const v = localStorage.getItem(ROOM_KEY(environment, wallet));
-      if (!v && environment === "testnet") {
-        const legacy = localStorage.getItem(LEGACY_ROOM_KEY(wallet));
-        if (legacy) {
-          localStorage.setItem(ROOM_KEY(environment, wallet), legacy);
-          return Number(legacy) || null;
-        }
+
+      const sharedKey = ROOM_KEY(wallet);
+      let value = localStorage.getItem(sharedKey);
+
+      if (!value) {
+        value =
+          localStorage.getItem(NETWORK_ROOM_KEY(environment, wallet)) ??
+          localStorage.getItem(NETWORK_ROOM_KEY("testnet", wallet)) ??
+          localStorage.getItem(NETWORK_ROOM_KEY("mainnet", wallet));
+
+        if (value) localStorage.setItem(sharedKey, value);
       }
-      const n = v ? Number(v) : NaN;
-      return Number.isFinite(n) && n > 0 ? n : null;
+
+      const room = value ? Number(value) : NaN;
+      return Number.isFinite(room) && room > 0 ? room : null;
     },
     () => null,
   );
+
   const select = useCallback(
     (id: number | null) => {
       if (typeof window === "undefined" || !wallet) return;
-      const key = ROOM_KEY(environment, wallet);
-      if (id) localStorage.setItem(key, String(id));
-      else localStorage.removeItem(key);
+
+      const sharedKey = ROOM_KEY(wallet);
+      if (id) {
+        localStorage.setItem(sharedKey, String(id));
+        localStorage.setItem(NETWORK_ROOM_KEY(environment, wallet), String(id));
+      } else {
+        localStorage.removeItem(sharedKey);
+      }
       notify();
     },
     [environment, wallet],
   );
+
   return { roomId, select };
 }
 

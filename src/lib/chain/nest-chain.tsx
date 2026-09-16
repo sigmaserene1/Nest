@@ -111,7 +111,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   const roomId = storedRoomExists ? storedRoom : rooms[0]?.id ?? storedRoom ?? null;
 
   useEffect(() => {
-    if (!address || roomsQ.isLoading) return;
+    if (!address || roomsQ.isLoading || rooms.length === 0) return;
     const canonicalRoom = storedRoomExists ? storedRoom : rooms[0]?.id ?? null;
     if (canonicalRoom !== storedRoom) select(canonicalRoom);
   }, [address, rooms, roomsQ.isLoading, select, storedRoom, storedRoomExists]);
