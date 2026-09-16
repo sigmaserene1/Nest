@@ -1,12 +1,12 @@
 // Live onchain state for the active Nest room.
 // Everything the UI renders (members, expenses, balances, activity) is read
-// from the ExpenseManager contract on Arc Testnet — nothing is cached locally.
+// from the ExpenseManager contract on the selected Arc network — nothing is cached locally.
 
 import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
-import { arcTestnet } from "@/lib/wagmi";
+import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useActiveRoom, useContractAddress } from "./config";
 
 import {
@@ -74,13 +74,15 @@ const toNum = (v: bigint) => Number(formatUnits(v, 6));
 
 export function NestChainProvider({ children }: { children: ReactNode }) {
   const { address } = useAccount();
+  const environment = useArcEnvironment();
+  const arcChain = arcChainFor(environment);
   const contractAddress = useContractAddress();
   const { roomId: storedRoom, select } = useActiveRoom(address);
 
   const base = {
     address: contractAddress ?? undefined,
     abi: EXPENSE_MANAGER_ABI,
-    chainId: arcTestnet.id,
+    chainId: arcChain.id,
   } as const;
   const enabled = !!contractAddress;
 
