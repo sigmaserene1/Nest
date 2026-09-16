@@ -1,11 +1,12 @@
-// Every state-changing action in Nest is a real Arc Testnet transaction.
+// Every state-changing action in Nest is a real transaction on the selected Arc network.
 // This hook wraps deployment, room management, expenses and USDC settlement.
 
 import { useCallback } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 import { parseUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
-import { arcTestnet, ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
+import { ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
+import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useNestChain } from "./nest-chain";
 
 export type TxStep = (label: string) => void;
@@ -16,15 +17,17 @@ export function toUnits(amount: number): bigint {
 
 export function useNestWrites() {
   const { address } = useAccount();
+  const environment = useArcEnvironment();
+  const arcChain = arcChainFor(environment);
   const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient({ chainId: arcTestnet.id });
+  const publicClient = usePublicClient({ chainId: arcChain.id });
   const { contractAddress, roomId, refresh } = useNestChain();
 
   const requireEnv = useCallback(() => {
     if (!walletClient || !address) throw new Error("Connect your wallet first.");
-    if (!publicClient) throw new Error("Arc Testnet is unavailable right now.");
+    if (!publicClient) throw new Error(`${arcChain.name} is unavailable right now.`);
     return { walletClient, address, publicClient };
-  }, [walletClient, address, publicClient]);
+  }, [walletClient, address, publicClient, arcChain.name]);
 
   const requireContract = useCallback(() => {
     if (!contractAddress) throw new Error("No Nest contract configured yet.");
@@ -41,7 +44,7 @@ export function useNestWrites() {
         functionName: functionName as never,
         args: args as never,
         account: address,
-        chain: arcTestnet,
+        chain: arcChain,
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Transaction reverted onchain.");
@@ -72,7 +75,7 @@ export function useNestWrites() {
         functionName: "approve",
         args: [contract, needed],
         account: address,
-        chain: arcTestnet,
+        chain: arcChain,
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("USDC approval failed onchain.");
