@@ -42,7 +42,10 @@ const desktopExtra = [
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
 ] as const;
 
-const businessV2Configured = Boolean(import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS);
+const businessV2Configured = Boolean(
+  import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS ||
+    import.meta.env.VITE_NEST_BUSINESS_V2_MAINNET_ADDRESS,
+);
 const visibleDesktopExtra = businessV2Configured
   ? [...desktopExtra, { to: "/app/business", label: "Business", icon: Building2 }]
   : desktopExtra;
@@ -122,7 +125,7 @@ export function AppShell({
   greeting?: ReactNode;
   onFabClick?: () => void;
 }) {
-  const { me: myId, myName: displayName } = useNestChain();
+  const { me: myId, myName: displayName, contractAddress } = useNestChain();
   const me = getMember(myId ?? "");
   const wallet = useArcWallet();
   const myName = displayName ?? "You";
@@ -196,6 +199,22 @@ export function AppShell({
 
         <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 lg:px-8">
           <RpcBanner />
+          {wallet.environment === "mainnet" && !contractAddress && (
+            <div className="mb-3 rounded-2xl border border-amber-400/35 bg-amber-50 px-4 py-3 text-amber-950">
+              <div className="text-xs font-bold">Arc Mainnet selected · contract not configured</div>
+              <p className="mt-1 text-[11px] leading-5">
+                Deploy ExpenseManager on chain 5042, then set
+                <code className="mx-1 rounded bg-amber-100 px-1 py-0.5">
+                  VITE_NEST_EXPENSE_MANAGER_MAINNET_ADDRESS
+                </code>
+                and
+                <code className="mx-1 rounded bg-amber-100 px-1 py-0.5">
+                  VITE_NEST_EXPENSE_MANAGER_MAINNET_BLOCK
+                </code>
+                in the production environment.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}

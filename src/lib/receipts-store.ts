@@ -3,8 +3,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { decodeEventLog, parseAbiItem, toEventSelector, type Hex } from "viem";
-import { useContractAddress, EXPENSE_MANAGER_DEPLOYMENT_BLOCK as DEPLOYMENT_BLOCK } from "./chain/config";
-import { arcTestnet } from "./wagmi";
+import {
+  getDeploymentBlockForEnvironment,
+  useContractAddress,
+} from "./chain/config";
+import {
+  arcChainFor,
+  useArcEnvironment,
+  type ArcEnvironment,
+} from "./arc-network";
 
 /** Kept wide so existing screens that label a payment keep working. */
 export type ReceiptKind = "settle" | "pay" | "rent" | "qr" | "transfer";
@@ -35,7 +42,8 @@ const DIRECT_TRANSFER_TOPIC = toEventSelector(
 
 const toUsdc = (value: bigint | undefined) => Number(value ?? 0n) / 1_000_000;
 const lower = (value: string | undefined) => (value ?? "").toLowerCase();
-const EXPLORER_API = "https://testnet.arcscan.app/api";
+const explorerApiFor = (environment: ArcEnvironment) =>
+  environment === "mainnet" ? "https://explorer.arc.io/api" : "https://testnet.arcscan.app/api";
 
 type ExplorerLog = {
   data: Hex;
@@ -44,16 +52,20 @@ type ExplorerLog = {
   transactionHash: Hex;
 };
 
-async function getExplorerLogs(address: string, topic: Hex): Promise<ExplorerLog[]> {
+async function getExplorerLogs(
+  address: string,
+  topic: Hex,
+  environment: ArcEnvironment,
+): Promise<ExplorerLog[]> {
   const params = new URLSearchParams({
     module: "logs",
     action: "getLogs",
-    fromBlock: String(DEPLOYMENT_BLOCK),
+    fromBlock: String(getDeploymentBlockForEnvironment(environment)),
     toBlock: "latest",
     address,
     topic0: topic,
   });
-  const response = await fetch(`${EXPLORER_API}?${params}`);
+  const response = await fetch(`${explorerApiFor(environment)}?${params}`);
   if (!response.ok) throw new Error("Arcscan log request failed");
   const payload = (await response.json()) as { result?: ExplorerLog[] | string };
   return Array.isArray(payload.result) ? payload.result : [];
@@ -68,7 +80,7 @@ function eventTopics(log: ExplorerLog) {
   return log.topics.filter((topic): topic is Hex => topic !== null) as [Hex, ...Hex[]];
 }
 
-function splitReceipt(log: ExplorerLog): Receipt {
+function splitReceipt(log: ExplorerLog, chainId: number): Receipt {
   const decoded = decodeEventLog({
     abi: [SPLIT_SETTLED],
     data: log.data,
@@ -83,11 +95,11 @@ function splitReceipt(log: ExplorerLog): Receipt {
     date: blockDate(log.timeStamp),
     kind: "settle",
     note: "Expense settlement",
-    chainId: arcTestnet.id,
+    chainId,
   };
 }
 
-function transferReceipt(log: ExplorerLog): Receipt {
+function transferReceipt(log: ExplorerLog, chainId: number): Receipt {
   const decoded = decodeEventLog({
     abi: [DIRECT_TRANSFER],
     data: log.data,
@@ -102,7 +114,7 @@ function transferReceipt(log: ExplorerLog): Receipt {
     date: blockDate(log.timeStamp),
     kind: "transfer",
     note: args.note || "USDC transfer",
-    chainId: arcTestnet.id,
+    chainId,
   };
 }
 
@@ -119,6 +131,8 @@ export function getReceipts(): Receipt[] {
 }
 
 export function useReceipts(wallet?: string | null): Receipt[] {
+  const environment = useArcEnvironment();
+  const arcChain = arcChainFor(environment);
   const contractAddress = useContractAddress();
   const [receipts, setReceipts] = useState<Receipt[]>([]);
 
@@ -136,10 +150,13 @@ export function useReceipts(wallet?: string | null): Receipt[] {
         // the same finalized events and exposes their block timestamps, so this
         // remains chain-derived even for receipts older than RPC retention.
         const [settlements, transfers] = await Promise.all([
-          getExplorerLogs(contractAddress, SPLIT_SETTLED_TOPIC),
-          getExplorerLogs(contractAddress, DIRECT_TRANSFER_TOPIC),
+          getExplorerLogs(contractAddress, SPLIT_SETTLED_TOPIC, environment),
+          getExplorerLogs(contractAddress, DIRECT_TRANSFER_TOPIC, environment),
         ]);
-        const next = [...settlements.map(splitReceipt), ...transfers.map(transferReceipt)].sort(
+        const next = [
+          ...settlements.map((log) => splitReceipt(log, arcChain.id)),
+          ...transfers.map((log) => transferReceipt(log, arcChain.id)),
+        ].sort(
           (a, b) => b.date.localeCompare(a.date),
         );
 
@@ -156,7 +173,7 @@ export function useReceipts(wallet?: string | null): Receipt[] {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [contractAddress]);
+  }, [contractAddress, environment, arcChain.id]);
 
   return useMemo(() => {
     if (!wallet) return receipts;

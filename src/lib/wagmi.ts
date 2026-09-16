@@ -1,4 +1,4 @@
-import { defineChain, fallback } from "viem";
+import { fallback } from "viem";
 import {
   arbitrumSepolia,
   avalancheFuji,
@@ -9,6 +9,15 @@ import {
 } from "viem/chains";
 import { createConfig, http } from "wagmi";
 import {
+  ARC_MAINNET_RPC_URLS,
+  ARC_TESTNET_RPC_URLS,
+  ARC_USDC_ADDRESS,
+  arcExplorerFor,
+  arcMainnet,
+  arcTestnet,
+  getArcEnvironment,
+} from "@/lib/arc-network";
+import {
   metaMaskWallet,
   walletConnectWallet,
   injectedWallet,
@@ -16,29 +25,8 @@ import {
 } from "@rainbow-me/rainbowkit/wallets";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 
-// Arc Testnet, served through reliable third-party RPC providers first and the
-// official public endpoint last (it rate-limits aggressively).
-export const ARC_RPC_URLS = [
-  "https://arc-testnet.drpc.org",
-  "https://5042002.rpc.thirdweb.com",
-  "https://rpc.testnet.arc.network",
-] as const;
-
-export const arcTestnet = defineChain({
-  id: 5042002,
-  name: "Arc Testnet",
-  nativeCurrency: { name: "USDC", symbol: "USDC", decimals: 6 },
-  rpcUrls: {
-    default: { http: [...ARC_RPC_URLS] },
-  },
-  blockExplorers: {
-    default: { name: "Arcscan", url: "https://testnet.arcscan.app" },
-  },
-  testnet: true,
-});
-
-// Circle USDC on Arc Testnet
-export const USDC_ADDRESS = "0x3600000000000000000000000000000000000000" as const;
+// Arc USDC uses the same ERC-20 predeploy on mainnet and testnet.
+export const USDC_ADDRESS = ARC_USDC_ADDRESS;
 export const USDC_DECIMALS = 6;
 
 // Minimal ERC20 ABI (read + transfer)
@@ -103,10 +91,14 @@ const WC_VALID = /^[0-9a-f]{32}$/i.test(WC_RAW);
 export const WALLETCONNECT_PROJECT_ID = WC_VALID ? WC_RAW : "";
 
 // Explorer helpers
-export const explorerTxUrl = (hash: string) =>
-  `${arcTestnet.blockExplorers.default.url}/tx/${hash}`;
-export const explorerAddrUrl = (addr: string) =>
-  `${arcTestnet.blockExplorers.default.url}/address/${addr}`;
+export const explorerTxUrl = (
+  hash: string,
+  explorer = arcExplorerFor(getArcEnvironment()),
+) => `${explorer}/tx/${hash}`;
+export const explorerAddrUrl = (
+  addr: string,
+  explorer = arcExplorerFor(getArcEnvironment()),
+) => `${explorer}/address/${addr}`;
 
 /**
  * Opens an explorer link in a brand-new browsing context.
@@ -133,13 +125,17 @@ const connectors = connectorsForWallets([{ groupName: "Recommended", wallets }],
 });
 
 export const wagmiConfig = createConfig({
-  // Arc first (default), plus every CCTP v2 testnet source chain so the
-  // bridge can switch networks, read balances and burn USDC there.
-  chains: [arcTestnet, sepolia, avalancheFuji, optimismSepolia, arbitrumSepolia, baseSepolia, polygonAmoy],
+  // Both Arc environments are first-class wallet networks. The remaining
+  // chains are the existing CCTP v2 testnet sources used by the bridge.
+  chains: [arcMainnet, arcTestnet, sepolia, avalancheFuji, optimismSepolia, arbitrumSepolia, baseSepolia, polygonAmoy],
   connectors,
   transports: {
+    [arcMainnet.id]: fallback(
+      ARC_MAINNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
+      { rank: false },
+    ),
     [arcTestnet.id]: fallback(
-      ARC_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
+      ARC_TESTNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
       { rank: false },
     ),
     [sepolia.id]: http(),

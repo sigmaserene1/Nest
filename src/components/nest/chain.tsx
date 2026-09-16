@@ -1,8 +1,10 @@
 import { explorerTxUrl, openExplorerTx } from "@/lib/wagmi";
 import { useEffect, useState } from "react";
 import { Copy, Check, ExternalLink } from "lucide-react";
+import { arcEnvironmentLabel, useArcEnvironment } from "@/lib/arc-network";
 
 export function ArcBadge({ variant = "dark" }: { variant?: "dark" | "light" }) {
+  const environment = useArcEnvironment();
   const cls =
     variant === "light"
       ? "bg-white/10 text-white backdrop-blur"
@@ -15,7 +17,7 @@ export function ArcBadge({ variant = "dark" }: { variant?: "dark" | "light" }) {
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
         <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
       </span>
-      Arc Testnet
+      Arc {arcEnvironmentLabel(environment)}
     </span>
   );
 }

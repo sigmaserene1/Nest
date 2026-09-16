@@ -7,7 +7,7 @@ import { PaymentQr } from "./qr";
 import { getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers, useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
-import { USDC_ADDRESS, USDC_DECIMALS, arcTestnet, openExplorerTx } from "@/lib/wagmi";
+import { USDC_ADDRESS, USDC_DECIMALS, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { recordReceipt } from "@/lib/receipts-store";
 import type { ActionMode } from "./action-modal-types";
@@ -102,9 +102,9 @@ export function ActionModal({
   const paymentUri = useMemo(() => {
     if (!isAddress(toAddress)) return "";
     const amt = Number(amount) > 0 ? parseUnits(String(amount), USDC_DECIMALS).toString() : "";
-    const base = `ethereum:${USDC_ADDRESS}@${arcTestnet.id}/transfer?address=${toAddress}`;
+    const base = `ethereum:${USDC_ADDRESS}@${wallet.arcChain.id}/transfer?address=${toAddress}`;
     return amt ? `${base}&uint256=${amt}` : base;
-  }, [toAddress, amount]);
+  }, [toAddress, amount, wallet.arcChain.id]);
 
   useEffect(() => {
     if (!mode) return;
@@ -205,7 +205,7 @@ export function ActionModal({
           date: new Date().toISOString(),
           kind: mode === "settle" ? "settle" : mode === "rent" ? "rent" : mode === "scan" ? "qr" : "pay",
           note: note.trim() || undefined,
-          chainId: arcTestnet.id,
+          chainId: wallet.arcChain.id,
         });
       }
       onSuccess?.({ hash, amount: amt, recipientId: recipientId || undefined, toAddress, mode });
@@ -284,7 +284,7 @@ export function ActionModal({
                   onClick={wallet.switchToArc}
                   className="mt-4 flex w-full items-center justify-between rounded-2xl bg-amber-50 px-4 py-3 text-xs ring-1 ring-amber-200 hover:bg-amber-100"
                 >
-                  <span className="font-semibold text-amber-900">Switch to Arc Testnet</span>
+                  <span className="font-semibold text-amber-900">Switch to {wallet.arcChain.name}</span>
                   <span className="rounded-full bg-amber-600 px-3 py-1 font-bold text-white">
                     Switch
                   </span>
@@ -322,7 +322,7 @@ export function ActionModal({
                 </div>
                 {movesFunds && wallet.isConnected && wallet.isOnArc && amt > 0 && !hasFunds && (
                   <div className="mt-2 text-[11px] font-semibold text-brand">
-                    Insufficient USDC balance on Arc Testnet.
+                    Insufficient USDC balance on {wallet.arcChain.name}.
                   </div>
                 )}
               </div>
@@ -476,7 +476,7 @@ export function ActionModal({
               </button>
               <div className="mt-3 text-center text-[11px] text-muted-foreground">
                 {movesFunds
-                  ? "Onchain USDC transfer · Arc Testnet"
+                  ? `Onchain USDC transfer · ${wallet.arcChain.name}`
                   : "Recorded onchain · payable in USDC on Arc"}
               </div>
             </>

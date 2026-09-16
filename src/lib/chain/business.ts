@@ -10,7 +10,8 @@ import { useCallback, useMemo, useSyncExternalStore } from "react";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { NEST_BUSINESS_V2_ABI } from "@/contracts/nest-business-v2-artifact";
-import { ERC20_ABI, USDC_ADDRESS, arcTestnet } from "@/lib/wagmi";
+import { ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
+import { arcTestnet } from "@/lib/arc-network";
 
 const raw = import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS as string | undefined;
 

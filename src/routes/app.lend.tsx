@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Landmark, ShieldCheck } from "lucide-react";
 import { AppShell, Card } from "@/components/nest/app-shell";
-import { CANONICAL_EXPENSE_MANAGER_ADDRESS } from "@/lib/chain/config";
+import { useContractAddress } from "@/lib/chain/config";
+import { arcEnvironmentLabel, useArcEnvironment } from "@/lib/arc-network";
 
 export const Route = createFileRoute("/app/lend")({
   component: LendPage,
@@ -11,13 +12,16 @@ export const Route = createFileRoute("/app/lend")({
       {
         name: "description",
         content:
-          "Lending is not enabled on Nest's current shared-expense deployment on Arc Testnet.",
+          "Lending is not enabled on Nest's current shared-expense ExpenseManager deployment.",
       },
     ],
   }),
 });
 
 function LendPage() {
+  const environment = useArcEnvironment();
+  const contractAddress = useContractAddress();
+
   return (
     <AppShell greeting={<h1 className="text-xl font-bold">Lending status</h1>}>
       <div className="mx-auto max-w-2xl space-y-4">
@@ -44,10 +48,10 @@ function LendPage() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>Rooms, membership, expense shares, and balances.</li>
             <li>USDC settlement directly between the debtor and payer.</li>
-            <li>Transaction-backed activity and payment receipts on Arc Testnet.</li>
+            <li>Transaction-backed activity and payment receipts on Arc {arcEnvironmentLabel(environment)}.</li>
           </ul>
           <p className="mt-4 break-all rounded-xl bg-muted p-3 font-mono text-[11px] text-muted-foreground">
-            {CANONICAL_EXPENSE_MANAGER_ADDRESS}
+            {contractAddress ?? "No ExpenseManager configured for this network"}
           </p>
         </Card>
 
