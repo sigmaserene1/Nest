@@ -9,6 +9,7 @@ import { useReceipts } from "@/lib/receipts-store";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { getMember, fmtUSD } from "@/lib/nest-data";
 import { explorerTxUrl, openExplorerTx } from "@/lib/wagmi";
+import { arcEnvironmentLabel, useArcEnvironment } from "@/lib/arc-network";
 
 export const Route = createFileRoute("/app/receipts")({
   component: ReceiptsPage,
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/app/receipts")({
       { property: "og:title", content: "Payment History & Receipts · Nest" },
       {
         property: "og:description",
-        content: "Immutable Arc Testnet receipts for every USDC settlement made in your home.",
+        content: "Immutable Arc receipts for every USDC settlement made in your workspace.",
       },
     ],
   }),
@@ -71,6 +72,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ReceiptsPage() {
+  const environment = useArcEnvironment();
   const { me } = useNestChain();
   const receipts = useReceipts(me);
 
@@ -165,7 +167,7 @@ function ReceiptsPage() {
                       <div className="mt-3 flex items-center justify-between gap-2">
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-600">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          Confirmed on Arc Testnet
+                          Confirmed on Arc {arcEnvironmentLabel(environment)}
                         </span>
                         <a
                           href={explorerTxUrl(r.hash)}
