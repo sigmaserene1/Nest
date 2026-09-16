@@ -9,7 +9,6 @@ import { useComputedBalances, useMe, useNestChain } from "@/lib/chain/nest-chain
 import { useNestWrites } from "@/lib/chain/writes";
 import { fmtUSD, getMember, fmtRelative } from "@/lib/nest-data";
 import { recordReceipt } from "@/lib/receipts-store";
-import { arcTestnet } from "@/lib/wagmi";
 import { useAgentConfig, useAgentRuns, type AgentRun } from "@/lib/agent-store";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -78,7 +77,6 @@ function AgentPage() {
           date: new Date().toISOString(),
           kind: "settle",
           note: "Auto-settled by Nest agent",
-          chainId: arcTestnet.id,
         });
       } catch (err) {
         failure = err instanceof Error ? err.message : "Settlement failed.";
