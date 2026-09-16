@@ -7,7 +7,7 @@ import { useAccount, usePublicClient, useReadContract, useWalletClient } from "w
 import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { NEST_BUSINESS_V2_ABI } from "@/contracts/nest-business-v2-artifact";
-import { ERC20_ABI, arcTestnet, USDC_ADDRESS, wagmiConfig } from "@/lib/wagmi";
+import { ERC20_ABI, USDC_ADDRESS, wagmiConfig } from "@/lib/wagmi";
 import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { spendUnifiedUsdcToArc } from "@/lib/circle-unified";
@@ -26,9 +26,12 @@ export const Route = createFileRoute("/app/business")({
   }),
 });
 
-const rawBusinessAddress = import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS as string | undefined;
-const businessAddress: Address | null =
-  rawBusinessAddress && isAddress(rawBusinessAddress) ? (rawBusinessAddress as Address) : null;
+const rawTestnetBusinessAddress = import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS as
+  | string
+  | undefined;
+const rawMainnetBusinessAddress = import.meta.env.VITE_NEST_BUSINESS_V2_MAINNET_ADDRESS as
+  | string
+  | undefined;
 const usdc = (amount: bigint | undefined) => Number(formatUnits(amount ?? 0n, 6));
 
 type Action = "supply" | "withdraw" | "borrow" | "repay";
@@ -42,8 +45,15 @@ const labels: Record<Action, string> = {
 function BusinessPage() {
   const { address, isConnected } = useAccount();
   const arcWallet = useArcWallet();
+  const arcChain = arcWallet.arcChain;
+  const rawBusinessAddress =
+    arcWallet.environment === "mainnet" ? rawMainnetBusinessAddress : rawTestnetBusinessAddress;
+  const businessAddress: Address | null =
+    rawBusinessAddress && isAddress(rawBusinessAddress)
+      ? (rawBusinessAddress as Address)
+      : null;
   const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient({ chainId: arcTestnet.id });
+  const publicClient = usePublicClient({ chainId: arcChain.id });
   const [action, setAction] = useState<Action>("borrow");
   const [amount, setAmount] = useState("");
   const [workspaceName, setWorkspaceName] = useState("");
@@ -67,7 +77,7 @@ function BusinessPage() {
     abi: NEST_BUSINESS_V2_ABI,
     functionName: "getCreditPosition",
     args: address ? [address] : undefined,
-    chainId: arcTestnet.id,
+    chainId: arcChain.id,
     query: { enabled: !!businessAddress && !!address, refetchInterval: 20_000 },
   });
 
@@ -104,9 +114,11 @@ function BusinessPage() {
               <div>
                 <h2 className="text-base font-bold">Business V2 is ready to deploy</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  Deploy the new contract on Arc Testnet, then set its address as
+                  Deploy the Business V2 contract on {arcChain.name}, then set its address as
                   <code className="mx-1 rounded bg-muted px-1.5 py-0.5 text-xs">
-                    VITE_NEST_BUSINESS_V2_ADDRESS
+                    {arcWallet.environment === "mainnet"
+                      ? "VITE_NEST_BUSINESS_V2_MAINNET_ADDRESS"
+                      : "VITE_NEST_BUSINESS_V2_ADDRESS"}
                   </code>
                   before publishing. Legacy Nest homes are not changed.
                 </p>
@@ -156,7 +168,7 @@ function BusinessPage() {
       functionName: "approve",
       args: [businessAddress, units],
       account,
-      chain: arcTestnet,
+      chain: arcChain,
     });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success") throw new Error("USDC approval failed.");
@@ -183,6 +195,12 @@ function BusinessPage() {
         if (currentBalance < units) {
           const shortfallUnits = units - currentBalance;
           const shortfall = formatUnits(shortfallUnits, 6);
+
+          if (arcWallet.environment === "mainnet") {
+            throw new Error(
+              `Insufficient USDC on Arc Mainnet. Add ${shortfall} USDC to this wallet before continuing.`,
+            );
+          }
 
           setBusy(`Funding ${shortfall} USDC to Arc…`);
           await spendUnifiedUsdcToArc(shortfall, account);
@@ -220,7 +238,7 @@ function BusinessPage() {
         }
 
         activeWalletClient = await getWalletClient(wagmiConfig, {
-          chainId: arcTestnet.id,
+          chainId: arcChain.id,
         });
 
         if (!activeWalletClient) {
@@ -241,7 +259,7 @@ function BusinessPage() {
         functionName: action,
         args: [units],
         account,
-        chain: arcTestnet,
+        chain: arcChain,
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Transaction reverted on Arc.");
@@ -292,7 +310,7 @@ function BusinessPage() {
           BigInt(Math.floor(hours * 3_600)),
         ],
         account,
-        chain: arcTestnet,
+        chain: arcChain,
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Policy transaction reverted on Arc.");
@@ -317,7 +335,7 @@ function BusinessPage() {
         functionName: "createBusinessRoom",
         args: [name],
         account,
-        chain: arcTestnet,
+        chain: arcChain,
       });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Workspace transaction reverted on Arc.");
@@ -367,26 +385,28 @@ function BusinessPage() {
                   Supply collateral, then borrow up to 50% of your supplied USDC. Borrow interest is
                   accrued onchain at 8% APR.
                 </p>
-                <Link
-                  to="/app/bridge"
-                  search={{
-                    from: "base",
-                    to: "arc",
-                    amount:
-                      needsArcFunding && actionShortfall > 0
-                        ? actionShortfall.toFixed(6)
-                        : undefined,
-                    returnTo: "/app/business",
-                  }}
-                  className="mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold text-brand transition hover:bg-brand-soft"
-                >
-                  <ArrowDownToLine className="h-3.5 w-3.5" />
-                  {actionShortfall > 0
-                    ? `Manual CCTP fallback · ${actionShortfall.toFixed(2)} USDC`
-                    : action === "repay"
-                      ? "Fund Arc repayment via CCTP"
-                      : "Fund Arc collateral via CCTP"}
-                </Link>
+                {arcWallet.environment === "testnet" && (
+                  <Link
+                    to="/app/bridge"
+                    search={{
+                      from: "base",
+                      to: "arc",
+                      amount:
+                        needsArcFunding && actionShortfall > 0
+                          ? actionShortfall.toFixed(6)
+                          : undefined,
+                      returnTo: "/app/business",
+                    }}
+                    className="mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold text-brand transition hover:bg-brand-soft"
+                  >
+                    <ArrowDownToLine className="h-3.5 w-3.5" />
+                    {actionShortfall > 0
+                      ? `Manual CCTP fallback · ${actionShortfall.toFixed(2)} USDC`
+                      : action === "repay"
+                        ? "Fund Arc repayment via CCTP"
+                        : "Fund Arc collateral via CCTP"}
+                  </Link>
+                )}
               </div>
             </div>
             <div className="text-right text-xs text-muted-foreground">
@@ -450,11 +470,13 @@ function BusinessPage() {
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {busy ??
-                (action === "supply" && actionShortfall > 0
-                  ? `Fund & supply · ${requestedAmount.toFixed(2)} USDC`
-                  : action === "repay" && actionShortfall > 0
-                    ? `Fund & repay · ${requestedAmount.toFixed(2)} USDC`
-                    : labels[action])}
+                (actionShortfall > 0 && arcWallet.environment === "mainnet"
+                  ? `Need ${actionShortfall.toFixed(2)} USDC on Mainnet`
+                  : action === "supply" && actionShortfall > 0
+                    ? `Fund & supply · ${requestedAmount.toFixed(2)} USDC`
+                    : action === "repay" && actionShortfall > 0
+                      ? `Fund & repay · ${requestedAmount.toFixed(2)} USDC`
+                      : labels[action])}
             </button>
           </div>
         </Card>
