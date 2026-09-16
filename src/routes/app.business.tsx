@@ -56,8 +56,9 @@ function BusinessPage() {
   const [busy, setBusy] = useState<string | null>(null);
 
   const requestedAmount = Number(amount);
-  const supplyShortfall =
-    action === "supply" && Number.isFinite(requestedAmount) && requestedAmount > 0
+  const needsArcFunding = action === "supply" || action === "repay";
+  const actionShortfall =
+    needsArcFunding && Number.isFinite(requestedAmount) && requestedAmount > 0
       ? Math.max(0, requestedAmount - arcWallet.usdcBalance)
       : 0;
 
@@ -171,7 +172,7 @@ function BusinessPage() {
       const units = parseUnits(number.toFixed(6), 6);
       let activeWalletClient = walletClient;
 
-      if (action === "supply") {
+      if (action === "supply" || action === "repay") {
         const currentBalance = (await publicClient.readContract({
           address: USDC_ADDRESS,
           abi: ERC20_ABI,
@@ -208,7 +209,7 @@ function BusinessPage() {
 
           if (!funded) {
             throw new Error(
-              "Circle submitted the funding transfer, but the Arc balance has not updated yet. Retry Supply once the USDC arrives.",
+              `Circle submitted the funding transfer, but the Arc balance has not updated yet. Retry ${labels[action]} once the USDC arrives.`,
             );
           }
         }
@@ -372,17 +373,19 @@ function BusinessPage() {
                     from: "base",
                     to: "arc",
                     amount:
-                      action === "supply" && supplyShortfall > 0
-                        ? supplyShortfall.toFixed(6)
+                      needsArcFunding && actionShortfall > 0
+                        ? actionShortfall.toFixed(6)
                         : undefined,
                     returnTo: "/app/business",
                   }}
                   className="mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-bold text-brand transition hover:bg-brand-soft"
                 >
                   <ArrowDownToLine className="h-3.5 w-3.5" />
-                  {supplyShortfall > 0
-                    ? `Manual CCTP fallback · ${supplyShortfall.toFixed(2)} USDC`
-                    : "Fund Arc collateral via CCTP"}
+                  {actionShortfall > 0
+                    ? `Manual CCTP fallback · ${actionShortfall.toFixed(2)} USDC`
+                    : action === "repay"
+                      ? "Fund Arc repayment via CCTP"
+                      : "Fund Arc collateral via CCTP"}
                 </Link>
               </div>
             </div>
@@ -404,11 +407,15 @@ function BusinessPage() {
 
         <UnifiedBalancePanel
           compact
-          defaultSpendAmount={supplyShortfall > 0 ? supplyShortfall : undefined}
+          defaultSpendAmount={actionShortfall > 0 ? actionShortfall : undefined}
           contextLabel={
-            supplyShortfall > 0
-              ? `Your Arc wallet is short ${supplyShortfall.toFixed(2)} USDC for this collateral supply. Fund only the shortfall with Gateway.`
-              : "Keep confirmed Gateway USDC ready for future Arc collateral funding."
+            actionShortfall > 0
+              ? action === "repay"
+                ? `Your Arc wallet is short ${actionShortfall.toFixed(2)} USDC for this repayment. Fund only the shortfall with Gateway.`
+                : `Your Arc wallet is short ${actionShortfall.toFixed(2)} USDC for this collateral supply. Fund only the shortfall with Gateway.`
+              : action === "repay"
+                ? "Keep confirmed Gateway USDC ready for Arc credit repayments."
+                : "Keep confirmed Gateway USDC ready for future Arc collateral funding."
           }
         />
 
@@ -443,9 +450,11 @@ function BusinessPage() {
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {busy ??
-                (action === "supply" && supplyShortfall > 0
+                (action === "supply" && actionShortfall > 0
                   ? `Fund & supply · ${requestedAmount.toFixed(2)} USDC`
-                  : labels[action])}
+                  : action === "repay" && actionShortfall > 0
+                    ? `Fund & repay · ${requestedAmount.toFixed(2)} USDC`
+                    : labels[action])}
             </button>
           </div>
         </Card>
