@@ -37,9 +37,9 @@ import {
 import { NestLogo } from "@/components/nest/logo";
 import { Reveal } from "@/components/nest/reveal";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
+import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
+import { getContractAddressForEnvironment } from "@/lib/chain/config";
 
-const CONTRACT_ADDRESS = "0x709cbAd88162b999882788155cde79aDe46A6D42";
-const CONTRACT_URL = `https://testnet.arcscan.app/address/${CONTRACT_ADDRESS}`;
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const NAV_LINKS = [
   { label: "How it works", href: "#flow" },
@@ -78,6 +78,13 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const environment = useArcEnvironment();
+  const arcChain = arcChainFor(environment);
+  const contractAddress = getContractAddressForEnvironment(environment);
+  const contractUrl = contractAddress
+    ? `${arcChain.blockExplorers.default.url}/address/${contractAddress}`
+    : null;
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-2xl">
@@ -140,7 +147,7 @@ function Landing() {
                 style={{ animationDelay: "40ms" }}
               >
                 <span className="live-dot h-2 w-2 rounded-full bg-brand" />
-                Live on Arc Testnet
+                {environment === "mainnet" ? "Arc Mainnet" : "Arc Testnet"}
                 <span className="h-3 w-px bg-brand/25" />
                 Native USDC
               </div>
@@ -346,12 +353,13 @@ function Landing() {
                   costs and fast finality—not because a blockchain badge belongs on the homepage.
                 </p>
                 <a
-                  href={CONTRACT_URL}
-                  target="_blank"
-                  rel="noreferrer"
+                  href={contractUrl ?? "/app"}
+                  target={contractUrl ? "_blank" : undefined}
+                  rel={contractUrl ? "noreferrer" : undefined}
                   className="mt-8 inline-flex items-center gap-2 rounded-full border border-background/15 px-5 py-3 text-sm font-bold transition-colors hover:bg-background hover:text-foreground"
                 >
-                  Inspect ExpenseManager <ArrowUpRight className="h-4 w-4" />
+                  {contractUrl ? "Inspect ExpenseManager" : "Mainnet contract setup"}
+                  <ArrowUpRight className="h-4 w-4" />
                 </a>
               </div>
             </Reveal>
@@ -470,7 +478,7 @@ function Landing() {
                 </h2>
                 <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base">
                   Create a workspace, record obligations and complete your first native-USDC
-                  settlement on Arc Testnet.
+                  settlement on Arc.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
                   <Link
@@ -499,7 +507,7 @@ function Landing() {
           <div>
             <NestLogo />
             <p className="mt-3 max-w-sm text-xs leading-5 text-muted-foreground">
-              Programmable group finance on Arc Testnet. Testnet assets have no real-world value.
+              Programmable group finance on Arc with separate Mainnet and Testnet state.
             </p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-muted-foreground">
@@ -831,7 +839,7 @@ const ARC_REASONS = [
 const EVIDENCE = [
   {
     label: "Network",
-    value: "Arc Testnet · Chain ID 5042002",
+    value: "Arc Mainnet + Testnet",
     note: "Every live flow currently uses testnet assets with no real-world value.",
   },
   {
@@ -850,7 +858,7 @@ const FAQS = [
   {
     question: "What is Nest?",
     answer:
-      "Nest is a group-finance protocol and application on Arc Testnet. It records shared obligations, resolves workspace balances and lets members settle peer-to-peer in native USDC.",
+      "Nest is a group-finance protocol and application on Arc. Mainnet and Testnet are isolated so workspaces, balances and contract state never mix.",
   },
   {
     question: "Is the roommate-expense product being removed?",
