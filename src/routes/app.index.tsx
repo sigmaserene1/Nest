@@ -38,7 +38,7 @@ export const Route = createFileRoute("/app/")({
       {
         name: "description",
         content:
-          "Your Nest home dashboard: see what you owe, what you're owed, and settle shared household costs in USDC on Arc Testnet.",
+          "Your Nest home dashboard: see what you owe, what you're owed, and settle shared costs in USDC on Arc.",
       },
       { property: "og:title", content: "Home · Nest" },
       {
@@ -133,7 +133,7 @@ function Dashboard() {
               <span>
                 {wallet.isConnected
                   ? wallet.isOnArc
-                    ? "Live on Arc Testnet"
+                    ? `Live on ${wallet.arcChain.name}`
                     : "Wrong network"
                   : "Connect your wallet to see your live balance"}
               </span>
