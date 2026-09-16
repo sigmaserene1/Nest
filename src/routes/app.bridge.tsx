@@ -44,6 +44,7 @@ import {
   type BridgeTokenId,
 } from "@/lib/bridge-tokens";
 import { wagmiConfig } from "@/lib/wagmi";
+import { setArcEnvironment, useArcEnvironment } from "@/lib/arc-network";
 
 const RETURN_PATHS = new Set(["/app/", "/app/settle", "/app/business"]);
 
@@ -81,6 +82,7 @@ const QUOTE_REFRESH_MS = 15_000;
 
 function BridgePage() {
   const search = Route.useSearch();
+  const environment = useArcEnvironment();
   const { address, isConnected } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { entries, addEntry, updateEntry, clearHistory } = useBridgeHistory(address);
@@ -229,6 +231,11 @@ function BridgePage() {
   };
 
   async function executeBridge() {
+    if (environment === "mainnet") {
+      return setError(
+        "Mainnet CCTP is intentionally disabled in this build until Nest switches from Circle sandbox/testnet routes to verified mainnet routes.",
+      );
+    }
     if (!address) return setError("Connect the wallet that holds the source USDC.");
     if (!Number.isFinite(value) || value <= 0) return setError("Enter a valid USDC amount.");
     if (source.id === destination.id) return setError("Choose two different chains.");
@@ -372,6 +379,45 @@ function BridgePage() {
     const seconds = Math.max(0, Math.round((Date.now() - quoteAt) / 1000));
     return seconds < 5 ? "just now" : `${seconds}s ago`;
   }, [quoteAt, statusText]);
+
+  if (environment === "mainnet") {
+    return (
+      <AppShell
+        greeting={
+          <div>
+            <div className="text-xs font-bold tracking-[0.16em] text-brand">CCTP ROUTER</div>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-[28px]">
+              Mainnet bridge protection
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Nest Mainnet is active, but this bridge still uses Circle testnet contracts and sandbox APIs.
+            </p>
+          </div>
+        }
+      >
+        <Card className="mt-5 !p-6">
+          <div className="flex items-start gap-3">
+            <ShieldCheck className="mt-0.5 h-5 w-5 text-amber-600" />
+            <div>
+              <h2 className="font-bold">Real-USDC bridging is locked for safety</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Core Nest payments can run on Arc Mainnet, but CCTP remains isolated to Testnet
+                until the mainnet Circle route configuration is enabled. This prevents a real-USDC
+                transfer from ever touching sandbox endpoints.
+              </p>
+              <button
+                type="button"
+                onClick={() => setArcEnvironment("testnet")}
+                className="mt-4 rounded-xl bg-foreground px-4 py-2.5 text-xs font-bold text-background"
+              >
+                Switch Nest to Testnet bridge
+              </button>
+            </div>
+          </div>
+        </Card>
+      </AppShell>
+    );
+  }
 
   return (
     <AppShell
