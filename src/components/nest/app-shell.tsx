@@ -125,7 +125,13 @@ export function AppShell({
   greeting?: ReactNode;
   onFabClick?: () => void;
 }) {
-  const { me: myId, myName: displayName, contractAddress } = useNestChain();
+  const {
+    me: myId,
+    myName: displayName,
+    contractAddress,
+    rooms,
+    roomId,
+  } = useNestChain();
   const me = getMember(myId ?? "");
   const wallet = useArcWallet();
   const myName = displayName ?? "You";
@@ -215,6 +221,20 @@ export function AppShell({
               </p>
             </div>
           )}
+          {wallet.environment === "mainnet" &&
+            contractAddress &&
+            rooms.length === 0 && (
+              <div className="mb-3 rounded-2xl border border-sky-400/35 bg-sky-50 px-4 py-3 text-sky-950">
+                <div className="text-xs font-bold">
+                  Arc Mainnet connected · workspace migration pending
+                </div>
+                <p className="mt-1 text-[11px] leading-5">
+                  Your Nest session is preserved. The selected workspace
+                  {roomId ? ` #${roomId}` : ""} does not exist on the Mainnet contract yet,
+                  so onchain balances and expenses will appear after that workspace is created or migrated.
+                </p>
+              </div>
+            )}
         </div>
 
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}
