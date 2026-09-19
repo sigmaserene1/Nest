@@ -62,8 +62,8 @@ function Greeting() {
         <div className="text-sm font-medium text-muted-foreground">{greet},</div>
         <h1 className="truncate text-2xl font-bold tracking-tight sm:text-[28px]">{first} 👋</h1>
       </div>
-      <div className="flex items-center gap-2">
-        <Link to="/app/members" aria-label="Profile">
+      <div className="flex shrink-0 items-center gap-2">
+        <Link to="/app/profile" aria-label="Your profile" className="active:scale-[0.95]">
           <MemberAvatar member={me} size={44} ring />
         </Link>
       </div>
