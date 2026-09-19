@@ -172,7 +172,12 @@ export function AppShell({
             ))}
           </nav>
 
-          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
+          <Link
+            to="/app/profile"
+            preload="intent"
+            className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3 transition hover:bg-muted active:scale-[0.985]"
+            aria-label="Open your profile"
+          >
             <MemberAvatar member={{ ...me, name: myName }} size={38} ring />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm font-semibold">{myName}</div>
@@ -184,7 +189,7 @@ export function AppShell({
                 )}
               </div>
             </div>
-          </div>
+          </Link>
         </div>
       </aside>
 
@@ -192,8 +197,16 @@ export function AppShell({
       <div className="lg:pl-72">
         <header className="sticky top-0 z-20 border-b border-border/60 bg-background/70 backdrop-blur-xl">
           <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
-            <div className="flex min-w-0 items-center lg:hidden">
+            <div className="flex min-w-0 items-center gap-3 lg:hidden">
               <NestLogo />
+              <Link
+                to="/app/profile"
+                preload="intent"
+                className="shrink-0 active:scale-[0.95]"
+                aria-label="Open your profile"
+              >
+                <MemberAvatar member={{ ...me, name: myName }} size={32} ring />
+              </Link>
             </div>
             <div className="hidden min-w-0 lg:block" />
             <div className="flex shrink-0 items-center gap-2">
