@@ -352,15 +352,8 @@ function Landing() {
                   Nest uses Arc because group settlement needs a stable unit, predictable execution
                   costs and fast finality—not because a blockchain badge belongs on the homepage.
                 </p>
-                <a
-                  href={contractUrl ?? "/app"}
-                  target={contractUrl ? "_blank" : undefined}
-                  rel={contractUrl ? "noreferrer" : undefined}
-                  className="mt-8 inline-flex items-center gap-2 rounded-full border border-background/15 px-5 py-3 text-sm font-bold transition-colors hover:bg-background hover:text-foreground"
-                >
-                  {contractUrl ? "Inspect ExpenseManager" : "Mainnet contract setup"}
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
+              </div>
+
               </div>
             </Reveal>
 
