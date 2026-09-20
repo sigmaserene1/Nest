@@ -34,7 +34,7 @@ function Gate() {
 
 function AppLayout() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount();
-  const navigate = useNavigate();
+  const { openConnectModal } = useConnectModal();
 
   // Resolve an invite link silently: stash the token, clean the URL, then apply
   // it as soon as a wallet is connected. Users never see contract or room IDs.
