@@ -78,6 +78,8 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const environment = useArcEnvironment();
+
 
 
   return (
