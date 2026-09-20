@@ -378,46 +378,6 @@ function Landing() {
           </div>
         </section>
 
-        <section className="px-5 py-24 sm:py-32 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <Reveal>
-              <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-                <div className="grid lg:grid-cols-[0.8fr_1.2fr]">
-                  <div className="border-b border-border p-8 sm:p-10 lg:border-b-0 lg:border-r">
-                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-success/10 text-success">
-                      <ShieldCheck className="h-5 w-5" />
-                    </span>
-                    <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.18em] text-success">
-                      Verifiable by default
-                    </p>
-                    <h2 className="mt-3 text-3xl tracking-[-0.035em] sm:text-4xl">
-                      Claims should resolve to evidence.
-                    </h2>
-                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      Nest exposes its deployed contract, transaction history and linked receipts,
-                      so every claim can be checked against onchain state rather than taken on faith.
-                    </p>
-                  </div>
-
-                  <dl className="grid sm:grid-cols-2">
-                    {EVIDENCE.map((item) => (
-                      <div
-                        key={item.label}
-                        className="border-b border-border p-7 last:border-b-0 sm:[&:nth-child(odd)]:border-r sm:[&:nth-last-child(-n+2)]:border-b-0"
-                      >
-                        <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                          {item.label}
-                        </dt>
-                        <dd className="mt-3 text-sm font-bold">{item.value}</dd>
-                        <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.note}</p>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </section>
 
         <section
           id="faq"
