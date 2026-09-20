@@ -62,9 +62,36 @@ function AppLayout() {
     localStorage.removeItem(PENDING_INVITE);
   }, [address]);
 
+  const isBusy = isConnecting || isReconnecting;
+
+  // No separate sign-in page: the wallet chooser opens straight away.
   useEffect(() => {
-    if (!isConnected && !isConnecting && !isReconnecting) navigate({ to: "/auth" });
-  }, [isConnected, isConnecting, isReconnecting, navigate]);
+    if (!isConnected && !isBusy) openConnectModal?.();
+  }, [isConnected, isBusy, openConnectModal]);
+
+  if (!isConnected) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand/10 text-brand">
+            <Wallet className="h-6 w-6" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {isBusy ? "Connecting your wallet…" : "Connect your wallet to open Nest"}
+          </p>
+          <button
+            type="button"
+            onClick={() => openConnectModal?.()}
+            disabled={!openConnectModal}
+            className="rounded-2xl btn-gradient px-6 py-3 text-sm font-bold disabled:opacity-60"
+          >
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return <Gate />;
+
 }
