@@ -781,23 +781,6 @@ const ARC_REASONS = [
   },
 ];
 
-const EVIDENCE = [
-  {
-    label: "Network",
-    value: "Arc Mainnet + Testnet",
-    note: "Every live flow currently uses testnet assets with no real-world value.",
-  },
-  {
-    label: "ExpenseManager",
-    value: "0x709c…6D42",
-    note: "The canonical contract address is published and linked to Arcscan.",
-  },
-  {
-    label: "Custody model",
-    value: "Wallet-to-wallet settlement",
-    note: "Nest records obligations and settlement events; it does not operate a pooled customer balance.",
-  },
-];
 
 const FAQS = [
   {
