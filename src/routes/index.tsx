@@ -471,7 +471,6 @@ function Landing() {
             </a>
             <a href="#faq" className="hover:text-foreground">
 
-            <a href="#faq" className="hover:text-foreground">
               FAQ
             </a>
           </div>
