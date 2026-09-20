@@ -466,14 +466,10 @@ function Landing() {
             <Link to="/app" className="hover:text-foreground">
               App
             </Link>
-            <a
-              href={contractUrl ?? "/app"}
-              target={contractUrl ? "_blank" : undefined}
-              rel={contractUrl ? "noreferrer" : undefined}
-              className="hover:text-foreground"
-            >
-              Contract
+            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
+              GitHub
             </a>
+
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
               GitHub
             </a>
