@@ -78,12 +78,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const environment = useArcEnvironment();
-  const arcChain = arcChainFor(environment);
-  const contractAddress = getContractAddressForEnvironment(environment);
-  const contractUrl = contractAddress
-    ? `${arcChain.blockExplorers.default.url}/address/${contractAddress}`
-    : null;
+
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
