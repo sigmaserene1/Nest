@@ -354,7 +354,6 @@ function Landing() {
                 </p>
               </div>
 
-              </div>
             </Reveal>
 
             <div className="grid gap-px overflow-hidden rounded-3xl border border-background/10 bg-background/10 sm:grid-cols-2">
