@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
-  ArrowUpRight,
   BadgeCheck,
   Bot,
   BriefcaseBusiness,
@@ -22,7 +21,6 @@ import {
   Network,
   ReceiptText,
   Route as RouteIcon,
-  ShieldCheck,
   Sparkles,
   Users,
   WalletCards,
@@ -37,8 +35,7 @@ import {
 import { NestLogo } from "@/components/nest/logo";
 import { Reveal } from "@/components/nest/reveal";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
-import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
-import { getContractAddressForEnvironment } from "@/lib/chain/config";
+import { useArcEnvironment } from "@/lib/arc-network";
 
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const NAV_LINKS = [
