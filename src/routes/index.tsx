@@ -469,10 +469,8 @@ function Landing() {
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
               GitHub
             </a>
+            <a href="#faq" className="hover:text-foreground">
 
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
-              GitHub
-            </a>
             <a href="#faq" className="hover:text-foreground">
               FAQ
             </a>
