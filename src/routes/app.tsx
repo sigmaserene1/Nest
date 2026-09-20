@@ -1,10 +1,13 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAccount } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
+import { Wallet } from "lucide-react";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
 import { useArcEnvironment } from "@/lib/arc-network";
+
 
 const PENDING_INVITE = "nest.invite.pending";
 
@@ -31,7 +34,7 @@ function Gate() {
 
 function AppLayout() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount();
-  const navigate = useNavigate();
+  const { openConnectModal } = useConnectModal();
 
   // Resolve an invite link silently: stash the token, clean the URL, then apply
   // it as soon as a wallet is connected. Users never see contract or room IDs.
@@ -59,9 +62,36 @@ function AppLayout() {
     localStorage.removeItem(PENDING_INVITE);
   }, [address]);
 
+  const isBusy = isConnecting || isReconnecting;
+
+  // No separate sign-in page: the wallet chooser opens straight away.
   useEffect(() => {
-    if (!isConnected && !isConnecting && !isReconnecting) navigate({ to: "/auth" });
-  }, [isConnected, isConnecting, isReconnecting, navigate]);
+    if (!isConnected && !isBusy) openConnectModal?.();
+  }, [isConnected, isBusy, openConnectModal]);
+
+  if (!isConnected) {
+    return (
+      <div className="grid min-h-screen place-items-center px-6 text-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand/10 text-brand">
+            <Wallet className="h-6 w-6" />
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {isBusy ? "Connecting your wallet…" : "Connect your wallet to open Nest"}
+          </p>
+          <button
+            type="button"
+            onClick={() => openConnectModal?.()}
+            disabled={!openConnectModal}
+            className="rounded-2xl btn-gradient px-6 py-3 text-sm font-bold disabled:opacity-60"
+          >
+            Connect Wallet
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return <Gate />;
+
 }

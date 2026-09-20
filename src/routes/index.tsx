@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
-  ArrowUpRight,
   BadgeCheck,
   Bot,
   BriefcaseBusiness,
@@ -22,7 +21,6 @@ import {
   Network,
   ReceiptText,
   Route as RouteIcon,
-  ShieldCheck,
   Sparkles,
   Users,
   WalletCards,
@@ -37,8 +35,7 @@ import {
 import { NestLogo } from "@/components/nest/logo";
 import { Reveal } from "@/components/nest/reveal";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
-import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
-import { getContractAddressForEnvironment } from "@/lib/chain/config";
+import { useArcEnvironment } from "@/lib/arc-network";
 
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const NAV_LINKS = [
@@ -79,11 +76,8 @@ export const Route = createFileRoute("/")({
 
 function Landing() {
   const environment = useArcEnvironment();
-  const arcChain = arcChainFor(environment);
-  const contractAddress = getContractAddressForEnvironment(environment);
-  const contractUrl = contractAddress
-    ? `${arcChain.blockExplorers.default.url}/address/${contractAddress}`
-    : null;
+
+
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
@@ -352,16 +346,8 @@ function Landing() {
                   Nest uses Arc because group settlement needs a stable unit, predictable execution
                   costs and fast finality—not because a blockchain badge belongs on the homepage.
                 </p>
-                <a
-                  href={contractUrl ?? "/app"}
-                  target={contractUrl ? "_blank" : undefined}
-                  rel={contractUrl ? "noreferrer" : undefined}
-                  className="mt-8 inline-flex items-center gap-2 rounded-full border border-background/15 px-5 py-3 text-sm font-bold transition-colors hover:bg-background hover:text-foreground"
-                >
-                  {contractUrl ? "Inspect ExpenseManager" : "Mainnet contract setup"}
-                  <ArrowUpRight className="h-4 w-4" />
-                </a>
               </div>
+
             </Reveal>
 
             <div className="grid gap-px overflow-hidden rounded-3xl border border-background/10 bg-background/10 sm:grid-cols-2">
@@ -378,46 +364,6 @@ function Landing() {
           </div>
         </section>
 
-        <section className="px-5 py-24 sm:py-32 lg:px-8">
-          <div className="mx-auto max-w-7xl">
-            <Reveal>
-              <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
-                <div className="grid lg:grid-cols-[0.8fr_1.2fr]">
-                  <div className="border-b border-border p-8 sm:p-10 lg:border-b-0 lg:border-r">
-                    <span className="grid h-12 w-12 place-items-center rounded-2xl bg-success/10 text-success">
-                      <ShieldCheck className="h-5 w-5" />
-                    </span>
-                    <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.18em] text-success">
-                      Verifiable by default
-                    </p>
-                    <h2 className="mt-3 text-3xl tracking-[-0.035em] sm:text-4xl">
-                      Claims should resolve to evidence.
-                    </h2>
-                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                      Nest exposes its deployed contract, transaction history and linked receipts,
-                      so every claim can be checked against onchain state rather than taken on faith.
-                    </p>
-                  </div>
-
-                  <dl className="grid sm:grid-cols-2">
-                    {EVIDENCE.map((item) => (
-                      <div
-                        key={item.label}
-                        className="border-b border-border p-7 last:border-b-0 sm:[&:nth-child(odd)]:border-r sm:[&:nth-last-child(-n+2)]:border-b-0"
-                      >
-                        <dt className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                          {item.label}
-                        </dt>
-                        <dd className="mt-3 text-sm font-bold">{item.value}</dd>
-                        <p className="mt-2 text-xs leading-5 text-muted-foreground">{item.note}</p>
-                      </div>
-                    ))}
-                  </dl>
-                </div>
-              </div>
-            </Reveal>
-          </div>
-        </section>
 
         <section
           id="faq"
@@ -514,18 +460,11 @@ function Landing() {
             <Link to="/app" className="hover:text-foreground">
               App
             </Link>
-            <a
-              href={contractUrl ?? "/app"}
-              target={contractUrl ? "_blank" : undefined}
-              rel={contractUrl ? "noreferrer" : undefined}
-              className="hover:text-foreground"
-            >
-              Contract
-            </a>
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
               GitHub
             </a>
             <a href="#faq" className="hover:text-foreground">
+
               FAQ
             </a>
           </div>
@@ -836,23 +775,6 @@ const ARC_REASONS = [
   },
 ];
 
-const EVIDENCE = [
-  {
-    label: "Network",
-    value: "Arc Mainnet + Testnet",
-    note: "Every live flow currently uses testnet assets with no real-world value.",
-  },
-  {
-    label: "ExpenseManager",
-    value: "0x709c…6D42",
-    note: "The canonical contract address is published and linked to Arcscan.",
-  },
-  {
-    label: "Custody model",
-    value: "Wallet-to-wallet settlement",
-    note: "Nest records obligations and settlement events; it does not operate a pooled customer balance.",
-  },
-];
 
 const FAQS = [
   {
