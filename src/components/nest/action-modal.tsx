@@ -188,7 +188,6 @@ export function ActionModal({
           setStep(s);
           setStage(s.startsWith("Sending") ? "pending" : "confirming");
         });
-      } else {
       } else if (useGasFree) {
         hash = await sendGasless(toAddress as `0x${string}`, amt, (s) => {
           setStep(s);
