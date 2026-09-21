@@ -7,6 +7,7 @@ import { PaymentQr } from "./qr";
 import { getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers, useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
+import { useGaslessStatus, useGaslessTransfer } from "@/lib/chain/gasless";
 import { USDC_ADDRESS, USDC_DECIMALS, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { recordReceipt } from "@/lib/receipts-store";
@@ -98,6 +99,9 @@ export function ActionModal({
   const [step, setStep] = useState("");
   const [txHash, setTxHash] = useState<string>("");
   const [error, setError] = useState("");
+  const [gasFree, setGasFree] = useState(true);
+  const gasless = useGaslessStatus();
+  const sendGasless = useGaslessTransfer();
 
   const paymentUri = useMemo(() => {
     if (!isAddress(toAddress)) return "";
