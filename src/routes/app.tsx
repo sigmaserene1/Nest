@@ -77,7 +77,7 @@ function AppLayout() {
             <Wallet className="h-6 w-6" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {isBusy ? "Connecting your wallet…" : "Connect your wallet to open Nest"}
+            {mounted && isBusy ? "Connecting your wallet…" : "Connect your wallet to open Nest"}
           </p>
           <button
             type="button"

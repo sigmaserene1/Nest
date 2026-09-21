@@ -456,6 +456,38 @@ export function ActionModal({
                 </div>
               )}
 
+              {gasFreeEligible && (
+                <button
+                  type="button"
+                  onClick={() => setGasFree((v) => !v)}
+                  className={`mt-4 flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+                    gasFree ? "border-emerald-500 bg-emerald-50" : "border-border bg-white"
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-bold">
+                      {gasFree ? "Gas-free payment" : "Pay the network fee yourself"}
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      {gasFree
+                        ? "You just sign — Nest covers the network fee."
+                        : "You will confirm a normal transaction in your wallet."}
+                    </span>
+                  </span>
+                  <span
+                    className={`ml-3 h-6 w-11 shrink-0 rounded-full p-0.5 transition ${
+                      gasFree ? "bg-emerald-500" : "bg-muted"
+                    }`}
+                  >
+                    <span
+                      className={`block h-5 w-5 rounded-full bg-white shadow transition ${
+                        gasFree ? "translate-x-5" : ""
+                      }`}
+                    />
+                  </span>
+                </button>
+              )}
+
               <div className="mt-4">
                 <input
                   value={note}
