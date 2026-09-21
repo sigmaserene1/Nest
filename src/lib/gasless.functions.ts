@@ -5,7 +5,7 @@
 
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createPublicClient, createWalletClient, http, formatUnits, hexToSignature } from "viem";
+import { createPublicClient, createWalletClient, http, formatUnits, parseSignature } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arcChainFor, ARC_USDC_ADDRESS, type ArcEnvironment } from "@/lib/arc-network";
 
@@ -97,7 +97,7 @@ export const relayGaslessTransfer = createServerFn({ method: "POST" })
 
     const { chain, publicClient, transport } = clients(data.environment);
     const walletClient = createWalletClient({ account, chain, transport });
-    const { v, r, s } = hexToSignature(data.signature as `0x${string}`);
+    const { v, r, s } = parseSignature(data.signature as `0x${string}`);
 
     const args = [
       data.from as `0x${string}`,
