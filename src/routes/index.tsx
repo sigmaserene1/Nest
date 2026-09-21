@@ -147,7 +147,7 @@ function Landing() {
               </div>
 
               <h1
-                className="animate-float-in mt-7 font-display text-[3.3rem] leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[5.2rem]"
+                className="animate-float-in mt-7 font-display text-[2.4rem] leading-[1.02] tracking-[-0.05em] sm:text-6xl lg:text-[5.2rem]"
                 style={{ animationDelay: "80ms" }}
               >
                 One ledger.
@@ -156,7 +156,7 @@ function Landing() {
               </h1>
 
               <p
-                className="animate-float-in mx-auto mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg lg:mx-0 lg:max-w-xl"
+                className="animate-float-in mx-auto mt-5 max-w-2xl text-[15px] leading-6 text-muted-foreground sm:text-lg sm:leading-7 lg:mx-0 lg:max-w-xl"
                 style={{ animationDelay: "130ms" }}
               >
                 Nest is programmable group finance on Arc. Record shared expenses and payouts,
@@ -164,18 +164,18 @@ function Landing() {
               </p>
 
               <div
-                className="animate-float-in mt-9 flex flex-wrap justify-center gap-3 lg:justify-start"
+                className="animate-float-in mt-7 flex flex-wrap justify-center gap-2.5 lg:justify-start"
                 style={{ animationDelay: "180ms" }}
               >
                 <Link
                   to="/app"
-                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold"
+className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm"
                 >
-                  Open a workspace <ArrowRight className="h-4 w-4" />
+                  Open a workspace <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
                 <a
                   href="#protocol"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-6 py-3.5 text-sm font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-[13px] font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-6 sm:py-3.5 sm:text-sm"
                 >
                   Explore product <ArrowRight className="h-4 w-4" />
                 </a>
@@ -339,7 +339,7 @@ function Landing() {
                   <Zap className="h-3.5 w-3.5 text-brand" />
                   Purpose-built for Arc
                 </span>
-                <h2 className="mt-6 text-4xl leading-[1.05] tracking-[-0.04em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-5xl">
                   The settlement layer is part of the product.
                 </h2>
                 <p className="mt-5 max-w-xl text-base leading-7 text-background/65">
@@ -376,7 +376,7 @@ function Landing() {
                   <Sparkles className="h-3.5 w-3.5" />
                   Clear answers
                 </span>
-                <h2 className="mt-6 text-4xl tracking-[-0.04em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl tracking-[-0.035em] sm:text-5xl">
                   Questions builders and users should ask
                 </h2>
                 <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
@@ -419,7 +419,7 @@ function Landing() {
                   <CircleDollarSign className="h-3.5 w-3.5" />
                   Group settlement, without the spreadsheet
                 </span>
-                <h2 className="mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] tracking-[-0.045em] sm:text-6xl">
+                <h2 className="mx-auto mt-6 max-w-3xl text-3xl leading-[1.08] tracking-[-0.04em] sm:text-6xl">
                   Give shared money one source of truth.
                 </h2>
                 <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base">
@@ -429,7 +429,7 @@ function Landing() {
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
                   <Link
                     to="/app"
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-bold text-brand transition-transform hover:-translate-y-0.5"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-brand transition-transform hover:-translate-y-0.5"
                   >
                     Launch Nest <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -437,7 +437,7 @@ function Landing() {
                     href={GITHUB_URL}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-white/20"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-white transition-colors hover:bg-white/20"
                   >
                     Read the source <Code2 className="h-4 w-4" />
                   </a>
@@ -616,7 +616,7 @@ function SectionHeading({
         <Sparkles className="h-3.5 w-3.5" />
         {eyebrow}
       </span>
-      <h2 className="mt-6 text-4xl leading-[1.06] tracking-[-0.045em] sm:text-5xl">{title}</h2>
+      <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.04em] sm:text-5xl">{title}</h2>
       <p className="mt-5 text-base leading-7 text-muted-foreground">{body}</p>
     </div>
   );
