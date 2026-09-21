@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Wallet } from "lucide-react";
@@ -63,6 +63,10 @@ function AppLayout() {
   }, [address]);
 
   const isBusy = isConnecting || isReconnecting;
+  // Wallet state differs between server render and hydration, so the copy only
+  // reacts to it after mount.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   // No separate sign-in page: the wallet chooser opens straight away.
   useEffect(() => {
@@ -77,7 +81,7 @@ function AppLayout() {
             <Wallet className="h-6 w-6" />
           </div>
           <p className="text-sm text-muted-foreground">
-            {isBusy ? "Connecting your wallet…" : "Connect your wallet to open Nest"}
+            {mounted && isBusy ? "Connecting your wallet…" : "Connect your wallet to open Nest"}
           </p>
           <button
             type="button"

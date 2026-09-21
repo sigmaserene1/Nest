@@ -7,6 +7,7 @@ import { PaymentQr } from "./qr";
 import { getMember, fmtUSD, type Member } from "@/lib/nest-data";
 import { useMembers, useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
+import { useGaslessStatus, useGaslessTransfer } from "@/lib/chain/gasless";
 import { USDC_ADDRESS, USDC_DECIMALS, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { recordReceipt } from "@/lib/receipts-store";
@@ -98,6 +99,9 @@ export function ActionModal({
   const [step, setStep] = useState("");
   const [txHash, setTxHash] = useState<string>("");
   const [error, setError] = useState("");
+  const [gasFree, setGasFree] = useState(true);
+  const gasless = useGaslessStatus();
+  const sendGasless = useGaslessTransfer();
 
   const paymentUri = useMemo(() => {
     if (!isAddress(toAddress)) return "";
@@ -127,6 +131,12 @@ export function ActionModal({
 
   const isSplit = mode === "split" && !lockRecipient;
   const movesFunds = mode === "send" || mode === "scan" || mode === "settle" || mode === "rent";
+  // Gas-free payments are plain USDC transfers signed offchain (EIP-3009) and
+  // broadcast by the sponsor wallet. Settling shared expenses runs through the
+  // contract, so it always pays its own gas.
+  const gasFreeEligible =
+    gasless.available && (mode === "send" || mode === "scan" || mode === "rent");
+  const useGasFree = gasFreeEligible && gasFree;
   const needsAddress = !isSplit && mode !== "request";
   const validAddress = !needsAddress || isAddress(toAddress);
   const hasFunds = !movesFunds || amt <= wallet.usdcBalance;
@@ -175,6 +185,11 @@ export function ActionModal({
         });
       } else if (mode === "settle") {
         hash = await writes.settleWith(toAddress as `0x${string}`, amt, (s) => {
+          setStep(s);
+          setStage(s.startsWith("Sending") ? "pending" : "confirming");
+        });
+      } else if (useGasFree) {
+        hash = await sendGasless(toAddress as `0x${string}`, amt, (s) => {
           setStep(s);
           setStage(s.startsWith("Sending") ? "pending" : "confirming");
         });
@@ -439,6 +454,38 @@ export function ActionModal({
                     </div>
                   )}
                 </div>
+              )}
+
+              {gasFreeEligible && (
+                <button
+                  type="button"
+                  onClick={() => setGasFree((v) => !v)}
+                  className={`mt-4 flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
+                    gasFree ? "border-emerald-500 bg-emerald-50" : "border-border bg-white"
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm font-bold">
+                      {gasFree ? "Gas-free payment" : "Pay the network fee yourself"}
+                    </span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      {gasFree
+                        ? "You just sign — Nest covers the network fee."
+                        : "You will confirm a normal transaction in your wallet."}
+                    </span>
+                  </span>
+                  <span
+                    className={`ml-3 h-6 w-11 shrink-0 rounded-full p-0.5 transition ${
+                      gasFree ? "bg-emerald-500" : "bg-muted"
+                    }`}
+                  >
+                    <span
+                      className={`block h-5 w-5 rounded-full bg-white shadow transition ${
+                        gasFree ? "translate-x-5" : ""
+                      }`}
+                    />
+                  </span>
+                </button>
               )}
 
               <div className="mt-4">
