@@ -147,7 +147,7 @@ function Landing() {
               </div>
 
               <h1
-                className="animate-float-in mt-7 font-display text-[3.3rem] leading-[0.98] tracking-[-0.055em] sm:text-6xl lg:text-[5.2rem]"
+                className="animate-float-in mt-7 font-display text-[2.4rem] leading-[1.02] tracking-[-0.05em] sm:text-6xl lg:text-[5.2rem]"
                 style={{ animationDelay: "80ms" }}
               >
                 One ledger.
@@ -156,7 +156,7 @@ function Landing() {
               </h1>
 
               <p
-                className="animate-float-in mx-auto mt-7 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg lg:mx-0 lg:max-w-xl"
+                className="animate-float-in mx-auto mt-5 max-w-2xl text-[15px] leading-6 text-muted-foreground sm:text-lg sm:leading-7 lg:mx-0 lg:max-w-xl"
                 style={{ animationDelay: "130ms" }}
               >
                 Nest is programmable group finance on Arc. Record shared expenses and payouts,
@@ -164,18 +164,18 @@ function Landing() {
               </p>
 
               <div
-                className="animate-float-in mt-9 flex flex-wrap justify-center gap-3 lg:justify-start"
+                className="animate-float-in mt-7 flex flex-wrap justify-center gap-2.5 lg:justify-start"
                 style={{ animationDelay: "180ms" }}
               >
                 <Link
                   to="/app"
-                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold"
+className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm"
                 >
-                  Open a workspace <ArrowRight className="h-4 w-4" />
+                  Open a workspace <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
                 <a
                   href="#protocol"
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-6 py-3.5 text-sm font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-[13px] font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-6 sm:py-3.5 sm:text-sm"
                 >
                   Explore product <ArrowRight className="h-4 w-4" />
                 </a>
