@@ -339,7 +339,7 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
                   <Zap className="h-3.5 w-3.5 text-brand" />
                   Purpose-built for Arc
                 </span>
-                <h2 className="mt-6 text-4xl leading-[1.05] tracking-[-0.04em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-5xl">
                   The settlement layer is part of the product.
                 </h2>
                 <p className="mt-5 max-w-xl text-base leading-7 text-background/65">
@@ -376,7 +376,7 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
                   <Sparkles className="h-3.5 w-3.5" />
                   Clear answers
                 </span>
-                <h2 className="mt-6 text-4xl tracking-[-0.04em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl tracking-[-0.035em] sm:text-5xl">
                   Questions builders and users should ask
                 </h2>
                 <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
@@ -419,7 +419,7 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
                   <CircleDollarSign className="h-3.5 w-3.5" />
                   Group settlement, without the spreadsheet
                 </span>
-                <h2 className="mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] tracking-[-0.045em] sm:text-6xl">
+                <h2 className="mx-auto mt-6 max-w-3xl text-3xl leading-[1.08] tracking-[-0.04em] sm:text-6xl">
                   Give shared money one source of truth.
                 </h2>
                 <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base">
@@ -429,7 +429,7 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
                   <Link
                     to="/app"
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-bold text-brand transition-transform hover:-translate-y-0.5"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-brand transition-transform hover:-translate-y-0.5"
                   >
                     Launch Nest <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -437,7 +437,7 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
                     href={GITHUB_URL}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-white/20"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-white transition-colors hover:bg-white/20"
                   >
                     Read the source <Code2 className="h-4 w-4" />
                   </a>
@@ -616,7 +616,7 @@ function SectionHeading({
         <Sparkles className="h-3.5 w-3.5" />
         {eyebrow}
       </span>
-      <h2 className="mt-6 text-4xl leading-[1.06] tracking-[-0.045em] sm:text-5xl">{title}</h2>
+      <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.04em] sm:text-5xl">{title}</h2>
       <p className="mt-5 text-base leading-7 text-muted-foreground">{body}</p>
     </div>
   );
