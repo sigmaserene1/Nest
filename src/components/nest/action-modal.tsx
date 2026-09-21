@@ -131,6 +131,12 @@ export function ActionModal({
 
   const isSplit = mode === "split" && !lockRecipient;
   const movesFunds = mode === "send" || mode === "scan" || mode === "settle" || mode === "rent";
+  // Gas-free payments are plain USDC transfers signed offchain (EIP-3009) and
+  // broadcast by the sponsor wallet. Settling shared expenses runs through the
+  // contract, so it always pays its own gas.
+  const gasFreeEligible =
+    gasless.available && (mode === "send" || mode === "scan" || mode === "rent");
+  const useGasFree = gasFreeEligible && gasFree;
   const needsAddress = !isSplit && mode !== "request";
   const validAddress = !needsAddress || isAddress(toAddress);
   const hasFunds = !movesFunds || amt <= wallet.usdcBalance;
@@ -179,6 +185,12 @@ export function ActionModal({
         });
       } else if (mode === "settle") {
         hash = await writes.settleWith(toAddress as `0x${string}`, amt, (s) => {
+          setStep(s);
+          setStage(s.startsWith("Sending") ? "pending" : "confirming");
+        });
+      } else {
+      } else if (useGasFree) {
+        hash = await sendGasless(toAddress as `0x${string}`, amt, (s) => {
           setStep(s);
           setStage(s.startsWith("Sending") ? "pending" : "confirming");
         });
