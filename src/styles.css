@@ -637,6 +637,14 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Mobile: slightly smaller root scale so type, buttons and spacing feel
+   app-like instead of blown-up desktop text. */
+@media (max-width: 640px) {
+  html {
+    font-size: 93.75%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
