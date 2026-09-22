@@ -1,5 +1,5 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef } from "react";
 import { useAccount } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import { Wallet } from "lucide-react";
@@ -34,7 +34,8 @@ function Gate() {
 
 function AppLayout() {
   const { address, isConnected, isConnecting, isReconnecting } = useAccount();
-  const { openConnectModal } = useConnectModal();
+  const { openConnectModal, connectModalOpen } = useConnectModal();
+  const navigate = useNavigate();
 
   // Resolve an invite link silently: stash the token, clean the URL, then apply
   // it as soon as a wallet is connected. Users never see contract or room IDs.
