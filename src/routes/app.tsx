@@ -63,34 +63,26 @@ function AppLayout() {
   }, [address]);
 
   const isBusy = isConnecting || isReconnecting;
-  // Wallet state differs between server render and hydration, so the copy only
-  // reacts to it after mount.
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
 
-  // No separate sign-in page: the wallet chooser opens straight away.
+  // No separate sign-in page: the wallet chooser opens straight away, and if the
+  // person closes it without connecting we send them back to the landing page.
   useEffect(() => {
     if (!isConnected && !isBusy) openConnectModal?.();
   }, [isConnected, isBusy, openConnectModal]);
 
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (wasOpen.current && !connectModalOpen && !isConnected && !isBusy) {
+      void navigate({ to: "/" });
+    }
+    wasOpen.current = connectModalOpen;
+  }, [connectModalOpen, isConnected, isBusy, navigate]);
+
   if (!isConnected) {
     return (
       <div className="grid min-h-screen place-items-center px-6 text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand/10 text-brand">
-            <Wallet className="h-6 w-6" />
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {mounted && isBusy ? "Connecting your wallet…" : "Connect your wallet to open Nest"}
-          </p>
-          <button
-            type="button"
-            onClick={() => openConnectModal?.()}
-            disabled={!openConnectModal}
-            className="rounded-2xl btn-gradient px-6 py-3 text-sm font-bold disabled:opacity-60"
-          >
-            Connect Wallet
-          </button>
+        <div className="grid h-12 w-12 place-items-center rounded-2xl bg-brand/10 text-brand">
+          <Wallet className="h-5 w-5" />
         </div>
       </div>
     );
