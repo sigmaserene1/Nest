@@ -60,7 +60,7 @@ function Greeting() {
     <div className="flex items-center justify-between">
       <div className="min-w-0">
         <div className="text-sm font-medium text-muted-foreground">{greet},</div>
-        <h1 className="truncate text-2xl font-bold tracking-tight sm:text-[28px]">{first} 👋</h1>
+        <h1 className="truncate text-xl font-bold tracking-tight sm:text-[28px]">{first} 👋</h1>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <Link to="/app/profile" aria-label="Your profile" className="active:scale-[0.95]">
@@ -165,7 +165,7 @@ function Dashboard() {
           <div className="relative mt-7 flex items-center gap-3">
             <button
               onClick={() => action.open("settle")}
-              className="group flex flex-1 items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold"
+              className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl btn-gradient py-3 text-[13px] font-bold sm:py-3.5 sm:text-sm"
             >
               Settle Now
               {iOwe > 0 && (
@@ -307,7 +307,7 @@ function Dashboard() {
               <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
                 You spent this month
               </div>
-              <div className="mt-1 text-3xl font-bold tracking-tight tabular-nums">
+              <div className="mt-1 text-2xl font-bold tracking-tight tabular-nums sm:text-3xl">
                 {fmtUSD(myShare)}
               </div>
               <div className="mt-1 truncate text-xs text-muted-foreground">
