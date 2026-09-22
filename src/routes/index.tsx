@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { useAccount, useConnect } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
@@ -74,8 +77,54 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+function useEnterApp() {
+  const navigate = useNavigate();
+  const { isConnected } = useAccount();
+  const { openConnectModal, connectModalOpen } = useConnectModal();
+  const { error: connectError } = useConnect();
+  const [requested, setRequested] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const wasOpen = useRef(false);
+
+  useEffect(() => {
+    if (requested && isConnected) {
+      setRequested(false);
+      setError(null);
+      void navigate({ to: "/app" });
+    }
+  }, [requested, isConnected, navigate]);
+
+  useEffect(() => {
+    if (wasOpen.current && !connectModalOpen && requested && !isConnected) {
+      setRequested(false);
+      setError(
+        connectError?.message ??
+          "Wallet connection was cancelled. Try again to open your workspace.",
+      );
+    }
+    wasOpen.current = connectModalOpen;
+  }, [connectModalOpen, requested, isConnected, connectError]);
+
+  const enter = () => {
+    setError(null);
+    if (isConnected) {
+      void navigate({ to: "/app" });
+      return;
+    }
+    if (!openConnectModal) {
+      setError("Wallet connection is still loading. Please try again in a moment.");
+      return;
+    }
+    setRequested(true);
+    openConnectModal();
+  };
+
+  return { enter, error, pending: requested };
+}
+
 function Landing() {
   const environment = useArcEnvironment();
+  const { enter, error: connectIssue, pending: connecting } = useEnterApp();
 
 
 
