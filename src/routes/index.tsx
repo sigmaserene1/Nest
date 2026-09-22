@@ -1,4 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { useAccount, useConnect } from "wagmi";
+import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
@@ -74,8 +77,54 @@ export const Route = createFileRoute("/")({
   }),
 });
 
+function useEnterApp() {
+  const navigate = useNavigate();
+  const { isConnected } = useAccount();
+  const { openConnectModal, connectModalOpen } = useConnectModal();
+  const { error: connectError } = useConnect();
+  const [requested, setRequested] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const wasOpen = useRef(false);
+
+  useEffect(() => {
+    if (requested && isConnected) {
+      setRequested(false);
+      setError(null);
+      void navigate({ to: "/app" });
+    }
+  }, [requested, isConnected, navigate]);
+
+  useEffect(() => {
+    if (wasOpen.current && !connectModalOpen && requested && !isConnected) {
+      setRequested(false);
+      setError(
+        connectError?.message ??
+          "Wallet connection was cancelled. Try again to open your workspace.",
+      );
+    }
+    wasOpen.current = connectModalOpen;
+  }, [connectModalOpen, requested, isConnected, connectError]);
+
+  const enter = () => {
+    setError(null);
+    if (isConnected) {
+      void navigate({ to: "/app" });
+      return;
+    }
+    if (!openConnectModal) {
+      setError("Wallet connection is still loading. Please try again in a moment.");
+      return;
+    }
+    setRequested(true);
+    openConnectModal();
+  };
+
+  return { enter, error, pending: requested };
+}
+
 function Landing() {
   const environment = useArcEnvironment();
+  const { enter, error: connectIssue, pending: connecting } = useEnterApp();
 
 
 
@@ -104,12 +153,13 @@ function Landing() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <Link
-              to="/app"
+            <button
+              type="button"
+              onClick={enter}
               className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-xs font-bold text-background transition-all hover:-translate-y-0.5 hover:opacity-90"
             >
-              Launch app <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
+              {connecting ? "Connecting…" : "Launch app"} <ArrowRight className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
 
@@ -167,12 +217,14 @@ function Landing() {
                 className="animate-float-in mt-7 flex flex-wrap justify-center gap-2.5 lg:justify-start"
                 style={{ animationDelay: "180ms" }}
               >
-                <Link
-                  to="/app"
-className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm"
+                <button
+                  type="button"
+                  onClick={enter}
+                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm"
                 >
-                  Open a workspace <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </Link>
+                  {connecting ? "Connecting…" : "Open a workspace"}{" "}
+                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                </button>
                 <a
                   href="#protocol"
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-[13px] font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-6 sm:py-3.5 sm:text-sm"
@@ -180,6 +232,15 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
                   Explore product <ArrowRight className="h-4 w-4" />
                 </a>
               </div>
+
+              {connectIssue ? (
+                <p
+                  role="alert"
+                  className="mx-auto mt-4 max-w-md rounded-2xl border border-brand/30 bg-brand-soft/70 px-4 py-2.5 text-xs font-semibold text-brand lg:mx-0"
+                >
+                  {connectIssue}
+                </p>
+              ) : null}
 
               <div
                 className="animate-float-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground lg:justify-start"
@@ -427,12 +488,13 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
                   settlement on Arc.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
-                  <Link
-                    to="/app"
+                  <button
+                    type="button"
+                    onClick={enter}
                     className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-brand transition-transform hover:-translate-y-0.5"
                   >
-                    Launch Nest <ArrowRight className="h-4 w-4" />
-                  </Link>
+                    {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight className="h-4 w-4" />
+                  </button>
                   <a
                     href={GITHUB_URL}
                     target="_blank"
@@ -457,9 +519,9 @@ className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 te
             </p>
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-3 text-xs font-semibold text-muted-foreground">
-            <Link to="/app" className="hover:text-foreground">
+            <button type="button" onClick={enter} className="hover:text-foreground">
               App
-            </Link>
+            </button>
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
               GitHub
             </a>
