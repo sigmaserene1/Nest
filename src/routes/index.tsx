@@ -522,6 +522,9 @@ function Landing() {
             <button type="button" onClick={enter} className="hover:text-foreground">
               App
             </button>
+            <Link to="/docs-lab" className="hover:text-foreground">
+              Docs Lab
+            </Link>
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
               GitHub
             </a>
