@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as DocsLabRouteImport } from './routes/docs-lab'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
@@ -25,6 +26,11 @@ import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
 import { Route as AppAgentRouteImport } from './routes/app.agent'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
 
+const DocsLabRoute = DocsLabRouteImport.update({
+  id: '/docs-lab',
+  path: '/docs-lab',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/app',
   path: '/app',
@@ -104,6 +110,7 @@ const AppActivityRoute = AppActivityRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/docs-lab': typeof DocsLabRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/docs-lab': typeof DocsLabRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
@@ -138,6 +146,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
+  '/docs-lab': typeof DocsLabRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
+    | '/docs-lab'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/docs-lab'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
@@ -190,6 +201,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
+    | '/docs-lab'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
@@ -208,10 +220,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  DocsLabRoute: typeof DocsLabRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/docs-lab': {
+      id: '/docs-lab'
+      path: '/docs-lab'
+      fullPath: '/docs-lab'
+      preLoaderRoute: typeof DocsLabRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app': {
       id: '/app'
       path: '/app'
@@ -357,6 +377,7 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  DocsLabRoute: DocsLabRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
