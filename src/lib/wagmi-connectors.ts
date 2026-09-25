@@ -6,11 +6,9 @@ import {
 } from "@rainbow-me/rainbowkit/wallets";
 import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 import type { CreateConnectorFn } from "wagmi";
+import { WALLETCONNECT_PROJECT_ID } from "@/lib/wagmi";
 
-// WalletConnect projectId — get one free at https://cloud.reown.com and set VITE_WALLETCONNECT_PROJECT_ID.
-const WC_RAW = (import.meta.env.VITE_WALLETCONNECT_PROJECT_ID as string | undefined) || "";
-const WC_VALID = /^[0-9a-f]{32}$/i.test(WC_RAW);
-export const WALLETCONNECT_PROJECT_ID = WC_VALID ? WC_RAW : "";
+const WC_VALID = /^[0-9a-f]{32}$/i.test(WALLETCONNECT_PROJECT_ID);
 
 /**
  * CLIENT-ONLY: this module pulls in @metamask/sdk, which crashes when evaluated
