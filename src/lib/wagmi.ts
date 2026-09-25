@@ -7,7 +7,7 @@ import {
   polygonAmoy,
   sepolia,
 } from "viem/chains";
-import { createConfig, http } from "wagmi";
+import { createConfig, http, type CreateConnectorFn } from "wagmi";
 import {
   ARC_MAINNET_RPC_URLS,
   ARC_TESTNET_RPC_URLS,
@@ -17,13 +17,6 @@ import {
   arcTestnet,
   getArcEnvironment,
 } from "@/lib/arc-network";
-import {
-  metaMaskWallet,
-  walletConnectWallet,
-  injectedWallet,
-  rainbowWallet,
-} from "@rainbow-me/rainbowkit/wallets";
-import { connectorsForWallets } from "@rainbow-me/rainbowkit";
 
 // Arc USDC uses the same ERC-20 predeploy on mainnet and testnet.
 export const USDC_ADDRESS = ARC_USDC_ADDRESS;
