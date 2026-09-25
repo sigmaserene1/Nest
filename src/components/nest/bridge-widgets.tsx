@@ -60,7 +60,9 @@ export function ChainPicker({
 
   return (
     <div ref={containerRef} className="relative">
-      <span className="mb-2 block text-[11px] font-bold uppercase text-muted-foreground">{label} network</span>
+      <span className="mb-2 block text-[11px] font-bold uppercase text-muted-foreground">
+        {label} network
+      </span>
       <Button
         variant="outline"
         type="button"
@@ -72,13 +74,17 @@ export function ChainPicker({
         <span className="min-w-0 flex-1 text-left">
           <span className="flex items-center gap-2">
             <span className="truncate text-sm font-bold text-foreground">{chain.name}</span>
-            <span className="rounded-md bg-warning/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning">Testnet</span>
+            <span className="rounded-md bg-warning/10 px-1.5 py-0.5 text-[9px] font-bold uppercase text-warning">
+              Testnet
+            </span>
           </span>
           <span className="mt-1 block text-[10px] font-medium text-muted-foreground">
             Chain {chain.chainId} · Domain {chain.domain}
           </span>
         </span>
-        <ChevronDown className={`h-4 w-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`} />
+        <ChevronDown
+          className={`h-4 w-4 text-muted-foreground transition ${open ? "rotate-180" : ""}`}
+        />
       </Button>
 
       {open && (
@@ -113,17 +119,22 @@ export function ChainPicker({
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-2">
                     <span className="truncate text-sm font-bold">{option.name}</span>
-                    <span className="rounded bg-warning/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-warning">Testnet</span>
+                    <span className="rounded bg-warning/10 px-1.5 py-0.5 text-[8px] font-bold uppercase text-warning">
+                      Testnet
+                    </span>
                   </span>
                   <span className="mt-1 flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                    <Clock3 className="h-3 w-3" /> {option.eta} · Chain {option.chainId} · CCTP {option.domain}
+                    <Clock3 className="h-3 w-3" /> {option.eta} · Chain {option.chainId} · CCTP{" "}
+                    {option.domain}
                   </span>
                 </span>
                 {option.id === chain.id && <Check className="h-4 w-4 text-brand" />}
               </Button>
             ))}
             {options.length === 0 && (
-              <p className="px-3 py-4 text-center text-xs text-muted-foreground">No chains match “{query}”.</p>
+              <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+                No chains match “{query}”.
+              </p>
             )}
           </div>
         </div>
@@ -134,38 +145,43 @@ export function ChainPicker({
 
 export type TrackerState =
   | "idle"
+  | "loading"
+  | "quoting"
   | "switching"
   | "checking"
   | "approving"
-  | "burning"
-  | "attesting"
-  | "minting"
+  | "bridging"
+  | "tracking"
   | "complete"
   | "error";
 
-type StepKey = "approve" | "burn" | "attest" | "mint";
+type StepKey = "quote" | "approve" | "send" | "track";
 
-const STEP_ORDER: StepKey[] = ["approve", "burn", "attest", "mint"];
+const STEP_ORDER: StepKey[] = ["quote", "approve", "send", "track"];
 
 const STEP_LABEL: Record<StepKey, { title: string; active: string }> = {
-  approve: { title: "Approve USDC", active: "Confirm approval in your wallet" },
-  burn: { title: "Burn on source chain", active: "Submitting the CCTP burn" },
-  attest: { title: "Circle attestation", active: "Waiting for Circle to attest" },
-  mint: { title: "Mint on destination", active: "Confirm the destination mint" },
+  quote: { title: "Find LI.FI route", active: "Getting executable bridge quote" },
+  approve: { title: "Approve token", active: "Confirm token approval if needed" },
+  send: { title: "Send source transaction", active: "Confirm the bridge transaction" },
+  track: { title: "Track destination", active: "Waiting for destination delivery" },
 };
 
 function stepIndexForState(state: TrackerState): number {
-  if (state === "idle" || state === "checking" || state === "switching") return -1;
-  if (state === "approving") return 0;
-  if (state === "burning") return 1;
-  if (state === "attesting") return 2;
-  if (state === "minting") return 3;
+  if (state === "idle" || state === "loading") return -1;
+  if (state === "quoting" || state === "switching" || state === "checking") return 0;
+  if (state === "approving") return 1;
+  if (state === "bridging") return 2;
+  if (state === "tracking") return 3;
   if (state === "complete") return 4;
   if (state === "error") return -2;
   return -1;
 }
 
-export function BridgeStepTracker({ state, sourceName, destinationName }: {
+export function BridgeStepTracker({
+  state,
+  sourceName,
+  destinationName,
+}: {
   state: TrackerState;
   sourceName: string;
   destinationName: string;
@@ -182,8 +198,8 @@ export function BridgeStepTracker({ state, sourceName, destinationName }: {
         const failed = isError && activeIndex === -2 && index === 0;
 
         let title = label.title;
-        if (key === "burn") title = `Burn on ${sourceName}`;
-        if (key === "mint") title = `Mint on ${destinationName}`;
+        if (key === "send") title = `Send from ${sourceName}`;
+        if (key === "track") title = `Deliver to ${destinationName}`;
 
         return (
           <li key={key} className="relative flex gap-3 rounded-lg py-2">
@@ -211,7 +227,13 @@ export function BridgeStepTracker({ state, sourceName, destinationName }: {
             <div>
               <div className={`text-xs font-bold ${active ? "text-brand" : ""}`}>{title}</div>
               <p className="mt-0.5 text-[11px] leading-5 text-muted-foreground">
-                {active ? label.active : done ? "Confirmed onchain" : index === 2 ? "Usually 10–20 seconds" : "Waiting"}
+                {active
+                  ? label.active
+                  : done
+                    ? "Confirmed"
+                    : index === 3
+                      ? "Bridge provider tracking"
+                      : "Waiting"}
               </p>
             </div>
           </li>
