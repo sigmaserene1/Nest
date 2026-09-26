@@ -158,6 +158,7 @@ function BridgePage() {
   const routeSupported = Boolean(
     source && destination && source.id !== destination.id && sourceToken && destinationToken,
   );
+  const isMainnetRoute = Boolean(source?.mainnet || destination?.mainnet);
   const isBusy = !["idle", "complete", "error"].includes(state);
   const quoteCostUsd = quote ? lifiCostUsd(quote) : 0;
   const estimatedReceived =
@@ -206,13 +207,13 @@ function BridgePage() {
     const fallbackFrom =
       searchedFrom ??
       currentWalletChain ??
-      preferredChain(chains, [8453, 1, 42161, 10, 137])?.id ??
+      preferredChain(chains, [5042, 8453, 1, 42161, 10, 137])?.id ??
       chains[0]?.id;
     const searchedTo = chainIdFromSearch(search.to, chains);
     const fallbackTo =
       searchedTo && searchedTo !== fallbackFrom
         ? searchedTo
-        : (preferredChain(chains, [42161, 8453, 10, 137, 1], fallbackFrom)?.id ??
+        : (preferredChain(chains, [8453, 5042, 42161, 10, 137, 1], fallbackFrom)?.id ??
           chains.find((chain) => chain.id !== fallbackFrom)?.id);
 
     setFromChainId(fallbackFrom ?? null);
@@ -260,19 +261,20 @@ function BridgePage() {
       return;
     }
 
+    const quoteParams = {
+      fromChain: source.id,
+      toChain: destination.id,
+      fromToken: sourceToken.address,
+      toToken: destinationToken.address,
+      fromAmount: amountUnits.toString(),
+      fromAddress: address,
+      toAddress: recipient as Address,
+    };
     let cancelled = false;
     async function refreshQuote(silent = false) {
       if (!silent) setQuoteLoading(true);
       try {
-        const next = await getLifiQuote({
-          fromChain: source.id,
-          toChain: destination.id,
-          fromToken: sourceToken.address,
-          toToken: destinationToken.address,
-          fromAmount: amountUnits.toString(),
-          fromAddress: address,
-          toAddress: recipient as Address,
-        });
+        const next = await getLifiQuote(quoteParams);
         if (!cancelled) {
           setQuote(next);
           setQuoteAt(Date.now());
@@ -499,6 +501,11 @@ function BridgePage() {
       <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Card className="overflow-visible !p-0">
           <div className="border-b border-border/70 px-4 py-4 sm:px-6">
+            {isMainnetRoute && (
+              <p className="mb-3 rounded-xl border border-amber-400/40 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+                Mainnet route: this transfer uses real USDC. Check both networks, the selected provider, and fees before signing.
+              </p>
+            )}
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-sm font-bold">
@@ -713,6 +720,9 @@ function BridgePage() {
               {quoteError && (
                 <div className="mt-2 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-[11px] text-foreground">
                   {quoteError}
+                  {(source?.id === 5042002 || destination?.id === 5042002) && (
+                    <p className="mt-1">LI.FI may list Arc Testnet without an executable route for this pair. Try a different amount or chain; no transfer will be sent without a quote.</p>
+                  )}
                 </div>
               )}
             </div>
@@ -723,7 +733,7 @@ function BridgePage() {
                   type="button"
                   disabled={
                     isConnected &&
-                    (isBusy || !hasValidAmount || !source || !destination || !routeSupported)
+                    (isBusy || isQuoteLoading || !quote || !hasValidAmount || !source || !destination || !routeSupported)
                   }
                   onClick={isConnected ? executeBridge : openConnectModal}
                   className="h-13 w-full rounded-xl btn-gradient text-sm font-bold"
@@ -743,10 +753,12 @@ function BridgePage() {
                         ? "Loading LI.FI chains"
                         : !routeSupported
                           ? "USDC route unavailable"
-                          : !hasValidAmount
-                            ? "Enter an amount"
-                            : isQuoteLoading && !quote
+                        : !hasValidAmount
+                          ? "Enter an amount"
+                            : isQuoteLoading
                               ? "Finding LI.FI route..."
+                              : !quote
+                                ? "No executable LI.FI route"
                               : `Confirm transfer · ${value.toLocaleString(undefined, {
                                   maximumFractionDigits: 6,
                                 })} USDC to ${destination.name}`}
