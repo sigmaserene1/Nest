@@ -5,7 +5,7 @@ const LIFI_INTEGRATOR =
   String(import.meta.env.VITE_LIFI_INTEGRATOR ?? "nestarc").trim() || "nestarc";
 
 export const LIFI_DEFAULT_SLIPPAGE = 0.005;
-export const LIFI_CCTP_BRIDGES = ["celercirclefast", "celercircle"] as const;
+export const LIFI_CCTP_BRIDGES = ["cctp", "celercirclefast", "celercircle"] as const;
 
 export type LifiChain = {
   id: number;
@@ -279,8 +279,12 @@ export function getLifiApprovalAddress(quote: LifiQuote): Address | undefined {
 }
 
 function assertExecutableQuote(quote: LifiQuote): LifiQuote {
-  if (!quote.transactionRequest) {
+  if (!quote.transactionRequest?.to || !quote.transactionRequest.data) {
     throw new Error("LI.FI returned a route without an executable transaction.");
+  }
+
+  if (quote.transactionRequest.chainId && quote.transactionRequest.chainId !== quote.action.fromChainId) {
+    throw new Error("LI.FI returned a transaction for a different source chain.");
   }
 
   return quote;
