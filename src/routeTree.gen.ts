@@ -9,26 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppRouteImport } from './routes/app'
 import { Route as DocsLabRouteImport } from './routes/docs-lab'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
-import { Route as AppActivityRouteImport } from './routes/app.activity'
-import { Route as AppAgentRouteImport } from './routes/app.agent'
-import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
-import { Route as AppBridgeRouteImport } from './routes/app.bridge'
-import { Route as AppBusinessRouteImport } from './routes/app.business'
-import { Route as AppExpensesRouteImport } from './routes/app.expenses'
-import { Route as AppLendRouteImport } from './routes/app.lend'
-import { Route as AppMembersRouteImport } from './routes/app.members'
-import { Route as AppProfileRouteImport } from './routes/app.profile'
-import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
-import { Route as AppSettleRouteImport } from './routes/app.settle'
 import { Route as AppSyndicateRouteImport } from './routes/app.syndicate'
+import { Route as AppSettleRouteImport } from './routes/app.settle'
+import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
+import { Route as AppProfileRouteImport } from './routes/app.profile'
+import { Route as AppMembersRouteImport } from './routes/app.members'
+import { Route as AppLendRouteImport } from './routes/app.lend'
+import { Route as AppExpensesRouteImport } from './routes/app.expenses'
+import { Route as AppBusinessRouteImport } from './routes/app.business'
+import { Route as AppBridgeRouteImport } from './routes/app.bridge'
+import { Route as AppAnalyticsRouteImport } from './routes/app.analytics'
+import { Route as AppAgentRouteImport } from './routes/app.agent'
+import { Route as AppActivityRouteImport } from './routes/app.activity'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DocsLabRoute = DocsLabRouteImport.update({
+  id: '/docs-lab',
+  path: '/docs-lab',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppRoute = AppRouteImport.update({
@@ -36,9 +36,9 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DocsLabRoute = DocsLabRouteImport.update({
-  id: '/docs-lab',
-  path: '/docs-lab',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -46,54 +46,9 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppActivityRoute = AppActivityRouteImport.update({
-  id: '/activity',
-  path: '/activity',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAgentRoute = AppAgentRouteImport.update({
-  id: '/agent',
-  path: '/agent',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
-  id: '/analytics',
-  path: '/analytics',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBridgeRoute = AppBridgeRouteImport.update({
-  id: '/bridge',
-  path: '/bridge',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBusinessRoute = AppBusinessRouteImport.update({
-  id: '/business',
-  path: '/business',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppExpensesRoute = AppExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLendRoute = AppLendRouteImport.update({
-  id: '/lend',
-  path: '/lend',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMembersRoute = AppMembersRouteImport.update({
-  id: '/members',
-  path: '/members',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppProfileRoute = AppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppReceiptsRoute = AppReceiptsRouteImport.update({
-  id: '/receipts',
-  path: '/receipts',
+const AppSyndicateRoute = AppSyndicateRouteImport.update({
+  id: '/syndicate',
+  path: '/syndicate',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettleRoute = AppSettleRouteImport.update({
@@ -101,9 +56,54 @@ const AppSettleRoute = AppSettleRouteImport.update({
   path: '/settle',
   getParentRoute: () => AppRoute,
 } as any)
-const AppSyndicateRoute = AppSyndicateRouteImport.update({
-  id: '/syndicate',
-  path: '/syndicate',
+const AppReceiptsRoute = AppReceiptsRouteImport.update({
+  id: '/receipts',
+  path: '/receipts',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProfileRoute = AppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMembersRoute = AppMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLendRoute = AppLendRouteImport.update({
+  id: '/lend',
+  path: '/lend',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppExpensesRoute = AppExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBusinessRoute = AppBusinessRouteImport.update({
+  id: '/business',
+  path: '/business',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBridgeRoute = AppBridgeRouteImport.update({
+  id: '/bridge',
+  path: '/bridge',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAnalyticsRoute = AppAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAgentRoute = AppAgentRouteImport.update({
+  id: '/agent',
+  path: '/agent',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppActivityRoute = AppActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -225,11 +225,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/docs-lab': {
+      id: '/docs-lab'
+      path: '/docs-lab'
+      fullPath: '/docs-lab'
+      preLoaderRoute: typeof DocsLabRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app': {
@@ -239,11 +239,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/docs-lab': {
-      id: '/docs-lab'
-      path: '/docs-lab'
-      fullPath: '/docs-lab'
-      preLoaderRoute: typeof DocsLabRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -253,74 +253,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/activity': {
-      id: '/app/activity'
-      path: '/activity'
-      fullPath: '/app/activity'
-      preLoaderRoute: typeof AppActivityRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/agent': {
-      id: '/app/agent'
-      path: '/agent'
-      fullPath: '/app/agent'
-      preLoaderRoute: typeof AppAgentRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/analytics': {
-      id: '/app/analytics'
-      path: '/analytics'
-      fullPath: '/app/analytics'
-      preLoaderRoute: typeof AppAnalyticsRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/bridge': {
-      id: '/app/bridge'
-      path: '/bridge'
-      fullPath: '/app/bridge'
-      preLoaderRoute: typeof AppBridgeRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/business': {
-      id: '/app/business'
-      path: '/business'
-      fullPath: '/app/business'
-      preLoaderRoute: typeof AppBusinessRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/expenses': {
-      id: '/app/expenses'
-      path: '/expenses'
-      fullPath: '/app/expenses'
-      preLoaderRoute: typeof AppExpensesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/lend': {
-      id: '/app/lend'
-      path: '/lend'
-      fullPath: '/app/lend'
-      preLoaderRoute: typeof AppLendRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/members': {
-      id: '/app/members'
-      path: '/members'
-      fullPath: '/app/members'
-      preLoaderRoute: typeof AppMembersRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/profile': {
-      id: '/app/profile'
-      path: '/profile'
-      fullPath: '/app/profile'
-      preLoaderRoute: typeof AppProfileRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/receipts': {
-      id: '/app/receipts'
-      path: '/receipts'
-      fullPath: '/app/receipts'
-      preLoaderRoute: typeof AppReceiptsRouteImport
+    '/app/syndicate': {
+      id: '/app/syndicate'
+      path: '/syndicate'
+      fullPath: '/app/syndicate'
+      preLoaderRoute: typeof AppSyndicateRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/settle': {
@@ -330,11 +267,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettleRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/syndicate': {
-      id: '/app/syndicate'
-      path: '/syndicate'
-      fullPath: '/app/syndicate'
-      preLoaderRoute: typeof AppSyndicateRouteImport
+    '/app/receipts': {
+      id: '/app/receipts'
+      path: '/receipts'
+      fullPath: '/app/receipts'
+      preLoaderRoute: typeof AppReceiptsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/profile': {
+      id: '/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AppProfileRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/members': {
+      id: '/app/members'
+      path: '/members'
+      fullPath: '/app/members'
+      preLoaderRoute: typeof AppMembersRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/lend': {
+      id: '/app/lend'
+      path: '/lend'
+      fullPath: '/app/lend'
+      preLoaderRoute: typeof AppLendRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/expenses': {
+      id: '/app/expenses'
+      path: '/expenses'
+      fullPath: '/app/expenses'
+      preLoaderRoute: typeof AppExpensesRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/business': {
+      id: '/app/business'
+      path: '/business'
+      fullPath: '/app/business'
+      preLoaderRoute: typeof AppBusinessRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/bridge': {
+      id: '/app/bridge'
+      path: '/bridge'
+      fullPath: '/app/bridge'
+      preLoaderRoute: typeof AppBridgeRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/analytics': {
+      id: '/app/analytics'
+      path: '/analytics'
+      fullPath: '/app/analytics'
+      preLoaderRoute: typeof AppAnalyticsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/agent': {
+      id: '/app/agent'
+      path: '/agent'
+      fullPath: '/app/agent'
+      preLoaderRoute: typeof AppAgentRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/activity': {
+      id: '/app/activity'
+      path: '/activity'
+      fullPath: '/app/activity'
+      preLoaderRoute: typeof AppActivityRouteImport
       parentRoute: typeof AppRoute
     }
   }
