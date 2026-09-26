@@ -134,7 +134,30 @@ export function createWagmiConfig(connectors: CreateConnectorFn[] = []) {
     [optimismSepolia.id]: http(),
     [arbitrumSepolia.id]: http(),
     [baseSepolia.id]: http(),
-    [polygonAmoy.id]: http(),
-  },
-  ssr: true,
-});
+      [polygonAmoy.id]: http(),
+    },
+    ssr: true,
+  });
+}
+
+// SSR-safe config: no wallet connectors, so @metamask/sdk is never evaluated
+// on the server. Wagmi hooks work with it; only connecting is unavailable.
+export const wagmiConfig = createWagmiConfig();
+
+let clientConfigPromise: Promise<ReturnType<typeof createWagmiConfig>> | undefined;
+
+/**
+ * Client-only upgrade path: dynamically imports the RainbowKit wallet
+ * connectors (which pull in @metamask/sdk) and returns the full config.
+ * On the server it resolves to the connector-less config without importing
+ * any wallet code.
+ */
+export function getClientWagmiConfig() {
+  if (typeof window === "undefined") return Promise.resolve(wagmiConfig);
+  if (!clientConfigPromise) {
+    clientConfigPromise = import("@/lib/wagmi-connectors").then((m) =>
+      createWagmiConfig(m.buildWalletConnectors()),
+    );
+  }
+  return clientConfigPromise;
+}
