@@ -24,7 +24,7 @@ export default defineConfig({
       alias: {
         // WalletConnect's heartbeat imports Node's "events" module; use the
         // browser polyfill so the client bundle builds.
-        events: "events",
+        events: "/dev-server/node_modules/events/events.js",
       },
     },
   },
