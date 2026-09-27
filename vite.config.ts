@@ -12,4 +12,13 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    // Pre-bundle the router packages so Vite never lazily re-optimizes them
+    // mid-session — that race orphans chunks holding the old React module and
+    // crashes every page with "Cannot read properties of null (reading 'use')"
+    // (TanStack/router#4264).
+    optimizeDeps: {
+      include: ["@tanstack/react-router", "@tanstack/react-store"],
+    },
+  },
 });

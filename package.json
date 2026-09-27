@@ -97,7 +97,7 @@
     "solc": "0.8.28",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "^8.0.16"
+    "vite": "^7.1.0"
   },
   "overrides": {
     "axios": "^1.19.0"
