@@ -20,5 +20,12 @@ export default defineConfig({
     optimizeDeps: {
       include: ["@tanstack/react-router", "@tanstack/react-store"],
     },
+    resolve: {
+      alias: {
+        // WalletConnect's heartbeat imports Node's "events" module; use the
+        // browser polyfill so the client bundle builds.
+        events: "/dev-server/node_modules/events/events.js",
+      },
+    },
   },
 });
