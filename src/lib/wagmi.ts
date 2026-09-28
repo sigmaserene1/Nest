@@ -108,18 +108,21 @@ export function openExternal(url: string) {
 export const openExplorerTx = (hash: string) => openExternal(explorerTxUrl(hash));
 export const openExplorerAddr = (addr: string) => openExternal(explorerAddrUrl(addr));
 
+import { embeddedWalletConnector } from "@/lib/embedded-wallet";
+
 /**
- * Builds the wagmi config. Wallet connectors are optional because the
- * RainbowKit wallet modules (@metamask/sdk etc.) crash when evaluated during
- * server rendering — SSR gets a connector-less config, and the client upgrades
- * to the full config via getClientWagmiConfig().
+ * Builds the wagmi config. External wallet connectors are optional because
+ * the RainbowKit wallet modules (@metamask/sdk etc.) crash when evaluated
+ * during server rendering — SSR gets a config with only the embedded
+ * (email sign-in) connector, which is viem-only and SSR-safe; the client
+ * upgrades to the full config via getClientWagmiConfig().
  */
 export function createWagmiConfig(connectors: CreateConnectorFn[] = []) {
   return createConfig({
     // Both Arc environments are first-class wallet networks. The remaining
     // chains are the existing CCTP v2 testnet sources used by the bridge.
     chains: [arcMainnet, arcTestnet, sepolia, avalancheFuji, optimismSepolia, arbitrumSepolia, baseSepolia, polygonAmoy],
-    connectors,
+    connectors: [embeddedWalletConnector(), ...connectors],
     transports: {
     [arcMainnet.id]: fallback(
       ARC_MAINNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
