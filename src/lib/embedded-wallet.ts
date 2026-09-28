@@ -71,11 +71,7 @@ export function embeddedWalletConnector() {
         transport: transport ?? http(),
       });
       // viem wallet clients expose an EIP-1193-compatible request method.
-      return client as unknown as Parameters<
-        Parameters<ReturnType<typeof createConnector>>[0]["getProvider"]
-      >[0] extends never
-        ? never
-        : typeof client;
+      return client;
     }
 
     return {
