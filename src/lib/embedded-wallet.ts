@@ -1,20 +1,21 @@
 import { createConnector } from "wagmi";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
-import type { Account, Address, Chain, Transport } from "viem";
+import { createWalletClient, http, type Account, type Address } from "viem";
 
 /**
  * Embedded wallet for email sign-in.
  *
  * When a visitor signs in with email (Lovable Cloud auth), we create a local
- * embedded wallet for them so they can use the app without installing
- * MetaMask. The private key is generated on their device and stored in
- * localStorage, scoped to their auth user id — it never leaves the browser.
+ * embedded wallet so they can use the app without installing MetaMask. The
+ * private key is generated on their device and stored in localStorage,
+ * scoped to their auth user id — it never leaves the browser.
  *
  * This module is viem-only (no @metamask/sdk), so it is safe to import from
  * SSR-reachable code; the key store itself is guarded by `typeof window`.
  */
 
 const KEY_PREFIX = "nest.embedded.key.";
+const ACTIVE_USER_KEY = "nest.embedded.user";
 
 function storageKey(userId: string) {
   return `${KEY_PREFIX}${userId.toLowerCase()}`;
@@ -29,52 +30,68 @@ export function getOrCreateEmbeddedAccount(userId: string): Account | null {
     pk = generatePrivateKey();
     window.localStorage.setItem(key, pk);
   }
+  window.localStorage.setItem(ACTIVE_USER_KEY, userId.toLowerCase());
   return privateKeyToAccount(pk as `0x${string}`);
 }
 
-/** Looks up an existing embedded account without creating one. */
-export function getEmbeddedAccount(userId: string): Account | null {
+/** The embedded account for the currently signed-in email user, if any. */
+export function getActiveEmbeddedAccount(): Account | null {
   if (typeof window === "undefined") return null;
+  const userId = window.localStorage.getItem(ACTIVE_USER_KEY);
+  if (!userId) return null;
   const pk = window.localStorage.getItem(storageKey(userId));
   if (!pk || !/^0x[0-9a-fA-F]{64}$/.test(pk)) return null;
   return privateKeyToAccount(pk as `0x${string}`);
 }
 
-export function hasEmbeddedWallet(userId: string): boolean {
-  return getEmbeddedAccount(userId) !== null;
+/** Clears the active embedded session (keys stay for when they sign back in). */
+export function clearActiveEmbeddedSession() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(ACTIVE_USER_KEY);
 }
 
 export const EMBEDDED_CONNECTOR_ID = "nest.embedded";
 
-type EmbeddedConnectorParameters = {
-  getAccount: () => Account | null;
-};
-
 /**
- * A minimal wagmi connector that exposes the embedded wallet account.
- * Signing happens locally through the viem account — no external wallet
- * prompt is involved.
+ * A wagmi connector backed by the embedded account. Signing and sending
+ * happen locally through a viem wallet client exposed as an EIP-1193
+ * provider — no external wallet prompt is involved.
  */
-export function embeddedWalletConnector({ getAccount }: EmbeddedConnectorParameters) {
-  let currentAccount: Account | null = null;
+export function embeddedWalletConnector() {
+  let currentChainId: number | undefined;
 
-  return createConnector<Transport, Record<string, never>, Record<string, never>>(
-    (config) => ({
+  return createConnector((config) => {
+    function buildProvider(account: Account, chainId: number) {
+      const chain =
+        config.chains.find((c) => c.id === chainId) ?? config.chains[0];
+      const transport = config.transports?.[chain.id];
+      const client = createWalletClient({
+        account,
+        chain,
+        transport: transport ?? http(),
+      });
+      // viem wallet clients expose an EIP-1193-compatible request method.
+      return client as unknown as Parameters<
+        Parameters<ReturnType<typeof createConnector>>[0]["getProvider"]
+      >[0] extends never
+        ? never
+        : typeof client;
+    }
+
+    return {
       id: EMBEDDED_CONNECTOR_ID,
       name: "Nest Email Wallet",
       type: "embedded",
-      icon: undefined,
 
-      async setup() {
-        currentAccount = getAccount();
-      },
+      async setup() {},
 
       async connect({ chainId } = {}) {
-        const account = getAccount();
-        if (!account) throw new Error("No embedded wallet. Sign in with email first.");
-        currentAccount = account;
+        const account = getActiveEmbeddedAccount();
+        if (!account)
+          throw new Error("No embedded wallet. Sign in with email first.");
         const chain =
           config.chains.find((c) => c.id === chainId) ?? config.chains[0];
+        currentChainId = chain.id;
         return {
           accounts: [account.address] as readonly [Address],
           chainId: chain.id,
@@ -82,40 +99,44 @@ export function embeddedWalletConnector({ getAccount }: EmbeddedConnectorParamet
       },
 
       async disconnect() {
-        currentAccount = null;
+        clearActiveEmbeddedSession();
       },
 
       async getAccounts() {
-        const account = currentAccount ?? getAccount();
+        const account = getActiveEmbeddedAccount();
         return account ? ([account.address] as readonly [Address]) : [];
       },
 
       async getChainId() {
-        return config.chains[0].id;
+        return currentChainId ?? config.chains[0].id;
+      },
+
+      async getProvider({ chainId } = {}) {
+        const account = getActiveEmbeddedAccount();
+        if (!account) throw new Error("No embedded wallet session.");
+        const id = chainId ?? currentChainId ?? config.chains[0].id;
+        return buildProvider(account, id);
       },
 
       async isAuthorized() {
-        return getAccount() !== null;
+        return getActiveEmbeddedAccount() !== null;
       },
 
       async switchChain({ chainId }) {
         const chain = config.chains.find((c) => c.id === chainId);
         if (!chain) throw new Error(`Chain ${chainId} not configured`);
-        return chain as Chain;
+        currentChainId = chainId;
+        config.emitter.emit("change", { chainId });
+        return chain;
       },
 
       onAccountsChanged() {},
-      onChainChanged() {},
-      onDisconnect() {},
-
-      async getProvider() {
-        return undefined as never;
+      onChainChanged(chainId) {
+        currentChainId = Number(chainId);
       },
-
-      // Local signing for transactions and messages.
-      async getClient() {
-        return undefined as never;
+      onDisconnect() {
+        clearActiveEmbeddedSession();
       },
-    }),
-  );
+    };
+  });
 }
