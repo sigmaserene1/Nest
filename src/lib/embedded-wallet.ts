@@ -88,9 +88,10 @@ export function embeddedWalletConnector() {
         const chain =
           config.chains.find((c) => c.id === chainId) ?? config.chains[0];
         currentChainId = chain.id;
-        return {
-          accounts: [account.address] as readonly [Address],
-          chainId: chain.id,
+        const accounts = [account.address] as readonly [Address];
+        return { accounts, chainId: chain.id } as {
+          accounts: readonly Address[];
+          chainId: number;
         };
       },
 
