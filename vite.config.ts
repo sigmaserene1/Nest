@@ -21,18 +21,26 @@ export default defineConfig({
     optimizeDeps: {
       include: ["@tanstack/react-router", "@tanstack/react-store"],
     },
-    // WalletConnect's heartbeat imports Node's "events" module. Earlier
-    // plugins externalize Node builtins for the browser, so aliases never
-    // apply; rewrite the import to the browser polyfill in client code.
+    // Some wallet dependencies (WalletConnect, rpc-websockets) import Node's
+    // "events"/"buffer" modules. Earlier plugins externalize Node builtins for
+    // the browser, so aliases never apply; rewrite those imports to the
+    // installed browser polyfills in client code only.
     plugins: [
       {
-        name: "events-browser-polyfill",
+        name: "node-builtin-browser-polyfills",
         enforce: "pre",
         transform(code, id, opts) {
-          if (opts?.ssr || !id.includes("/node_modules/@walletconnect/")) return null;
-          if (!/from\s*["']events["']/.test(code)) return null;
-          const polyfill = fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url));
-          return { code: code.replace(/from\s*["']events["']/g, `from ${JSON.stringify(polyfill)}`), map: null };
+          if (opts?.ssr || !id.includes("/node_modules/")) return null;
+          const re = /(from\s*|import\s*)(["'])(events|buffer)\2/g;
+          if (!re.test(code)) return null;
+          const polyfills: Record<string, string> = {
+            events: fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url)),
+            buffer: fileURLToPath(new URL("./node_modules/buffer/index.js", import.meta.url)),
+          };
+          return {
+            code: code.replace(re, (_m, pre: string, _q: string, mod: string) => `${pre}${JSON.stringify(polyfills[mod])}`),
+            map: null,
+          };
         },
       },
     ],
