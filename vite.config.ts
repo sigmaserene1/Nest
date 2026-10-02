@@ -21,20 +21,18 @@ export default defineConfig({
     optimizeDeps: {
       include: ["@tanstack/react-router", "@tanstack/react-store"],
     },
-    // WalletConnect's heartbeat imports Node's "events" module; in the client
-    // bundle resolve it to the browser polyfill (a plugin, because the preset
-    // overrides resolve.alias).
+    // WalletConnect's heartbeat imports Node's "events" module. Earlier
+    // plugins externalize Node builtins for the browser, so aliases never
+    // apply; rewrite the import to the browser polyfill in client code.
     plugins: [
       {
         name: "events-browser-polyfill",
         enforce: "pre",
-        configResolved(c) { console.error("[events-polyfill] loaded", c.plugins.findIndex((p) => p.name === "events-browser-polyfill"), c.plugins.slice(8,30).map((p)=>p.name).join(",")); },
-        resolveId(id, _importer, opts) {
-          if (id === "events") console.error("[events-polyfill]", _importer, opts?.ssr);
-          if (id === "events" && !opts?.ssr) {
-            return fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url));
-          }
-          return null;
+        transform(code, id, opts) {
+          if (opts?.ssr || !id.includes("/node_modules/@walletconnect/")) return null;
+          if (!/from\s*["']events["']/.test(code)) return null;
+          const polyfill = fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url));
+          return { code: code.replace(/from\s*["']events["']/g, `from ${JSON.stringify(polyfill)}`), map: null };
         },
       },
     ],
