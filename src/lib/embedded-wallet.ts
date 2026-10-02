@@ -70,8 +70,50 @@ export function embeddedWalletConnector() {
         chain,
         transport: transport ?? http(),
       });
-      // viem wallet clients expose an EIP-1193-compatible request method.
-      return client;
+      // Minimal EIP-1193 provider: account/signing methods are handled
+      // locally with the embedded key; everything else goes to the RPC.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const request = async ({ method, params }: { method: string; params?: any }) => {
+        const p = (params ?? []) as any[];
+        switch (method) {
+          case "eth_accounts":
+          case "eth_requestAccounts":
+            return [account.address];
+          case "eth_chainId":
+            return `0x${chain.id.toString(16)}`;
+          case "personal_sign":
+            return client.signMessage({ account, message: { raw: p[0] } });
+          case "eth_signTypedData_v4": {
+            const data = typeof p[1] === "string" ? JSON.parse(p[1]) : p[1];
+            const { EIP712Domain: _d, ...types } = data.types ?? {};
+            return client.signTypedData({
+              account,
+              domain: data.domain,
+              types,
+              primaryType: data.primaryType,
+              message: data.message,
+            });
+          }
+          case "eth_sendTransaction": {
+            const tx = p[0] ?? {};
+            const big = (v?: string) => (v ? BigInt(v) : undefined);
+            return client.sendTransaction({
+              account,
+              chain,
+              to: tx.to,
+              data: tx.data,
+              value: big(tx.value),
+              gas: big(tx.gas),
+              nonce: tx.nonce ? Number(tx.nonce) : undefined,
+            } as any);
+          }
+          case "wallet_switchEthereumChain":
+            return null;
+          default:
+            return client.request({ method, params } as any);
+        }
+      };
+      return { request, on() {}, removeListener() {} };
     }
 
     return {
