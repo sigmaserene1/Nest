@@ -105,13 +105,11 @@ function useEnterApp() {
     wasOpen.current = connectModalOpen;
   }, [connectModalOpen, requested, isConnected, connectError]);
 
-  const enter = () => {
-    setError(null);
-    if (isConnected) {
-      void navigate({ to: "/app" });
-      return;
-    }
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const openWallet = () => {
     if (!openConnectModal) {
+      setRequested(false);
       setError("Wallet connection is still loading. Please try again in a moment.");
       return;
     }
@@ -119,7 +117,26 @@ function useEnterApp() {
     openConnectModal();
   };
 
-  return { enter, error, pending: requested };
+  const enter = () => {
+    setError(null);
+    if (isConnected) {
+      void navigate({ to: "/app" });
+      return;
+    }
+    setRequested(true);
+    setDialogOpen(true);
+  };
+
+  const onDialogChange = (o: boolean) => {
+    setDialogOpen(o);
+    if (!o && !connectModalOpen) setTimeout(() => setRequested((r) => r && false), 0);
+  };
+
+  const dialog = (
+    <SignInDialog open={dialogOpen} onOpenChange={onDialogChange} onWallet={openWallet} />
+  );
+
+  return { enter, error, pending: requested && !dialogOpen, dialog };
 }
 
 function Landing() {
