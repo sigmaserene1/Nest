@@ -1,5 +1,6 @@
 import { createConnector } from "wagmi";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { arcChainFor, getArcEnvironment } from "@/lib/arc-network";
 import { createWalletClient, http, type Account, type Address } from "viem";
 
 /**
@@ -70,8 +71,50 @@ export function embeddedWalletConnector() {
         chain,
         transport: transport ?? http(),
       });
-      // viem wallet clients expose an EIP-1193-compatible request method.
-      return client;
+      // Minimal EIP-1193 provider: account/signing methods are handled
+      // locally with the embedded key; everything else goes to the RPC.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const request = async ({ method, params }: { method: string; params?: any }) => {
+        const p = (params ?? []) as any[];
+        switch (method) {
+          case "eth_accounts":
+          case "eth_requestAccounts":
+            return [account.address];
+          case "eth_chainId":
+            return `0x${chain.id.toString(16)}`;
+          case "personal_sign":
+            return client.signMessage({ account, message: { raw: p[0] } });
+          case "eth_signTypedData_v4": {
+            const data = typeof p[1] === "string" ? JSON.parse(p[1]) : p[1];
+            const { EIP712Domain: _d, ...types } = data.types ?? {};
+            return client.signTypedData({
+              account,
+              domain: data.domain,
+              types,
+              primaryType: data.primaryType,
+              message: data.message,
+            });
+          }
+          case "eth_sendTransaction": {
+            const tx = p[0] ?? {};
+            const big = (v?: string) => (v ? BigInt(v) : undefined);
+            return client.sendTransaction({
+              account,
+              chain,
+              to: tx.to,
+              data: tx.data,
+              value: big(tx.value),
+              gas: big(tx.gas),
+              nonce: tx.nonce ? Number(tx.nonce) : undefined,
+            } as any);
+          }
+          case "wallet_switchEthereumChain":
+            return null;
+          default:
+            return client.request({ method, params } as any);
+        }
+      };
+      return { request, on() {}, removeListener() {} };
     }
 
     return {
@@ -85,8 +128,9 @@ export function embeddedWalletConnector() {
         const account = getActiveEmbeddedAccount();
         if (!account)
           throw new Error("No embedded wallet. Sign in with email first.");
+        const target = chainId ?? arcChainFor(getArcEnvironment()).id;
         const chain =
-          config.chains.find((c) => c.id === chainId) ?? config.chains[0];
+          config.chains.find((c) => c.id === target) ?? config.chains[0];
         currentChainId = chain.id;
         const accounts = [account.address] as readonly [Address];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -103,13 +147,13 @@ export function embeddedWalletConnector() {
       },
 
       async getChainId() {
-        return currentChainId ?? config.chains[0].id;
+        return currentChainId ?? arcChainFor(getArcEnvironment()).id;
       },
 
       async getProvider({ chainId } = {}) {
         const account = getActiveEmbeddedAccount();
         if (!account) throw new Error("No embedded wallet session.");
-        const id = chainId ?? currentChainId ?? config.chains[0].id;
+        const id = chainId ?? currentChainId ?? arcChainFor(getArcEnvironment()).id;
         return buildProvider(account, id);
       },
 
