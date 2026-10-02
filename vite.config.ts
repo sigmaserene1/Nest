@@ -21,12 +21,21 @@ export default defineConfig({
     optimizeDeps: {
       include: ["@tanstack/react-router", "@tanstack/react-store"],
     },
-    resolve: {
-      alias: [
-        // WalletConnect's heartbeat imports Node's "events" module; use the
-        // browser polyfill so the client bundle builds.
-        { find: /^events$/, replacement: fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url)) },
-      ],
-    },
+    // WalletConnect's heartbeat imports Node's "events" module; in the client
+    // bundle resolve it to the browser polyfill (a plugin, because the preset
+    // overrides resolve.alias).
+    plugins: [
+      {
+        name: "events-browser-polyfill",
+        enforce: "pre",
+        applyToEnvironment: (env) => env.name === "client",
+        resolveId(id) {
+          if (id === "events") {
+            return fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url));
+          }
+          return null;
+        },
+      },
+    ],
   },
 });
