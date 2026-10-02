@@ -28,6 +28,7 @@ export default defineConfig({
       {
         name: "events-browser-polyfill",
         enforce: "pre",
+        configResolved(c) { console.error("[events-polyfill] loaded", c.plugins.findIndex((p) => p.name === "events-browser-polyfill"), c.plugins.slice(0,8).map((p)=>p.name).join(",")); },
         resolveId(id, _importer, opts) {
           if (id === "events") console.error("[events-polyfill]", _importer, opts?.ssr);
           if (id === "events" && !opts?.ssr) {
