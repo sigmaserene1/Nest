@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useConnect } from "wagmi";
+import { arcChainFor, getArcEnvironment } from "@/lib/arc-network";
 import { supabase } from "@/integrations/supabase/client";
 import {
   EMBEDDED_CONNECTOR_ID,
@@ -40,7 +41,7 @@ export function useEmailAuth() {
         const connector = connectors.find((c) => c.id === EMBEDDED_CONNECTOR_ID);
         if (connector) {
           try {
-            await connectAsync({ connector });
+            await connectAsync({ connector, chainId: arcChainFor(getArcEnvironment()).id });
           } catch {
             // Already connected or user switched wallets — fine.
           }
