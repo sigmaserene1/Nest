@@ -28,9 +28,8 @@ export default defineConfig({
       {
         name: "events-browser-polyfill",
         enforce: "pre",
-        applyToEnvironment: (env) => env.name === "client",
-        resolveId(id) {
-          if (id === "events") {
+        resolveId(id, _importer, opts) {
+          if (id === "events" && !opts?.ssr) {
             return fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url));
           }
           return null;
