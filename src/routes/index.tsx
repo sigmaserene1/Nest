@@ -39,6 +39,7 @@ import { NestLogo } from "@/components/nest/logo";
 import { Reveal } from "@/components/nest/reveal";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
 import { useArcEnvironment } from "@/lib/arc-network";
+import { SignInDialog } from "@/components/nest/sign-in-dialog";
 
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const NAV_LINKS = [
@@ -129,7 +130,7 @@ function useEnterApp() {
 
   const onDialogChange = (o: boolean) => {
     setDialogOpen(o);
-    if (!o && !connectModalOpen) setTimeout(() => setRequested((r) => r && false), 0);
+    if (!o) setRequested(false);
   };
 
   const dialog = (
@@ -141,12 +142,13 @@ function useEnterApp() {
 
 function Landing() {
   const environment = useArcEnvironment();
-  const { enter, error: connectIssue, pending: connecting } = useEnterApp();
+  const { enter, error: connectIssue, pending: connecting, dialog } = useEnterApp();
 
 
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
+      {dialog}
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 lg:px-8">
           <a href="#" aria-label="Nest home" className="rounded-xl">
