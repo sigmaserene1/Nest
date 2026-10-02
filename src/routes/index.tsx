@@ -39,6 +39,7 @@ import { NestLogo } from "@/components/nest/logo";
 import { Reveal } from "@/components/nest/reveal";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
 import { useArcEnvironment } from "@/lib/arc-network";
+import { SignInDialog } from "@/components/nest/sign-in-dialog";
 
 const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const NAV_LINKS = [
@@ -105,13 +106,11 @@ function useEnterApp() {
     wasOpen.current = connectModalOpen;
   }, [connectModalOpen, requested, isConnected, connectError]);
 
-  const enter = () => {
-    setError(null);
-    if (isConnected) {
-      void navigate({ to: "/app" });
-      return;
-    }
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  const openWallet = () => {
     if (!openConnectModal) {
+      setRequested(false);
       setError("Wallet connection is still loading. Please try again in a moment.");
       return;
     }
@@ -119,17 +118,37 @@ function useEnterApp() {
     openConnectModal();
   };
 
-  return { enter, error, pending: requested };
+  const enter = () => {
+    setError(null);
+    if (isConnected) {
+      void navigate({ to: "/app" });
+      return;
+    }
+    setRequested(true);
+    setDialogOpen(true);
+  };
+
+  const onDialogChange = (o: boolean) => {
+    setDialogOpen(o);
+    if (!o) setRequested(false);
+  };
+
+  const dialog = (
+    <SignInDialog open={dialogOpen} onOpenChange={onDialogChange} onWallet={openWallet} />
+  );
+
+  return { enter, error, pending: requested && !dialogOpen, dialog };
 }
 
 function Landing() {
   const environment = useArcEnvironment();
-  const { enter, error: connectIssue, pending: connecting } = useEnterApp();
+  const { enter, error: connectIssue, pending: connecting, dialog } = useEnterApp();
 
 
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
+      {dialog}
       <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-2xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 lg:px-8">
           <a href="#" aria-label="Nest home" className="rounded-xl">

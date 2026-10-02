@@ -63,9 +63,9 @@ export function useEmailAuth() {
       cancelled = true;
       subscription.unsubscribe();
     };
-    // connectors/connectAsync identity is stable enough for this effect.
+    // Re-run when the wagmi config upgrades client-side (new connector list).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [connectors]);
 
   const sendCode = useCallback(async (targetEmail: string) => {
     const { error } = await supabase.auth.signInWithOtp({
