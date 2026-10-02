@@ -7,6 +7,7 @@ import { useNestChain } from "@/lib/chain/nest-chain";
 import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
 import { useArcEnvironment } from "@/lib/arc-network";
+import { useEmailAuth } from "@/lib/use-email-auth";
 
 
 const PENDING_INVITE = "nest.invite.pending";
@@ -63,7 +64,10 @@ function AppLayout() {
     localStorage.removeItem(PENDING_INVITE);
   }, [address]);
 
-  const isBusy = isConnecting || isReconnecting;
+  const emailAuth = useEmailAuth();
+  // An email session restores its embedded wallet automatically — don't
+  // show the wallet chooser while that is happening.
+  const isBusy = isConnecting || isReconnecting || !emailAuth.ready || !!emailAuth.userId;
 
   // No separate sign-in page: the wallet chooser opens straight away, and if the
   // person closes it without connecting we send them back to the landing page.
