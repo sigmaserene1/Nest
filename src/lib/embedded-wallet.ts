@@ -1,5 +1,6 @@
 import { createConnector } from "wagmi";
 import { privateKeyToAccount, generatePrivateKey } from "viem/accounts";
+import { arcChainFor, getArcEnvironment } from "@/lib/arc-network";
 import { createWalletClient, http, type Account, type Address } from "viem";
 
 /**
@@ -127,8 +128,9 @@ export function embeddedWalletConnector() {
         const account = getActiveEmbeddedAccount();
         if (!account)
           throw new Error("No embedded wallet. Sign in with email first.");
+        const target = chainId ?? arcChainFor(getArcEnvironment()).id;
         const chain =
-          config.chains.find((c) => c.id === chainId) ?? config.chains[0];
+          config.chains.find((c) => c.id === target) ?? config.chains[0];
         currentChainId = chain.id;
         const accounts = [account.address] as readonly [Address];
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -145,13 +147,13 @@ export function embeddedWalletConnector() {
       },
 
       async getChainId() {
-        return currentChainId ?? config.chains[0].id;
+        return currentChainId ?? arcChainFor(getArcEnvironment()).id;
       },
 
       async getProvider({ chainId } = {}) {
         const account = getActiveEmbeddedAccount();
         if (!account) throw new Error("No embedded wallet session.");
-        const id = chainId ?? currentChainId ?? config.chains[0].id;
+        const id = chainId ?? currentChainId ?? arcChainFor(getArcEnvironment()).id;
         return buildProvider(account, id);
       },
 
