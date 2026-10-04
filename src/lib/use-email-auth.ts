@@ -49,20 +49,33 @@ export function useEmailAuth() {
       }
     };
 
-    void supabase.auth.getSession().then(({ data }) => {
-      void applySession(data.session);
-      if (!cancelled) setReady(true);
-    });
+    let unsubscribe = () => {};
+    try {
+      void supabase.auth
+        .getSession()
+        .then(({ data }) => {
+          void applySession(data.session);
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!cancelled) setReady(true);
+        });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      void applySession(session);
-    });
+      const {
+        data: { subscription },
+      } = supabase.auth.onAuthStateChange((_event, session) => {
+        void applySession(session);
+      });
+      unsubscribe = () => subscription.unsubscribe();
+    } catch (err) {
+      // Email sign-in unavailable (missing config) — never blank the app.
+      console.warn("[email-auth] disabled:", err);
+      setReady(true);
+    }
 
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
+      unsubscribe();
     };
     // Re-run when the wagmi config upgrades client-side (new connector list).
     // eslint-disable-next-line react-hooks/exhaustive-deps
