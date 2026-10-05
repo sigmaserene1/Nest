@@ -39,7 +39,7 @@ export function clearCircleSession() {
 }
 
 let sdkPromise: Promise<W3SSdk> | null = null;
-let loginHandler: ((err: Error | undefined, r: any) => void) | null = null;
+let loginHandler: ((err: { message?: string } | undefined, r: any) => void) | null = null;
 
 async function sdk() {
   if (!sdkPromise) {

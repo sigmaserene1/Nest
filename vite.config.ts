@@ -20,6 +20,18 @@ export default defineConfig({
     // (TanStack/router#4264).
     optimizeDeps: {
       include: ["@tanstack/react-router", "@tanstack/react-store"],
+      esbuildOptions: {
+        plugins: [
+          {
+            name: "stream-browser-polyfill",
+            setup(build: any) {
+              build.onResolve({ filter: /^stream$/ }, () => ({
+                path: fileURLToPath(new URL("./node_modules/stream-browserify/index.js", import.meta.url)),
+              }));
+            },
+          },
+        ],
+      },
     },
     // Some wallet dependencies (WalletConnect, rpc-websockets) import Node's
     // "events"/"buffer" modules. Earlier plugins externalize Node builtins for
@@ -31,11 +43,12 @@ export default defineConfig({
         enforce: "pre",
         transform(code, id, opts) {
           if (opts?.ssr || !id.includes("/node_modules/")) return null;
-          const re = /(from\s*|import\s*)(["'])(events|buffer)\2/g;
+          const re = /(from\s*|import\s*|require\(\s*)(["'])(events|buffer|stream)\2/g;
           if (!re.test(code)) return null;
           const polyfills: Record<string, string> = {
             events: fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url)),
             buffer: fileURLToPath(new URL("./node_modules/buffer/index.js", import.meta.url)),
+            stream: fileURLToPath(new URL("./node_modules/stream-browserify/index.js", import.meta.url)),
           };
           return {
             code: code.replace(re, (_m, pre: string, _q: string, mod: string) => `${pre}${JSON.stringify(polyfills[mod])}`),
