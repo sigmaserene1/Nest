@@ -10,7 +10,7 @@ type Props = {
 };
 
 export function SignInDialog({ open, onOpenChange, onWallet }: Props) {
-  const { sendCode, verifyCode } = useEmailAuth();
+  const { signIn } = useEmailAuth();
   const [step, setStep] = useState<"choose" | "code">("choose");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
@@ -32,8 +32,8 @@ export function SignInDialog({ open, onOpenChange, onWallet }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await sendCode(email.trim());
-      setStep("code");
+      await signIn(email.trim());
+      reset(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not send the code.");
     } finally {
@@ -46,7 +46,7 @@ export function SignInDialog({ open, onOpenChange, onWallet }: Props) {
     setBusy(true);
     setError(null);
     try {
-      await verifyCode(email.trim(), code.trim());
+      void code;
     } catch (err) {
       setError(err instanceof Error ? err.message : "That code didn't work.");
       setBusy(false);
@@ -60,7 +60,7 @@ export function SignInDialog({ open, onOpenChange, onWallet }: Props) {
           <DialogTitle>{step === "choose" ? "Sign in to Nest" : "Check your email"}</DialogTitle>
           <DialogDescription>
             {step === "choose"
-              ? "Use your email — we'll create a wallet for you — or connect your own."
+              ? "Use your email — Circle creates a secure wallet you can use on any device — or connect your own."
               : `Enter the code we sent to ${email}.`}
           </DialogDescription>
         </DialogHeader>
