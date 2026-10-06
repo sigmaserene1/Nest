@@ -19,7 +19,13 @@ export default defineConfig({
     // crashes every page with "Cannot read properties of null (reading 'use')"
     // (TanStack/router#4264).
     optimizeDeps: {
-      include: ["@tanstack/react-router", "@tanstack/react-store"],
+      include: [
+        "@tanstack/react-router",
+        "@tanstack/react-store",
+        "@circle-fin/w3s-pw-web-sdk",
+        "@circle-fin/app-kit",
+        "@circle-fin/adapter-viem-v2",
+      ],
       esbuildOptions: {
         plugins: [
           {
