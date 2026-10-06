@@ -38,6 +38,46 @@ export function clearCircleSession() {
   window.dispatchEvent?.(new Event("nest-circle-session"));
 }
 
+/** Styles Circle's secure code/PIN window to match Nest (follows light/dark mode). */
+function applyNestTheme(s: W3SSdk) {
+  const dark = document.documentElement.classList.contains("dark");
+  const brand = "#e64a45";
+  s.setThemeColor({
+    backdrop: dark ? "#05060a" : "#0b0d12",
+    backdropOpacity: 0.55,
+    bg: dark ? "#111318" : "#ffffff",
+    divider: dark ? "#23262e" : "#eceef2",
+    textMain: dark ? "#f4f5f7" : "#0b0d12",
+    textMain2: dark ? "#d5d8de" : "#272a31",
+    textAuxiliary: dark ? "#8b909a" : "#6b7280",
+    textAuxiliary2: dark ? "#6b7079" : "#9aa0aa",
+    textPlaceholder: dark ? "#5c616b" : "#a3a8b1",
+    textInteractive: brand,
+    success: "#16a34a",
+    error: "#dc2626",
+    inputBg: dark ? "#0b0d12" : "#f7f8fa",
+    inputText: dark ? "#f4f5f7" : "#0b0d12",
+    inputBorderFocused: brand,
+    inputBorderFocusedError: "#dc2626",
+    pinDotBase: dark ? "#23262e" : "#eceef2",
+    pinDotBaseBorder: dark ? "#2f333c" : "#dfe2e7",
+    pinDotActivated: brand,
+    enteredPinText: dark ? "#f4f5f7" : "#0b0d12",
+    mainBtnBg: brand,
+    mainBtnBgOnHover: "#d43c37",
+    mainBtnBgDisabled: dark ? "#2a1514" : "#f6c9c7",
+    mainBtnText: "#ffffff",
+    mainBtnTextOnHover: "#ffffff",
+    mainBtnTextDisabled: "#ffffff",
+  });
+  s.setResources({
+    fontFamily: {
+      name: "Figtree",
+      url: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap",
+    },
+  });
+}
+
 let sdkPromise: Promise<W3SSdk> | null = null;
 let loginHandler: ((err: { message?: string } | undefined, r: any) => void) | null = null;
 
@@ -47,7 +87,9 @@ async function sdk() {
       const { appId } = await circleConfig();
       if (!appId) throw new Error("Circle email login is not configured.");
       const { W3SSdk } = await import("@circle-fin/w3s-pw-web-sdk");
-      return new W3SSdk({ appSettings: { appId } }, (err, r) => loginHandler?.(err, r));
+      const instance = new W3SSdk({ appSettings: { appId } }, (err, r) => loginHandler?.(err, r));
+      applyNestTheme(instance);
+      return instance;
     })();
     sdkPromise.catch(() => (sdkPromise = null));
   }
