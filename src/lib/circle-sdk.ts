@@ -86,6 +86,21 @@ async function sdk() {
     sdkPromise = (async () => {
       const { appId } = await circleConfig();
       if (!appId) throw new Error("Circle email login is not configured.");
+      // Circle's SDK dependencies expect Node's `process`/`Buffer` globals.
+      const g = globalThis as any;
+      if (!g.process) {
+        g.process = {
+          env: {},
+          browser: true,
+          version: "",
+          versions: {},
+          nextTick: (fn: (...a: unknown[]) => void, ...args: unknown[]) => queueMicrotask(() => fn(...args)),
+        };
+      } else {
+        g.process.env ??= {};
+        g.process.nextTick ??= (fn: (...a: unknown[]) => void, ...args: unknown[]) => queueMicrotask(() => fn(...args));
+      }
+      if (!g.Buffer) g.Buffer = (await import("buffer")).Buffer;
       const { W3SSdk } = await import("@circle-fin/w3s-pw-web-sdk");
       const instance = new W3SSdk({ appSettings: { appId } }, (err, r) => loginHandler?.(err, r));
       applyNestTheme(instance);
