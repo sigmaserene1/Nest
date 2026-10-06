@@ -28,6 +28,9 @@ export default defineConfig({
               build.onResolve({ filter: /^stream$/ }, () => ({
                 path: fileURLToPath(new URL("./node_modules/stream-browserify/index.js", import.meta.url)),
               }));
+              build.onResolve({ filter: /^util\/?$/ }, () => ({
+                path: fileURLToPath(new URL("./node_modules/util/util.js", import.meta.url)),
+              }));
             },
           },
         ],
@@ -43,12 +46,13 @@ export default defineConfig({
         enforce: "pre",
         transform(code, id, opts) {
           if (opts?.ssr || !id.includes("/node_modules/")) return null;
-          const re = /(from\s*|import\s*|require\(\s*)(["'])(events|buffer|stream)\2/g;
+          const re = /(from\s*|import\s*|require\(\s*)(["'])(events|buffer|stream|util)\2/g;
           if (!re.test(code)) return null;
           const polyfills: Record<string, string> = {
             events: fileURLToPath(new URL("./node_modules/events/events.js", import.meta.url)),
             buffer: fileURLToPath(new URL("./node_modules/buffer/index.js", import.meta.url)),
             stream: fileURLToPath(new URL("./node_modules/stream-browserify/index.js", import.meta.url)),
+            util: fileURLToPath(new URL("./node_modules/util/util.js", import.meta.url)),
           };
           return {
             code: code.replace(re, (_m, pre: string, _q: string, mod: string) => `${pre}${JSON.stringify(polyfills[mod])}`),
