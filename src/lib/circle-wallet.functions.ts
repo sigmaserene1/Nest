@@ -69,6 +69,34 @@ export const circleWallet = createServerFn({ method: "POST" })
     return w ? { walletId: w.id as string, address: w.address as string } : null;
   });
 
+/**
+ * Gas sponsor for email wallets: if the caller's own Circle wallet (proven by
+ * its userToken) is low on gas, the sponsor wallet tops it up with a small
+ * amount of Arc Testnet USDC so the transaction can be paid for.
+ */
+export const circleSponsorGas = createServerFn({ method: "POST" })
+  .inputValidator((d) => z.object({ userToken: token }).parse(d))
+  .handler(async ({ data }) => {
+    const r = await circle(`/wallets?blockchain=${CIRCLE_BLOCKCHAIN}`, { userToken: data.userToken });
+    const address = (r.wallets ?? [])[0]?.address as `0x${string}` | undefined;
+    if (!address) return { funded: false };
+    const key = (process.env["DEPLOYER_PRIVATE_KEY"] ?? "").trim();
+    if (!key) return { funded: false };
+    const { createPublicClient, createWalletClient, http, parseEther } = await import("viem");
+    const { privateKeyToAccount } = await import("viem/accounts");
+    const { arcChainFor } = await import("@/lib/arc-network");
+    const chain = arcChainFor("testnet");
+    const transport = http(chain.rpcUrls.default.http[0]);
+    const pub = createPublicClient({ chain, transport });
+    const balance = await pub.getBalance({ address });
+    if (balance >= parseEther("0.02")) return { funded: false };
+    const account = privateKeyToAccount((key.startsWith("0x") ? key : `0x${key}`) as `0x${string}`);
+    const wallet = createWalletClient({ account, chain, transport });
+    const hash = await wallet.sendTransaction({ to: address, value: parseEther("0.05") });
+    await pub.waitForTransactionReceipt({ hash });
+    return { funded: true };
+  });
+
 export const circleContractCall = createServerFn({ method: "POST" })
   .inputValidator((d) =>
     z.object({
