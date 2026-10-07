@@ -1,4 +1,7 @@
 import type { W3SSdk } from "@circle-fin/w3s-pw-web-sdk";
+import { decodeFunctionData, formatUnits } from "viem";
+import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
+import { ARC_USDC_ADDRESS } from "@/lib/arc-network";
 import {
   circleConfig,
   circleEmailToken,
@@ -347,8 +350,189 @@ async function sdk() {
   return sdkPromise;
 }
 
-function runChallenge(s: W3SSdk, auth: { userToken: string; encryptionKey: string }, challengeId: string) {
+type CircleActionTx = {
+  to: string;
+  data?: string;
+  value?: string;
+};
+
+type CircleActionCopy = {
+  title: string;
+  subtitle: string;
+  summary: string;
+};
+
+const APPROVE_ABI = [
+  {
+    type: "function",
+    name: "approve",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "spender", type: "address" },
+      { name: "amount", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+] as const;
+
+function shortAddress(value: unknown) {
+  const address = String(value ?? "");
+  return address.length >= 12
+    ? `${address.slice(0, 6)}…${address.slice(-4)}`
+    : address;
+}
+
+function usdcAmount(value: unknown) {
+  try {
+    const formatted = formatUnits(BigInt(value as bigint), 6);
+    const numeric = Number(formatted);
+    return Number.isFinite(numeric)
+      ? numeric.toLocaleString(undefined, { maximumFractionDigits: 6 })
+      : formatted;
+  } catch {
+    return "USDC";
+  }
+}
+
+function describeCircleAction(tx: CircleActionTx): CircleActionCopy {
+  const data = tx.data as `0x${string}` | undefined;
+
+  if (data) {
+    try {
+      const decoded = decodeFunctionData({
+        abi: EXPENSE_MANAGER_ABI,
+        data,
+      });
+      const args = (decoded.args ?? []) as readonly unknown[];
+
+      switch (decoded.functionName) {
+        case "createRoom": {
+          const name = String(args[0] ?? "your home");
+          return {
+            title: "Create your Nest home",
+            subtitle: `Create “${name}” on Arc and finish your Nest setup.`,
+            summary: "Home setup",
+          };
+        }
+        case "setDisplayName": {
+          const name = String(args[0] ?? "");
+          return {
+            title: "Set your Nest name",
+            subtitle: name
+              ? `Use “${name}” as your name inside Nest.`
+              : "Save your display name inside Nest.",
+            summary: name ? `Name · ${name}` : "Profile setup",
+          };
+        }
+        case "inviteMember": {
+          const member = shortAddress(args[1]);
+          return {
+            title: "Add a member",
+            subtitle: `Add ${member} to this Nest home.`,
+            summary: `Member · ${member}`,
+          };
+        }
+        case "joinRoom":
+          return {
+            title: "Join this Nest home",
+            subtitle: "Join the shared Nest workspace on Arc.",
+            summary: "Join home",
+          };
+        case "addExpense": {
+          const description = String(args[4] ?? "Expense");
+          const amount = usdcAmount(args[5]);
+          return {
+            title: "Add an expense",
+            subtitle: `Record ${description} for ${amount} USDC in Nest.`,
+            summary: `${amount} USDC · ${description}`,
+          };
+        }
+        case "directTransfer": {
+          const recipient = shortAddress(args[1]);
+          const amount = usdcAmount(args[2]);
+          const note = String(args[3] ?? "").trim();
+          return {
+            title: `Send ${amount} USDC`,
+            subtitle: note
+              ? `Pay ${recipient} · ${note}`
+              : `Pay ${recipient} from Nest.`,
+            summary: `${amount} USDC payment`,
+          };
+        }
+        case "settleWith": {
+          const recipient = shortAddress(args[1]);
+          return {
+            title: "Settle your Nest balance",
+            subtitle: `Pay your open balance to ${recipient}.`,
+            summary: "Settle balance",
+          };
+        }
+        case "settleSplit":
+          return {
+            title: "Pay your expense share",
+            subtitle: `Settle expense #${String(args[0] ?? "")} in Nest.`,
+            summary: "Expense settlement",
+          };
+      }
+    } catch {
+      // Not an ExpenseManager call; try known token calls below.
+    }
+
+    if (tx.to.toLowerCase() === ARC_USDC_ADDRESS.toLowerCase()) {
+      try {
+        const decoded = decodeFunctionData({ abi: APPROVE_ABI, data });
+        if (decoded.functionName === "approve") {
+          const args = (decoded.args ?? []) as readonly unknown[];
+          const spender = shortAddress(args[0]);
+          const amount = usdcAmount(args[1]);
+          return {
+            title: "Approve USDC for Nest",
+            subtitle: `Allow the Nest contract (${spender}) to use up to ${amount} USDC for this payment.`,
+            summary: `${amount} USDC approval`,
+          };
+        }
+      } catch {
+        // Fall through to the safe generic Nest copy.
+      }
+    }
+  }
+
+  return {
+    title: "Approve Nest action",
+    subtitle: "Review this onchain Nest action before confirming.",
+    summary: "Nest onchain action",
+  };
+}
+
+function applyCircleActionCopy(s: W3SSdk, tx: CircleActionTx) {
+  const copy = describeCircleAction(tx);
+  s.setLocalizations({
+    contractInteraction: {
+      title: copy.title,
+      subtitle: copy.subtitle,
+      contractAddressLabel: "Onchain contract",
+      totalLabel: "Nest action",
+      total: [copy.summary],
+      dataDetails: {
+        dataDetailsLabel: "Technical details",
+        callData: { callDataLabel: "Transaction data" },
+        abiInfo: {
+          functionNameLabel: "Contract function",
+          parametersLabel: "Parameters",
+        },
+      },
+    },
+  });
+}
+
+function runChallenge(
+  s: W3SSdk,
+  auth: { userToken: string; encryptionKey: string },
+  challengeId: string,
+  actionTx?: CircleActionTx,
+) {
   applyNestTheme(s);
+  if (actionTx) applyCircleActionCopy(s, actionTx);
   s.setAuthentication(auth);
   return new Promise<any>((resolve, reject) => {
     s.execute(challengeId, (err, result) => {
@@ -539,7 +723,11 @@ export async function circleSendTransaction(tx: { to: string; data?: string; val
       value: tx.value ? BigInt(tx.value).toString() : "0",
     },
   });
-  await runChallenge(s, session, challengeId);
+  await runChallenge(s, session, challengeId, {
+    to: tx.to,
+    data: tx.data,
+    value: tx.value,
+  });
   for (let i = 0; i < 40; i++) {
     const r = await circleLatestTxHash({ data: { userToken: session.userToken, walletId: session.walletId, since } });
     if (r.txHash) return r.txHash as `0x${string}`;
