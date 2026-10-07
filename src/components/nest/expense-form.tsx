@@ -18,9 +18,11 @@ export type ExpenseInput = {
 export function ExpenseForm({
   initial,
   onSave,
+  saving = false,
 }: {
   initial?: Expense;
-  onSave: (data: ExpenseInput) => void;
+  onSave: (data: ExpenseInput) => void | Promise<void>;
+  saving?: boolean;
 }) {
   const members = useMembers();
   const currentUserId = useMe();
@@ -42,11 +44,11 @@ export function ExpenseForm({
   };
 
   const amt = parseFloat(amount) || 0;
-  const canSave = !isDemo && title.trim().length > 0 && amt > 0 && selected.size > 0;
+  const canSave = !saving && !isDemo && title.trim().length > 0 && amt > 0 && selected.size > 0;
 
   const save = () => {
     if (!canSave) return;
-    onSave({
+    void onSave({
       title: title.trim(),
       amount: amt,
       category,
@@ -149,9 +151,19 @@ export function ExpenseForm({
       <button
         onClick={save}
         disabled={!canSave}
-        className="mt-2 w-full rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-40"
+        aria-busy={saving}
+        className="mt-2 inline-flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-60"
       >
-        {initial ? "Save changes" : "Add expense"}
+        {saving ? (
+          <>
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/35 border-t-white" />
+            Opening secure confirmation…
+          </>
+        ) : initial ? (
+          "Save changes"
+        ) : (
+          "Add expense"
+        )}
       </button>
     </div>
   );
