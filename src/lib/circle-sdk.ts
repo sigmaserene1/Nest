@@ -7,6 +7,7 @@ import {
   circleContractCall,
   circleSign,
   circleLatestTxHash,
+  circleSponsorGas,
 } from "@/lib/circle-wallet.functions";
 
 /** Browser-only Circle wallet session helpers. */
@@ -168,6 +169,8 @@ function requireSession() {
 export async function circleSendTransaction(tx: { to: string; data?: string; value?: string }) {
   const session = requireSession();
   const s = await sdk();
+  // Sponsor gas for new/empty email wallets before asking Circle to send.
+  await circleSponsorGas({ data: { userToken: session.userToken } }).catch(() => null);
   const since = new Date(Date.now() - 5000).toISOString();
   const { challengeId } = await circleContractCall({
     data: {
