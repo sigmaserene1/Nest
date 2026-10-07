@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
-import { Route as DocsLabRouteImport } from './routes/docs-lab'
+import { Route as DocsRouteImport } from './routes/docs'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as SupportRouteImport } from './routes/support'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AppActivityRouteImport } from './routes/app.activity'
 import { Route as AppAgentRouteImport } from './routes/app.agent'
@@ -36,9 +39,24 @@ const AppRoute = AppRouteImport.update({
   path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DocsLabRoute = DocsLabRouteImport.update({
-  id: '/docs-lab',
-  path: '/docs-lab',
+const DocsRoute = DocsRouteImport.update({
+  id: '/docs',
+  path: '/docs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SupportRoute = SupportRouteImport.update({
+  id: '/support',
+  path: '/support',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppIndexRoute = AppIndexRouteImport.update({
@@ -110,7 +128,10 @@ const AppSyndicateRoute = AppSyndicateRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/docs-lab': typeof DocsLabRoute
+  '/docs': typeof DocsRoute
+  '/privacy': typeof PrivacyRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
@@ -127,7 +148,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/docs-lab': typeof DocsLabRoute
+  '/docs': typeof DocsRoute
+  '/privacy': typeof PrivacyRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
@@ -146,7 +170,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
-  '/docs-lab': typeof DocsLabRoute
+  '/docs': typeof DocsRoute
+  '/privacy': typeof PrivacyRoute
+  '/support': typeof SupportRoute
+  '/terms': typeof TermsRoute
   '/app/activity': typeof AppActivityRoute
   '/app/agent': typeof AppAgentRoute
   '/app/analytics': typeof AppAnalyticsRoute
@@ -166,7 +193,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/app'
-    | '/docs-lab'
+    | '/docs'
+    | '/privacy'
+    | '/support'
+    | '/terms'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
@@ -183,7 +213,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/docs-lab'
+    | '/docs'
+    | '/privacy'
+    | '/support'
+    | '/terms'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
@@ -201,7 +234,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/app'
-    | '/docs-lab'
+    | '/docs'
+    | '/privacy'
+    | '/support'
+    | '/terms'
     | '/app/activity'
     | '/app/agent'
     | '/app/analytics'
@@ -220,7 +256,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
-  DocsLabRoute: typeof DocsLabRoute
+  DocsRoute: typeof DocsRoute
+  PrivacyRoute: typeof PrivacyRoute
+  SupportRoute: typeof SupportRoute
+  TermsRoute: typeof TermsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -239,11 +278,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/docs-lab': {
-      id: '/docs-lab'
-      path: '/docs-lab'
-      fullPath: '/docs-lab'
-      preLoaderRoute: typeof DocsLabRouteImport
+    '/docs': {
+      id: '/docs'
+      path: '/docs'
+      fullPath: '/docs'
+      preLoaderRoute: typeof DocsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/support': {
+      id: '/support'
+      path: '/support'
+      fullPath: '/support'
+      preLoaderRoute: typeof SupportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/': {
@@ -377,7 +437,10 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
-  DocsLabRoute: DocsLabRoute,
+  DocsRoute: DocsRoute,
+  PrivacyRoute: PrivacyRoute,
+  SupportRoute: SupportRoute,
+  TermsRoute: TermsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
