@@ -25,8 +25,28 @@ export function WalletHeader() {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <div className="inline-flex rounded-xl border bg-card/70 p-1 shadow-sm">
+      <div className="flex items-center justify-end gap-1.5 sm:gap-2">
+        <button
+          type="button"
+          onClick={() => changeEnvironment(environment === "mainnet" ? "testnet" : "mainnet")}
+          disabled={isSwitching}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-bold shadow-sm transition active:scale-[0.97] sm:hidden ${
+            environment === "mainnet"
+              ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+              : "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300"
+          }`}
+          title={`Switch to Arc ${environment === "mainnet" ? "Testnet" : "Mainnet"}`}
+          aria-label={`Current network Arc ${arcEnvironmentLabel(environment)}. Switch network.`}
+        >
+          <span
+            className={`h-1.5 w-1.5 rounded-full ${
+              environment === "mainnet" ? "bg-emerald-500" : "bg-sky-500"
+            }`}
+          />
+          {environment === "mainnet" ? "Mainnet" : "Testnet"}
+        </button>
+
+        <div className="hidden rounded-xl border bg-card/70 p-1 shadow-sm sm:inline-flex">
           {(["mainnet", "testnet"] as ArcEnvironment[]).map((option) => {
             const active = environment === option;
             return (
@@ -50,7 +70,7 @@ export function WalletHeader() {
           })}
         </div>
 
-        <span className="hidden items-center gap-1.5 rounded-full border bg-card/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground shadow-sm sm:inline-flex">
+        <span className="hidden items-center gap-1.5 rounded-full border bg-card/70 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground shadow-sm lg:inline-flex">
           <span
             className={`h-1.5 w-1.5 rounded-full ${
               isConnected && isOnArc
@@ -74,7 +94,7 @@ export function WalletHeader() {
         <button
           onClick={switchToArc}
           disabled={isSwitching}
-          className="glass flex items-center justify-between gap-3 rounded-2xl border-amber-400/35 px-4 py-3 text-left text-sm transition hover:border-amber-400/60 disabled:opacity-70"
+          className="glass fixed left-3 right-3 top-20 z-50 flex items-center justify-between gap-3 rounded-2xl border-amber-400/35 px-4 py-3 text-left text-sm shadow-elevated transition hover:border-amber-400/60 disabled:opacity-70 sm:static sm:left-auto sm:right-auto sm:top-auto sm:z-auto"
         >
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-amber-600" />
