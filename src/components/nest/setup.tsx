@@ -2,7 +2,7 @@
 // then create or join a home. Everything here writes to Arc Testnet.
 
 import { useEffect, useRef, useState } from "react";
-import { Loader2, LinkIcon, RefreshCw } from "lucide-react";
+import { ExternalLink, Fuel, Loader2, LinkIcon, RefreshCw } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
@@ -22,6 +22,24 @@ function Panel({ children }: { children: React.ReactNode }) {
           <ArcBadge />
         </div>
         <div className="glass-strong mt-6 rounded-[28px] p-6">{children}</div>
+        <div className="mt-3 rounded-2xl border border-border/70 bg-card/70 p-3 text-[11px] leading-5 text-muted-foreground">
+          <div className="flex items-start gap-2">
+            <Fuel className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+            <span>
+              Testing with an external wallet on Arc Testnet?{" "}
+              <a
+                href="https://faucet.circle.com/"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 font-bold text-foreground hover:text-brand"
+              >
+                Get test USDC from Circle
+                <ExternalLink className="h-3 w-3" />
+              </a>
+              . Testnet assets have no real-world value.
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );
