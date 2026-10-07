@@ -458,18 +458,18 @@ function Landing() {
           id="faq"
           className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:py-32 lg:scroll-mt-24"
         >
-          <div className="mx-auto max-w-6xl px-5 lg:px-8">
+          <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
             <Reveal>
-              <div className="max-w-4xl">
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-brand">
-                  FAQ
-                </p>
-                <h2 className="mt-3 text-3xl tracking-[-0.04em] sm:text-5xl">
-                  Common Nest questions.
+              <div className="lg:sticky lg:top-28">
+                <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Clear answers
+                </span>
+                <h2 className="mt-6 text-3xl tracking-[-0.035em] sm:text-5xl">
+                  Questions builders and users should ask
                 </h2>
-                <p className="mt-4 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-base">
-                  A clear map of workspaces, expenses, settlement, bridging, wallet onboarding,
-                  receipts and the current Arc testnet experience.
+                <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
+                  No vague custody language and no pretending roadmap items already exist.
                 </p>
               </div>
             </Reveal>
@@ -478,19 +478,18 @@ function Landing() {
               <Accordion
                 type="single"
                 collapsible
-                defaultValue="item-0"
-                className="mt-10 space-y-3 sm:mt-12"
+                className="overflow-hidden rounded-2xl border border-border bg-card px-6 sm:px-8"
               >
                 {FAQS.map((item, index) => (
                   <AccordionItem
                     key={item.question}
                     value={`item-${index}`}
-                    className="overflow-hidden rounded-[26px] border border-brand/20 bg-card px-5 shadow-sm transition-colors duration-200 data-[state=open]:border-brand/35 data-[state=open]:bg-brand/[0.025] sm:px-7"
+                    className="last:border-b-0"
                   >
-                    <AccordionTrigger className="py-6 text-left text-[15px] font-bold leading-6 hover:no-underline sm:py-7 sm:text-base [&>svg]:h-4 [&>svg]:w-4 [&>svg]:text-brand/65">
+                    <AccordionTrigger className="py-6 text-left text-base font-bold hover:no-underline">
                       {item.question}
                     </AccordionTrigger>
-                    <AccordionContent className="max-w-3xl pb-6 pr-4 text-sm leading-7 text-muted-foreground sm:pb-7">
+                    <AccordionContent className="max-w-2xl pb-6 text-sm leading-6 text-muted-foreground">
                       {item.answer}
                     </AccordionContent>
                   </AccordionItem>
