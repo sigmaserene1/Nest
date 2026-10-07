@@ -77,6 +77,21 @@ function applyNestTheme(s: W3SSdk) {
       url: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap",
     },
   });
+  // Nest-branded wording for Circle's setup screens.
+  s.setLocalizations({
+    common: { continue: "Continue", confirm: "Confirm", retry: "Try again" },
+    securityIntros: {
+      headline: "Set up your Nest wallet",
+      headline2: "Secure your wallet",
+      description: "Choose a PIN and a recovery question. They protect your wallet on every device.",
+    },
+    newPincode: { headline: "Create your PIN", headline2: "Create your PIN", subhead: "You'll use this PIN to approve payments." },
+    confirmNewPincode: { headline: "Confirm your PIN", headline2: "Confirm your PIN", subhead: "Enter the same PIN again." },
+    enterPincode: { headline: "Enter your PIN" },
+    securityQuestions: { title: "Recovery question" },
+    emailOtp: { title: "Check your email", subtitle: "Enter the code we sent you.", resend: "Resend code" },
+    socialEmailConfirm: { title: "Confirm your email", headline: "Confirm your email" },
+  });
 }
 
 let sdkPromise: Promise<W3SSdk> | null = null;
@@ -122,22 +137,9 @@ function runChallenge(s: W3SSdk, auth: { userToken: string; encryptionKey: strin
   });
 }
 
-/** Full email login: Circle shows its own code screen, then the wallet is created/restored. */
-export async function loginWithEmail(email: string): Promise<CircleSession> {
+/** Shared steps after Circle confirms the sign-in: create/restore the wallet. */
+async function finishLogin(login: { userToken: string; encryptionKey: string }, email: string): Promise<CircleSession> {
   const s = await sdk();
-  const deviceId = await s.getDeviceId();
-  const tokens = await circleEmailToken({ data: { email, deviceId } });
-  const { appId } = await circleConfig();
-  const login = await new Promise<{ userToken: string; encryptionKey: string }>((resolve, reject) => {
-    loginHandler = (err, r) => {
-      loginHandler = null;
-      if (err || !r?.userToken) reject(new Error(err?.message || "Email verification failed."));
-      else resolve({ userToken: r.userToken, encryptionKey: r.encryptionKey });
-    };
-    s.updateConfigs({ appSettings: { appId }, loginConfigs: tokens }, (err, r) => loginHandler?.(err, r));
-    s.verifyOtp();
-  });
-
   const init = await circleInitUser({ data: { userToken: login.userToken } });
   if (init.challengeId) await runChallenge(s, login, init.challengeId);
 
@@ -158,6 +160,55 @@ export async function loginWithEmail(email: string): Promise<CircleSession> {
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   window.dispatchEvent(new Event("nest-circle-session"));
   return session;
+}
+
+/** Full email login: Circle shows its own code screen, then the wallet is created/restored. */
+export async function loginWithEmail(email: string): Promise<CircleSession> {
+  const s = await sdk();
+  const deviceId = await s.getDeviceId();
+  const tokens = await circleEmailToken({ data: { email, deviceId } });
+  const { appId } = await circleConfig();
+  const login = await new Promise<{ userToken: string; encryptionKey: string }>((resolve, reject) => {
+    loginHandler = (err, r) => {
+      loginHandler = null;
+      if (err || !r?.userToken) reject(new Error(err?.message || "Email verification failed."));
+      else resolve({ userToken: r.userToken, encryptionKey: r.encryptionKey });
+    };
+    s.updateConfigs({ appSettings: { appId }, loginConfigs: tokens }, (err, r) => loginHandler?.(err, r));
+    s.verifyOtp();
+  });
+  return finishLogin(login, email);
+}
+
+const GOOGLE_PENDING_KEY = "nest.circle.googlePending";
+
+/**
+ * Google login: redirects the page to Google, then back here. The result is
+ * picked up by resumeGoogleLogin() on the next page load.
+ */
+export async function loginWithGoogle(): Promise<void> {
+  const s = await sdk();
+  window.localStorage.setItem(GOOGLE_PENDING_KEY, "1");
+  const { SocialLoginProvider } = await import("@circle-fin/w3s-pw-web-sdk");
+  await s.performLogin(SocialLoginProvider.Google);
+}
+
+/** After the Google redirect back, complete the login and create/restore the wallet. */
+export async function resumeGoogleLogin(): Promise<CircleSession | null> {
+  if (typeof window === "undefined" || !window.localStorage.getItem(GOOGLE_PENDING_KEY)) return null;
+  window.localStorage.removeItem(GOOGLE_PENDING_KEY);
+  const s = await sdk();
+  const { appId } = await circleConfig();
+  const login = await new Promise<{ userToken: string; encryptionKey: string; email?: string }>((resolve, reject) => {
+    loginHandler = (err, r) => {
+      loginHandler = null;
+      if (err || !r?.userToken) reject(new Error(err?.message || "Google sign-in failed."));
+      else resolve({ userToken: r.userToken, encryptionKey: r.encryptionKey, email: r?.oAuthInfo?.socialUserInfo?.email });
+    };
+    // Re-registering configs makes the SDK process the redirect result in the URL.
+    s.updateConfigs({ appSettings: { appId } }, (err, r) => loginHandler?.(err, r));
+  });
+  return finishLogin(login, login.email ?? "Google account");
 }
 
 function requireSession() {
