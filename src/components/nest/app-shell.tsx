@@ -13,7 +13,6 @@ import {
   Waypoints,
   Briefcase,
   Building2,
-  Fuel,
 } from "lucide-react";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
@@ -216,12 +215,11 @@ export function AppShell({
                   href="https://faucet.circle.com/"
                   target="_blank"
                   rel="noreferrer"
-                  title="Get Arc Testnet USDC"
+                  title="Get test USDC"
                   aria-label="Get Arc Testnet USDC from Circle faucet"
-                  className="inline-flex h-9 items-center gap-1.5 rounded-full border border-brand/20 bg-brand/5 px-2.5 text-[11px] font-bold text-brand transition hover:border-brand/35 hover:bg-brand/10 active:scale-[0.98]"
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand/25 bg-brand/5 text-[15px] transition hover:border-brand/40 hover:bg-brand/10 active:scale-[0.96]"
                 >
-                  <Fuel className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Faucet</span>
+                  <span aria-hidden>🚰</span>
                 </a>
               ) : null}
               <WalletHeader />
