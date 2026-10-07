@@ -77,6 +77,21 @@ function applyNestTheme(s: W3SSdk) {
       url: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap",
     },
   });
+  // Nest-branded wording for Circle's setup screens.
+  s.setLocalizations({
+    common: { continue: "Continue", confirm: "Confirm", retry: "Try again" },
+    securityIntros: {
+      headline: "Set up your Nest wallet",
+      headline2: "Secure your wallet",
+      description: "Choose a PIN and a recovery question. They protect your wallet on every device.",
+    },
+    newPincode: { headline: "Create your PIN", headline2: "Create your PIN", subhead: "You'll use this PIN to approve payments." },
+    confirmNewPincode: { headline: "Confirm your PIN", headline2: "Confirm your PIN", subhead: "Enter the same PIN again." },
+    enterPincode: { headline: "Enter your PIN" },
+    securityQuestions: { title: "Recovery question" },
+    emailOtp: { title: "Check your email", subtitle: "Enter the code we sent you.", resend: "Resend code" },
+    socialEmailConfirm: { title: "Confirm your email", headline: "Confirm your email" },
+  });
 }
 
 let sdkPromise: Promise<W3SSdk> | null = null;
