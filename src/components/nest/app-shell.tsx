@@ -108,7 +108,7 @@ function BottomTab({
         <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.45 : 2} />
       </span>
       <span
-        className={`max-w-full truncate text-[10px] font-bold tracking-[-0.01em] transition-colors ${active ? "text-brand" : "text-muted-foreground"}`}
+        className={`max-w-full truncate text-[11px] font-bold tracking-[-0.01em] transition-colors ${active ? "text-brand" : "text-muted-foreground"}`}
       >
         {label}
       </span>
@@ -262,7 +262,7 @@ export function AppShell({
                 key={item.to}
                 to={item.to}
                 preload="intent"
-                className="inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition active:scale-[0.98] hover:border-brand/30 hover:text-foreground"
+                className="inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-card/80 px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm transition active:scale-[0.98] hover:border-brand/30 hover:text-foreground"
               >
                 <item.icon className="h-3.5 w-3.5" />
                 {item.label}
