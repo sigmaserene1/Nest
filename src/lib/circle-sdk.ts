@@ -2,6 +2,7 @@ import type { W3SSdk } from "@circle-fin/w3s-pw-web-sdk";
 import {
   circleConfig,
   circleEmailToken,
+  circleSocialToken,
   circleInitUser,
   circleWallet,
   circleContractCall,
@@ -214,6 +215,56 @@ function clearCircleSecurePopup() {
   document.getElementById("nest-circle-backdrop")?.remove();
 }
 
+const GOOGLE_PENDING_KEY = "nest.circle.googlePending";
+const GOOGLE_CONTEXT_KEY = "nest.circle.googleContext";
+export const CIRCLE_AUTH_COMPLETE_KEY = "nest.circle.authComplete";
+
+type GoogleLoginContext = {
+  appId: string;
+  googleClientId: string;
+  deviceToken: string;
+  deviceEncryptionKey: string;
+  redirectUri: string;
+  startedAt: number;
+};
+
+function readGoogleContext(): GoogleLoginContext | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const value = JSON.parse(
+      window.localStorage.getItem(GOOGLE_CONTEXT_KEY) ?? "null",
+    ) as GoogleLoginContext | null;
+    if (
+      !value?.appId ||
+      !value.googleClientId ||
+      !value.deviceToken ||
+      !value.deviceEncryptionKey ||
+      !value.redirectUri ||
+      Date.now() - value.startedAt > 10 * 60 * 1000
+    ) {
+      return null;
+    }
+    return value;
+  } catch {
+    return null;
+  }
+}
+
+function socialLoginConfig(context: GoogleLoginContext) {
+  return {
+    appSettings: { appId: context.appId },
+    loginConfigs: {
+      deviceToken: context.deviceToken,
+      deviceEncryptionKey: context.deviceEncryptionKey,
+      google: {
+        clientId: context.googleClientId,
+        redirectUri: context.redirectUri,
+        selectAccountPrompt: true,
+      },
+    },
+  };
+}
+
 let sdkPromise: Promise<W3SSdk> | null = null;
 let loginHandler: ((err: { message?: string } | undefined, r: any) => void) | null = null;
 
@@ -221,7 +272,8 @@ async function sdk() {
   if (!sdkPromise) {
     sdkPromise = (async () => {
       const { appId } = await circleConfig();
-      if (!appId) throw new Error("Circle email login is not configured.");
+      if (!appId) throw new Error("Circle wallet login is not configured.");
+
       // Circle's SDK dependencies expect Node's `process`/`Buffer` globals.
       const g = globalThis as any;
       if (!g.process) {
@@ -230,15 +282,30 @@ async function sdk() {
           browser: true,
           version: "",
           versions: {},
-          nextTick: (fn: (...a: unknown[]) => void, ...args: unknown[]) => queueMicrotask(() => fn(...args)),
+          nextTick: (fn: (...a: unknown[]) => void, ...args: unknown[]) =>
+            queueMicrotask(() => fn(...args)),
         };
       } else {
         g.process.env ??= {};
-        g.process.nextTick ??= (fn: (...a: unknown[]) => void, ...args: unknown[]) => queueMicrotask(() => fn(...args));
+        g.process.nextTick ??= (fn: (...a: unknown[]) => void, ...args: unknown[]) =>
+          queueMicrotask(() => fn(...args));
       }
       if (!g.Buffer) g.Buffer = (await import("buffer")).Buffer;
+
       const { W3SSdk } = await import("@circle-fin/w3s-pw-web-sdk");
-      const instance = new W3SSdk({ appSettings: { appId } }, (err, r) => loginHandler?.(err, r));
+      const pendingGoogle =
+        typeof window !== "undefined" &&
+        !!window.localStorage.getItem(GOOGLE_PENDING_KEY);
+      const savedGoogle = pendingGoogle ? readGoogleContext() : null;
+      const initialConfig =
+        savedGoogle && savedGoogle.appId === appId
+          ? socialLoginConfig(savedGoogle)
+          : { appSettings: { appId } };
+
+      // On an OAuth return, Circle checks window.location.hash during SDK
+      // construction. The social device credentials therefore MUST be restored
+      // in the constructor, not added afterwards.
+      const instance = new W3SSdk(initialConfig, (err, r) => loginHandler?.(err, r));
       applyNestTheme(instance);
       return instance;
     })();
@@ -304,36 +371,116 @@ export async function loginWithEmail(email: string): Promise<CircleSession> {
   return finishLogin(login, email);
 }
 
-const GOOGLE_PENDING_KEY = "nest.circle.googlePending";
-
 /**
- * Google login: redirects the page to Google, then back here. The result is
- * picked up by resumeGoogleLogin() on the next page load.
+ * Google login: create Circle's social-login device credentials first, then
+ * redirect to Google. The context is persisted so Circle can verify the OAuth
+ * response after the full-page redirect.
  */
 export async function loginWithGoogle(): Promise<void> {
   const s = await sdk();
+  const { appId, googleClientId } = await circleConfig();
+  if (!appId) throw new Error("Circle wallet login is not configured.");
+  if (!googleClientId) {
+    throw new Error(
+      "Google sign-in needs CIRCLE_GOOGLE_CLIENT_ID in the deployment environment.",
+    );
+  }
+
+  const deviceId = await s.getDeviceId();
+  const tokens = await circleSocialToken({ data: { deviceId } });
+  const context: GoogleLoginContext = {
+    appId,
+    googleClientId,
+    deviceToken: tokens.deviceToken,
+    deviceEncryptionKey: tokens.deviceEncryptionKey,
+    // Keep the OAuth callback on the site root so existing Google Console
+    // redirect configuration for https://nestarc.xyz continues to work.
+    redirectUri: window.location.origin,
+    startedAt: Date.now(),
+  };
+
+  window.localStorage.setItem(GOOGLE_CONTEXT_KEY, JSON.stringify(context));
   window.localStorage.setItem(GOOGLE_PENDING_KEY, "1");
+  window.localStorage.removeItem(CIRCLE_AUTH_COMPLETE_KEY);
+
+  let startError: Error | null = null;
+  loginHandler = (err) => {
+    if (err) startError = new Error(err.message || "Google sign-in failed.");
+  };
+
+  s.updateConfigs(socialLoginConfig(context), (err, r) => loginHandler?.(err, r));
+  applyNestTheme(s);
+
   // v1.1.x accepts the provider value at runtime but does not export its
   // SocialLoginProvider enum from the package root.
   await (s.performLogin as unknown as (provider: string) => Promise<void>)("Google");
+
+  if (startError) {
+    loginHandler = null;
+    window.localStorage.removeItem(GOOGLE_PENDING_KEY);
+    window.localStorage.removeItem(GOOGLE_CONTEXT_KEY);
+    throw startError;
+  }
 }
 
 /** After the Google redirect back, complete the login and create/restore the wallet. */
 export async function resumeGoogleLogin(): Promise<CircleSession | null> {
-  if (typeof window === "undefined" || !window.localStorage.getItem(GOOGLE_PENDING_KEY)) return null;
-  window.localStorage.removeItem(GOOGLE_PENDING_KEY);
-  const s = await sdk();
-  const { appId } = await circleConfig();
-  const login = await new Promise<{ userToken: string; encryptionKey: string; email?: string }>((resolve, reject) => {
-    loginHandler = (err, r) => {
-      loginHandler = null;
-      if (err || !r?.userToken) reject(new Error(err?.message || "Google sign-in failed."));
-      else resolve({ userToken: r.userToken, encryptionKey: r.encryptionKey, email: r?.oAuthInfo?.socialUserInfo?.email });
-    };
-    // Re-registering configs makes the SDK process the redirect result in the URL.
-    s.updateConfigs({ appSettings: { appId } }, (err, r) => loginHandler?.(err, r));
-  });
-  return finishLogin(login, login.email ?? "Google account");
+  if (
+    typeof window === "undefined" ||
+    !window.localStorage.getItem(GOOGLE_PENDING_KEY)
+  ) {
+    return null;
+  }
+
+  const context = readGoogleContext();
+  if (!context) {
+    window.localStorage.removeItem(GOOGLE_PENDING_KEY);
+    window.localStorage.removeItem(GOOGLE_CONTEXT_KEY);
+    throw new Error("Google sign-in expired. Please try again.");
+  }
+
+  try {
+    const loginPromise = new Promise<{
+      userToken: string;
+      encryptionKey: string;
+      email?: string;
+    }>((resolve, reject) => {
+      const timeout = window.setTimeout(() => {
+        loginHandler = null;
+        reject(new Error("Google sign-in timed out. Please try again."));
+      }, 30_000);
+
+      loginHandler = (err, r) => {
+        window.clearTimeout(timeout);
+        loginHandler = null;
+        if (err || !r?.userToken) {
+          reject(new Error(err?.message || "Google sign-in failed."));
+          return;
+        }
+        resolve({
+          userToken: r.userToken,
+          encryptionKey: r.encryptionKey,
+          email: r?.oAuthInfo?.socialUserInfo?.email,
+        });
+      };
+    });
+
+    // sdk() restores the saved social-login config in its constructor. Circle
+    // then consumes the Google OAuth hash and calls loginHandler.
+    await sdk();
+    const login = await loginPromise;
+    const session = await finishLogin(login, login.email ?? "Google account");
+
+    window.localStorage.removeItem(GOOGLE_PENDING_KEY);
+    window.localStorage.removeItem(GOOGLE_CONTEXT_KEY);
+    window.localStorage.setItem(CIRCLE_AUTH_COMPLETE_KEY, "1");
+    return session;
+  } catch (error) {
+    loginHandler = null;
+    window.localStorage.removeItem(GOOGLE_PENDING_KEY);
+    window.localStorage.removeItem(GOOGLE_CONTEXT_KEY);
+    throw error;
+  }
 }
 
 function requireSession() {
