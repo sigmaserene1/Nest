@@ -145,8 +145,20 @@ function useEnterApp() {
     if (!o) setRequested(false);
   };
 
+  const onAuthenticated = () => {
+    setRequested(false);
+    setError(null);
+    setDialogOpen(false);
+    void navigate({ to: "/app" });
+  };
+
   const dialog = (
-    <SignInDialog open={dialogOpen} onOpenChange={onDialogChange} onWallet={openWallet} />
+    <SignInDialog
+      open={dialogOpen}
+      onOpenChange={onDialogChange}
+      onWallet={openWallet}
+      onAuthenticated={onAuthenticated}
+    />
   );
 
   return { enter, error, pending: requested && !dialogOpen, dialog };
