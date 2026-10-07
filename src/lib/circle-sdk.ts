@@ -1,5 +1,4 @@
 import type { W3SSdk } from "@circle-fin/w3s-pw-web-sdk";
-import { SocialLoginProvider } from "@circle-fin/w3s-pw-web-sdk";
 import {
   circleConfig,
   circleEmailToken,
@@ -190,8 +189,9 @@ const GOOGLE_PENDING_KEY = "nest.circle.googlePending";
 export async function loginWithGoogle(): Promise<void> {
   const s = await sdk();
   window.localStorage.setItem(GOOGLE_PENDING_KEY, "1");
-  const { SocialLoginProvider } = await import("@circle-fin/w3s-pw-web-sdk");
-  await s.performLogin(SocialLoginProvider.Google);
+  // v1.1.x accepts the provider value at runtime but does not export its
+  // SocialLoginProvider enum from the package root.
+  await (s.performLogin as unknown as (provider: string) => Promise<void>)("Google");
 }
 
 /** After the Google redirect back, complete the login and create/restore the wallet. */
