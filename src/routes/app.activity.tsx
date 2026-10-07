@@ -55,7 +55,7 @@ function ActivityPage() {
           <button
             key={c}
             onClick={() => setF(c)}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
+            className={`min-h-9 shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
               f === c ? "bg-foreground text-background" : "bg-card text-muted-foreground ring-1 ring-black/[0.04]"
             }`}
           >
@@ -84,7 +84,7 @@ function ActivityPage() {
               <Item
                 as="li"
                 key={a.id}
-                className={`flex items-center gap-3 rounded-2xl p-3 transition-colors hover:bg-muted/50 ${i !== filtered.length - 1 ? "border-b border-border/60" : ""}`}
+                className={`flex items-center gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${i !== filtered.length - 1 ? "border-b border-border/60" : ""}`}
               >
                 <div className="relative">
                   <MemberAvatar member={m} size={42} />
@@ -101,7 +101,7 @@ function ActivityPage() {
                 </div>
                 {a.amount != null && (
                   <div
-                    className={`text-sm font-bold tabular-nums ${
+                    className={`shrink-0 text-right text-sm font-bold tabular-nums ${
                       a.kind === "settlement"
                         ? "text-red-500"
                         : a.kind === "transfer"
