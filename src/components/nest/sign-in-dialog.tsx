@@ -52,8 +52,10 @@ export function SignInDialog({ open, onOpenChange, onWallet }: Props) {
     setBusy("google");
     setError(null);
     try {
+      // Circle uses a full-page Google OAuth redirect. Keep this dialog in its
+      // loading state until navigation takes over instead of briefly dropping
+      // the user back on the landing page.
       await signInWithGoogle();
-      reset(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start Google sign-in.");
       setBusy(null);
