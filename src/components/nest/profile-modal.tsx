@@ -28,13 +28,13 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
     <div
 
 
-      className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
     >
       <div
 
 
 
-        className="glass-strong w-full max-w-md rounded-t-[32px] p-6 sm:rounded-[32px]"
+        className="mobile-sheet glass-strong w-[calc(100%-0.75rem)] max-w-md rounded-[30px] p-5 sm:w-full sm:p-6"
       >
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold">Claim your name</h3>
@@ -56,7 +56,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           onChange={(e) => setName(e.target.value)}
           placeholder="Alex Chen"
           autoFocus
-          className="mt-5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+          className="mt-5 min-h-12 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-base outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
         />
         {error && (
           <div className="mt-3 rounded-2xl bg-brand/10 p-3 text-xs font-semibold text-brand">
