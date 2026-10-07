@@ -53,7 +53,7 @@ function CopyBtn({ value, label }: { value: string; label: string }) {
         setTimeout(() => setDone(false), 1400);
       }}
       aria-label={label}
-      className="grid h-6 w-6 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-black/5 hover:text-foreground"
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted-foreground transition hover:bg-black/5 hover:text-foreground active:scale-[0.96]"
     >
       {done ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
@@ -93,7 +93,7 @@ function ReceiptsPage() {
         </div>
       }
     >
-      <Card className="mt-4 flex items-center justify-between">
+      <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
             Total settled by you
