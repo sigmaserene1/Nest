@@ -7,6 +7,10 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+const rpcWebsocketsBrowserEntry = fileURLToPath(
+  new URL("./node_modules/rpc-websockets/dist/index.browser.mjs", import.meta.url),
+);
+
 export default defineConfig({
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
@@ -14,6 +18,18 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    // Circle App Kit includes Solana-capable dependencies even when Nest is
+    // using only an EVM Arc adapter. Cloudflare/TanStack SSR does not provide
+    // rpc-websockets' "browser"/"node" export conditions, so resolve that
+    // transitive dependency explicitly to its published browser ESM entry.
+    resolve: {
+      alias: [
+        {
+          find: /^rpc-websockets$/,
+          replacement: rpcWebsocketsBrowserEntry,
+        },
+      ],
+    },
     // Pre-bundle the router packages so Vite never lazily re-optimizes them
     // mid-session — that race orphans chunks holding the old React module and
     // crashes every page with "Cannot read properties of null (reading 'use')"
