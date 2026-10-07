@@ -111,6 +111,7 @@ function applyNestTheme(s: W3SSdk) {
   });
 
   s.setResources({
+    emailIcon: "https://nestarc.xyz/favicon.ico",
     fontFamily: {
       name: "Plus Jakarta Sans",
       url: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
@@ -153,6 +154,64 @@ function applyNestTheme(s: W3SSdk) {
       headline: "Confirm your email",
     },
   });
+}
+
+
+function styleCircleSecurePopup() {
+  if (typeof document === "undefined") return;
+
+  const ensure = () => {
+    const iframe = document.getElementById("sdkIframe") as HTMLIFrameElement | null;
+    if (!iframe) return false;
+
+    let backdrop = document.getElementById("nest-circle-backdrop");
+    if (!backdrop) {
+      backdrop = document.createElement("div");
+      backdrop.id = "nest-circle-backdrop";
+      Object.assign(backdrop.style, {
+        position: "fixed",
+        inset: "0",
+        zIndex: "2147483646",
+        background: "rgba(11,13,18,.58)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+      });
+      document.body.appendChild(backdrop);
+    }
+
+    Object.assign(iframe.style, {
+      width: "min(92vw, 430px)",
+      height: "min(78vh, 620px)",
+      maxHeight: "620px",
+      border: "1px solid rgba(255,255,255,.10)",
+      borderRadius: "28px",
+      overflow: "hidden",
+      boxShadow: "0 28px 80px rgba(0,0,0,.35)",
+      background: "#FBFAF8",
+    });
+
+    // Circle removes the iframe itself when verification closes. Clean the
+    // Nest backdrop at the same time so no overlay can get stranded.
+    const observer = new MutationObserver(() => {
+      if (!document.getElementById("sdkIframe")) {
+        document.getElementById("nest-circle-backdrop")?.remove();
+        observer.disconnect();
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return true;
+  };
+
+  if (ensure()) return;
+  let tries = 0;
+  const timer = window.setInterval(() => {
+    tries += 1;
+    if (ensure() || tries >= 20) window.clearInterval(timer);
+  }, 25);
+}
+
+function clearCircleSecurePopup() {
+  document.getElementById("nest-circle-backdrop")?.remove();
 }
 
 let sdkPromise: Promise<W3SSdk> | null = null;
@@ -232,6 +291,7 @@ export async function loginWithEmail(email: string): Promise<CircleSession> {
   const { appId } = await circleConfig();
   const login = await new Promise<{ userToken: string; encryptionKey: string }>((resolve, reject) => {
     loginHandler = (err, r) => {
+      clearCircleSecurePopup();
       loginHandler = null;
       if (err || !r?.userToken) reject(new Error(err?.message || "Email verification failed."));
       else resolve({ userToken: r.userToken, encryptionKey: r.encryptionKey });
@@ -239,6 +299,7 @@ export async function loginWithEmail(email: string): Promise<CircleSession> {
     s.updateConfigs({ appSettings: { appId }, loginConfigs: tokens }, (err, r) => loginHandler?.(err, r));
     applyNestTheme(s);
     s.verifyOtp();
+    styleCircleSecurePopup();
   });
   return finishLogin(login, email);
 }
