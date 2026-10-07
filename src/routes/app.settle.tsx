@@ -115,12 +115,12 @@ function Settle() {
     >
       <div className="mt-6 grid gap-5 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-4">
-          <Card className="!p-6 bg-gradient-to-br from-foreground to-slate-800 text-background ring-0">
+          <Card className="!p-5 bg-gradient-to-br from-foreground to-slate-800 text-background ring-0 sm:!p-6">
             <div className="text-[11px] font-semibold uppercase tracking-widest text-background/60">
               Total to pay
             </div>
             <div className="mt-2 flex items-baseline gap-2">
-              <div className="text-5xl font-bold tracking-tight tabular-nums">{fmtUSD(total)}</div>
+              <div className="text-4xl font-bold tracking-[-0.04em] tabular-nums sm:text-5xl">{fmtUSD(total)}</div>
               <span className="text-sm font-semibold text-background/60">USDC</span>
             </div>
             <div className="mt-3 flex items-center gap-2 text-xs text-background/70">
@@ -184,7 +184,7 @@ function Settle() {
               {mine.map((d, i) => {
                 const to = getMember(d.toId);
                 return (
-                  <li key={i} className="flex items-center gap-3 rounded-2xl bg-muted/50 p-3">
+                  <li key={i} className="flex flex-wrap items-center gap-3 rounded-2xl bg-muted/50 p-3 sm:flex-nowrap">
                     <MemberAvatar member={to} size={40} ring />
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold">{to.name}</div>
@@ -200,7 +200,7 @@ function Settle() {
                     </div>
                     <button
                       onClick={() => setActive(d)}
-                      className="ml-2 inline-flex items-center gap-1 rounded-full btn-gradient px-3 py-2 text-xs font-bold"
+                      className="inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-xl btn-gradient px-3 py-2 text-xs font-bold sm:ml-2 sm:w-auto sm:rounded-full"
                     >
                       Pay <ArrowRight className="h-3 w-3" />
                     </button>
