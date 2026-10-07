@@ -95,6 +95,18 @@ function useEnterApp() {
     }
   }, [requested, isConnected, navigate]);
 
+  // Google OAuth reloads the page, so React's local `requested` flag is lost.
+  // Circle sets this marker only after the embedded wallet session is fully
+  // restored; send the user straight into the app once wagmi reconnects it.
+  useEffect(() => {
+    if (!isConnected || typeof window === "undefined") return;
+    if (window.localStorage.getItem("nest.circle.authComplete") !== "1") return;
+    window.localStorage.removeItem("nest.circle.authComplete");
+    setRequested(false);
+    setError(null);
+    void navigate({ to: "/app" });
+  }, [isConnected, navigate]);
+
   useEffect(() => {
     if (wasOpen.current && !connectModalOpen && requested && !isConnected) {
       setRequested(false);
