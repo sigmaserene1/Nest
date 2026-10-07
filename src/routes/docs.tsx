@@ -175,7 +175,7 @@ function DocsPage() {
               title="How Nest uses Circle"
               body="Circle is used where it is actually integrated in the current codebase. Nest does not claim products that are not live."
             />
-            <div className="mt-5 grid gap-4 md:grid-cols-3">
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <Capability
                 icon={KeyRound}
                 title="User-Controlled Wallets"
@@ -191,9 +191,14 @@ function DocsPage() {
                 title="CCTP-preferred bridge"
                 body="Nest requests LI.FI routes with Circle-native CCTP bridges allowed first, then falls back to other supported LI.FI routing when needed."
               />
+              <Capability
+                icon={Fuel}
+                title="Circle Gas Station"
+                body="New Circle wallets are provisioned as ERC-4337 SCAs so an enabled Circle Gas Station policy can sponsor their Arc transactions. Legacy EOA wallets are preserved rather than silently changing a user's address."
+              />
             </div>
             <div className="mt-4 rounded-2xl border border-border bg-muted/35 p-4 text-xs leading-6 text-muted-foreground">
-              <strong className="text-foreground">Not claimed:</strong> the current public docs do not claim Circle Paymaster, Circle Gateway, Circle Mint or autonomous custody. Testnet gas assistance in Nest is separate application logic, not a Circle Paymaster claim.
+              <strong className="text-foreground">Product distinction:</strong> Nest's Arc sponsored-gas path uses Circle Wallets Gas Station for SCA wallets. That is different from Circle's standalone permissionless Circle Paymaster product. Gateway, Circle Mint and autonomous custody are not claimed.
             </div>
           </section>
 
