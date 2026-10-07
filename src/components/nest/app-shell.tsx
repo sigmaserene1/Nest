@@ -100,15 +100,15 @@ function BottomTab({
     <Link
       to={to}
       preload="intent"
-      className="flex flex-1 flex-col items-center gap-1 py-2 active:scale-[0.985]"
+      className="flex min-w-0 flex-1 flex-col items-center gap-1 py-1.5 active:scale-[0.97]"
     >
       <span
-        className={`grid h-9 w-12 place-items-center rounded-2xl transition-all duration-300 ${active ? "bg-foreground text-background shadow-soft" : "text-muted-foreground"}`}
+        className={`grid h-9 w-11 place-items-center rounded-2xl transition-all duration-200 ${active ? "bg-brand/10 text-brand" : "text-muted-foreground"}`}
       >
-        <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.5 : 2} />
+        <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.45 : 2} />
       </span>
       <span
-        className={`text-[10px] font-semibold tracking-wide transition-colors ${active ? "text-foreground" : "text-muted-foreground"}`}
+        className={`max-w-full truncate text-[10px] font-bold tracking-[-0.01em] transition-colors ${active ? "text-brand" : "text-muted-foreground"}`}
       >
         {label}
       </span>
@@ -137,7 +137,7 @@ export function AppShell({
   const myName = displayName ?? "You";
 
   return (
-    <div className="app-canvas min-h-screen text-foreground">
+    <div className="app-canvas min-h-[100dvh] text-foreground">
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col p-4 lg:flex">
         <div className="glass-strong flex h-full flex-col rounded-3xl p-4">
@@ -195,21 +195,13 @@ export function AppShell({
 
       {/* Main area */}
       <div className="lg:pl-72">
-        <header className="sticky top-0 z-20 border-b border-border/60 bg-background/70 backdrop-blur-xl">
-          <div className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6 lg:px-8">
-            <div className="flex min-w-0 items-center gap-3 lg:hidden">
+        <header className="mobile-app-header sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-2xl">
+          <div className="mx-auto grid min-h-14 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-2.5 sm:min-h-16 sm:px-6 lg:px-8">
+            <div className="flex min-w-0 items-center lg:hidden">
               <NestLogo />
-              <Link
-                to="/app/profile"
-                preload="intent"
-                className="shrink-0 active:scale-[0.95]"
-                aria-label="Open your profile"
-              >
-                <MemberAvatar member={{ ...me, name: myName }} size={32} ring />
-              </Link>
             </div>
             <div className="hidden min-w-0 lg:block" />
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
               {wallet.environment === "testnet" ? (
                 <a
                   href="https://faucet.circle.com/"
@@ -217,7 +209,7 @@ export function AppShell({
                   rel="noreferrer"
                   title="Get test USDC"
                   aria-label="Get Arc Testnet USDC from Circle faucet"
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-brand/25 bg-brand/5 text-[15px] transition hover:border-brand/40 hover:bg-brand/10 active:scale-[0.96]"
+                  className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand/20 bg-brand/5 text-[14px] shadow-sm transition hover:border-brand/40 hover:bg-brand/10 active:scale-[0.94]"
                 >
                   <span aria-hidden>🚰</span>
                 </a>
@@ -264,13 +256,13 @@ export function AppShell({
 
         {/* Secondary sections — the bottom bar only holds the five primary tabs */}
         <div className="scroll-clean mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 lg:hidden">
-          <div className="flex w-max gap-2">
+          <div className="flex w-max gap-2 pb-0.5">
             {visibleDesktopExtra.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 preload="intent"
-                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-muted/70 px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+                className="inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition active:scale-[0.98] hover:border-brand/30 hover:text-foreground"
               >
                 <item.icon className="h-3.5 w-3.5" />
                 {item.label}
@@ -279,24 +271,24 @@ export function AppShell({
           </div>
         </div>
         {greeting && (
-          <div className="mx-auto max-w-6xl px-4 pt-5 sm:px-6 lg:px-8">{greeting}</div>
+          <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">{greeting}</div>
         )}
-        <main className="mx-auto max-w-6xl px-4 pb-32 pt-4 sm:px-6 lg:px-8 lg:pb-12">
+        <main className="mobile-safe-main mx-auto max-w-6xl px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8 lg:pb-12">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
 
 
       {/* Mobile bottom nav */}
-      <nav className="fixed bottom-3 left-1/2 z-40 w-[calc(100%-1.5rem)] max-w-md -translate-x-1/2 lg:hidden">
-        <div className="glass-strong relative flex items-center rounded-[28px] px-2 py-1.5">
+      <nav className="mobile-bottom-nav fixed left-1/2 z-40 w-[calc(100%-1rem)] max-w-[430px] -translate-x-1/2 lg:hidden">
+        <div className="glass-strong relative flex min-h-[66px] items-center rounded-[26px] border-border/75 px-1.5 py-1.5 shadow-[0_16px_48px_rgba(15,23,42,0.16)]">
           <BottomTab to="/app" label="Home" icon={Home} exact />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
-          <div className="relative -mt-8 mx-1">
+          <div className="relative -mt-7 mx-0.5">
             {onFabClick ? (
               <button
                 onClick={onFabClick}
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-background"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition active:scale-[0.96]"
                 aria-label="Quick action"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
@@ -305,10 +297,10 @@ export function AppShell({
               <Link
                 to="/app/settle"
                 preload="intent"
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient animate-pulse-brand ring-4 ring-background"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition active:scale-[0.96]"
                 aria-label="Settle up"
               >
-                <Plus className="h-6 w-6" strokeWidth={2.5} />
+                <ArrowLeftRight className="h-5 w-5" strokeWidth={2.4} />
               </Link>
             )}
           </div>
@@ -334,7 +326,7 @@ export function Card({
   [k: string]: unknown;
 }) {
   return (
-    <As className={`card-premium p-5 ${className}`} {...rest}>
+    <As className={`card-premium p-4 sm:p-5 ${className}`} {...rest}>
       {children}
     </As>
   );
