@@ -16,6 +16,7 @@ The original household experience remains supported. The same contract-backed wo
 - Settle wallet-to-wallet through the USDC ERC-20 interface on Arc Testnet.
 - Fund Arc from six EVM testnets through Circle CCTP v2.
 - Plan weighted syndicate payouts and send them directly in USDC.
+- Provision new Circle email/social wallets as Arc Testnet SCAs for Circle Gas Station sponsorship when a matching policy is enabled in Circle Console. Existing legacy EOA wallets are preserved.
 - Queue client-side assisted settlements with dust filters and per-run caps.
 - Retain transaction-linked receipts and inspect activity in Arcscan.
 
