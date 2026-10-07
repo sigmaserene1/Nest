@@ -13,9 +13,15 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onWallet: () => void;
+  onAuthenticated: () => void;
 };
 
-export function SignInDialog({ open, onOpenChange, onWallet }: Props) {
+export function SignInDialog({
+  open,
+  onOpenChange,
+  onWallet,
+  onAuthenticated,
+}: Props) {
   const { signIn, signInWithGoogle } = useEmailAuth();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | null>(null);
@@ -40,7 +46,12 @@ export function SignInDialog({ open, onOpenChange, onWallet }: Props) {
     setBusy("email");
     setError(null);
     try {
+      // loginWithEmail resolves only after Circle has verified the OTP,
+      // initialized/restored the wallet and persisted the Nest Circle session.
+      // Move straight into /app; AppLayout will wait for wagmi to reconnect the
+      // embedded connector instead of leaving the user on the landing page.
       await signIn(normalized);
+      onAuthenticated();
       reset(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start secure email sign-in.");
