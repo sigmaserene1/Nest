@@ -4,7 +4,7 @@ import type { HTMLAttributes, ReactNode } from "react";
 
 export function PageTransition({ children }: { children: ReactNode }) {
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-1 duration-150 ease-out motion-reduce:animate-none">
+    <div className="animate-in fade-in slide-in-from-bottom-1 duration-100 ease-out motion-reduce:animate-none">
       {children}
     </div>
   );
@@ -19,7 +19,7 @@ export function Stagger({
   className?: string;
 }) {
   return (
-    <div className={`animate-in fade-in duration-150 motion-reduce:animate-none ${className ?? ""}`}>
+    <div className={`animate-in fade-in duration-100 motion-reduce:animate-none ${className ?? ""}`}>
       {children}
     </div>
   );
@@ -38,7 +38,7 @@ export function Item({
   const Tag = as as "div";
   return (
     <Tag
-      className={`animate-in fade-in slide-in-from-bottom-1 duration-150 motion-reduce:animate-none ${className ?? ""}`}
+      className={`animate-in fade-in slide-in-from-bottom-1 duration-100 motion-reduce:animate-none ${className ?? ""}`}
       {...rest}
     >
       {children}
@@ -53,7 +53,7 @@ export function Tap({
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
     <div
-      className={`transition-transform duration-150 active:scale-[0.99] motion-reduce:transition-none ${className ?? ""}`}
+      className={`transition-transform duration-100 active:scale-[0.99] motion-reduce:transition-none ${className ?? ""}`}
       {...rest}
     >
       {children}
@@ -71,7 +71,7 @@ export function Reveal({
 }) {
   return (
     <div
-      className={`animate-in fade-in slide-in-from-bottom-1 duration-200 motion-reduce:animate-none ${className ?? ""}`}
+      className={`animate-in fade-in slide-in-from-bottom-1 duration-125 motion-reduce:animate-none ${className ?? ""}`}
     >
       {children}
     </div>
