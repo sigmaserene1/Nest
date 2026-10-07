@@ -15,9 +15,8 @@ function readSession(): Session | null {
 }
 
 /**
- * Email sign-in through Circle User-Controlled Wallets. Circle sends and
- * checks the email code in its own secure window, then the user's Circle
- * wallet is connected to the app through wagmi.
+ * Sign-in through Circle User-Controlled Wallets. Circle handles email OTP or
+ * Google OAuth, then the user's Circle wallet is connected through wagmi.
  */
 export function useEmailAuth() {
   const { connectAsync, connectors } = useConnect();
@@ -27,8 +26,23 @@ export function useEmailAuth() {
 
   useEffect(() => {
     let expiryTimer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+
     const sync = async () => {
       if (expiryTimer) clearTimeout(expiryTimer);
+
+      // Google OAuth returns to the app after Circle completes the provider
+      // redirect. Resume that pending flow before reading the local session.
+      if (window.localStorage.getItem("nest.circle.googlePending")) {
+        try {
+          const { resumeGoogleLogin } = await import("@/lib/circle-sdk");
+          await resumeGoogleLogin();
+        } catch (error) {
+          console.error("Could not finish Circle Google sign-in", error);
+        }
+      }
+
+      if (cancelled) return;
       const s = readSession();
       setSession(s);
       if (s) {
@@ -48,12 +62,14 @@ export function useEmailAuth() {
           clearActiveEmbeddedSession();
         }, Math.max(0, remaining));
       }
-      setReady(true);
+      if (!cancelled) setReady(true);
     };
+
     void sync();
     const onChange = () => void sync();
     window.addEventListener("nest-circle-session", onChange);
     return () => {
+      cancelled = true;
       if (expiryTimer) clearTimeout(expiryTimer);
       window.removeEventListener("nest-circle-session", onChange);
     };
@@ -65,9 +81,21 @@ export function useEmailAuth() {
     await loginWithEmail(email);
   }, []);
 
+  const signInWithGoogle = useCallback(async () => {
+    const { loginWithGoogle } = await import("@/lib/circle-sdk");
+    await loginWithGoogle();
+  }, []);
+
   const signOut = useCallback(async () => {
     clearActiveEmbeddedSession();
   }, []);
 
-  return { ready, userId: session?.address ?? null, email: session?.email ?? null, signIn, signOut };
+  return {
+    ready,
+    userId: session?.address ?? null,
+    email: session?.email ?? null,
+    signIn,
+    signInWithGoogle,
+    signOut,
+  };
 }
