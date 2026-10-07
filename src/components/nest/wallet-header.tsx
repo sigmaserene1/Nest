@@ -30,7 +30,7 @@ export function WalletHeader() {
           type="button"
           onClick={() => changeEnvironment(environment === "mainnet" ? "testnet" : "mainnet")}
           disabled={isSwitching}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-bold shadow-sm transition active:scale-[0.97] sm:hidden ${
+          className={`inline-flex h-9 items-center gap-1.5 rounded-full border px-2.5 text-[11px] font-bold shadow-sm transition active:scale-[0.97] sm:hidden ${
             environment === "mainnet"
               ? "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
               : "border-sky-500/25 bg-sky-500/10 text-sky-700 dark:text-sky-300"
