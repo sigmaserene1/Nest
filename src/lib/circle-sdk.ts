@@ -1,4 +1,5 @@
 import type { W3SSdk } from "@circle-fin/w3s-pw-web-sdk";
+import { SocialLoginProvider } from "@circle-fin/w3s-pw-web-sdk";
 import {
   circleConfig,
   circleEmailToken,
