@@ -707,6 +707,21 @@ html {
   }
 }
 
+@media (hover: none) and (pointer: coarse) {
+  /* Mobile should acknowledge a press on the very next painted frame.
+     Keep feedback compositor-only so it never waits on layout/network work. */
+  button:not(:disabled) {
+    transition-duration: 80ms !important;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  button:not(:disabled):active {
+    transform: scale(0.975);
+    filter: brightness(0.97);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
