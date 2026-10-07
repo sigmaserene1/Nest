@@ -8,7 +8,6 @@ import {
   circleContractCall,
   circleSign,
   circleLatestTxHash,
-  circleSponsorGas,
 } from "@/lib/circle-wallet.functions";
 
 /** Browser-only Circle wallet session helpers. */
@@ -526,8 +525,10 @@ function requireSession() {
 export async function circleSendTransaction(tx: { to: string; data?: string; value?: string }) {
   const session = requireSession();
   const s = await sdk();
-  // Sponsor gas for new/empty email wallets before asking Circle to send.
-  await circleSponsorGas({ data: { userToken: session.userToken } }).catch(() => null);
+  // New Circle users are provisioned as SCAs. If a matching Circle Gas
+  // Station policy is enabled in Console, Circle sponsors the ERC-4337 gas
+  // for this Wallets transaction. Existing legacy EOA users are not silently
+  // migrated because doing so would change their Nest wallet address.
   const since = new Date(Date.now() - 5000).toISOString();
   const { challengeId } = await circleContractCall({
     data: {
