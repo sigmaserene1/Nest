@@ -29,7 +29,7 @@ Nest does not claim a global minimum-transfer algorithm, autonomous custody, Cir
 0x709cbAd88162b999882788155cde79aDe46A6D42
 ```
 
-[Inspect the deployment on Arcscan](https://testnet.arcscan.app/address/0x709cbAd88162b999882788155cde79aDe46A6D42).
+[Inspect the deployment on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x709cbAd88162b999882788155cde79aDe46A6D42).
 
 The contract stores rooms, membership, expenses, member shares, settlement status, and activity. Expense settlement does not require Nest to pool customer funds: approved USDC moves from the caller to the expense payer.
 
@@ -42,7 +42,7 @@ The contract stores rooms, membership, expenses, member shares, settlement statu
 | USDC ERC-20 interface | `0x3600000000000000000000000000000000000000` |
 | CCTP domain           | `26`                                         |
 | Primary RPC           | `https://rpc.testnet.arc.network`            |
-| Explorer              | `https://testnet.arcscan.app`                |
+| Explorer              | `https://explorer.testnet.arc.io`           |
 
 All balances and transactions shown by the current deployment use testnet assets with no real-world monetary value.
 
