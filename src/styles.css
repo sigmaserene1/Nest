@@ -136,7 +136,8 @@
     font-family: var(--font-sans);
   }
   body {
-    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
     background:
       radial-gradient(
         circle at 82% -12%,
@@ -240,10 +241,12 @@
 }
 
 @utility card-premium {
-  background: color-mix(in oklab, var(--card) 94%, transparent);
+  background: color-mix(in oklab, var(--card) 96%, transparent);
   border: 1px solid color-mix(in oklab, var(--color-border) 92%, transparent);
-  border-radius: 1.25rem;
-  box-shadow: var(--shadow-card);
+  border-radius: 1.5rem;
+  box-shadow:
+    0 1px 0 color-mix(in oklab, #fff 72%, transparent) inset,
+    0 10px 30px rgb(15 23 42 / 0.055);
   backdrop-filter: blur(16px);
   transition:
     transform 180ms ease,
@@ -637,11 +640,70 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Mobile: slightly smaller root scale so type, buttons and spacing feel
-   app-like instead of blown-up desktop text. */
+/* Mobile app shell: keep native-sized type and controls instead of shrinking
+   the whole UI. Safe-area helpers keep controls clear of phone cutouts/bars. */
+.mobile-app-header {
+  padding-top: max(0px, env(safe-area-inset-top));
+}
+
+.mobile-bottom-nav {
+  bottom: max(0.65rem, env(safe-area-inset-bottom));
+}
+
+.mobile-safe-main {
+  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
+}
+
+.mobile-sheet {
+  margin-bottom: max(0.4rem, env(safe-area-inset-bottom));
+}
+
 @media (max-width: 640px) {
   html {
-    font-size: 93.75%;
+    font-size: 100%;
+  }
+
+  body {
+    background:
+      radial-gradient(
+        circle at 88% -8%,
+        color-mix(in oklab, var(--brand) 8%, transparent),
+        transparent 23rem
+      ),
+      var(--color-background);
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .app-canvas {
+    min-height: 100dvh;
+  }
+
+  .app-canvas::before {
+    height: 13rem;
+    opacity: 0.72;
+  }
+
+  .card-premium {
+    border-radius: 1.45rem;
+    box-shadow:
+      0 1px 0 color-mix(in oklab, #fff 66%, transparent) inset,
+      0 7px 22px rgb(15 23 42 / 0.05);
+  }
+
+  .glass,
+  .glass-strong {
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+  }
+
+  button,
+  a[role="button"] {
+    -webkit-touch-callout: none;
   }
 }
 
