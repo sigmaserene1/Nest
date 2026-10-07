@@ -101,7 +101,7 @@ function Dashboard() {
 
         className="mt-6"
       >
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-6 text-background shadow-2xl">
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-5 text-background shadow-2xl sm:p-6">
           {/* decorative blobs */}
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/40 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
@@ -119,7 +119,7 @@ function Dashboard() {
               Available balance
             </div>
             <div className="mt-1 flex items-baseline gap-2">
-              <div className="text-5xl font-bold tracking-tight tabular-nums">
+              <div className="text-4xl font-bold tracking-[-0.04em] tabular-nums sm:text-5xl">
                 {wallet.isConnected && wallet.isOnArc ? (
                   <AnimatedNumber value={wallet.usdcBalance} decimals={2} />
                 ) : (
@@ -140,7 +140,7 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="relative mt-6 grid grid-cols-3 gap-2 rounded-2xl bg-white/10 p-3 backdrop-blur">
+          <div className="relative mt-6 grid grid-cols-3 gap-1.5 rounded-2xl bg-white/10 p-3 backdrop-blur sm:gap-2">
             <div>
               <div className="text-[10px] uppercase tracking-wider text-background/60">Net</div>
               <div className={`mt-0.5 text-sm font-bold tabular-nums ${myNet >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
@@ -213,7 +213,7 @@ function Dashboard() {
       </section>
 
       {/* Quick action pills */}
-      <Stagger className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <Stagger className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
         <QuickPill
           onClick={() => action.open("send")}
           label="Send"
@@ -408,7 +408,7 @@ function QuickPill({
       <Tap>
         <button
           onClick={onClick}
-          className="card-premium flex w-full items-center gap-3 p-3.5 text-left transition hover:border-brand/40"
+          className="card-premium flex min-h-[64px] w-full items-center gap-3 p-3 text-left transition active:scale-[0.985] hover:border-brand/40 sm:p-3.5"
         >
           <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${tint}`}>
             {icon}
