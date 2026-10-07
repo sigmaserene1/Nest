@@ -69,7 +69,7 @@ function Analytics() {
               <circle cx="80" cy="80" r={R} strokeWidth="18" stroke="#f1f2f6" fill="none" />
               {catEntries.map(([cat, v]) => {
                 const meta = categoryMeta[cat as keyof typeof categoryMeta];
-                const len = (v / total) * C;
+                const len = total > 0 ? (v / total) * C : 0;
                 const off = C - acc;
                 acc += len;
                 return (
@@ -113,7 +113,7 @@ function Analytics() {
             <ul className="flex-1 space-y-2">
               {catEntries.map(([cat, v]) => {
                 const meta = categoryMeta[cat as keyof typeof categoryMeta];
-                const pct = ((v / total) * 100).toFixed(0);
+                const pct = (total > 0 ? (v / total) * 100 : 0).toFixed(0);
                 return (
                   <li key={cat} className="flex items-center gap-3 rounded-2xl bg-muted/50 p-2.5">
                     <span
@@ -172,7 +172,7 @@ function Analytics() {
             <p className="text-xs text-muted-foreground">Last 6 months</p>
           </div>
         </div>
-        <div className="mt-6 flex h-40 items-end justify-between gap-3">
+        <div className="mt-6 flex h-40 items-end justify-between gap-2 sm:gap-3">
           {[
             { m: "Feb", v: 0.55 },
             { m: "Mar", v: 0.7 },
