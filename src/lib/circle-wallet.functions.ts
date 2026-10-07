@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 /**
- * Circle User-Controlled Wallets (email login) — server side.
+ * Circle User-Controlled Wallets (email + social login) — server side.
  * The Circle API key never leaves the server; the browser only ever holds the
  * short-lived per-user token Circle issues after the email code is verified.
  */
@@ -34,6 +34,12 @@ const token = z.string().min(10).max(4000);
 
 export const circleConfig = createServerFn({ method: "GET" }).handler(async () => ({
   appId: process.env["CIRCLE_APP_ID"] ?? "",
+  googleClientId:
+    process.env["CIRCLE_GOOGLE_CLIENT_ID"] ??
+    process.env["GOOGLE_CLIENT_ID"] ??
+    process.env["VITE_CIRCLE_GOOGLE_CLIENT_ID"] ??
+    process.env["VITE_GOOGLE_CLIENT_ID"] ??
+    "",
 }));
 
 export const circleEmailToken = createServerFn({ method: "POST" })
@@ -43,6 +49,21 @@ export const circleEmailToken = createServerFn({ method: "POST" })
       body: { idempotencyKey: crypto.randomUUID(), email: data.email, deviceId: data.deviceId },
     });
     return { deviceToken: r.deviceToken as string, deviceEncryptionKey: r.deviceEncryptionKey as string, otpToken: r.otpToken as string };
+  });
+
+/** Creates the device credentials required by Circle before Google OAuth starts. */
+export const circleSocialToken = createServerFn({ method: "POST" })
+  .inputValidator((d) =>
+    z.object({ deviceId: z.string().min(1).max(500) }).parse(d),
+  )
+  .handler(async ({ data }) => {
+    const r = await circle("/users/social/token", {
+      body: { idempotencyKey: crypto.randomUUID(), deviceId: data.deviceId },
+    });
+    return {
+      deviceToken: r.deviceToken as string,
+      deviceEncryptionKey: r.deviceEncryptionKey as string,
+    };
   });
 
 /** Creates the user's wallet on first login. Returns a challenge to approve, or null if already set up. */
