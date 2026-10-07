@@ -42,55 +42,116 @@ export function clearCircleSession() {
 /** Styles Circle's secure code/PIN window to match Nest (follows light/dark mode). */
 function applyNestTheme(s: W3SSdk) {
   const dark = document.documentElement.classList.contains("dark");
-  const brand = "#e64a45";
+  const brand = "#E53935";
+  const brandHover = "#D32F2F";
+  const bg = dark ? "#111318" : "#FBFAF8";
+  const raised = dark ? "#171A20" : "#FFFFFF";
+  const text = dark ? "#F7F7F8" : "#17181C";
+  const muted = dark ? "#9CA0AA" : "#6B7280";
+  const border = dark ? "#2B3038" : "#E7E3DE";
+
   s.setThemeColor({
-    backdrop: dark ? "#05060a" : "#0b0d12",
-    backdropOpacity: 0.55,
-    bg: dark ? "#111318" : "#ffffff",
-    divider: dark ? "#23262e" : "#eceef2",
-    textMain: dark ? "#f4f5f7" : "#0b0d12",
-    textMain2: dark ? "#d5d8de" : "#272a31",
-    textAuxiliary: dark ? "#8b909a" : "#6b7280",
-    textAuxiliary2: dark ? "#6b7079" : "#9aa0aa",
-    textPlaceholder: dark ? "#5c616b" : "#a3a8b1",
+    backdrop: "#0B0D12",
+    backdropOpacity: 0.58,
+    bg,
+    divider: border,
+
+    textMain: text,
+    textMain2: text,
+    textAuxiliary: muted,
+    textAuxiliary2: muted,
+    textSummary: text,
+    textSummaryHighlight: brand,
+    textPlaceholder: dark ? "#717680" : "#9AA0A8",
+    textDetailToggle: muted,
     textInteractive: brand,
-    success: "#16a34a",
-    error: "#dc2626",
-    inputBg: dark ? "#0b0d12" : "#f7f8fa",
-    inputText: dark ? "#f4f5f7" : "#0b0d12",
+    interactiveBg: dark ? "#241719" : "#FFF0EF",
+
+    tooltipText: text,
+    tooltipBg: raised,
+
+    inputText: text,
+    inputBg: raised,
+    inputBgDisabled: dark ? "#15171C" : "#F4F2EF",
     inputBorderFocused: brand,
-    inputBorderFocusedError: "#dc2626",
-    pinDotBase: dark ? "#23262e" : "#eceef2",
-    pinDotBaseBorder: dark ? "#2f333c" : "#dfe2e7",
+    inputBorderFocusedError: "#DC2626",
+
+    pinDotBase: raised,
+    pinDotBaseBorder: border,
     pinDotActivated: brand,
-    enteredPinText: dark ? "#f4f5f7" : "#0b0d12",
+    enteredPinText: text,
+
+    dropdownBg: raised,
+    dropdownBorderIsOpen: brand,
+    dropdownBorderError: "#DC2626",
+
     mainBtnBg: brand,
-    mainBtnBgOnHover: "#d43c37",
-    mainBtnBgDisabled: dark ? "#2a1514" : "#f6c9c7",
-    mainBtnText: "#ffffff",
-    mainBtnTextOnHover: "#ffffff",
-    mainBtnTextDisabled: "#ffffff",
+    mainBtnBgOnHover: brandHover,
+    mainBtnBgDisabled: dark ? "#4B2425" : "#F3B8B5",
+    mainBtnText: "#FFFFFF",
+    mainBtnTextOnHover: "#FFFFFF",
+    mainBtnTextDisabled: "#FFFFFF",
+
+    secondBtnText: text,
+    secondBtnTextOnHover: brand,
+    secondBtnTextDisabled: muted,
+    secondBtnBorder: border,
+    secondBtnBorderOnHover: brand,
+    secondBtnBorderDisabled: border,
+    secondBtnBgOnHover: dark ? "#211619" : "#FFF4F3",
+
+    plainBtnText: brand,
+    plainBtnTextOnHover: brandHover,
+    plainBtnTextDisabled: muted,
+    plainBtnBg: "transparent",
+    plainBtnBgOnHover: dark ? "#211619" : "#FFF4F3",
+
+    success: "#16A34A",
+    error: "#DC2626",
   });
+
   s.setResources({
     fontFamily: {
-      name: "Figtree",
-      url: "https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap",
+      name: "Plus Jakarta Sans",
+      url: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap",
     },
   });
-  // Nest-branded wording for Circle's setup screens.
+
+  // Circle owns the secure OTP input itself, but its supported customization
+  // API lets Nest control the surrounding copy, typography and colors.
   s.setLocalizations({
-    common: { continue: "Continue", confirm: "Confirm", retry: "Try again" },
-    securityIntros: {
-      headline: "Set up your Nest wallet",
-      headline2: "Secure your wallet",
-      description: "Choose a PIN and a recovery question. They protect your wallet on every device.",
+    common: {
+      continue: "Continue",
+      confirm: "Confirm",
+      retry: "Try again",
     },
-    newPincode: { headline: "Create your PIN", headline2: "Create your PIN", subhead: "You'll use this PIN to approve payments." },
-    confirmNewPincode: { headline: "Confirm your PIN", headline2: "Confirm your PIN", subhead: "Enter the same PIN again." },
-    enterPincode: { headline: "Enter your PIN" },
+    securityIntros: {
+      headline: "Secure your Nest wallet",
+      headline2: "One last security step",
+      description: "Set up wallet security so only you can approve actions from Nest.",
+    },
+    newPincode: {
+      headline: "Create your Nest PIN",
+      headline2: "Create your Nest PIN",
+      subhead: "Use this PIN to approve protected wallet actions.",
+    },
+    confirmNewPincode: {
+      headline: "Confirm your Nest PIN",
+      headline2: "Confirm your Nest PIN",
+      subhead: "Enter the same PIN again.",
+    },
+    enterPincode: { headline: "Enter your Nest PIN" },
     securityQuestions: { title: "Recovery question" },
-    emailOtp: { title: "Check your email", subtitle: "Enter the code we sent you.", resend: "Resend code" },
-    socialEmailConfirm: { title: "Confirm your email", headline: "Confirm your email" },
+    emailOtp: {
+      title: "Verify your email",
+      subtitle: "Enter the secure code from your email to continue to Nest.",
+      resendHint: "Didn't get the email?",
+      resend: "Send another code",
+    },
+    socialEmailConfirm: {
+      title: "Confirm your email",
+      headline: "Confirm your email",
+    },
   });
 }
 
@@ -128,6 +189,7 @@ async function sdk() {
 }
 
 function runChallenge(s: W3SSdk, auth: { userToken: string; encryptionKey: string }, challengeId: string) {
+  applyNestTheme(s);
   s.setAuthentication(auth);
   return new Promise<any>((resolve, reject) => {
     s.execute(challengeId, (err, result) => {
@@ -175,6 +237,7 @@ export async function loginWithEmail(email: string): Promise<CircleSession> {
       else resolve({ userToken: r.userToken, encryptionKey: r.encryptionKey });
     };
     s.updateConfigs({ appSettings: { appId }, loginConfigs: tokens }, (err, r) => loginHandler?.(err, r));
+    applyNestTheme(s);
     s.verifyOtp();
   });
   return finishLogin(login, email);
