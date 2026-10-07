@@ -159,11 +159,45 @@ function applyNestTheme(s: W3SSdk) {
 
 
 function styleCircleSecurePopup() {
-  if (typeof document === "undefined") return;
+  if (typeof document === "undefined" || typeof window === "undefined") return;
 
   const ensure = () => {
     const iframe = document.getElementById("sdkIframe") as HTMLIFrameElement | null;
     if (!iframe) return false;
+
+    const isMobile = window.matchMedia("(max-width: 640px)").matches;
+
+    // Circle's hosted verification UI is designed as a full-viewport secure
+    // iframe. On phones, do not squeeze it into Nest's desktop popup shell:
+    // shrinking/transformed cross-origin iframes can clip the OTP controls and
+    // make touch/focus unreliable when the mobile keyboard opens.
+    if (isMobile) {
+      document.getElementById("nest-circle-backdrop")?.remove();
+
+      iframe.width = "100%";
+      iframe.height = "100%";
+      Object.assign(iframe.style, {
+        position: "fixed",
+        inset: "0",
+        top: "0",
+        left: "0",
+        width: "100vw",
+        height: "100dvh",
+        maxWidth: "none",
+        maxHeight: "none",
+        margin: "0",
+        transform: "none",
+        border: "0",
+        borderRadius: "0",
+        overflow: "visible",
+        boxShadow: "none",
+        background: "#FBFAF8",
+        zIndex: "2147483647",
+        pointerEvents: "auto",
+        touchAction: "auto",
+      });
+      return true;
+    }
 
     let backdrop = document.getElementById("nest-circle-backdrop");
     if (!backdrop) {
@@ -207,7 +241,7 @@ function styleCircleSecurePopup() {
   let tries = 0;
   const timer = window.setInterval(() => {
     tries += 1;
-    if (ensure() || tries >= 20) window.clearInterval(timer);
+    if (ensure() || tries >= 40) window.clearInterval(timer);
   }, 25);
 }
 
