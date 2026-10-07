@@ -13,6 +13,7 @@ import {
   Waypoints,
   Briefcase,
   Building2,
+  Vault,
 } from "lucide-react";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
@@ -38,6 +39,7 @@ const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
   { to: "/app/agent", label: "Settlement assistant", icon: Bot },
   { to: "/app/bridge", label: "Bridge", icon: Waypoints },
+  { to: "/app/treasury", label: "Treasury", icon: Vault },
   { to: "/app/syndicate", label: "Payouts", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
 ] as const;
