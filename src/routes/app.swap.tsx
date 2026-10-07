@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useSwitchChain } from "wagmi";
 import { formatUnits, type EIP1193Provider } from "viem";
 import type { SwapEstimate, SwapResult } from "@circle-fin/app-kit";
@@ -100,6 +100,15 @@ function SwapPage() {
   const [result, setResult] = useState<SwapResult | null>(null);
   const [busy, setBusy] = useState<"quote" | "swap" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Load App Kit + its viem adapter as soon as the swap screen opens so the
+  // first quote tap does not pay the dynamic-import cost.
+  useEffect(() => {
+    void Promise.all([
+      import("@circle-fin/app-kit"),
+      import("@circle-fin/adapter-viem-v2"),
+    ]).catch(() => {});
+  }, []);
 
   const inputToken = swapTokenFor(environment, tokenIn);
   const outputToken = swapTokenFor(environment, tokenOut);
