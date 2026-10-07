@@ -201,7 +201,7 @@ function ProfilePage() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
+            className={`min-h-9 shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
               tab === t
                 ? "bg-foreground text-background"
                 : "bg-card text-muted-foreground ring-1 ring-black/[0.04]"
