@@ -27,6 +27,7 @@ import { Route as AppMembersRouteImport } from './routes/app.members'
 import { Route as AppProfileRouteImport } from './routes/app.profile'
 import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
 import { Route as AppSettleRouteImport } from './routes/app.settle'
+import { Route as AppSwapRouteImport } from './routes/app.swap'
 import { Route as AppSyndicateRouteImport } from './routes/app.syndicate'
 
 const IndexRoute = IndexRouteImport.update({
@@ -119,6 +120,11 @@ const AppSettleRoute = AppSettleRouteImport.update({
   path: '/settle',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSwapRoute = AppSwapRouteImport.update({
+  id: '/swap',
+  path: '/swap',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSyndicateRoute = AppSyndicateRouteImport.update({
   id: '/syndicate',
   path: '/syndicate',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/app/profile': typeof AppProfileRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
   '/app/': typeof AppIndexRoute
 }
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/app/profile': typeof AppProfileRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
   '/app': typeof AppIndexRoute
 }
@@ -185,6 +193,7 @@ export interface FileRoutesById {
   '/app/profile': typeof AppProfileRoute
   '/app/receipts': typeof AppReceiptsRoute
   '/app/settle': typeof AppSettleRoute
+  '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
   '/app/': typeof AppIndexRoute
 }
@@ -208,6 +217,7 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/swap'
     | '/app/syndicate'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/swap'
     | '/app/syndicate'
     | '/app'
   id:
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/app/profile'
     | '/app/receipts'
     | '/app/settle'
+    | '/app/swap'
     | '/app/syndicate'
     | '/app/'
   fileRoutesById: FileRoutesById
@@ -390,6 +402,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSettleRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/swap': {
+      id: '/app/swap'
+      path: '/swap'
+      fullPath: '/app/swap'
+      preLoaderRoute: typeof AppSwapRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/syndicate': {
       id: '/app/syndicate'
       path: '/syndicate'
@@ -412,6 +431,7 @@ interface AppRouteChildren {
   AppProfileRoute: typeof AppProfileRoute
   AppReceiptsRoute: typeof AppReceiptsRoute
   AppSettleRoute: typeof AppSettleRoute
+  AppSwapRoute: typeof AppSwapRoute
   AppSyndicateRoute: typeof AppSyndicateRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -428,6 +448,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppProfileRoute: AppProfileRoute,
   AppReceiptsRoute: AppReceiptsRoute,
   AppSettleRoute: AppSettleRoute,
+  AppSwapRoute: AppSwapRoute,
   AppSyndicateRoute: AppSyndicateRoute,
   AppIndexRoute: AppIndexRoute,
 }
