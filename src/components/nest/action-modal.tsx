@@ -241,7 +241,7 @@ export function ActionModal({
           <div
 
 
-        className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/50 backdrop-blur-sm sm:items-center"
+        className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
         onClick={stageIsBusy ? undefined : onClose}
       >
         <div
@@ -249,7 +249,7 @@ export function ActionModal({
 
 
           onClick={(e) => e.stopPropagation()}
-          className="glass-strong max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-[32px] p-6 sm:rounded-[32px]"
+          className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto rounded-[30px] p-5 sm:max-h-[92vh] sm:w-full sm:p-6"
         >
           {stage === "form" && (
             <>
