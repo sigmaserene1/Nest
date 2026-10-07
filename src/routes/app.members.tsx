@@ -57,7 +57,7 @@ function MembersPage() {
         </div>
       }
     >
-      <Card className="mt-6 !p-6 bg-gradient-to-br from-brand to-orange-500 text-white ring-0">
+      <Card className="mt-5 !p-5 bg-gradient-to-br from-brand to-orange-500 text-white ring-0 sm:mt-6 sm:!p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
@@ -70,13 +70,13 @@ function MembersPage() {
           </div>
           <button
             onClick={() => setInviteOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-bold text-brand shadow-sm hover:bg-white/90"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-white px-4 py-2.5 text-sm font-bold text-brand shadow-sm hover:bg-white/90 sm:w-auto sm:rounded-full"
           >
             <UserPlus className="h-4 w-4" /> Invite roommate
           </button>
           <button
             onClick={shareInvite}
-            className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-white/20 px-4 py-2.5 text-sm font-semibold backdrop-blur-sm hover:bg-white/25 sm:w-auto sm:rounded-full"
           >
             {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
             {copied ? "Link copied" : "Share invite"}
@@ -94,7 +94,7 @@ function MembersPage() {
               <div className="flex items-start gap-4">
                 <MemberAvatar member={m} size={56} ring />
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <div className="truncate text-base font-bold">{m.name}</div>
                     {isMe && (
                       <span className="rounded-full bg-brand-soft px-2 py-0.5 text-[10px] font-semibold text-brand">
