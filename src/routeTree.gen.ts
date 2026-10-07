@@ -29,6 +29,7 @@ import { Route as AppReceiptsRouteImport } from './routes/app.receipts'
 import { Route as AppSettleRouteImport } from './routes/app.settle'
 import { Route as AppSwapRouteImport } from './routes/app.swap'
 import { Route as AppSyndicateRouteImport } from './routes/app.syndicate'
+import { Route as AppTreasuryRouteImport } from './routes/app.treasury'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -125,6 +126,11 @@ const AppSwapRoute = AppSwapRouteImport.update({
   path: '/swap',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTreasuryRoute = AppTreasuryRouteImport.update({
+  id: '/treasury',
+  path: '/treasury',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSyndicateRoute = AppSyndicateRouteImport.update({
   id: '/syndicate',
   path: '/syndicate',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/app/settle': typeof AppSettleRoute
   '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
+  '/app/treasury': typeof AppTreasuryRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -219,6 +226,7 @@ export interface FileRouteTypes {
     | '/app/settle'
     | '/app/swap'
     | '/app/syndicate'
+    | '/app/treasury'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -409,6 +417,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSwapRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/treasury': {
+      id: '/app/treasury'
+      path: '/treasury'
+      fullPath: '/app/treasury'
+      preLoaderRoute: typeof AppTreasuryRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/syndicate': {
       id: '/app/syndicate'
       path: '/syndicate'
@@ -433,6 +448,7 @@ interface AppRouteChildren {
   AppSettleRoute: typeof AppSettleRoute
   AppSwapRoute: typeof AppSwapRoute
   AppSyndicateRoute: typeof AppSyndicateRoute
+  AppTreasuryRoute: typeof AppTreasuryRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -450,6 +466,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettleRoute: AppSettleRoute,
   AppSwapRoute: AppSwapRoute,
   AppSyndicateRoute: AppSyndicateRoute,
+  AppTreasuryRoute: AppTreasuryRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
