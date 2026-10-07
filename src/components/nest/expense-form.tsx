@@ -64,12 +64,12 @@ export function ExpenseForm({
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Trader Joe's"
           autoFocus
-          className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+          className="min-h-12 w-full rounded-2xl border border-border bg-background/75 px-4 py-3 text-base outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
         />
       </Field>
 
       <Field label="Amount">
-        <div className="flex items-center rounded-2xl bg-muted/60 px-4 py-3 focus-within:ring-2 focus-within:ring-brand">
+        <div className="flex min-h-14 items-center rounded-2xl border border-border bg-background/75 px-4 py-3 transition focus-within:border-brand/40 focus-within:ring-2 focus-within:ring-brand/15">
           <span className="text-lg font-bold text-muted-foreground">$</span>
           <input
             value={amount}
@@ -91,7 +91,7 @@ export function ExpenseForm({
               <button
                 key={c}
                 onClick={() => setCategory(c)}
-                className={`flex items-center gap-1.5 rounded-full py-1.5 pl-2 pr-3 text-xs font-semibold transition ${on ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
+                className={`flex min-h-9 items-center gap-1.5 rounded-full py-2 pl-2.5 pr-3.5 text-xs font-semibold transition ${on ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
               >
                 <span>{categoryMeta[c].icon}</span>
                 {c}
@@ -107,7 +107,7 @@ export function ExpenseForm({
             <button
               key={m.id}
               onClick={() => setPayerId(m.id)}
-              className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-xs font-semibold transition ${payerId === m.id ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
+              className={`flex min-h-9 items-center gap-2 rounded-full py-2 pl-2 pr-3.5 text-xs font-semibold transition ${payerId === m.id ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
             >
               <MemberAvatar member={m} size={22} />
               {m.name.split(" ")[0]}
@@ -122,7 +122,7 @@ export function ExpenseForm({
             <button
               key={m.id}
               onClick={() => toggle(m.id)}
-              className={`flex items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-xs font-semibold transition ${selected.has(m.id) ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
+              className={`flex min-h-9 items-center gap-2 rounded-full py-2 pl-2 pr-3.5 text-xs font-semibold transition ${selected.has(m.id) ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
             >
               <MemberAvatar member={m} size={22} />
               {m.name.split(" ")[0]}
@@ -136,7 +136,7 @@ export function ExpenseForm({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Add a note…"
-          className="w-full rounded-2xl bg-muted/60 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-brand"
+          className="min-h-12 w-full rounded-2xl border border-border bg-background/75 px-4 py-3 text-base outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
         />
       </Field>
 
