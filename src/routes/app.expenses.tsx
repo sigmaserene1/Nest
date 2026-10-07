@@ -8,7 +8,7 @@ import { ExpenseDetail } from "@/components/nest/expense-detail";
 import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
 import { useExpenses } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
-import { Search, Plus, X } from "lucide-react";
+import { Loader2, Search, Plus, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/expenses")({
   component: Expenses,
@@ -34,6 +34,8 @@ function Expenses() {
   const [cat, setCat] = useState<(typeof cats)[number]>("All");
   const [q, setQ] = useState("");
   const [modal, setModal] = useState<ModalState>(null);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const filtered = allExpenses
     .filter((e) => cat === "All" || e.category === cat)
@@ -48,13 +50,22 @@ function Expenses() {
   const close = () => setModal(null);
 
   const handleSave = async (data: ExpenseInput) => {
-    close();
-    await writes.addExpense({
-      title: data.title,
-      category: data.category,
-      amount: data.amount,
-      participants: data.splitAmong,
-    });
+    if (saving) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      await writes.addExpense({
+        title: data.title,
+        category: data.category,
+        amount: data.amount,
+        participants: data.splitAmong,
+      });
+      close();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message.split("\n")[0] : "Could not add expense.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -178,16 +189,25 @@ function Expenses() {
                     </h3>
                     <button
                       onClick={close}
-                      className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+                      disabled={saving}
+                      className="grid h-9 w-9 place-items-center rounded-full bg-muted disabled:opacity-40"
                       aria-label="Close"
                     >
                       <X className="h-4 w-4" />
                     </button>
                   </div>
                   <ExpenseForm
-
                     onSave={handleSave}
+                    saving={saving}
                   />
+                  {saveError ? (
+                    <div
+                      role="alert"
+                      className="mt-3 rounded-2xl border border-destructive/20 bg-destructive/5 px-3.5 py-3 text-xs font-semibold text-destructive"
+                    >
+                      {saveError}
+                    </div>
+                  ) : null}
                 </>
               )}
               {modal.mode === "detail" && <ExpenseDetail expense={modal.expense} onClose={close} />}
