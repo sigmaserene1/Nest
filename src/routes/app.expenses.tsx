@@ -63,14 +63,14 @@ function Expenses() {
       onFabClick={() => setModal({ mode: "add" })}
     >
       <div className="mt-4 flex flex-col gap-3">
-        <div className="glass flex items-center gap-2 rounded-2xl px-4 py-2.5">
+        <div className="glass flex min-h-12 items-center gap-2 rounded-2xl px-4 py-2.5">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search expenses…"
             aria-label="Search expenses"
-            className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
           />
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
@@ -161,14 +161,14 @@ function Expenses() {
 
 
             onClick={close}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 backdrop-blur-sm sm:items-center"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
           >
             <div
 
 
 
               onClick={(e) => e.stopPropagation()}
-              className="glass-strong max-h-[90vh] w-full max-w-md overflow-y-auto rounded-t-[32px] p-6 sm:rounded-[32px]"
+              className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto rounded-[30px] p-5 sm:max-h-[90vh] sm:w-full sm:p-6"
             >
               {modal.mode !== "detail" && (
                 <>
@@ -207,7 +207,7 @@ function Header({ onAdd }: { onAdd: () => void }) {
       </div>
       <button
         onClick={onAdd}
-        className="inline-flex items-center gap-1.5 rounded-full btn-gradient px-4 py-2.5 text-sm font-semibold"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-full btn-gradient px-4 py-2.5 text-sm font-bold"
       >
         <Plus className="h-4 w-4" /> Add
       </button>
