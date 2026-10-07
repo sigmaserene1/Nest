@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Mail, Wallet, Loader2, ShieldCheck } from "lucide-react";
 import {
   Dialog,
@@ -26,6 +26,13 @@ export function SignInDialog({
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Warm Circle's relatively heavy browser SDK while the user is reading the
+  // sign-in sheet, not after they tap Continue.
+  useEffect(() => {
+    if (!open) return;
+    void import("@/lib/circle-sdk");
+  }, [open]);
 
   const reset = (o: boolean) => {
     if (!o) {
