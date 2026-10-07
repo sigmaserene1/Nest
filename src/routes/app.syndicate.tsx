@@ -145,7 +145,7 @@ function SyndicatePage() {
                   step="0.01"
                   value={revenue}
                   onChange={(e) => setRevenue(e.target.value)}
-                  className="w-full rounded-lg border bg-background px-3 py-3 text-2xl font-bold tabular-nums"
+                  className="min-h-14 w-full rounded-2xl border bg-background px-4 py-3 text-2xl font-bold tabular-nums outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/15"
                 />
                 <UsdcBadge size="md" />
               </div>
@@ -179,7 +179,7 @@ function SyndicatePage() {
                           onChange={(e) =>
                             setWeights((w) => ({ ...w, [r.id]: Number(e.target.value) || 0 }))
                           }
-                          className="w-16 rounded border bg-background px-2 py-1 text-xs font-semibold"
+                          className="h-9 w-20 rounded-xl border bg-background px-2.5 py-1.5 text-xs font-semibold outline-none focus:border-brand/40"
                         />
                       </div>
                     </div>
@@ -192,7 +192,7 @@ function SyndicatePage() {
                       <Button
                         onClick={() => void payout(r.id, r.payout)}
                         disabled={paying !== null || r.payout <= 0}
-                        className="ml-auto h-9 rounded-lg btn-gradient px-3 text-xs font-bold"
+                        className="ml-auto min-h-10 rounded-xl btn-gradient px-3 text-xs font-bold"
                       >
                         {paying === r.id ? (
                           <Loader2 className="h-3 w-3 animate-spin" />
