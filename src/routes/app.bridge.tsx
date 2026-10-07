@@ -498,7 +498,7 @@ function BridgePage() {
         </div>
       }
     >
-      <div className="mt-5 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="mt-4 grid items-start gap-4 sm:mt-5 sm:gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
         <Card className="overflow-visible !p-0">
           <div className="border-b border-border/70 px-4 py-4 sm:px-6">
             {isMainnetRoute && (
@@ -594,7 +594,7 @@ function BridgePage() {
               </div>
             )}
 
-            <div className="rounded-xl border bg-muted/30 p-4 transition focus-within:border-brand">
+            <div className="rounded-2xl border bg-muted/30 p-4 transition focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-brand/10">
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="bridge-amount"
@@ -621,7 +621,7 @@ function BridgePage() {
                   inputMode="decimal"
                   placeholder="0.00"
                   disabled={isBusy}
-                  className="min-w-0 flex-1 bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
+                  className="min-w-0 flex-1 bg-transparent text-3xl font-bold tracking-[-0.03em] tabular-nums outline-none placeholder:text-muted-foreground/40 sm:text-4xl"
                 />
                 <span className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-bold shadow-sm">
                   <UsdcMark size={20} /> USDC
@@ -635,7 +635,7 @@ function BridgePage() {
 
             <label className="block">
               <span className="text-xs font-semibold text-muted-foreground">Recipient</span>
-              <div className="mt-2 flex items-center gap-2 rounded-xl border bg-background px-3 py-3 transition focus-within:border-brand">
+              <div className="mt-2 flex min-h-12 items-center gap-2 rounded-2xl border bg-background px-3.5 py-3 transition focus-within:border-brand/50 focus-within:ring-2 focus-within:ring-brand/10">
                 <Wallet className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <input
                   value={recipientInput}
@@ -647,7 +647,7 @@ function BridgePage() {
                   }}
                   placeholder={address ?? "Connect wallet first"}
                   disabled={isBusy}
-                  className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
                 />
                 {address && recipientInput && (
                   <Button
@@ -736,7 +736,7 @@ function BridgePage() {
                     (isBusy || isQuoteLoading || !quote || !hasValidAmount || !source || !destination || !routeSupported)
                   }
                   onClick={isConnected ? executeBridge : openConnectModal}
-                  className="h-13 w-full rounded-xl btn-gradient text-sm font-bold"
+                  className="h-12 w-full rounded-2xl btn-gradient text-sm font-bold"
                 >
                   {isBusy || isQuoteLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -899,7 +899,7 @@ function LifiChainPicker({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((value) => !value)}
-        className="h-auto min-h-16 w-full justify-start rounded-xl border-border bg-card px-3 py-3 shadow-none hover:bg-muted/50"
+        className="h-auto min-h-16 w-full justify-start rounded-2xl border-border bg-card px-3.5 py-3 shadow-none hover:bg-muted/50"
       >
         <LifiChainLogo chain={chain} size={10} />
         <span className="min-w-0 flex-1 text-left">
@@ -931,7 +931,7 @@ function LifiChainPicker({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Search LI.FI chains..."
-              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="w-full bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
             />
           </div>
           <div className="scroll-clean mt-2 max-h-72 space-y-1 overflow-y-auto">
