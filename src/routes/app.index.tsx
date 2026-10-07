@@ -28,6 +28,7 @@ import {
   Sparkles,
   TrendingUp,
   ArrowDownToLine,
+  ArrowLeftRight,
 } from "lucide-react";
 
 export const Route = createFileRoute("/app/")({
@@ -212,30 +213,36 @@ function Dashboard() {
         />
       </section>
 
-      {/* Quick action pills */}
-      <Stagger className="mt-5 grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+      {/* Quick actions — compact five-up strip on phones */}
+      <Stagger className="mt-5 grid grid-cols-5 gap-1.5 sm:gap-3">
         <QuickPill
           onClick={() => action.open("send")}
           label="Send"
-          icon={<Send className="h-[18px] w-[18px]" />}
+          icon={<Send className="h-[17px] w-[17px]" />}
           tint="bg-brand/10 text-brand"
         />
         <QuickPill
           onClick={() => action.open("request")}
           label="Request"
-          icon={<Download className="h-[18px] w-[18px]" />}
+          icon={<Download className="h-[17px] w-[17px]" />}
           tint="bg-emerald-500/10 text-emerald-600"
         />
         <QuickPill
           onClick={() => action.open("split")}
           label="Split"
-          icon={<Split className="h-[18px] w-[18px]" />}
+          icon={<Split className="h-[17px] w-[17px]" />}
           tint="bg-indigo-500/10 text-indigo-600"
+        />
+        <QuickLinkPill
+          to="/app/swap"
+          label="Swap"
+          icon={<ArrowLeftRight className="h-[17px] w-[17px]" />}
+          tint="bg-sky-500/10 text-sky-600"
         />
         <QuickPill
           onClick={() => action.open("scan")}
-          label="Scan QR"
-          icon={<QrCode className="h-[18px] w-[18px]" />}
+          label="QR"
+          icon={<QrCode className="h-[17px] w-[17px]" />}
           tint="bg-amber-500/10 text-amber-600"
         />
       </Stagger>
@@ -407,16 +414,49 @@ function QuickPill({
     <Item>
       <Tap>
         <button
+          type="button"
           onClick={onClick}
-          className="card-premium flex min-h-[64px] w-full items-center gap-3 p-3 text-left transition active:scale-[0.985] hover:border-brand/40 sm:p-3.5"
+          className="card-premium flex min-h-[72px] w-full min-w-0 flex-col items-center justify-center gap-1.5 px-1.5 py-2.5 text-center transition active:scale-[0.975] hover:border-brand/40 sm:min-h-[82px] sm:gap-2 sm:px-2"
         >
-          <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${tint}`}>
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}>
             {icon}
           </span>
-          <span className="truncate text-sm font-semibold">{label}</span>
+          <span className="w-full truncate text-[10px] font-bold leading-none sm:text-xs">
+            {label}
+          </span>
         </button>
       </Tap>
     </Item>
+  );
+}
 
+function QuickLinkPill({
+  to,
+  label,
+  icon,
+  tint,
+}: {
+  to: "/app/swap";
+  label: string;
+  icon: React.ReactNode;
+  tint: string;
+}) {
+  return (
+    <Item>
+      <Tap>
+        <Link
+          to={to}
+          preload="intent"
+          className="card-premium flex min-h-[72px] w-full min-w-0 flex-col items-center justify-center gap-1.5 px-1.5 py-2.5 text-center transition active:scale-[0.975] hover:border-brand/40 sm:min-h-[82px] sm:gap-2 sm:px-2"
+        >
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}>
+            {icon}
+          </span>
+          <span className="w-full truncate text-[10px] font-bold leading-none sm:text-xs">
+            {label}
+          </span>
+        </Link>
+      </Tap>
+    </Item>
   );
 }
