@@ -65,9 +65,9 @@ function AppLayout() {
   }, [address]);
 
   const emailAuth = useEmailAuth();
-  // An email session restores its embedded wallet automatically — don't
-  // show the wallet chooser while that is happening.
-  const isBusy = isConnecting || isReconnecting || !emailAuth.ready || !!emailAuth.userId;
+  // Wait only while an email session is being restored; once that attempt
+  // finishes, a disconnected person always gets the wallet chooser.
+  const isBusy = isConnecting || isReconnecting || !emailAuth.ready;
 
   // No separate sign-in page: the wallet chooser opens straight away, and if the
   // person closes it without connecting we send them back to the landing page.

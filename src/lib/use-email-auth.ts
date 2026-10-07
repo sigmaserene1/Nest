@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useConnect } from "wagmi";
+import { useConnect, useDisconnect } from "wagmi";
 import { EMBEDDED_CONNECTOR_ID, clearActiveEmbeddedSession } from "@/lib/embedded-wallet";
 
 type Session = { address: string; email: string; createdAt: number };
@@ -21,11 +21,14 @@ function readSession(): Session | null {
  */
 export function useEmailAuth() {
   const { connectAsync, connectors } = useConnect();
+  const { disconnectAsync } = useDisconnect();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let expiryTimer: ReturnType<typeof setTimeout> | undefined;
     const sync = async () => {
+      if (expiryTimer) clearTimeout(expiryTimer);
       const s = readSession();
       setSession(s);
       if (s) {
@@ -37,13 +40,23 @@ export function useEmailAuth() {
             /* already connected */
           }
         }
+        // When the Circle session runs out, disconnect so the app asks the
+        // person to sign in again instead of failing every action.
+        const remaining = s.createdAt + 55 * 60 * 1000 - Date.now();
+        expiryTimer = setTimeout(() => {
+          void disconnectAsync().catch(() => {});
+          clearActiveEmbeddedSession();
+        }, Math.max(0, remaining));
       }
       setReady(true);
     };
     void sync();
     const onChange = () => void sync();
     window.addEventListener("nest-circle-session", onChange);
-    return () => window.removeEventListener("nest-circle-session", onChange);
+    return () => {
+      if (expiryTimer) clearTimeout(expiryTimer);
+      window.removeEventListener("nest-circle-session", onChange);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectors]);
 
