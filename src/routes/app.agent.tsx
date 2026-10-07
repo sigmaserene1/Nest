@@ -163,7 +163,7 @@ function AgentPage() {
                   onChange={(e) =>
                     setCfg((p) => ({ ...p, maxPerRun: Number(e.target.value) || 0 }))
                   }
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-semibold"
+                  className="min-h-12 w-full rounded-2xl border bg-background px-4 py-3 text-base font-semibold outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
                 />
               </Field>
               <Field label="Skip tiny payments under" hint="Example: 1 skips anything below $1.">
@@ -173,7 +173,7 @@ function AgentPage() {
                   step={1}
                   value={cfg.minDebt}
                   onChange={(e) => setCfg((p) => ({ ...p, minDebt: Number(e.target.value) || 0 }))}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-semibold"
+                  className="min-h-12 w-full rounded-2xl border bg-background px-4 py-3 text-base font-semibold outline-none focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
                 />
               </Field>
               </div>
@@ -275,7 +275,7 @@ function AgentPage() {
         </div>
 
         <div className="space-y-4 lg:col-span-2">
-          <Card className="!p-6">
+          <Card className="!p-5 sm:!p-6">
             <div className="text-sm font-bold">Review controls</div>
             <div className="mt-4 space-y-2 text-xs text-muted-foreground">
               <div>Last run: {cfg.lastRunAt ? fmtRelative(cfg.lastRunAt) : "never"}</div>
@@ -285,7 +285,7 @@ function AgentPage() {
             </div>
           </Card>
 
-          <Card className="!p-6">
+          <Card className="!p-5 sm:!p-6">
             <div className="flex items-center gap-2 text-sm font-bold">
               <ShieldCheck className="h-4 w-4 text-brand" /> Guardrails
             </div>
