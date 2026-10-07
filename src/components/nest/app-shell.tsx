@@ -61,17 +61,19 @@ function NavItem({
   label,
   icon: Icon,
   exact,
+  eager = false,
 }: {
   to: string;
   label: string;
   icon: typeof Home;
   exact?: boolean;
+  eager?: boolean;
 }) {
   const active = useActive(to, exact);
   return (
     <Link
       to={to}
-      preload="intent"
+      preload={eager ? "render" : "intent"}
       className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-150 active:scale-[0.985] ${
         active
           ? "bg-foreground text-background shadow-sm"
@@ -99,7 +101,7 @@ function BottomTab({
   return (
     <Link
       to={to}
-      preload="intent"
+      preload="render"
       className="flex min-w-0 flex-1 flex-col items-center gap-1 py-1.5 active:scale-[0.97]"
     >
       <span
@@ -156,6 +158,7 @@ export function AppShell({
                 label={item.label}
                 icon={item.icon}
                 exact={"exact" in item ? item.exact : false}
+                eager
               />
             ))}
             <div className="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -174,7 +177,7 @@ export function AppShell({
 
           <Link
             to="/app/profile"
-            preload="intent"
+            preload="render"
             className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3 transition hover:bg-muted active:scale-[0.985]"
             aria-label="Open your profile"
           >
@@ -261,7 +264,7 @@ export function AppShell({
               <Link
                 key={item.to}
                 to={item.to}
-                preload="intent"
+                preload="render"
                 className="inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-card/80 px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm transition active:scale-[0.98] hover:border-brand/30 hover:text-foreground"
               >
                 <item.icon className="h-3.5 w-3.5" />
@@ -296,7 +299,7 @@ export function AppShell({
             ) : (
               <Link
                 to="/app/settle"
-                preload="intent"
+                preload="render"
                 className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition active:scale-[0.96]"
                 aria-label="Settle up"
               >
