@@ -11,6 +11,7 @@ import {
   type ActivityEvent,
 } from "@/lib/nest-data";
 import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
+import { useReceipts } from "@/lib/receipts-store";
 import { useHouseholdActivity } from "@/lib/chain/nest-chain";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
@@ -46,24 +47,70 @@ function ActivityPage() {
   const [f, setF] = useState<(typeof filters)[number]>("All");
   const { address } = useAccount();
   const activity = useHouseholdActivity();
+  const receipts = useReceipts(address);
   const { entries: bridgeHistory } = useBridgeHistory(address);
 
-  const timeline = useMemo<TimelineItem[]>(
-    () =>
+  const timeline = useMemo<TimelineItem[]>(() => {
+    const paymentKey = (item: {
+      kind: string;
+      actorId: string;
+      counterpartyId?: string;
+      amount?: number;
+      date: string;
+    }) =>
       [
-        ...activity.map((item) => ({
-          type: "chain" as const,
-          at: new Date(item.date).getTime(),
-          data: item,
-        })),
-        ...bridgeHistory.map((item) => ({
-          type: "bridge" as const,
-          at: item.completedAt ?? item.startedAt,
-          data: item,
-        })),
-      ].sort((a, b) => b.at - a.at),
-    [activity, bridgeHistory],
-  );
+        item.kind,
+        item.actorId.toLowerCase(),
+        item.counterpartyId?.toLowerCase() ?? "",
+        (item.amount ?? 0).toFixed(6),
+        Math.floor(new Date(item.date).getTime() / 1000),
+      ].join(":");
+
+    const recentPaymentKeys = new Set(
+      activity
+        .filter((item) => item.kind === "settlement" || item.kind === "transfer")
+        .map(paymentKey),
+    );
+
+    const recoveredPayments: ActivityEvent[] = receipts
+      .map((receipt) => {
+        const kind: ActivityEvent["kind"] =
+          receipt.kind === "settle" ? "settlement" : "transfer";
+        return {
+          id: `receipt-${receipt.hash}`,
+          kind,
+          actorId: receipt.from.toLowerCase(),
+          counterpartyId: receipt.to.toLowerCase(),
+          text:
+            kind === "settlement"
+              ? "settled a share onchain"
+              : receipt.note
+                ? `sent USDC · ${receipt.note}`
+                : "sent USDC onchain",
+          amount: receipt.amount,
+          date: receipt.date,
+        } satisfies ActivityEvent;
+      })
+      .filter((item) => !recentPaymentKeys.has(paymentKey(item)));
+
+    return [
+      ...activity.map((item) => ({
+        type: "chain" as const,
+        at: new Date(item.date).getTime(),
+        data: item,
+      })),
+      ...recoveredPayments.map((item) => ({
+        type: "chain" as const,
+        at: new Date(item.date).getTime(),
+        data: item,
+      })),
+      ...bridgeHistory.map((item) => ({
+        type: "bridge" as const,
+        at: item.completedAt ?? item.startedAt,
+        data: item,
+      })),
+    ].sort((a, b) => b.at - a.at);
+  }, [activity, bridgeHistory, receipts]);
 
   const filtered = timeline.filter((entry) => {
     if (f === "All") return true;
