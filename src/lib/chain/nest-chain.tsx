@@ -2,12 +2,27 @@
 // Everything the UI renders (members, expenses, balances, activity) is read
 // from the ExpenseManager contract on the selected Arc network — nothing is cached locally.
 
-import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useActiveRoom, useContractAddress } from "./config";
+import {
+  readChainSnapshot,
+  writeChainSnapshot,
+  type NestChainSnapshot,
+} from "./snapshot-cache";
+import { pullAccountCache, pushAccountCache } from "@/lib/account-cache";
 
 import {
   computeBalances,
@@ -78,6 +93,47 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   const arcChain = arcChainFor(environment);
   const contractAddress = useContractAddress();
   const { roomId: storedRoom, select } = useActiveRoom(address);
+  const localSnapshot = useMemo(
+    () => readChainSnapshot(address, environment),
+    [address, environment],
+  );
+  const [cloudSnapshot, setCloudSnapshot] = useState<NestChainSnapshot | null>(null);
+  const lastSnapshotPush = useRef("");
+
+  useEffect(() => {
+    let cancelled = false;
+    setCloudSnapshot(null);
+    if (!address) return;
+
+    void pullAccountCache(environment).then((cache) => {
+      if (cancelled || !cache) return;
+      const remote = cache.snapshot as NestChainSnapshot | null;
+      if (
+        remote?.version === 1 &&
+        remote.wallet?.toLowerCase() === address.toLowerCase() &&
+        remote.environment === environment
+      ) {
+        setCloudSnapshot(remote);
+      }
+
+      const remoteRoom = Number(cache.preferences?.activeRoom ?? 0);
+      if (!storedRoom && Number.isInteger(remoteRoom) && remoteRoom > 0) {
+        select(remoteRoom);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [address, environment, select, storedRoom]);
+
+  const cachedSnapshot = useMemo(() => {
+    if (!localSnapshot) return cloudSnapshot;
+    if (!cloudSnapshot) return localSnapshot;
+    return cloudSnapshot.savedAt > localSnapshot.savedAt
+      ? cloudSnapshot
+      : localSnapshot;
+  }, [cloudSnapshot, localSnapshot]);
 
   const base = {
     address: contractAddress ?? undefined,
@@ -93,7 +149,7 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     query: { enabled: enabled && !!address, refetchInterval: REFRESH_MS },
   });
 
-  const rooms: RoomInfo[] = useMemo(
+  const liveRooms: RoomInfo[] = useMemo(
     () =>
       ((roomsQ.data as readonly RawRoom[] | undefined) ?? []).map((r) => ({
         id: Number(r.id),
@@ -104,11 +160,22 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     [roomsQ.data],
   );
 
+  const rooms: RoomInfo[] = roomsQ.isSuccess
+    ? liveRooms
+    : (cachedSnapshot?.rooms ?? liveRooms);
+
   // Room selections from a retired deployment may still exist in localStorage.
   // Once the canonical contract responds, discard selections that do not belong
   // to this wallet there and restore the wallet's first original room.
   const storedRoomExists = storedRoom ? rooms.some((room) => room.id === storedRoom) : false;
-  const roomId = storedRoomExists ? storedRoom : rooms[0]?.id ?? storedRoom ?? null;
+  const cachedRoomExists = cachedSnapshot?.roomId
+    ? rooms.some((room) => room.id === cachedSnapshot.roomId)
+    : false;
+  const roomId = storedRoomExists
+    ? storedRoom
+    : cachedRoomExists
+      ? cachedSnapshot?.roomId ?? null
+      : rooms[0]?.id ?? storedRoom ?? null;
 
   useEffect(() => {
     if (!address || roomsQ.isLoading || rooms.length === 0) return;
@@ -125,17 +192,21 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
       {
         ...base,
         functionName: "getActivity",
-        args: roomId ? ([BigInt(roomId), 200n] as const) : undefined,
+        args: roomId ? ([BigInt(roomId), 1000n] as const) : undefined,
       },
     ],
     query: { enabled: enabled && !!roomId, refetchInterval: REFRESH_MS },
   });
 
-  const memberAddresses = useMemo(
+  const liveMemberAddresses = useMemo(
     () =>
       ((roomQ.data?.[0]?.result as readonly string[] | undefined) ?? []).map((a) => a) as string[],
     [roomQ.data],
   );
+
+  const memberAddresses = roomQ.isSuccess
+    ? liveMemberAddresses
+    : (cachedSnapshot?.members.map((member) => member.id) ?? liveMemberAddresses);
 
   const namesQ = useReadContract({
     ...base,
@@ -220,9 +291,16 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
   const hasRpcError =
     Boolean(contractAddress) && (roomsQ.isError || (Boolean(roomId) && roomQ.isError));
 
-  const members = liveMembers;
-  const expenses = liveExpenses;
-  const activity = liveActivity;
+  const members =
+    roomQ.isSuccess && (memberAddresses.length === 0 || namesQ.isSuccess)
+      ? liveMembers
+      : (cachedSnapshot?.members ?? liveMembers);
+  const expenses = roomQ.isSuccess
+    ? liveExpenses
+    : (cachedSnapshot?.expenses ?? liveExpenses);
+  const activity = roomQ.isSuccess
+    ? liveActivity
+    : (cachedSnapshot?.activity ?? liveActivity);
 
   useEffect(() => {
     if (members.length > 0) setRuntimeMembers(members);
@@ -234,6 +312,52 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     const found = liveMembers.find((m) => m.id === me);
     return found && found.name !== found.handle ? found.name : null;
   }, [liveMembers, me]);
+
+  useEffect(() => {
+    if (!address || !roomsQ.isSuccess) return;
+    if (roomId && !roomQ.isSuccess) return;
+    if (liveMemberAddresses.length > 0 && !namesQ.isSuccess) return;
+
+    const snapshot: NestChainSnapshot = {
+      version: 1,
+      wallet: address.toLowerCase(),
+      environment,
+      roomId,
+      rooms: liveRooms,
+      members: liveMembers,
+      expenses: liveExpenses,
+      activity: liveActivity,
+      savedAt: Date.now(),
+    };
+
+    const signature = JSON.stringify({
+      roomId: snapshot.roomId,
+      rooms: snapshot.rooms,
+      members: snapshot.members,
+      expenses: snapshot.expenses,
+      activity: snapshot.activity,
+    });
+    if (signature === lastSnapshotPush.current) return;
+    lastSnapshotPush.current = signature;
+
+    writeChainSnapshot(snapshot);
+    void pushAccountCache(environment, {
+      snapshot,
+      preferences: { activeRoom: roomId },
+    });
+  }, [
+    address,
+    environment,
+    liveActivity,
+    liveExpenses,
+    liveMemberAddresses.length,
+    liveMembers,
+    liveRooms,
+    namesQ.isSuccess,
+    roomId,
+    roomQ.isSuccess,
+    roomsQ.isSuccess,
+  ]);
 
   const refresh = useCallback(async () => {
     await Promise.all([roomsQ.refetch(), roomQ.refetch(), namesQ.refetch()]);
@@ -252,7 +376,10 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     activity,
     net,
     debts,
-    isLoading: !hasRpcError && (roomsQ.isLoading || roomQ.isLoading),
+    isLoading:
+      !cachedSnapshot &&
+      !hasRpcError &&
+      (roomsQ.isLoading || roomQ.isLoading),
     isDemo: false,
     rpcMessage: hasRpcError ? RPC_DOWN_MESSAGE : "",
     refresh,
