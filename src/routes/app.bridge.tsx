@@ -1273,15 +1273,17 @@ async function recordBridgeOnNest(
     abi: NEST_BRIDGE_REGISTRY_ABI,
     functionName: "recordCompletedBridge",
     args: [
-      BigInt(input.source.id),
-      BigInt(input.destination.id),
-      input.source.name.slice(0, 48),
-      input.destination.name.slice(0, 48),
-      input.amount,
-      input.recipient,
-      input.sourceHash,
-      input.destinationHash,
-      input.providerName.slice(0, 48),
+      {
+        sourceChainId: BigInt(input.source.id),
+        destinationChainId: BigInt(input.destination.id),
+        sourceName: input.source.name.slice(0, 48),
+        destinationName: input.destination.name.slice(0, 48),
+        amount: input.amount,
+        recipient: input.recipient,
+        sourceTxHash: input.sourceHash,
+        destinationTxHash: input.destinationHash,
+        provider: input.providerName.slice(0, 48),
+      },
     ],
   });
 
