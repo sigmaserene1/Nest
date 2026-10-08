@@ -13,7 +13,8 @@
     "verify:contract": "node scripts/verify-contract.mjs --dry-run",
     "verify:contract:publish": "node scripts/verify-contract.mjs",
     "deploy:business-v2": "node scripts/deploy-business-v2.mjs",
-    "deploy:expense-manager": "node scripts/deploy-expense-manager.mjs"
+    "deploy:expense-manager": "node scripts/deploy-expense-manager.mjs",
+    "deploy:bridge-registry": "node scripts/deploy-bridge-registry.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.72",
