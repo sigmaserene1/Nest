@@ -15,6 +15,8 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { AppShell, Card } from "@/components/nest/app-shell";
+import { UsdcMark } from "@/components/nest/chain";
+import { Button } from "@/components/ui/button";
 import { ERC20_ABI, openExternal } from "@/lib/wagmi";
 import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import {
@@ -502,7 +504,8 @@ function TokenPicker({
         const token = swapTokenFor(environment, symbol);
         const active = value === symbol;
         return (
-          <button
+          <Button
+            variant="outline"
             key={symbol}
             type="button"
             onClick={() => onChange(symbol)}
@@ -512,8 +515,8 @@ function TokenPicker({
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
             }`}
           >
-            {token.symbol}
-          </button>
+            {symbol === "USDC" ? <UsdcMark size={28} /> : token.symbol}
+          </Button>
         );
       })}
     </div>
@@ -523,7 +526,7 @@ function TokenPicker({
 function TokenBadge({ token }: { token: NestSwapToken }) {
   return (
     <span className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-black shadow-sm">
-      <span
+      {token === "USDC" ? <UsdcMark size={36} /> : <span
         className={`grid h-6 w-6 place-items-center rounded-full text-[9px] ${
           token === "USDC"
             ? "bg-blue-500/12 text-blue-600"
@@ -533,8 +536,8 @@ function TokenBadge({ token }: { token: NestSwapToken }) {
         }`}
       >
         {token === "cirBTC" ? "₿" : token[0]}
-      </span>
-      {token}
+      </span>}
+      {token !== "USDC" && token}
     </span>
   );
 }
