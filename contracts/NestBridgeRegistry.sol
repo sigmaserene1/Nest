@@ -31,13 +31,8 @@ contract NestBridgeRegistry {
     event BridgeRecorded(
         uint256 indexed bridgeId,
         address indexed owner,
-        address indexed recipient,
-        uint256 sourceChainId,
-        uint256 destinationChainId,
-        uint256 amount,
-        bytes32 sourceTxHash,
-        bytes32 destinationTxHash,
-        string provider
+        bytes32 indexed sourceTxHash,
+        bytes32 destinationTxHash
     );
 
     function recordCompletedBridge(
@@ -89,13 +84,8 @@ contract NestBridgeRegistry {
         emit BridgeRecorded(
             bridgeId,
             msg.sender,
-            recipient,
-            sourceChainId,
-            destinationChainId,
-            amount,
             sourceTxHash,
-            destinationTxHash,
-            provider
+            destinationTxHash
         );
     }
 
