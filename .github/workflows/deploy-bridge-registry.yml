@@ -1,3 +1,4 @@
+# Deploy trigger after signer secret configured
 # Triggered by ChatGPT for Arc Testnet BridgeRegistry deployment
 name: Deploy Nest Bridge Registry
 
