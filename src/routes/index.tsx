@@ -168,6 +168,19 @@ function Landing() {
   const environment = useArcEnvironment();
   const { enter, error: connectIssue, pending: connecting, dialog } = useEnterApp();
 
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.location.hash) return;
+    const frame = window.requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(window.location.hash);
+      const header = document.querySelector<HTMLElement>("[data-landing-header]");
+      if (!target) return;
+      const headerHeight = Math.ceil(header?.getBoundingClientRect().height ?? 0);
+      target.style.scrollMarginTop = `${headerHeight + 12}px`;
+      target.scrollIntoView({ block: "start" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
   const scrollToSection = (
     event: MouseEvent<HTMLAnchorElement>,
     href: string,
@@ -179,22 +192,18 @@ function Landing() {
     event.preventDefault();
 
     const header = document.querySelector<HTMLElement>("[data-landing-header]");
-    const headerHeight = header?.getBoundingClientRect().height ?? 0;
-    const top =
-      target.getBoundingClientRect().top +
-      window.scrollY -
-      headerHeight -
-      12;
+    const headerHeight = Math.ceil(header?.getBoundingClientRect().height ?? 0);
 
+    target.style.scrollMarginTop = `${headerHeight + 12}px`;
     window.history.replaceState(null, "", href);
-    window.scrollTo({
-      top: Math.max(0, top),
+    target.scrollIntoView({
       behavior: "smooth",
+      block: "start",
     });
   };
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-background">
+    <div className="min-h-screen overflow-x-clip bg-background">
       {dialog}
       <header
         data-landing-header
@@ -353,7 +362,7 @@ function Landing() {
           </dl>
         </section>
 
-        <section id="protocol" className="px-5 py-24 sm:py-32 lg:px-8">
+        <section id="protocol" className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <SectionHeading
@@ -375,7 +384,7 @@ function Landing() {
 
         <section
           id="flow"
-          className="border-y border-border bg-surface-muted/60 py-24 sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:scroll-mt-24 sm:py-32"
         >
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <Reveal>
@@ -418,7 +427,7 @@ function Landing() {
 
         <section
           id="use-cases"
-          className="px-5 py-24 sm:py-32 lg:px-8"
+          className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8"
         >
           <div className="mx-auto max-w-7xl">
             <Reveal>
@@ -472,7 +481,7 @@ function Landing() {
 
         <section
           id="arc"
-          className="border-y border-border bg-foreground py-24 text-background sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-foreground py-24 text-background sm:scroll-mt-24 sm:py-32"
         >
           <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
             <Reveal>
@@ -509,7 +518,7 @@ function Landing() {
 
         <section
           id="faq"
-          className="border-y border-border bg-surface-muted/60 py-24 sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:scroll-mt-24 sm:py-32"
         >
           <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
             <Reveal>
