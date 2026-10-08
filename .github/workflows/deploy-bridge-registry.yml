@@ -18,13 +18,20 @@ jobs:
       ARC_NETWORK: testnet
       ARC_RPC_URL: ${{ secrets.ARC_RPC_URL }}
       DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+      NEST_AGENT_PRIVATE_KEY: ${{ secrets.NEST_AGENT_PRIVATE_KEY }}
     steps:
-      - name: Check deployer secret
+      - name: Select Testnet signer
         run: |
-          if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then
-            echo "::error::DEPLOYER_PRIVATE_KEY is not configured in repository secrets."
+          KEY="$DEPLOYER_PRIVATE_KEY"
+          if [ -z "$KEY" ]; then
+            KEY="$NEST_AGENT_PRIVATE_KEY"
+          fi
+          if [ -z "$KEY" ]; then
+            echo "::error::Neither DEPLOYER_PRIVATE_KEY nor NEST_AGENT_PRIVATE_KEY is configured."
             exit 1
           fi
+          echo "::add-mask::$KEY"
+          echo "DEPLOYER_PRIVATE_KEY=$KEY" >> "$GITHUB_ENV"
 
       - uses: actions/checkout@v4
 
