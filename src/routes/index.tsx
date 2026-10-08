@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useAccount, useConnect } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { LucideIcon } from "lucide-react";
@@ -169,7 +169,7 @@ function Landing() {
   const { enter, error: connectIssue, pending: connecting, dialog } = useEnterApp();
 
   const scrollToSection = (
-    event: React.MouseEvent<HTMLAnchorElement>,
+    event: MouseEvent<HTMLAnchorElement>,
     href: string,
   ) => {
     if (!href.startsWith("#")) return;
