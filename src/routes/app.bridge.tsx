@@ -441,6 +441,8 @@ function BridgePage() {
         burnHash: sourceHash,
         explorerFrom: lifiExplorerFor(source),
         explorerTo: lifiExplorerFor(destination),
+        tool: lifiToolName(executionQuote),
+        recipient,
       });
 
       setStatusText("Source transaction sent. Waiting for source confirmation...");
@@ -471,7 +473,11 @@ function BridgePage() {
       setStatusText(
         `${formatCompactAmount(estimatedReceived)} USDC delivered to ${destination.name}.`,
       );
-      updateEntry(entryId, { status: "complete", mintHash: receivingHash });
+      updateEntry(entryId, {
+        status: "complete",
+        mintHash: receivingHash,
+        completedAt: Date.now(),
+      });
     } catch (caught) {
       console.error("LI.FI bridge error:", caught);
       setState("error");
