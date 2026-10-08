@@ -126,14 +126,14 @@ const AppSwapRoute = AppSwapRouteImport.update({
   path: '/swap',
   getParentRoute: () => AppRoute,
 } as any)
-const AppTreasuryRoute = AppTreasuryRouteImport.update({
-  id: '/treasury',
-  path: '/treasury',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppSyndicateRoute = AppSyndicateRouteImport.update({
   id: '/syndicate',
   path: '/syndicate',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTreasuryRoute = AppTreasuryRouteImport.update({
+  id: '/treasury',
+  path: '/treasury',
   getParentRoute: () => AppRoute,
 } as any)
 
@@ -179,6 +179,7 @@ export interface FileRoutesByTo {
   '/app/settle': typeof AppSettleRoute
   '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
+  '/app/treasury': typeof AppTreasuryRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -202,6 +203,7 @@ export interface FileRoutesById {
   '/app/settle': typeof AppSettleRoute
   '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
+  '/app/treasury': typeof AppTreasuryRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -248,6 +250,7 @@ export interface FileRouteTypes {
     | '/app/settle'
     | '/app/swap'
     | '/app/syndicate'
+    | '/app/treasury'
     | '/app'
   id:
     | '__root__'
@@ -270,6 +273,7 @@ export interface FileRouteTypes {
     | '/app/settle'
     | '/app/swap'
     | '/app/syndicate'
+    | '/app/treasury'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -417,18 +421,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppSwapRouteImport
       parentRoute: typeof AppRoute
     }
-    '/app/treasury': {
-      id: '/app/treasury'
-      path: '/treasury'
-      fullPath: '/app/treasury'
-      preLoaderRoute: typeof AppTreasuryRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/app/syndicate': {
       id: '/app/syndicate'
       path: '/syndicate'
       fullPath: '/app/syndicate'
       preLoaderRoute: typeof AppSyndicateRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/treasury': {
+      id: '/app/treasury'
+      path: '/treasury'
+      fullPath: '/app/treasury'
+      preLoaderRoute: typeof AppTreasuryRouteImport
       parentRoute: typeof AppRoute
     }
   }
