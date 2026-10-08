@@ -134,7 +134,9 @@ function Dashboard() {
               <span>
                 {wallet.isConnected
                   ? wallet.isOnArc
-                    ? `Live on ${wallet.arcChain.name}`
+                    ? wallet.isBalanceFromCache
+                      ? `Last verified · refreshing ${wallet.arcChain.name}`
+                      : `Live on ${wallet.arcChain.name}`
                     : "Wrong network"
                   : "Connect your wallet to see your live balance"}
               </span>
