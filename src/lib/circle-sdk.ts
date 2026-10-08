@@ -542,6 +542,77 @@ function runChallenge(
   });
 }
 
+async function primeCachedAccountAfterLogin(session: CircleSession) {
+  try {
+    const [{ pullAccountCache }, { writeChainSnapshot }] = await Promise.all([
+      import("@/lib/account-cache"),
+      import("@/lib/chain/snapshot-cache"),
+    ]);
+
+    const [globalCache, testnetCache, mainnetCache] = await Promise.all([
+      pullAccountCache("global"),
+      pullAccountCache("testnet"),
+      pullAccountCache("mainnet"),
+    ]);
+
+    if (globalCache) {
+      if (Array.isArray(globalCache.bridgeHistory)) {
+        localStorage.setItem(
+          `nest.bridge.history.${session.address.toLowerCase()}`,
+          JSON.stringify(globalCache.bridgeHistory),
+        );
+      }
+      if (globalCache.agentConfig) {
+        localStorage.setItem(
+          `nest.agent.cfg.${session.address.toLowerCase()}`,
+          JSON.stringify(globalCache.agentConfig),
+        );
+      }
+      if (Array.isArray(globalCache.agentRuns)) {
+        localStorage.setItem(
+          `nest.agent.log.${session.address.toLowerCase()}`,
+          JSON.stringify(globalCache.agentRuns),
+        );
+      }
+    }
+
+    for (const [environment, cache] of [
+      ["testnet", testnetCache],
+      ["mainnet", mainnetCache],
+    ] as const) {
+      if (!cache) continue;
+      const snapshot = cache.snapshot as import("@/lib/chain/snapshot-cache").NestChainSnapshot | null;
+      if (
+        snapshot?.version === 1 &&
+        snapshot.wallet?.toLowerCase() === session.address.toLowerCase() &&
+        snapshot.environment === environment
+      ) {
+        writeChainSnapshot(snapshot);
+      }
+
+      if (Array.isArray(cache.receiptHistory)) {
+        localStorage.setItem(
+          `nest.receipts.${environment}.${session.address.toLowerCase()}`,
+          JSON.stringify(cache.receiptHistory),
+        );
+      }
+
+      const activeRoom = Number(cache.preferences?.activeRoom ?? 0);
+      if (Number.isInteger(activeRoom) && activeRoom > 0) {
+        localStorage.setItem(
+          `nest.room.${session.address.toLowerCase()}`,
+          String(activeRoom),
+        );
+      }
+    }
+
+    window.dispatchEvent(new Event("storage"));
+  } catch {
+    // Cache warming is a performance optimization only. Arc/Circle remain the
+    // source of truth, so a cache failure must never block authentication.
+  }
+}
+
 /** Shared steps after Circle confirms the sign-in: create/restore the wallet. */
 async function finishLogin(login: { userToken: string; encryptionKey: string }, email: string): Promise<CircleSession> {
   const s = await sdk();
@@ -564,6 +635,12 @@ async function finishLogin(login: { userToken: string; encryptionKey: string }, 
   };
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   window.dispatchEvent(new Event("nest-circle-session"));
+
+  // Prime the latest verified account snapshot/history in parallel with wagmi
+  // reconnecting the embedded wallet. The app can then paint cached state on
+  // the first frame while Arc/explorer refreshes silently in the background.
+  void primeCachedAccountAfterLogin(session);
+
   return session;
 }
 
