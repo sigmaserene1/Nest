@@ -102,17 +102,18 @@ export const readNestAccountCache = createServerFn({ method: "POST" })
 
     if (error) throw new Error(`Could not load Nest account cache: ${error.message}`);
 
+    const typedRow = row as CacheRow | null;
     return {
       configured: true as const,
-      row: (row as CacheRow | null)
+      row: typedRow
         ? {
-            snapshot: row.snapshot ?? null,
-            bridgeHistory: row.bridge_history ?? [],
-            receiptHistory: row.receipt_history ?? [],
-            preferences: row.preferences ?? {},
-            agentConfig: row.agent_config ?? null,
-            agentRuns: row.agent_runs ?? [],
-            updatedAt: row.updated_at,
+            snapshot: typedRow.snapshot ?? null,
+            bridgeHistory: typedRow.bridge_history ?? [],
+            receiptHistory: typedRow.receipt_history ?? [],
+            preferences: typedRow.preferences ?? {},
+            agentConfig: typedRow.agent_config ?? null,
+            agentRuns: typedRow.agent_runs ?? [],
+            updatedAt: typedRow.updated_at,
           }
         : null,
     };
