@@ -44,7 +44,9 @@ const DIRECT_TRANSFER_TOPIC = toEventSelector(
 const toUsdc = (value: bigint | undefined) => Number(value ?? 0n) / 1_000_000;
 const lower = (value: string | undefined) => (value ?? "").toLowerCase();
 const explorerApiFor = (environment: ArcEnvironment) =>
-  environment === "mainnet" ? "https://explorer.arc.io/api" : "https://testnet.arcscan.app/api";
+  environment === "mainnet"
+    ? "https://explorer.arc.io/api"
+    : "https://explorer.testnet.arc.io/api";
 
 type ExplorerLog = {
   data: Hex;
