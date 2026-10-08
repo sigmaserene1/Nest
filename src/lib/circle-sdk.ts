@@ -604,6 +604,18 @@ async function primeCachedAccountAfterLogin(session: CircleSession) {
           String(activeRoom),
         );
       }
+
+      const walletBalance = Number(cache.preferences?.walletBalance);
+      const walletBalanceAt = Number(cache.preferences?.walletBalanceAt ?? Date.now());
+      if (Number.isFinite(walletBalance) && walletBalance >= 0) {
+        localStorage.setItem(
+          `nest.wallet.balance.${environment}.${session.address.toLowerCase()}`,
+          JSON.stringify({
+            amount: walletBalance,
+            savedAt: Number.isFinite(walletBalanceAt) ? walletBalanceAt : Date.now(),
+          }),
+        );
+      }
     }
 
     window.dispatchEvent(new Event("storage"));
