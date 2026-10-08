@@ -1,12 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useAccount } from "wagmi";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
+import {
+  getMember,
+  fmtUSD,
+  fmtRelative,
+  categoryMeta,
+  type ActivityEvent,
+} from "@/lib/nest-data";
+import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
 import { useHouseholdActivity } from "@/lib/chain/nest-chain";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
-import { ArrowLeftRight, UserPlus, Receipt, Send } from "lucide-react";
+import { ArrowLeftRight, UserPlus, Receipt, Send, Waypoints } from "lucide-react";
 
 export const Route = createFileRoute("/app/activity")({
   component: ActivityPage,
@@ -28,17 +36,43 @@ export const Route = createFileRoute("/app/activity")({
   }),
 });
 
-const filters = ["All", "Expenses", "Payments", "Members"] as const;
+const filters = ["All", "Expenses", "Payments", "Bridges", "Members"] as const;
+
+type TimelineItem =
+  | { type: "chain"; at: number; data: ActivityEvent }
+  | { type: "bridge"; at: number; data: BridgeHistoryEntry };
 
 function ActivityPage() {
   const [f, setF] = useState<(typeof filters)[number]>("All");
+  const { address } = useAccount();
   const activity = useHouseholdActivity();
+  const { entries: bridgeHistory } = useBridgeHistory(address);
 
-  const filtered = activity.filter((a) => {
+  const timeline = useMemo<TimelineItem[]>(
+    () =>
+      [
+        ...activity.map((item) => ({
+          type: "chain" as const,
+          at: new Date(item.date).getTime(),
+          data: item,
+        })),
+        ...bridgeHistory.map((item) => ({
+          type: "bridge" as const,
+          at: item.completedAt ?? item.startedAt,
+          data: item,
+        })),
+      ].sort((a, b) => b.at - a.at),
+    [activity, bridgeHistory],
+  );
+
+  const filtered = timeline.filter((entry) => {
     if (f === "All") return true;
+    if (entry.type === "bridge") return f === "Bridges" || f === "Payments";
+    const a = entry.data;
     if (f === "Expenses") return a.kind === "expense";
     if (f === "Payments") return a.kind === "settlement" || a.kind === "transfer";
-    return a.kind === "member";
+    if (f === "Members") return a.kind === "member";
+    return false;
   });
 
   return (
@@ -67,7 +101,59 @@ function ActivityPage() {
       <Card className="mt-5 !p-2">
         <Stagger>
         <ul>
-          {filtered.map((a, i) => {
+          {filtered.map((entry, i) => {
+            if (entry.type === "bridge") {
+              const bridge = entry.data;
+              return (
+                <Item
+                  as="li"
+                  key={`bridge-${bridge.id}`}
+                  className={`flex items-start gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${
+                    i !== filtered.length - 1 ? "border-b border-border/60" : ""
+                  }`}
+                >
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-500/10 text-sky-600">
+                    <Waypoints className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="text-sm font-bold">
+                        Bridged {bridge.amount} USDC
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
+                          bridge.status === "complete"
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : bridge.status === "error"
+                              ? "bg-red-500/10 text-red-600"
+                              : "bg-amber-500/10 text-amber-600"
+                        }`}
+                      >
+                        {bridge.status}
+                      </span>
+                    </div>
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {bridge.fromName} → {bridge.toName}
+                      {bridge.tool ? ` · ${bridge.tool}` : ""}
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10px] text-muted-foreground">
+                      {bridge.burnHash ? (
+                        <span>Source {bridge.burnHash.slice(0, 10)}…{bridge.burnHash.slice(-6)}</span>
+                      ) : null}
+                      {bridge.mintHash ? (
+                        <span>Destination {bridge.mintHash.slice(0, 10)}…{bridge.mintHash.slice(-6)}</span>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {fmtRelative(new Date(entry.at).toISOString())}
+                      {bridge.recipient ? ` · To ${bridge.recipient.slice(0, 6)}…${bridge.recipient.slice(-4)}` : ""}
+                    </div>
+                  </div>
+                </Item>
+              );
+            }
+
+            const a = entry.data;
             const m = getMember(a.actorId);
             const meta = a.category ? categoryMeta[a.category] : null;
             const icon =
@@ -84,7 +170,9 @@ function ActivityPage() {
               <Item
                 as="li"
                 key={a.id}
-                className={`flex items-center gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${i !== filtered.length - 1 ? "border-b border-border/60" : ""}`}
+                className={`flex items-center gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${
+                  i !== filtered.length - 1 ? "border-b border-border/60" : ""
+                }`}
               >
                 <div className="relative">
                   <MemberAvatar member={m} size={42} />
@@ -122,7 +210,7 @@ function ActivityPage() {
           <EmptyState
             emoji="📜"
             title="Nothing here yet"
-            description="Add an expense or settle up to write your first onchain event."
+            description="Expenses, payments, members and cross-chain bridges will appear here."
           />
         )}
       </Card>
