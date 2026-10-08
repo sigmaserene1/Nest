@@ -168,12 +168,38 @@ function Landing() {
   const environment = useArcEnvironment();
   const { enter, error: connectIssue, pending: connecting, dialog } = useEnterApp();
 
+  const scrollToSection = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (!href.startsWith("#")) return;
+    const target = document.querySelector<HTMLElement>(href);
+    if (!target) return;
 
+    event.preventDefault();
+
+    const header = document.querySelector<HTMLElement>("[data-landing-header]");
+    const headerHeight = header?.getBoundingClientRect().height ?? 0;
+    const top =
+      target.getBoundingClientRect().top +
+      window.scrollY -
+      headerHeight -
+      12;
+
+    window.history.replaceState(null, "", href);
+    window.scrollTo({
+      top: Math.max(0, top),
+      behavior: "smooth",
+    });
+  };
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background">
       {dialog}
-      <header className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-2xl">
+      <header
+        data-landing-header
+        className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-2xl"
+      >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 lg:px-8">
           <a href="#" aria-label="Nest home" className="rounded-xl">
             <NestLogo />
@@ -187,6 +213,7 @@ function Landing() {
               <a
                 key={item.href}
                 href={item.href}
+                onClick={(event) => scrollToSection(event, item.href)}
                 className="transition-colors hover:text-foreground"
               >
                 {item.label}
@@ -217,6 +244,7 @@ function Landing() {
             <a
               key={item.href}
               href={item.href}
+              onClick={(event) => scrollToSection(event, item.href)}
               className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
             >
               {item.label}
@@ -279,6 +307,7 @@ function Landing() {
                 </button>
                 <a
                   href="#protocol"
+                  onClick={(event) => scrollToSection(event, "#protocol")}
                   className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-[13px] font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-6 sm:py-3.5 sm:text-sm"
                 >
                   Explore product <ArrowRight className="h-4 w-4" />
@@ -324,7 +353,7 @@ function Landing() {
           </dl>
         </section>
 
-        <section id="protocol" className="scroll-mt-32 px-5 py-24 sm:py-32 lg:scroll-mt-24 lg:px-8">
+        <section id="protocol" className="px-5 py-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <SectionHeading
@@ -346,7 +375,7 @@ function Landing() {
 
         <section
           id="flow"
-          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:py-32 lg:scroll-mt-24"
+          className="border-y border-border bg-surface-muted/60 py-24 sm:py-32"
         >
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <Reveal>
@@ -389,7 +418,7 @@ function Landing() {
 
         <section
           id="use-cases"
-          className="scroll-mt-32 px-5 py-24 sm:py-32 lg:scroll-mt-24 lg:px-8"
+          className="px-5 py-24 sm:py-32 lg:px-8"
         >
           <div className="mx-auto max-w-7xl">
             <Reveal>
@@ -443,7 +472,7 @@ function Landing() {
 
         <section
           id="arc"
-          className="scroll-mt-32 border-y border-border bg-foreground py-24 text-background sm:py-32 lg:scroll-mt-24"
+          className="border-y border-border bg-foreground py-24 text-background sm:py-32"
         >
           <div className="mx-auto grid max-w-7xl items-center gap-14 px-5 lg:grid-cols-[0.82fr_1.18fr] lg:px-8">
             <Reveal>
@@ -480,7 +509,7 @@ function Landing() {
 
         <section
           id="faq"
-          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:py-32 lg:scroll-mt-24"
+          className="border-y border-border bg-surface-muted/60 py-24 sm:py-32"
         >
           <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
             <Reveal>
@@ -582,7 +611,13 @@ function Landing() {
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
             <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">GitHub</a>
-            <a href="#faq" className="hover:text-foreground">FAQ</a>
+            <a
+              href="#faq"
+              onClick={(event) => scrollToSection(event, "#faq")}
+              className="hover:text-foreground"
+            >
+              FAQ
+            </a>
           </div>
         </div>
       </footer>
