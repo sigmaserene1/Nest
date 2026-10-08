@@ -1,0 +1,38 @@
+name: Deploy Nest Bridge Registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/deploy-bridge-registry.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-testnet:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-bridge-registry]')
+    runs-on: ubuntu-latest
+    env:
+      ARC_NETWORK: testnet
+      ARC_RPC_URL: ${{ secrets.ARC_RPC_URL }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - name: Check deployer secret
+        run: |
+          if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then
+            echo "::error::DEPLOYER_PRIVATE_KEY is not configured in repository secrets."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - run: bun install --frozen-lockfile
+
+      - name: Deploy NestBridgeRegistry to Arc Testnet
+        run: bun scripts/deploy-bridge-registry.mjs
