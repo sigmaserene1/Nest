@@ -1,0 +1,25 @@
+name: Verify Nest Bridge Registry
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/verify-bridge-registry.yml"
+      - "scripts/verify-bridge-registry.mjs"
+      - "contracts/NestBridgeRegistry.sol"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-testnet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Verify NestBridgeRegistry on Arc Testnet explorer
+        run: bun scripts/verify-bridge-registry.mjs
