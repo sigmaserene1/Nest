@@ -1,0 +1,62 @@
+export const NEST_BRIDGE_REGISTRY_ABI = [
+  {
+    type: "function",
+    name: "recordCompletedBridge",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "sourceChainId", type: "uint256" },
+      { name: "destinationChainId", type: "uint256" },
+      { name: "sourceName", type: "string" },
+      { name: "destinationName", type: "string" },
+      { name: "amount", type: "uint256" },
+      { name: "recipient", type: "address" },
+      { name: "sourceTxHash", type: "bytes32" },
+      { name: "destinationTxHash", type: "bytes32" },
+      { name: "provider", type: "string" },
+    ],
+    outputs: [{ name: "bridgeId", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "getUserBridges",
+    stateMutability: "view",
+    inputs: [
+      { name: "user", type: "address" },
+      { name: "limit", type: "uint256" },
+    ],
+    outputs: [
+      {
+        name: "out",
+        type: "tuple[]",
+        components: [
+          { name: "id", type: "uint256" },
+          { name: "owner", type: "address" },
+          { name: "recipient", type: "address" },
+          { name: "sourceChainId", type: "uint256" },
+          { name: "destinationChainId", type: "uint256" },
+          { name: "amount", type: "uint256" },
+          { name: "sourceTxHash", type: "bytes32" },
+          { name: "destinationTxHash", type: "bytes32" },
+          { name: "sourceName", type: "string" },
+          { name: "destinationName", type: "string" },
+          { name: "provider", type: "string" },
+          { name: "createdAt", type: "uint64" },
+        ],
+      },
+    ],
+  },
+  {
+    type: "function",
+    name: "getUserBridgeCount",
+    stateMutability: "view",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "bridgeCount",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+] as const;
