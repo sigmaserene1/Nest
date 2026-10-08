@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Mail, Wallet, Loader2, ShieldCheck } from "lucide-react";
+import { Mail, Wallet, Loader2, ShieldCheck, UserPlus, LogIn } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useEmailAuth } from "@/lib/use-email-auth";
+import { clearSignupDraft, saveSignupDraft } from "@/lib/signup-draft";
 
 type Props = {
   open: boolean;
@@ -23,7 +24,10 @@ export function SignInDialog({
   onAuthenticated,
 }: Props) {
   const { signIn, signInWithGoogle } = useEmailAuth();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [workspaceName, setWorkspaceName] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,6 +46,34 @@ export function SignInDialog({
     onOpenChange(o);
   };
 
+
+  const validateSignup = () => {
+    const name = displayName.trim();
+    const workspace = workspaceName.trim();
+    if (mode !== "signup") return true;
+    if (name.length < 2 || name.length > 60) {
+      setError("Enter the name you want members to see in Nest.");
+      return false;
+    }
+    if (workspace.length < 2 || workspace.length > 80) {
+      setError("Enter a workspace name between 2 and 80 characters.");
+      return false;
+    }
+    return true;
+  };
+
+  const persistSignupDraft = (emailValue?: string) => {
+    if (mode !== "signup") {
+      clearSignupDraft();
+      return;
+    }
+    saveSignupDraft({
+      displayName,
+      workspaceName,
+      email: emailValue,
+    });
+  };
+
   const submitEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalized = email.trim();
@@ -50,6 +82,8 @@ export function SignInDialog({
       return;
     }
 
+    if (!validateSignup()) return;
+    persistSignupDraft(normalized);
     setBusy("email");
     setError(null);
     try {
@@ -67,6 +101,8 @@ export function SignInDialog({
   };
 
   const submitGoogle = async () => {
+    if (!validateSignup()) return;
+    persistSignupDraft();
     setBusy("google");
     setError(null);
     try {
@@ -85,19 +121,91 @@ export function SignInDialog({
       <DialogContent className="max-w-sm overflow-hidden rounded-[28px] border-border/80 bg-card p-0 shadow-2xl">
         <div className="border-b border-border/70 bg-gradient-to-b from-brand/10 to-transparent px-6 pb-5 pt-6">
           <div className="mb-4 grid h-11 w-11 place-items-center rounded-2xl bg-brand text-white shadow-sm">
-            <ShieldCheck className="h-5 w-5" />
+            {mode === "signup" ? <UserPlus className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
           </div>
+
+          <div className="mb-5 grid grid-cols-2 rounded-2xl border border-border bg-background/70 p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signin");
+                setError(null);
+                clearSignupDraft();
+              }}
+              className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition ${
+                mode === "signin"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              <LogIn className="h-3.5 w-3.5" />
+              Sign in
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("signup");
+                setError(null);
+              }}
+              className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition ${
+                mode === "signup"
+                  ? "bg-foreground text-background shadow-sm"
+                  : "text-muted-foreground"
+              }`}
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Create account
+            </button>
+          </div>
+
           <DialogHeader className="text-left">
             <DialogTitle className="font-display text-2xl tracking-tight">
-              Sign in to Nest
+              {mode === "signup" ? "Create your Nest account" : "Welcome back"}
             </DialogTitle>
             <DialogDescription className="max-w-[30rem] text-sm leading-6">
-              Continue with Google or email. Circle creates a user-controlled wallet for your Nest account.
+              {mode === "signup"
+                ? "Set up your identity and first shared workspace. Circle creates your user-controlled Arc wallet after verification."
+                : "Sign in with the same Google account, email or wallet you used before."}
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="space-y-3 px-6 pb-6 pt-5">
+          {mode === "signup" ? (
+            <div className="space-y-2.5">
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-bold text-muted-foreground">
+                  Your name
+                </span>
+                <input
+                  type="text"
+                  autoComplete="name"
+                  maxLength={60}
+                  placeholder="e.g. Alex Chen"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  disabled={busy !== null}
+                  className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
+                />
+              </label>
+
+              <label className="block">
+                <span className="mb-1.5 block text-[11px] font-bold text-muted-foreground">
+                  First workspace
+                </span>
+                <input
+                  type="text"
+                  maxLength={80}
+                  placeholder="e.g. Apartment 12, Design Team"
+                  value={workspaceName}
+                  onChange={(e) => setWorkspaceName(e.target.value)}
+                  disabled={busy !== null}
+                  className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
+                />
+              </label>
+            </div>
+          ) : null}
+
           <button
             type="button"
             onClick={submitGoogle}
@@ -114,7 +222,7 @@ export function SignInDialog({
                 G
               </span>
             )}
-            Continue with Google
+            {mode === "signup" ? "Sign up with Google" : "Continue with Google"}
           </button>
 
           <div className="flex items-center gap-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
@@ -148,31 +256,46 @@ export function SignInDialog({
               ) : (
                 <Mail className="h-4 w-4" />
               )}
-              {busy === "email" ? "Opening secure verification…" : "Continue with email"}
+              {busy === "email"
+                ? "Opening secure verification…"
+                : mode === "signup"
+                  ? "Create account with email"
+                  : "Continue with email"}
             </button>
           </form>
 
-          <div className="flex items-center gap-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or use your wallet
-            <span className="h-px flex-1 bg-border" />
-          </div>
+          {mode === "signin" ? (
+            <>
+              <div className="flex items-center gap-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                or use your wallet
+                <span className="h-px flex-1 bg-border" />
+              </div>
 
-          <button
-            type="button"
-            disabled={busy !== null}
-            onClick={() => {
-              reset(false);
-              onWallet();
-            }}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border px-4 py-3 text-sm font-bold transition hover:border-brand/35 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Wallet className="h-4 w-4" />
-            Connect a wallet
-          </button>
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => {
+                  clearSignupDraft();
+                  reset(false);
+                  onWallet();
+                }}
+                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border px-4 py-3 text-sm font-bold transition hover:border-brand/35 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Wallet className="h-4 w-4" />
+                Connect a wallet
+              </button>
+            </>
+          ) : (
+            <div className="rounded-2xl border border-brand/15 bg-brand/5 px-3.5 py-3 text-[11px] leading-5 text-muted-foreground">
+              Your Nest name is written onchain once during onboarding. Workspace creation also requires one secure wallet confirmation.
+            </div>
+          )}
 
           <p className="px-1 pt-1 text-center text-[11px] leading-4 text-muted-foreground">
-            Email verification is completed in Circle&apos;s secure wallet window.
+            {mode === "signup"
+              ? "No password. Circle handles secure email or Google verification and wallet recovery."
+              : "Email verification is completed in Circle’s secure wallet window."}
           </p>
 
           {error ? (
