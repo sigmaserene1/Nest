@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ExternalLink, Copy, Check, ShieldCheck } from "lucide-react";
+import { useAccount } from "wagmi";
+import { ExternalLink, Copy, Check, ShieldCheck, Waypoints } from "lucide-react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
@@ -10,6 +11,7 @@ import { useNestChain } from "@/lib/chain/nest-chain";
 import { getMember, fmtUSD } from "@/lib/nest-data";
 import { explorerTxUrl, openExplorerTx } from "@/lib/wagmi";
 import { arcEnvironmentLabel, useArcEnvironment } from "@/lib/arc-network";
+import { useBridgeHistory } from "@/lib/bridge-history";
 
 export const Route = createFileRoute("/app/receipts")({
   component: ReceiptsPage,
@@ -31,6 +33,8 @@ export const Route = createFileRoute("/app/receipts")({
 });
 
 const short = (a: string) => (a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a);
+const explorerTx = (base: string, hash: string) =>
+  `${base.replace(/\/$/, "")}/tx/${hash}`;
 
 function fmtStamp(iso: string) {
   const d = new Date(iso);
@@ -73,8 +77,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function ReceiptsPage() {
   const environment = useArcEnvironment();
+  const { address } = useAccount();
   const { me } = useNestChain();
   const receipts = useReceipts(me);
+  const { entries: bridges } = useBridgeHistory(address);
 
   const total = useMemo(
     () =>
@@ -89,7 +95,7 @@ function ReceiptsPage() {
       greeting={
         <div>
           <div className="text-sm font-medium text-muted-foreground">Proof of payment</div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Payment history</h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Payment & bridge history</h1>
         </div>
       }
     >
@@ -102,7 +108,7 @@ function ReceiptsPage() {
         </div>
         <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-600">
           <ShieldCheck className="h-3.5 w-3.5" />
-          {receipts.length} receipt{receipts.length === 1 ? "" : "s"}
+          {receipts.length + bridges.length} record{receipts.length + bridges.length === 1 ? "" : "s"}
         </div>
       </Card>
 
@@ -191,6 +197,96 @@ function ReceiptsPage() {
           })}
         </Stagger>
       )}
+
+      {bridges.length > 0 ? (
+        <div className="mt-6">
+          <div className="mb-3 flex items-center gap-2">
+            <Waypoints className="h-4 w-4 text-sky-600" />
+            <h2 className="text-sm font-bold">Bridge transfers</h2>
+          </div>
+          <Stagger className="space-y-3">
+            {bridges.map((bridge) => (
+              <Item key={bridge.id}>
+                <Card className="!p-4">
+                  <div className="flex items-start gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-sky-500/10 text-sky-600">
+                      <Waypoints className="h-5 w-5" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <div className="text-sm font-bold">
+                            {bridge.fromName} → {bridge.toName}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-muted-foreground">
+                            {fmtStamp(new Date(bridge.completedAt ?? bridge.startedAt).toISOString())}
+                            {bridge.tool ? ` · ${bridge.tool}` : ""}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-bold tabular-nums">
+                            {bridge.amount} USDC
+                          </div>
+                          <div
+                            className={`text-[10px] font-bold uppercase ${
+                              bridge.status === "complete"
+                                ? "text-emerald-600"
+                                : bridge.status === "error"
+                                  ? "text-red-600"
+                                  : "text-amber-600"
+                            }`}
+                          >
+                            {bridge.status}
+                          </div>
+                        </div>
+                      </div>
+
+                      {bridge.recipient ? (
+                        <div className="mt-3 text-[10px] text-muted-foreground">
+                          Recipient <span className="font-mono">{short(bridge.recipient)}</span>
+                        </div>
+                      ) : null}
+
+                      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                        {bridge.burnHash ? (
+                          <a
+                            href={explorerTx(bridge.explorerFrom, bridge.burnHash)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-[11px] font-semibold transition hover:border-brand/30"
+                          >
+                            <span className="min-w-0 truncate font-mono">
+                              Source {short(bridge.burnHash)}
+                            </span>
+                            <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                          </a>
+                        ) : null}
+                        {bridge.mintHash ? (
+                          <a
+                            href={explorerTx(bridge.explorerTo, bridge.mintHash)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-[11px] font-semibold transition hover:border-brand/30"
+                          >
+                            <span className="min-w-0 truncate font-mono">
+                              Destination {short(bridge.mintHash)}
+                            </span>
+                            <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+                          </a>
+                        ) : null}
+                      </div>
+
+                      {bridge.errorMessage ? (
+                        <p className="mt-3 text-xs text-red-600">{bridge.errorMessage}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                </Card>
+              </Item>
+            ))}
+          </Stagger>
+        </div>
+      ) : null}
     </AppShell>
   );
 }
