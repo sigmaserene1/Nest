@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Hex } from "viem";
+import { pullAccountCache, pushAccountCache } from "@/lib/account-cache";
 
 export type BridgeHistoryStatus = "pending" | "complete" | "error";
 
@@ -17,11 +18,14 @@ export type BridgeHistoryEntry = {
   explorerFrom: string;
   explorerTo: string;
   errorMessage?: string;
+  tool?: string;
+  recipient?: string;
+  completedAt?: number;
 };
 
 const LEGACY_STORAGE_KEY = "nest.bridge.history";
 const STORAGE_PREFIX = "nest.bridge.history.";
-const MAX_ENTRIES = 12;
+const MAX_ENTRIES = 100;
 
 function storageKey(owner?: string | null) {
   return owner ? `${STORAGE_PREFIX}${owner.toLowerCase()}` : null;
@@ -48,13 +52,46 @@ function writeHistory(entries: BridgeHistoryEntry[], owner?: string | null) {
   window.localStorage.setItem(key, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
 }
 
+function mergeHistory(
+  local: BridgeHistoryEntry[],
+  remote: BridgeHistoryEntry[],
+) {
+  const byId = new Map<string, BridgeHistoryEntry>();
+  for (const entry of [...remote, ...local]) {
+    const key = entry.id || entry.burnHash || `${entry.startedAt}-${entry.fromId}-${entry.toId}`;
+    const previous = byId.get(key);
+    byId.set(key, previous ? { ...entry, ...previous } : entry);
+  }
+  return [...byId.values()]
+    .sort((a, b) => b.startedAt - a.startedAt)
+    .slice(0, MAX_ENTRIES);
+}
+
 export function useBridgeHistory(owner?: string | null) {
   const [entries, setEntries] = useState<BridgeHistoryEntry[]>([]);
 
   useEffect(() => {
     // Remove the old shared history so wallets never see each other's transfers.
     if (typeof window !== "undefined") window.localStorage.removeItem(LEGACY_STORAGE_KEY);
-    setEntries(readHistory(owner));
+    const local = readHistory(owner);
+    setEntries(local);
+    if (!owner) return;
+
+    let cancelled = false;
+    void pullAccountCache("global").then((cache) => {
+      if (cancelled || !cache || !Array.isArray(cache.bridgeHistory)) return;
+      const remote = cache.bridgeHistory as BridgeHistoryEntry[];
+      setEntries((current) => {
+        const next = mergeHistory(current, remote);
+        writeHistory(next, owner);
+        void pushAccountCache("global", { bridgeHistory: next });
+        return next;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [owner]);
 
   const addEntry = useCallback(
@@ -73,6 +110,7 @@ export function useBridgeHistory(owner?: string | null) {
       setEntries((previous) => {
         const next = previous.map((item) => (item.id === id ? { ...item, ...patch } : item));
         writeHistory(next, owner);
+        void pushAccountCache("global", { bridgeHistory: next });
         return next;
       });
     },
@@ -82,6 +120,7 @@ export function useBridgeHistory(owner?: string | null) {
   const clearHistory = useCallback(() => {
     writeHistory([], owner);
     setEntries([]);
+    void pushAccountCache("global", { bridgeHistory: [] });
   }, [owner]);
 
   return { entries, addEntry, updateEntry, clearHistory };
