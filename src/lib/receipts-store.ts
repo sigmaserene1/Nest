@@ -12,6 +12,7 @@ import {
   useArcEnvironment,
   type ArcEnvironment,
 } from "./arc-network";
+import { pullAccountCache, pushAccountCache } from "@/lib/account-cache";
 
 /** Kept wide so existing screens that label a payment keep working. */
 export type ReceiptKind = "settle" | "pay" | "rent" | "qr" | "transfer";
@@ -118,6 +119,48 @@ function transferReceipt(log: ExplorerLog, chainId: number): Receipt {
   };
 }
 
+const receiptCacheKey = (environment: ArcEnvironment, wallet: string) =>
+  `nest.receipts.${environment}.${wallet.toLowerCase()}`;
+
+function readCachedReceipts(
+  environment: ArcEnvironment,
+  wallet?: string | null,
+): Receipt[] {
+  if (typeof window === "undefined" || !wallet) return [];
+  try {
+    const raw = localStorage.getItem(receiptCacheKey(environment, wallet));
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? (parsed as Receipt[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeCachedReceipts(
+  environment: ArcEnvironment,
+  wallet: string | null | undefined,
+  receipts: Receipt[],
+) {
+  if (typeof window === "undefined" || !wallet) return;
+  try {
+    localStorage.setItem(
+      receiptCacheKey(environment, wallet),
+      JSON.stringify(receipts),
+    );
+  } catch {
+    // The onchain/explorer view remains authoritative.
+  }
+}
+
+function mergeReceipts(...lists: Receipt[][]) {
+  const byHash = new Map<string, Receipt>();
+  for (const receipt of lists.flat()) {
+    if (!receipt?.hash) continue;
+    byHash.set(receipt.hash.toLowerCase(), receipt);
+  }
+  return [...byHash.values()].sort((a, b) => b.date.localeCompare(a.date));
+}
+
 /**
  * Compatibility shim for existing callers.
  * A confirmed Arc transaction already exists in the event log, so there is
@@ -143,26 +186,47 @@ export function useReceipts(wallet?: string | null): Receipt[] {
     }
 
     let cancelled = false;
+    const local = readCachedReceipts(environment, wallet);
+    if (local.length) setReceipts(local);
+
+    void pullAccountCache(environment).then((cache) => {
+      if (cancelled || !cache || !Array.isArray(cache.receiptHistory)) return;
+      const remote = cache.receiptHistory as Receipt[];
+      const merged = mergeReceipts(local, remote);
+      if (merged.length) {
+        setReceipts(merged);
+        writeCachedReceipts(environment, wallet, merged);
+      }
+    });
 
     const load = async () => {
       try {
-        // Arc's public RPC nodes prune historical event logs. Arcscan indexes
-        // the same finalized events and exposes their block timestamps, so this
-        // remains chain-derived even for receipts older than RPC retention.
+        // Arc's public RPC nodes prune historical event logs. The explorer
+        // indexes finalized events, while Nest keeps the last verified result
+        // locally/cloud-side so old receipts paint immediately on next login.
         const [settlements, transfers] = await Promise.all([
           getExplorerLogs(contractAddress, SPLIT_SETTLED_TOPIC, environment),
           getExplorerLogs(contractAddress, DIRECT_TRANSFER_TOPIC, environment),
         ]);
-        const next = [
+        const all = [
           ...settlements.map((log) => splitReceipt(log, arcChain.id)),
           ...transfers.map((log) => transferReceipt(log, arcChain.id)),
-        ].sort(
-          (a, b) => b.date.localeCompare(a.date),
-        );
+        ];
+        const owner = wallet?.toLowerCase();
+        const mine = owner
+          ? all.filter((receipt) => receipt.from === owner || receipt.to === owner)
+          : all;
+        const next = mergeReceipts(mine);
 
-        if (!cancelled) setReceipts(next);
+        if (!cancelled) {
+          setReceipts(next);
+          writeCachedReceipts(environment, wallet, next);
+          if (owner) {
+            void pushAccountCache(environment, { receiptHistory: next });
+          }
+        }
       } catch {
-        // Keep the last verified onchain view. Never substitute fabricated data.
+        // Keep the last verified cached/onchain view. Never fabricate history.
       }
     };
 
@@ -173,7 +237,7 @@ export function useReceipts(wallet?: string | null): Receipt[] {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [contractAddress, environment, arcChain.id]);
+  }, [contractAddress, environment, arcChain.id, wallet]);
 
   return useMemo(() => {
     if (!wallet) return receipts;
