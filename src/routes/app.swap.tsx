@@ -528,9 +528,7 @@ function TokenBadge({ token }: { token: NestSwapToken }) {
     <span className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-black shadow-sm">
       {token === "USDC" ? <UsdcMark size={36} /> : <span
         className={`grid h-6 w-6 place-items-center rounded-full text-[9px] ${
-          token === "USDC"
-            ? "bg-blue-500/12 text-blue-600"
-            : token === "EURC"
+          token === "EURC"
               ? "bg-indigo-500/12 text-indigo-600"
               : "bg-amber-500/12 text-amber-700"
         }`}
