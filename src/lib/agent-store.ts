@@ -3,7 +3,9 @@
 // The assistant prepares a wallet-confirmed batch while this browser is open.
 // It is not an autonomous signer, scheduler, or onchain policy engine.
 
+import { useEffect, useRef } from "react";
 import { useLocalStore } from "./local-store";
+import { pullAccountCache, pushAccountCache } from "@/lib/account-cache";
 
 export type AgentConfig = {
   enabled: boolean;
@@ -45,11 +47,78 @@ const cfgKey = (wallet: string) => `nest.agent.cfg.${wallet.toLowerCase()}`;
 const logKey = (wallet: string) => `nest.agent.log.${wallet.toLowerCase()}`;
 
 export function useAgentConfig(wallet: string | null) {
-  return useLocalStore<AgentConfig>(cfgKey(wallet ?? "anon"), DEFAULT_AGENT);
+  const [config, setConfig] = useLocalStore<AgentConfig>(
+    cfgKey(wallet ?? "anon"),
+    DEFAULT_AGENT,
+  );
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    hydrated.current = false;
+    if (!wallet) return;
+
+    let cancelled = false;
+    void pullAccountCache("global").then((cache) => {
+      if (cancelled) return;
+      const remote = cache?.agentConfig as AgentConfig | null | undefined;
+      if (remote && typeof remote === "object") {
+        setConfig({ ...DEFAULT_AGENT, ...remote });
+      } else {
+        void pushAccountCache("global", { agentConfig: config });
+      }
+      hydrated.current = true;
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally hydrate once per wallet; local changes sync below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallet]);
+
+  useEffect(() => {
+    if (!wallet || !hydrated.current) return;
+    void pushAccountCache("global", { agentConfig: config });
+  }, [config, wallet]);
+
+  return [config, setConfig] as const;
 }
 
 export function useAgentRuns(wallet: string | null) {
-  return useLocalStore<AgentRun[]>(logKey(wallet ?? "anon"), EMPTY_RUNS);
+  const [runs, setRuns] = useLocalStore<AgentRun[]>(
+    logKey(wallet ?? "anon"),
+    EMPTY_RUNS,
+  );
+  const hydrated = useRef(false);
+
+  useEffect(() => {
+    hydrated.current = false;
+    if (!wallet) return;
+
+    let cancelled = false;
+    void pullAccountCache("global").then((cache) => {
+      if (cancelled) return;
+      const remote = cache?.agentRuns as AgentRun[] | undefined;
+      if (Array.isArray(remote) && remote.length > 0) {
+        setRuns(remote);
+      } else if (runs.length > 0) {
+        void pushAccountCache("global", { agentRuns: runs });
+      }
+      hydrated.current = true;
+    });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [wallet]);
+
+  useEffect(() => {
+    if (!wallet || !hydrated.current) return;
+    void pushAccountCache("global", { agentRuns: runs });
+  }, [runs, wallet]);
+
+  return [runs, setRuns] as const;
 }
 
 /** Next scheduled run for a given day-of-month, relative to now. */
