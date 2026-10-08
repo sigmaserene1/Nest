@@ -83,6 +83,38 @@ npx eslint src/routes/index.tsx src/routes/__root.tsx
 
 The repository currently contains pre-existing lint debt outside the landing page; a production build and TypeScript check are the reliable whole-app gates until that baseline is cleaned up.
 
+## Fast account restore and cross-device cache
+
+Arc remains the source of truth for rooms, members, expenses, balances and
+settlements. Nest also supports a server-side Supabase cache so returning Circle
+email/social users can paint their last verified account state immediately while
+Arc refreshes in the background.
+
+Apply the checked-in migration:
+
+```text
+supabase/migrations/202610080001_nest_account_cache.sql
+```
+
+Configure these **server-side** deployment secrets:
+
+```bash
+SUPABASE_URL=https://<project>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
+```
+
+Never expose `SUPABASE_SERVICE_ROLE_KEY` through a `VITE_` variable.
+
+The cache stores only rebuildable app/index data such as verified workspace
+snapshots, bridge history, receipt history and preferences. It does not store
+wallet private keys. Server functions validate the current short-lived Circle
+user token, resolve that user's Circle wallet server-side, and then read/write
+the matching cache row.
+
+If Supabase is not configured, Nest keeps working from Arc and uses the local
+verified snapshot for fast same-device reloads; only cross-device cache restore
+is unavailable.
+
 ## Business V2 (new workspaces)
 
 The deployed `ExpenseManager` cannot lend or grant an unattended settlement
