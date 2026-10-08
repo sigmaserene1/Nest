@@ -561,8 +561,8 @@ function BridgePage() {
             <div className="flex items-center justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2 text-sm font-bold">
-                  <span className="grid h-8 w-8 place-items-center rounded-full bg-info/10">
-                    <UsdcMark size={20} />
+                  <span className="grid h-10 w-10 place-items-center rounded-full bg-info/10">
+                    <UsdcMark size={32} />
                   </span>
                   Bridge USDC
                 </div>
@@ -623,7 +623,7 @@ function BridgePage() {
               </span>
               <div className="rounded-xl border border-brand bg-brand-soft px-3 py-3">
                 <div className="flex items-center gap-2">
-                  <UsdcMark size={22} />
+                  <UsdcMark size={40} />
                   <div className="min-w-0">
                     <div className="text-sm font-bold">USDC</div>
                     <div className="text-[10px] text-muted-foreground">
@@ -676,7 +676,7 @@ function BridgePage() {
                   className="min-w-0 flex-1 bg-transparent text-3xl font-bold tracking-[-0.03em] tabular-nums outline-none placeholder:text-muted-foreground/40 sm:text-4xl"
                 />
                 <span className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-sm font-bold shadow-sm">
-                  <UsdcMark size={20} /> USDC
+                  <UsdcMark size={36} />
                 </span>
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
@@ -724,8 +724,8 @@ function BridgePage() {
               <div className="flex items-center justify-between gap-3">
                 <span className="text-muted-foreground">Recipient receives</span>
                 <span className="flex items-center gap-1.5 font-bold">
-                  <UsdcMark size={15} />
-                  {formatCompactAmount(estimatedReceived)} USDC
+                  <UsdcMark size={24} />
+                  {formatCompactAmount(estimatedReceived)}
                 </span>
               </div>
               <div className="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">

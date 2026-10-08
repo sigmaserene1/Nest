@@ -4,7 +4,7 @@ import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap, AnimatedNumber } from "@/components/nest/motion";
 import { EmptyState } from "@/components/nest/feedback";
 import { ActionModal, useActionModal, type ActionMode } from "@/components/nest/action-modal";
-import { ArcBadge, UsdcBadge, WalletChip, BlockTicker } from "@/components/nest/chain";
+import { ArcBadge, UsdcBadge, UsdcMark, WalletChip, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
 
@@ -119,7 +119,7 @@ function Dashboard() {
             <div className="text-[11px] uppercase tracking-widest text-background/60">
               Available balance
             </div>
-            <div className="mt-1 flex items-baseline gap-2">
+            <div className="mt-1 flex items-center gap-3">
               <div className="text-4xl font-bold tracking-[-0.04em] tabular-nums sm:text-5xl">
                 {wallet.isConnected && wallet.isOnArc ? (
                   <AnimatedNumber value={wallet.usdcBalance} decimals={2} />
@@ -127,7 +127,7 @@ function Dashboard() {
                   "—"
                 )}
               </div>
-              <div className="text-sm font-semibold text-background/70">USDC</div>
+              <UsdcMark size={40} />
             </div>
             <div className="mt-2 flex items-center gap-2 text-xs text-background/60">
               {wallet.address && <WalletChip address={wallet.address} variant="dark" />}

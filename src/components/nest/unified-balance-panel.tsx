@@ -3,6 +3,7 @@ import { ArrowDownToLine, Loader2, RefreshCw, WalletCards, Zap } from "lucide-re
 import { useAccount } from "wagmi";
 import { toast } from "sonner";
 
+import { UsdcMark } from "@/components/nest/chain";
 import { Card } from "@/components/nest/app-shell";
 import { useArcEnvironment } from "@/lib/arc-network";
 import {
@@ -225,16 +226,16 @@ export function UnifiedBalancePanel({
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Confirmed
           </div>
-          <div className="mt-1 text-2xl font-bold tabular-nums">
-            {formatAmount(snapshot?.totalConfirmedBalance)} USDC
+          <div className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums">
+            {formatAmount(snapshot?.totalConfirmedBalance)} <UsdcMark size={32} />
           </div>
         </div>
         <div className="rounded-xl bg-muted/50 p-3">
           <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
             Pending
           </div>
-          <div className="mt-1 text-2xl font-bold tabular-nums">
-            {formatAmount(snapshot?.totalPendingBalance)} USDC
+          <div className="mt-1 flex items-center gap-2 text-2xl font-bold tabular-nums">
+            {formatAmount(snapshot?.totalPendingBalance)} <UsdcMark size={32} />
           </div>
         </div>
       </div>
