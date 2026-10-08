@@ -23,17 +23,42 @@ export function ArcBadge({ variant = "dark" }: { variant?: "dark" | "light" }) {
 }
 
 export function UsdcMark({ size = 16, className = "" }: { size?: number; className?: string }) {
+  const renderedSize = Math.round(size * 1.12);
+
   return (
-    <svg viewBox="0 0 32 32" width={size} height={size} className={className} aria-hidden>
-      <circle cx="16" cy="16" r="16" fill="#2775CA" />
+    <svg
+      viewBox="0 0 36 36"
+      width={renderedSize}
+      height={renderedSize}
+      className={className}
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id="usdc-coin-edge" x1="5" y1="3" x2="31" y2="34" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#69B7FF" />
+          <stop offset="0.45" stopColor="#2775CA" />
+          <stop offset="1" stopColor="#1557A3" />
+        </linearGradient>
+        <linearGradient id="usdc-coin-face" x1="10" y1="7" x2="27" y2="30" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#3D8BE1" />
+          <stop offset="1" stopColor="#1D67BB" />
+        </linearGradient>
+      </defs>
+
+      <circle cx="18" cy="18" r="17" fill="url(#usdc-coin-edge)" />
+      <circle cx="18" cy="18" r="14.8" fill="url(#usdc-coin-face)" />
+      <circle cx="18" cy="18" r="14.2" fill="none" stroke="#8BC7FF" strokeOpacity="0.45" />
       <path
         fill="#fff"
+        transform="translate(2 2)"
         d="M20.7 18.5c0-2.2-1.3-2.9-4-3.2-1.9-.26-2.3-.77-2.3-1.67 0-.9.65-1.48 1.94-1.48 1.16 0 1.81.39 2.13 1.35.06.19.26.32.45.32h1.03c.26 0 .45-.19.45-.45v-.07a3.22 3.22 0 0 0-2.9-2.64V9.15c0-.26-.19-.45-.52-.52h-.97c-.26 0-.45.19-.52.52v1.42c-1.94.26-3.16 1.55-3.16 3.16 0 2.06 1.29 2.84 3.94 3.16 1.81.32 2.39.71 2.39 1.74 0 1.03-.9 1.74-2.13 1.74-1.68 0-2.26-.71-2.45-1.68-.06-.26-.26-.39-.45-.39h-1.1c-.26 0-.45.19-.45.45v.07c.26 1.61 1.29 2.77 3.42 3.1v1.42c0 .26.19.45.52.52h.97c.26 0 .45-.19.52-.52v-1.42c1.93-.32 3.22-1.68 3.22-3.42Z"
       />
       <path
         fill="#fff"
+        transform="translate(2 2)"
         d="M12.9 24.9c-5.03-1.81-7.61-7.42-5.74-12.39A9.6 9.6 0 0 1 12.9 7.1c.26-.13.39-.32.39-.65v-.9c0-.26-.13-.45-.39-.52-.06 0-.19 0-.26.06a11.6 11.6 0 0 0-7.55 14.58 11.5 11.5 0 0 0 7.55 7.36c.26.13.52 0 .58-.26.06-.06.06-.13.06-.26v-.9c0-.19-.19-.45-.38-.71Zm6.45-19.8c-.26-.13-.52 0-.58.26-.06.07-.06.13-.06.26v.9c0 .26.19.52.39.71 5.03 1.81 7.61 7.42 5.74 12.39a9.6 9.6 0 0 1-5.74 5.42c-.26.13-.39.32-.39.64v.9c0 .26.13.45.39.52.06 0 .19 0 .26-.07a11.62 11.62 0 0 0 7.55-14.58 11.66 11.66 0 0 0-7.55-7.35Z"
       />
+      <ellipse cx="13.5" cy="9.5" rx="5.5" ry="2.2" fill="#fff" opacity="0.12" transform="rotate(-22 13.5 9.5)" />
     </svg>
   );
 }
