@@ -178,26 +178,54 @@ function styleCircleSecurePopup() {
 
       iframe.width = "100%";
       iframe.height = "100%";
-      Object.assign(iframe.style, {
-        position: "fixed",
-        inset: "0",
-        top: "0",
-        left: "0",
-        width: "100vw",
-        height: "100dvh",
-        maxWidth: "none",
-        maxHeight: "none",
-        margin: "0",
-        transform: "none",
-        border: "0",
-        borderRadius: "0",
-        overflow: "visible",
-        boxShadow: "none",
-        background: "#FBFAF8",
-        zIndex: "2147483647",
-        pointerEvents: "auto",
-        touchAction: "auto",
-      });
+
+      const applyMobileViewport = () => {
+        const vv = window.visualViewport;
+        const width = Math.max(1, Math.round(vv?.width ?? window.innerWidth));
+        const height = Math.max(1, Math.round(vv?.height ?? window.innerHeight));
+        const offsetTop = Math.max(0, Math.round(vv?.offsetTop ?? 0));
+        const offsetLeft = Math.max(0, Math.round(vv?.offsetLeft ?? 0));
+
+        Object.assign(iframe.style, {
+          position: "fixed",
+          inset: "auto",
+          top: `${offsetTop}px`,
+          left: `${offsetLeft}px`,
+          width: `${width}px`,
+          height: `${height}px`,
+          maxWidth: `${width}px`,
+          maxHeight: `${height}px`,
+          margin: "0",
+          transform: "none",
+          border: "0",
+          borderRadius: "0",
+          overflow: "visible",
+          boxShadow: "none",
+          background: "#FBFAF8",
+          zIndex: "2147483647",
+          pointerEvents: "auto",
+          touchAction: "manipulation",
+        });
+      };
+
+      applyMobileViewport();
+
+      const vv = window.visualViewport;
+      if (vv) {
+        const sync = () => applyMobileViewport();
+        vv.addEventListener("resize", sync);
+        vv.addEventListener("scroll", sync);
+
+        const observer = new MutationObserver(() => {
+          if (!document.getElementById("sdkIframe")) {
+            vv.removeEventListener("resize", sync);
+            vv.removeEventListener("scroll", sync);
+            observer.disconnect();
+          }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+
       return true;
     }
 
