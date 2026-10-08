@@ -8,6 +8,7 @@ import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
 import { isAddress, resolveInvite, setContractAddress } from "@/lib/chain/config";
+import { readSignupDraft } from "@/lib/signup-draft";
 
 function Panel({ children }: { children: React.ReactNode }) {
   return (
@@ -112,7 +113,8 @@ export function RoomSetup() {
   const provision = async () => {
     setError("");
     try {
-      await createRoom("My household");
+      const signup = readSignupDraft();
+      await createRoom(signup?.workspaceName || "My household");
       await refresh();
     } catch (e) {
       setError((e as Error).message.split("\n")[0]);
@@ -132,10 +134,10 @@ export function RoomSetup() {
 
   return (
     <Panel>
-      <h1 className="text-xl font-bold tracking-tight">Setting up your home</h1>
+      <h1 className="text-xl font-bold tracking-tight">Setting up your workspace</h1>
       <p className="mt-1.5 text-sm text-muted-foreground">
-        Nest is creating your shared home on Arc. Approve the signature in your wallet — this
-        happens once, then you go straight into the app.
+        Nest is creating {readSignupDraft()?.workspaceName ? `“${readSignupDraft()?.workspaceName}”` : "your shared workspace"} on Arc.
+        Approve the secure wallet request once, then you go straight into the app.
       </p>
 
       {error ? (
