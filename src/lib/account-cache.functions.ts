@@ -163,7 +163,10 @@ export const patchNestAccountCache = createServerFn({ method: "POST" })
           : (current.receipt_history ?? []),
       preferences:
         data.patch.preferences !== undefined
-          ? data.patch.preferences
+          ? {
+              ...((current.preferences as Record<string, unknown> | null) ?? {}),
+              ...((data.patch.preferences as Record<string, unknown> | null) ?? {}),
+            }
           : (current.preferences ?? {}),
       agent_config:
         data.patch.agentConfig !== undefined
