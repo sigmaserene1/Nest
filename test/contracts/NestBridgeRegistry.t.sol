@@ -14,21 +14,47 @@ contract NestBridgeRegistryTest is Test {
         registry = new NestBridgeRegistry();
     }
 
+    function _input(
+        uint256 sourceChainId,
+        uint256 destinationChainId,
+        string memory sourceName,
+        string memory destinationName,
+        uint256 amount,
+        address recipient,
+        bytes32 sourceHash,
+        bytes32 destinationHash,
+        string memory provider
+    ) internal pure returns (NestBridgeRegistry.BridgeInput memory) {
+        return NestBridgeRegistry.BridgeInput({
+            sourceChainId: sourceChainId,
+            destinationChainId: destinationChainId,
+            sourceName: sourceName,
+            destinationName: destinationName,
+            amount: amount,
+            recipient: recipient,
+            sourceTxHash: sourceHash,
+            destinationTxHash: destinationHash,
+            provider: provider
+        });
+    }
+
     function testRecordsCompletedBridgeForCaller() public {
         bytes32 sourceHash = keccak256("source");
         bytes32 destinationHash = keccak256("destination");
 
         vm.prank(alice);
         uint256 id = registry.recordCompletedBridge(
-            8453,
-            5042,
-            "Base",
-            "Arc",
-            125e6,
-            bob,
-            sourceHash,
-            destinationHash,
-            "Circle CCTP"
+            _input(
+                8453,
+                5042,
+                "Base",
+                "Arc",
+                125e6,
+                bob,
+                sourceHash,
+                destinationHash,
+                "Circle CCTP"
+            )
         );
 
         NestBridgeRegistry.BridgeRecord memory record = registry.getBridge(id);
@@ -53,48 +79,49 @@ contract NestBridgeRegistryTest is Test {
 
         vm.prank(alice);
         registry.recordCompletedBridge(
-            8453,
-            5042,
-            "Base",
-            "Arc",
-            10e6,
-            alice,
-            sourceHash,
-            keccak256("destination-one"),
-            "LI.FI"
+            _input(
+                8453,
+                5042,
+                "Base",
+                "Arc",
+                10e6,
+                alice,
+                sourceHash,
+                keccak256("destination-one"),
+                "LI.FI"
+            )
         );
 
         vm.prank(alice);
         vm.expectRevert("bridge already recorded");
         registry.recordCompletedBridge(
-            8453,
-            5042,
-            "Base",
-            "Arc",
-            10e6,
-            alice,
-            sourceHash,
-            keccak256("destination-two"),
-            "LI.FI"
+            _input(
+                8453,
+                5042,
+                "Base",
+                "Arc",
+                10e6,
+                alice,
+                sourceHash,
+                keccak256("destination-two"),
+                "LI.FI"
+            )
         );
     }
 
     function testHistoryIsNewestFirstAndScopedPerWallet() public {
         vm.startPrank(alice);
         registry.recordCompletedBridge(
-            1, 5042, "Ethereum", "Arc", 10e6, alice,
-            keccak256("a1"), keccak256("a2"), "Circle CCTP"
+            _input(1, 5042, "Ethereum", "Arc", 10e6, alice, keccak256("a1"), keccak256("a2"), "Circle CCTP")
         );
         registry.recordCompletedBridge(
-            8453, 5042, "Base", "Arc", 20e6, alice,
-            keccak256("b1"), keccak256("b2"), "LI.FI"
+            _input(8453, 5042, "Base", "Arc", 20e6, alice, keccak256("b1"), keccak256("b2"), "LI.FI")
         );
         vm.stopPrank();
 
         vm.prank(bob);
         registry.recordCompletedBridge(
-            42161, 5042, "Arbitrum", "Arc", 30e6, bob,
-            keccak256("c1"), keccak256("c2"), "LI.FI"
+            _input(42161, 5042, "Arbitrum", "Arc", 30e6, bob, keccak256("c1"), keccak256("c2"), "LI.FI")
         );
 
         NestBridgeRegistry.BridgeRecord[] memory aliceRecords =
@@ -113,8 +140,7 @@ contract NestBridgeRegistryTest is Test {
         vm.prank(alice);
         vm.expectRevert("same chain");
         registry.recordCompletedBridge(
-            5042, 5042, "Arc", "Arc", 10e6, alice,
-            keccak256("a"), keccak256("b"), "LI.FI"
+            _input(5042, 5042, "Arc", "Arc", 10e6, alice, keccak256("a"), keccak256("b"), "LI.FI")
         );
     }
 }
