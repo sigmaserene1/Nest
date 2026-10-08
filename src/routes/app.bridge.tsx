@@ -27,6 +27,13 @@ import {
   type Hex,
 } from "viem";
 import { useAccount } from "wagmi";
+import { NEST_BRIDGE_REGISTRY_ABI } from "@/contracts/nest-bridge-registry-artifact";
+import {
+  arcChainFor,
+  arcExplorerFor,
+  useArcEnvironment,
+} from "@/lib/arc-network";
+import { useBridgeRegistryAddress } from "@/lib/bridge-registry";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 import { AppShell, Card } from "@/components/nest/app-shell";
@@ -114,6 +121,10 @@ export const Route = createFileRoute("/app/bridge")({
 function BridgePage() {
   const search = Route.useSearch();
   const { address, chainId, connector, isConnected } = useAccount();
+  const nestEnvironment = useArcEnvironment();
+  const nestArcChain = arcChainFor(nestEnvironment);
+  const bridgeRegistryAddress = useBridgeRegistryAddress();
+  const bridgeRegistryExplorer = arcExplorerFor(nestEnvironment);
   const { entries, addEntry, updateEntry, clearHistory } = useBridgeHistory(address);
 
   const [chains, setChains] = useState<LifiChain[]>([]);
@@ -469,15 +480,50 @@ function BridgePage() {
 
       const receivingHash = status.receiving?.txHash;
       if (receivingHash) setDestinationTxHash(receivingHash);
-      setState("complete");
-      setStatusText(
-        `${formatCompactAmount(estimatedReceived)} USDC delivered to ${destination.name}.`,
-      );
+
+      const completedAt = Date.now();
       updateEntry(entryId, {
         status: "complete",
         mintHash: receivingHash,
-        completedAt: Date.now(),
+        completedAt,
       });
+
+      let registryTxHash: Hex | undefined;
+      const isNestArcRoute =
+        source.id === nestArcChain.id || destination.id === nestArcChain.id;
+
+      if (bridgeRegistryAddress && receivingHash && isNestArcRoute) {
+        try {
+          setStatusText("Bridge delivered. Saving your Nest onchain bridge receipt...");
+          registryTxHash = await recordBridgeOnNest(provider, {
+            registry: bridgeRegistryAddress,
+            owner: address,
+            arcChain: nestArcChain,
+            source,
+            destination,
+            amount: toCanonicalUsdcUnits(requiredAmount, sourceToken.decimals),
+            recipient: recipient as Address,
+            sourceHash,
+            destinationHash: receivingHash,
+            providerName: lifiToolName(executionQuote),
+          });
+          updateEntry(entryId, {
+            registryTxHash,
+            registryExplorer: bridgeRegistryExplorer,
+          });
+        } catch (registryError) {
+          // The bridge itself is already complete. A rejected/failed registry
+          // write must never turn a successful cross-chain transfer into an error.
+          console.warn("Nest bridge registry write skipped:", registryError);
+        }
+      }
+
+      setState("complete");
+      setStatusText(
+        registryTxHash
+          ? `${formatCompactAmount(estimatedReceived)} USDC delivered to ${destination.name} · saved onchain in Nest.`
+          : `${formatCompactAmount(estimatedReceived)} USDC delivered to ${destination.name}.`,
+      );
     } catch (caught) {
       console.error("LI.FI bridge error:", caught);
       setState("error");
@@ -1014,11 +1060,14 @@ function HistoryRow({ entry }: { entry: BridgeHistoryEntry }) {
     ) : (
       <Loader2 className="h-3.5 w-3.5 animate-spin text-brand" />
     );
-  const link = entry.mintHash
-    ? `${entry.explorerTo}/tx/${entry.mintHash}`
-    : entry.burnHash
-      ? `${entry.explorerFrom}/tx/${entry.burnHash}`
-      : null;
+  const link =
+    entry.registryTxHash && entry.registryExplorer
+      ? `${entry.registryExplorer}/tx/${entry.registryTxHash}`
+      : entry.mintHash && entry.explorerTo
+        ? `${entry.explorerTo}/tx/${entry.mintHash}`
+        : entry.burnHash && entry.explorerFrom
+          ? `${entry.explorerFrom}/tx/${entry.burnHash}`
+          : null;
 
   const row = (
     <div className="flex items-center gap-3 rounded-xl border px-3 py-2.5 transition hover:bg-muted">
@@ -1166,6 +1215,90 @@ async function switchToLifiChain(provider: Eip1193Provider, chain: LifiChain) {
       },
     ],
   });
+}
+
+type NestArcChain = ReturnType<typeof arcChainFor>;
+
+function toCanonicalUsdcUnits(value: bigint, decimals: number) {
+  if (decimals === 6) return value;
+  if (decimals > 6) return value / 10n ** BigInt(decimals - 6);
+  return value * 10n ** BigInt(6 - decimals);
+}
+
+async function switchToNestArc(provider: Eip1193Provider, chain: NestArcChain) {
+  const chainId = numberToHex(chain.id);
+  try {
+    await provider.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId }],
+    });
+    return;
+  } catch (caught) {
+    const code = getErrorCode(caught);
+    if (code !== 4902 && code !== -32603) throw caught;
+  }
+
+  await provider.request({
+    method: "wallet_addEthereumChain",
+    params: [
+      {
+        chainId,
+        chainName: chain.name,
+        nativeCurrency: chain.nativeCurrency,
+        rpcUrls: [...chain.rpcUrls.default.http],
+        blockExplorerUrls: [chain.blockExplorers.default.url],
+      },
+    ],
+  });
+}
+
+async function recordBridgeOnNest(
+  provider: Eip1193Provider,
+  input: {
+    registry: Address;
+    owner: Address;
+    arcChain: NestArcChain;
+    source: LifiChain;
+    destination: LifiChain;
+    amount: bigint;
+    recipient: Address;
+    sourceHash: Hex;
+    destinationHash: Hex;
+    providerName: string;
+  },
+): Promise<Hex> {
+  await switchToNestArc(provider, input.arcChain);
+
+  const data = encodeFunctionData({
+    abi: NEST_BRIDGE_REGISTRY_ABI,
+    functionName: "recordCompletedBridge",
+    args: [
+      BigInt(input.source.id),
+      BigInt(input.destination.id),
+      input.source.name.slice(0, 48),
+      input.destination.name.slice(0, 48),
+      input.amount,
+      input.recipient,
+      input.sourceHash,
+      input.destinationHash,
+      input.providerName.slice(0, 48),
+    ],
+  });
+
+  const hash = (await provider.request({
+    method: "eth_sendTransaction",
+    params: [
+      {
+        from: input.owner,
+        to: input.registry,
+        data,
+        value: "0x0",
+      },
+    ],
+  })) as Hex;
+
+  await waitForEip1193Receipt(provider, hash);
+  return hash;
 }
 
 async function readErc20Allowance(
