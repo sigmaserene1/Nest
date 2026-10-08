@@ -2,11 +2,12 @@ import { useEffect, useState } from "react";
 import { Loader2, ShieldCheck, X } from "lucide-react";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
+import { clearSignupDraft, readSignupDraft } from "@/lib/signup-draft";
 
 function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: boolean }) {
   const { claimName } = useNestWrites();
   const { isDemo, rpcMessage } = useNestChain();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => readSignupDraft()?.displayName ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -16,6 +17,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
     setError("");
     try {
       await claimName(name.trim());
+      clearSignupDraft();
       onDone();
     } catch (e) {
       setError((e as Error).message.split("\n")[0]);
@@ -37,7 +39,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
         className="mobile-sheet glass-strong w-[calc(100%-0.75rem)] max-w-md rounded-[30px] p-5 sm:w-full sm:p-6"
       >
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold">Claim your name</h3>
+          <h3 className="text-lg font-bold">Confirm your Nest name</h3>
           {dismissible && (
             <button
               onClick={onDone}
@@ -49,7 +51,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           )}
         </div>
         <p className="mt-2 text-sm text-muted-foreground">
-          Your name is written onchain once and permanently bound to this wallet.
+          This is how members recognize you in Nest. Your name is written onchain once and permanently bound to this wallet.
         </p>
         <input
           value={name}
@@ -78,7 +80,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           ) : (
             <ShieldCheck className="h-4 w-4" />
           )}{" "}
-          Claim onchain
+          Confirm name onchain
         </button>
       </div>
     </div>
