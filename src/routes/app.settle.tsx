@@ -18,7 +18,9 @@ export const Route = createFileRoute("/app/settle")({
   head: () => ({
     meta: [
       { title: "Settle up · Nest" },
-      { name: "description", content: "Pay your share instantly in USDC." },
+      { name: "description", content: "See exactly what you owe each roommate and settle your share peer-to-peer in native USDC on Arc." },
+      { property: "og:title", content: "Settle up · Nest" },
+      { property: "og:description", content: "See exactly what you owe each roommate and settle your share peer-to-peer in native USDC on Arc." },
     ],
   }),
 });

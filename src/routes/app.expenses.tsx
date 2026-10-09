@@ -15,7 +15,9 @@ export const Route = createFileRoute("/app/expenses")({
   head: () => ({
     meta: [
       { title: "Expenses · Nest" },
-      { name: "description", content: "Every shared expense in one beautiful feed." },
+      { name: "description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
+      { property: "og:title", content: "Expenses · Nest" },
+      { property: "og:description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
     ],
   }),
 });

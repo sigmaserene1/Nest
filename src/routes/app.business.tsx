@@ -22,6 +22,8 @@ export const Route = createFileRoute("/app/business")({
         content:
           "Collateralized USDC credit and capped, revocable settlement-agent policies for Nest Business V2.",
       },
+      { property: "og:title", content: "Business controls · Nest" },
+      { property: "og:description", content: "Collateralized USDC credit and capped, revocable settlement-agent policies for Nest Business V2." },
     ],
   }),
 });

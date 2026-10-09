@@ -31,6 +31,8 @@ export const Route = createFileRoute("/app/treasury")({
         content:
           "Shared USDC treasury, multi-approval payments, recurring payouts, milestone escrow and delegated budgets.",
       },
+      { property: "og:title", content: "Treasury · Nest" },
+      { property: "og:description", content: "Shared USDC treasury, multi-approval payments, recurring payouts, milestone escrow and delegated budgets." },
     ],
   }),
 });
