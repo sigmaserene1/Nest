@@ -35,6 +35,8 @@ export const Route = createFileRoute("/app/swap")({
         name: "description",
         content: "Review and swap USDC, EURC and cirBTC on Arc through Circle App Kit.",
       },
+      { property: "og:title", content: "Swap · Nest" },
+      { property: "og:description", content: "Review and swap USDC, EURC and cirBTC on Arc through Circle App Kit." },
     ],
   }),
 });

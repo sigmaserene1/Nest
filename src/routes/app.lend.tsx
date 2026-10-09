@@ -14,6 +14,8 @@ export const Route = createFileRoute("/app/lend")({
         content:
           "Lending is not enabled on Nest's current shared-expense ExpenseManager deployment.",
       },
+      { property: "og:title", content: "Lending status · Nest" },
+      { property: "og:description", content: "Lending is not enabled on Nest's current shared-expense ExpenseManager deployment." },
     ],
   }),
 });

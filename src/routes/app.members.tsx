@@ -15,7 +15,9 @@ export const Route = createFileRoute("/app/members")({
   head: () => ({
     meta: [
       { title: "Members · Nest" },
-      { name: "description", content: "Your household roommates." },
+      { name: "description", content: "Manage the roommates in your Nest household, set your display name and review each member's net balance." },
+      { property: "og:title", content: "Members · Nest" },
+      { property: "og:description", content: "Manage the roommates in your Nest household, set your display name and review each member's net balance." },
     ],
   }),
 });

@@ -75,6 +75,27 @@ export const Route = createFileRoute("/")({
       },
     ],
     links: [{ rel: "canonical", href: "https://nestarc.xyz/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "Nest",
+              url: "https://nestarc.xyz/",
+              logo: "https://nestarc.xyz/favicon.ico",
+            },
+            {
+              "@type": "WebSite",
+              name: "Nest — Group finance and USDC settlement on Arc",
+              url: "https://nestarc.xyz/",
+            },
+          ],
+        }),
+      },
+    ],
   }),
 });
 
