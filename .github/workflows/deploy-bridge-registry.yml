@@ -1,6 +1,3 @@
-# Deploy trigger after corrected signer secret
-# Deploy trigger after signer secret configured
-# Triggered by ChatGPT for Arc Testnet BridgeRegistry deployment
 name: Deploy Nest Bridge Registry
 
 on:
@@ -8,6 +5,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/deploy-bridge-registry.yml"
+      - "scripts/deploy-bridge-registry.mjs"
+      - "contracts/NestBridgeRegistry.sol"
   workflow_dispatch:
 
 permissions:
