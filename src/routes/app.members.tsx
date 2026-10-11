@@ -14,7 +14,7 @@ export const Route = createFileRoute("/app/members")({
   head: () => ({
     meta: [
       { title: "Members · Nest" },
-      { name: "description", content: "Manage your Nest workspace members, share a secure invite link and review each member's net balance." },
+      { name: "description", content: "Manage your Nest workspace members, share a workspace invite link and review each member's net balance." },
       { property: "og:title", content: "Members · Nest" },
       { property: "og:description", content: "Manage workspace members, share an invite link and review each member's net balance." },
     ],
@@ -53,6 +53,18 @@ function MembersPage() {
     setTimeout(() => setCopied(false), 1600);
   };
 
+  const copyInvite = async () => {
+    if (!contractAddress || !roomId) return;
+    const link = buildInviteLink(contractAddress, roomId);
+    try {
+      await navigator.clipboard?.writeText(link);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      // Clipboard access can be unavailable in embedded previews.
+    }
+  };
+
   return (
     <AppShell
       greeting={
@@ -85,7 +97,7 @@ function MembersPage() {
                 {copied ? "Invite link copied" : "Share invite link"}
               </button>
               <button
-                onClick={() => void shareInvite()}
+                onClick={() => void copyInvite()}
                 disabled={!contractAddress || !roomId}
                 className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-background px-5 text-sm font-bold disabled:opacity-50"
               >
