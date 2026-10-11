@@ -6,6 +6,7 @@ on:
     paths:
       - ".github/workflows/verify-treasury-v3.yml"
       - "scripts/verify-treasury-v3.mjs"
+      - "contracts/NestTreasuryV3.sol"
   workflow_dispatch:
 
 permissions:
