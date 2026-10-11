@@ -1,7 +1,7 @@
 // First-run onchain setup: point at a shared Nest contract (or deploy one),
 // then create or join a home. Everything here writes to Arc Testnet.
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { ExternalLink, Fuel, Loader2, LinkIcon, RefreshCw } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
@@ -100,64 +100,80 @@ export function ContractSetup() {
 }
 
 /**
- * First run for a wallet with no home yet: instead of asking people to name or
- * pick a room, Nest provisions one onchain automatically and drops them into
- * the app. Only a signature is required.
+ * First run for a wallet with no workspace yet.
+ * Normal new users create one workspace explicitly, then invite people later.
+ * Invite recipients never reach this screen because AppLayout handles the
+ * pending invitation before the workspace gate.
  */
 export function RoomSetup() {
-  const { rooms, selectRoom, refresh } = useNestChain();
+  const { refresh } = useNestChain();
   const { createRoom } = useNestWrites();
+  const signup = readSignupDraft();
+  const [workspaceName, setWorkspaceName] = useState(signup?.workspaceName ?? "");
   const [error, setError] = useState("");
-  const started = useRef(false);
+  const [creating, setCreating] = useState(false);
 
-  const provision = async () => {
+  const createWorkspace = async () => {
+    const name = workspaceName.trim();
+    if (name.length < 2 || name.length > 80) {
+      setError("Enter a workspace name between 2 and 80 characters.");
+      return;
+    }
+
     setError("");
+    setCreating(true);
     try {
-      const signup = readSignupDraft();
-      await createRoom(signup?.workspaceName || "My household");
+      await createRoom(name);
       await refresh();
     } catch (e) {
       setError((e as Error).message.split("\n")[0]);
+      setCreating(false);
     }
   };
 
-  useEffect(() => {
-    if (started.current) return;
-    started.current = true;
-    if (rooms.length > 0) {
-      selectRoom(rooms[0].id);
-      return;
-    }
-    void provision();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <Panel>
-      <h1 className="text-xl font-bold tracking-tight">Setting up your workspace</h1>
-      <p className="mt-1.5 text-sm text-muted-foreground">
-        Nest is creating {readSignupDraft()?.workspaceName ? `“${readSignupDraft()?.workspaceName}”` : "your shared workspace"} on Arc.
-        Approve the secure wallet request once, then you go straight into the app.
+      <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand">
+        First workspace
+      </div>
+      <h1 className="mt-1 text-2xl font-bold tracking-tight">Create your workspace</h1>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        Start with one shared workspace. After it is created, you can invite members from the
+        Members page whenever you’re ready.
       </p>
 
+      <label className="mt-6 block">
+        <span className="text-[11px] font-bold text-muted-foreground">Workspace name</span>
+        <input
+          value={workspaceName}
+          onChange={(e) => setWorkspaceName(e.target.value)}
+          maxLength={80}
+          placeholder="e.g. Apartment 12, Design Team"
+          disabled={creating}
+          className="mt-1.5 min-h-12 w-full rounded-2xl border border-input bg-background px-4 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
+        />
+      </label>
+
+      <div className="mt-4 rounded-2xl bg-muted/55 p-4 text-xs leading-5 text-muted-foreground">
+        Creating a workspace adds only your wallet first. No one else is added until you share an
+        invite or add them later.
+      </div>
+
       {error ? (
-        <>
-          <div className="mt-5 rounded-2xl bg-brand/10 p-3 text-xs font-medium text-brand">
-            {error}
-          </div>
-          <button
-            onClick={provision}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-3.5 text-sm font-bold"
-          >
-            <RefreshCw className="h-4 w-4" /> Try again
-          </button>
-        </>
-      ) : (
-        <div className="mt-6 flex items-center gap-3 rounded-2xl bg-muted/60 p-4 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin text-brand" />
-          Provisioning onchain…
+        <div className="mt-4 rounded-2xl bg-destructive/5 p-3 text-xs font-semibold text-destructive">
+          {error}
         </div>
-      )}
+      ) : null}
+
+      <button
+        type="button"
+        onClick={() => void createWorkspace()}
+        disabled={creating}
+        className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl btn-gradient px-5 text-sm font-bold disabled:opacity-50"
+      >
+        {creating ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+        {creating ? "Creating on Arc…" : "Create workspace"}
+      </button>
     </Panel>
   );
 }
