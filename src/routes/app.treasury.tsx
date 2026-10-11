@@ -93,6 +93,7 @@ function TreasuryPage() {
   const [executions, setExecutions] = useState("12");
   const [targetId, setTargetId] = useState("");
   const [spender, setSpender] = useState("");
+  const [memberAddress, setMemberAddress] = useState("");
   const [periodDays, setPeriodDays] = useState("7");
 
   const workspaceQuery = useReadContract({
@@ -316,6 +317,67 @@ function TreasuryPage() {
     }
   };
 
+  const addTreasuryMember = async () => {
+    if (!isAddress(memberAddress)) return toast.error("Enter a valid member address.");
+    try {
+      const ctx = requireWrite();
+      await waitWrite("Adding treasury member…", "addMember", [
+        ctx.workspaceId,
+        memberAddress as Address,
+      ]);
+      setMemberAddress("");
+    } catch (error) {
+      toast.error((error as Error).message.split("\n")[0]);
+    }
+  };
+
+  const setMemberManager = async (enabled: boolean) => {
+    if (!isAddress(memberAddress)) return toast.error("Enter a valid member address.");
+    try {
+      const ctx = requireWrite();
+      await waitWrite(enabled ? "Promoting manager…" : "Removing manager…", "setManager", [
+        ctx.workspaceId,
+        memberAddress as Address,
+        enabled,
+      ]);
+    } catch (error) {
+      toast.error((error as Error).message.split("\n")[0]);
+    }
+  };
+
+  const spendDelegatedBudget = async () => {
+    const number = Number(amount);
+    if (!isAddress(recipient) || !Number.isFinite(number) || number <= 0) {
+      return toast.error("Enter a valid recipient and spend amount.");
+    }
+    try {
+      const ctx = requireWrite();
+      await waitWrite("Spending delegated budget…", "spendFromBudget", [
+        ctx.workspaceId,
+        recipient as Address,
+        parseUnits(number.toFixed(6), 6),
+        memo.trim(),
+      ]);
+      setAmount("");
+      setMemo("");
+    } catch (error) {
+      toast.error((error as Error).message.split("\n")[0]);
+    }
+  };
+
+  const revokeBudget = async () => {
+    if (!isAddress(spender)) return toast.error("Enter the delegated spender address.");
+    try {
+      const ctx = requireWrite();
+      await waitWrite("Revoking budget policy…", "revokeBudgetPolicy", [
+        ctx.workspaceId,
+        spender as Address,
+      ]);
+    } catch (error) {
+      toast.error((error as Error).message.split("\n")[0]);
+    }
+  };
+
   const setWorkspaceThreshold = async () => {
     const value = Number(threshold);
     if (!Number.isInteger(value) || value < 1 || value > 65535) {
@@ -338,7 +400,10 @@ function TreasuryPage() {
       | "executeProposal"
       | "approveMilestone"
       | "releaseMilestone"
-      | "executeRecurringPayment",
+      | "executeRecurringPayment"
+      | "cancelProposal"
+      | "cancelRecurringPayment"
+      | "cancelMilestone",
   ) => {
     const id = Number(targetId);
     if (!Number.isInteger(id) || id <= 0) return toast.error("Enter a valid onchain item ID.");
@@ -539,14 +604,54 @@ function TreasuryPage() {
                 className="mt-1.5 min-h-12 w-full rounded-2xl border bg-background px-4 text-base outline-none focus:border-brand/40 sm:text-sm"
               />
             </label>
-            <AmountInput value={amount} onChange={setAmount} label="Period limit (USDC)" />
+            <AmountInput value={amount} onChange={setAmount} label="Period limit / spend amount (USDC)" />
             <NumberInput label="Period length (days)" value={periodDays} onChange={setPeriodDays} />
             <ActionButton busy={busy} label="Activate budget policy" icon={ShieldCheck} onClick={() => void setBudget()} />
+            <div className="mt-4 border-t border-border pt-4">
+              <div className="text-xs font-bold">Spend from your active delegated budget</div>
+              <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                The connected member can pay within the onchain period cap without taking control of the whole treasury.
+              </p>
+              <div className="mt-3 space-y-3">
+                <RecipientInput value={recipient} onChange={setRecipient} />
+                <MemoInput value={memo} onChange={setMemo} placeholder="e.g. Approved team software" />
+                <div className="grid gap-2 sm:grid-cols-2">
+                  <ActionButton busy={busy} label="Spend budget" icon={HandCoins} onClick={() => void spendDelegatedBudget()} />
+                  <button
+                    onClick={() => void revokeBudget()}
+                    disabled={!!busy || !isAddress(spender)}
+                    className="min-h-12 rounded-2xl border border-destructive/20 px-4 text-sm font-bold text-destructive disabled:opacity-50"
+                  >
+                    Revoke policy
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         ) : null}
       </Card>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+        <Card className="!p-5">
+          <div className="flex items-center gap-2 text-sm font-bold">
+            <UsersRound className="h-4 w-4 text-brand" /> Members & managers
+          </div>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            Add a treasury member, then promote trusted members to managers who can create controlled treasury actions.
+          </p>
+          <input
+            value={memberAddress}
+            onChange={(e) => setMemberAddress(e.target.value.trim())}
+            placeholder="Member wallet · 0x…"
+            className="mt-3 min-h-11 w-full rounded-xl border bg-background px-3 text-sm"
+          />
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <MiniAction label="Add member" onClick={() => void addTreasuryMember()} />
+            <MiniAction label="Make manager" onClick={() => void setMemberManager(true)} />
+            <MiniAction label="Remove manager" onClick={() => void setMemberManager(false)} />
+          </div>
+        </Card>
+
         <Card className="!p-5">
           <div className="flex items-center gap-2 text-sm font-bold">
             <ShieldCheck className="h-4 w-4 text-brand" /> Approval policy
@@ -591,6 +696,9 @@ function TreasuryPage() {
             <MiniAction label="Approve milestone" onClick={() => void actOnId("approveMilestone")} />
             <MiniAction label="Release milestone" onClick={() => void actOnId("releaseMilestone")} />
             <MiniAction label="Run recurring" onClick={() => void actOnId("executeRecurringPayment")} />
+            <MiniAction label="Cancel payment" onClick={() => void actOnId("cancelProposal")} />
+            <MiniAction label="Cancel recurring" onClick={() => void actOnId("cancelRecurringPayment")} />
+            <MiniAction label="Cancel milestone" onClick={() => void actOnId("cancelMilestone")} />
           </div>
         </Card>
       </div>
