@@ -223,17 +223,25 @@
 }
 
 @utility glass {
-  background: color-mix(in oklab, var(--card) 91%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 88%, transparent);
-  box-shadow: var(--shadow-card);
-  backdrop-filter: blur(18px);
+  background:
+    linear-gradient(145deg, color-mix(in oklab, #fff 30%, transparent), transparent 42%),
+    color-mix(in oklab, var(--card) 92%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 86%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, #fff 62%, transparent) inset,
+    0 10px 32px rgb(15 23 42 / 0.06);
+  backdrop-filter: blur(20px) saturate(1.08);
 }
 
 @utility glass-strong {
-  background: color-mix(in oklab, var(--card) 96%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 92%, transparent);
-  box-shadow: var(--shadow-elevated);
-  backdrop-filter: blur(22px);
+  background:
+    linear-gradient(145deg, color-mix(in oklab, #fff 38%, transparent), transparent 46%),
+    color-mix(in oklab, var(--card) 97%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 90%, transparent);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, #fff 70%, transparent) inset,
+    0 20px 58px rgb(15 23 42 / 0.105);
+  backdrop-filter: blur(24px) saturate(1.1);
 }
 
 @utility hairline {
@@ -241,17 +249,20 @@
 }
 
 @utility card-premium {
-  background: color-mix(in oklab, var(--card) 96%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 92%, transparent);
-  border-radius: 1.5rem;
+  background:
+    linear-gradient(150deg, color-mix(in oklab, #fff 32%, transparent), transparent 48%),
+    color-mix(in oklab, var(--card) 97%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 90%, transparent);
+  border-radius: 1.55rem;
   box-shadow:
-    0 1px 0 color-mix(in oklab, #fff 72%, transparent) inset,
-    0 10px 30px rgb(15 23 42 / 0.055);
-  backdrop-filter: blur(16px);
+    0 1px 0 color-mix(in oklab, #fff 76%, transparent) inset,
+    0 12px 34px rgb(15 23 42 / 0.058);
+  backdrop-filter: blur(18px) saturate(1.06);
   transition:
     transform 180ms ease,
     border-color 180ms ease,
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    background-color 180ms ease;
 }
 
 @utility lift {
