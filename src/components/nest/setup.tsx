@@ -1,8 +1,7 @@
-// First-run onchain setup: point at a shared Nest contract (or deploy one),
-// then create or join a home. Everything here writes to Arc Testnet.
+// First-run workspace setup for Nest on Arc.
 
 import { useState } from "react";
-import { ExternalLink, Fuel, Loader2, LinkIcon, RefreshCw } from "lucide-react";
+import { ExternalLink, Fuel, Loader2, LinkIcon } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
