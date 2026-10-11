@@ -44,20 +44,20 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
     <div
 
 
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
+      className="nest-modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
     >
       <div
 
 
 
-        className="mobile-sheet glass-strong w-[calc(100%-0.75rem)] max-w-md rounded-[30px] p-5 sm:w-full sm:p-6"
+        className="nest-sheet-enter mobile-sheet glass-strong w-[calc(100%-0.75rem)] max-w-md rounded-[30px] p-5 sm:w-full sm:p-6"
       >
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-bold">Confirm your Nest name</h3>
           {dismissible && (
             <button
               onClick={onDone}
-              className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+              className="grid h-9 w-9 place-items-center rounded-full bg-muted transition-all duration-200 ease-out hover:rotate-6 hover:bg-muted/80 active:scale-95"
               aria-label="Close"
             >
               <X className="h-4 w-4" />
