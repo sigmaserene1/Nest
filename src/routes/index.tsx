@@ -52,26 +52,26 @@ export const Route = createFileRoute("/")({
   component: Landing,
   head: () => ({
     meta: [
-      { title: "Nest — Group finance and USDC settlement on Arc" },
+      { title: "Nest — Shared treasury and USDC settlement on Arc" },
       {
         name: "description",
         content:
-          "Nest is programmable group finance on Arc. Record shared obligations, resolve exact balances, and settle peer-to-peer in native USDC.",
+          "Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals, manage group obligations and settle payments in native USDC.",
       },
-      { property: "og:title", content: "Nest — One ledger. Clear every balance." },
+      { property: "og:title", content: "Nest — Shared treasury. Clear every balance." },
       {
         property: "og:description",
         content:
-          "Onchain obligations, transparent balances, native USDC settlement and transaction-linked receipts for teams and shared groups on Arc.",
+          "Shared USDC treasury, approval-controlled payments, recurring payouts, delegated budgets, group obligations and transaction-linked settlement on Arc.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://nestarc.xyz/" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Nest — Group settlement on Arc" },
+      { name: "twitter:title", content: "Nest — Shared treasury on Arc" },
       {
         name: "twitter:description",
         content:
-          "Record shared obligations, resolve exact balances and settle peer-to-peer in native USDC on Arc.",
+          "Pool USDC, coordinate treasury approvals, manage shared obligations and settle payments on Arc.",
       },
     ],
     links: [{ rel: "canonical", href: "https://nestarc.xyz/" }],
@@ -89,7 +89,7 @@ export const Route = createFileRoute("/")({
             },
             {
               "@type": "WebSite",
-              name: "Nest — Group finance and USDC settlement on Arc",
+              name: "Nest — Shared treasury and USDC settlement on Arc",
               url: "https://nestarc.xyz/",
             },
           ],
@@ -310,7 +310,7 @@ function Landing() {
                 className="animate-float-in mt-7 font-display text-[2.4rem] leading-[1.02] tracking-[-0.05em] sm:text-6xl lg:text-[5.2rem]"
                 style={{ animationDelay: "80ms" }}
               >
-                One ledger.
+                Shared treasury.
                 <br />
                 <span className="text-brand">Clear every balance.</span>
               </h1>
@@ -319,8 +319,8 @@ function Landing() {
                 className="animate-float-in mx-auto mt-5 max-w-2xl text-[15px] leading-6 text-muted-foreground sm:text-lg sm:leading-7 lg:mx-0 lg:max-w-xl"
                 style={{ animationDelay: "130ms" }}
               >
-                Nest is programmable group finance on Arc. Record shared expenses and payouts,
-                resolve exact balances, then settle every open share peer-to-peer in native USDC.
+                Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals,
+                manage recurring payouts and delegated budgets, track group obligations, and settle in native USDC.
               </p>
 
               <div
