@@ -1,13 +1,26 @@
 import { useEffect, useState } from "react";
-import { Loader2, ShieldCheck, X } from "lucide-react";
+import { Check, Loader2, ShieldCheck, Sparkles, X } from "lucide-react";
+import { useAccount } from "wagmi";
+import { ProfileAvatarGraphic } from "@/components/nest/avatar";
+import {
+  PROFILE_AVATARS,
+  getProfileAvatar,
+  saveProfileAvatar,
+  type ProfileAvatarId,
+} from "@/lib/profile-avatar";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
 import { clearSignupDraft, readSignupDraft } from "@/lib/signup-draft";
 
 function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: boolean }) {
   const { claimName } = useNestWrites();
-  const { isDemo, rpcMessage } = useNestChain();
+  const { address } = useAccount();
+  const { me, isDemo, rpcMessage } = useNestChain();
+  const wallet = address ?? me ?? "";
   const [name, setName] = useState(() => readSignupDraft()?.displayName ?? "");
+  const [avatar, setAvatar] = useState<ProfileAvatarId>(() =>
+    getProfileAvatar(address ?? me ?? ""),
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -17,6 +30,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
     setError("");
     try {
       await claimName(name.trim());
+      if (wallet) await saveProfileAvatar(wallet, avatar);
       clearSignupDraft();
       onDone();
     } catch (e) {
@@ -53,6 +67,43 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
         <p className="mt-2 text-sm text-muted-foreground">
           This is how members recognize you in Nest. Your name is written onchain once and permanently bound to this wallet.
         </p>
+        <div className="mt-5 rounded-3xl border border-border/70 bg-muted/35 p-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-brand" />
+            <div>
+              <div className="text-xs font-bold">Choose your Nest avatar</div>
+              <div className="mt-0.5 text-[11px] text-muted-foreground">
+                You can change the avatar later from Profile.
+              </div>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-5 gap-2.5">
+            {PROFILE_AVATARS.map((option) => {
+              const selected = avatar === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => setAvatar(option.id)}
+                  className={`relative grid aspect-square place-items-center rounded-2xl border transition active:scale-[0.96] ${
+                    selected
+                      ? "border-brand bg-brand/5 shadow-sm ring-2 ring-brand/15"
+                      : "border-transparent hover:bg-background/70"
+                  }`}
+                  aria-label={`Use ${option.label} avatar`}
+                >
+                  <ProfileAvatarGraphic avatarId={option.id} size={42} />
+                  {selected ? (
+                    <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-brand text-white shadow-sm">
+                      <Check className="h-3 w-3" />
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
