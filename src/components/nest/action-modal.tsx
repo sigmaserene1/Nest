@@ -111,6 +111,49 @@ export function ActionModal({
   }, [toAddress, amount, wallet.arcChain.id]);
 
   useEffect(() => {
+    if (!mode || typeof window === "undefined") return;
+
+    // Keep the page behind the mobile sheet exactly where the user opened it.
+    // Auto-focused inputs and the Android visual viewport can otherwise shift
+    // the document underneath the modal, making Home appear to jump down.
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const root = document.documentElement;
+    const previous = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+      overflow: body.style.overflow,
+      overscrollBehavior: root.style.overscrollBehavior,
+    };
+
+    Object.assign(body.style, {
+      position: "fixed",
+      top: `-${scrollY}px`,
+      left: "0",
+      right: "0",
+      width: "100%",
+      overflow: "hidden",
+    });
+    root.style.overscrollBehavior = "none";
+
+    return () => {
+      Object.assign(body.style, {
+        position: previous.position,
+        top: previous.top,
+        left: previous.left,
+        right: previous.right,
+        width: previous.width,
+        overflow: previous.overflow,
+      });
+      root.style.overscrollBehavior = previous.overscrollBehavior;
+      window.requestAnimationFrame(() => window.scrollTo(0, scrollY));
+    };
+  }, [mode]);
+
+  useEffect(() => {
     if (!mode) return;
     setStage("form");
     setNote("");
@@ -241,7 +284,7 @@ export function ActionModal({
           <div
 
 
-        className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
+        className="fixed inset-0 z-50 flex items-end justify-center overscroll-contain bg-black/45 backdrop-blur-[6px] sm:items-center"
         onClick={stageIsBusy ? undefined : onClose}
       >
         <div
@@ -330,7 +373,7 @@ export function ActionModal({
                     onChange={(e) => setAmount(e.target.value)}
                     placeholder="0.00"
                     readOnly={lockAmount}
-                    autoFocus={!lockAmount}
+                    autoComplete="off"
                     className="w-full bg-transparent text-4xl font-bold tabular-nums outline-none placeholder:text-muted-foreground/40"
                   />
                   <span className="text-sm font-semibold text-muted-foreground">USDC</span>
