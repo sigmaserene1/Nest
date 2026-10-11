@@ -27,6 +27,17 @@ const artifact=out.contracts?.[SOURCE_PATH]?.[CONTRACT_NAME];
 if(!artifact) throw new Error("Treasury artifact missing.");
 
 const local=artifact.evm.deployedBytecode.object.toLowerCase().replace(/^0x/,"");
+const immutables=artifact.evm.deployedBytecode.immutableReferences ?? {};
+
+function maskImmutables(hex) {
+  const chars=hex.split("");
+  for (const refs of Object.values(immutables)) {
+    for (const {start,length} of refs) {
+      for (let i=start*2;i<(start+length)*2 && i<chars.length;i++) chars[i]="0";
+    }
+  }
+  return chars.join("");
+}
 const rpc=async(method,params)=>{
   const res=await fetch(RPC_URL,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({jsonrpc:"2.0",id:1,method,params})});
   const json=await res.json();
@@ -34,7 +45,10 @@ const rpc=async(method,params)=>{
   return json.result;
 };
 const onchain=String(await rpc("eth_getCode",[ADDRESS,"latest"])).toLowerCase().replace(/^0x/,"");
-if(local!==onchain) throw new Error(`Runtime bytecode mismatch: local ${local.length/2}, chain ${onchain.length/2}`);
+if(local.length!==onchain.length || maskImmutables(local)!==maskImmutables(onchain)) {
+  throw new Error(`Runtime bytecode mismatch: local ${local.length/2}, chain ${onchain.length/2}`);
+}
+console.log("Runtime bytecode matches after masking immutable USDC slots.");
 
 const constructorArgs=USDC.toLowerCase().replace(/^0x/,"").padStart(64,"0");
 const body=new URLSearchParams({
