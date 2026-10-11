@@ -1,0 +1,36 @@
+name: Deploy Nest Treasury V3
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/deploy-treasury-v3.yml"
+      - "scripts/deploy-treasury-v3.mjs"
+      - "contracts/NestTreasuryV3.sol"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-testnet:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[deploy-treasury-v3]')
+    runs-on: ubuntu-latest
+    env:
+      ARC_NETWORK: testnet
+      ARC_RPC_URL: ${{ secrets.ARC_RPC_URL }}
+      DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+    steps:
+      - name: Check deployer secret
+        run: |
+          if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then
+            echo "::error::DEPLOYER_PRIVATE_KEY is not configured in repository secrets."
+            exit 1
+          fi
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Deploy NestTreasuryV3 to Arc Testnet
+        run: bun scripts/deploy-treasury-v3.mjs
