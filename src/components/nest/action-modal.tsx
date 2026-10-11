@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Check, Loader2, X, ArrowRight, QrCode, AlertTriangle, ExternalLink } from "lucide-react";
 import { isAddress, parseUnits } from "viem";
 import { toast } from "sonner";
@@ -100,6 +100,7 @@ export function ActionModal({
   const [txHash, setTxHash] = useState<string>("");
   const [error, setError] = useState("");
   const [gasFree, setGasFree] = useState(true);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
   const gasless = useGaslessStatus();
   const sendGasless = useGaslessTransfer();
 
@@ -110,46 +111,74 @@ export function ActionModal({
     return amt ? `${base}&uint256=${amt}` : base;
   }, [toAddress, amount, wallet.arcChain.id]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!mode || typeof window === "undefined") return;
 
-    // Keep the page behind the mobile sheet exactly where the user opened it.
-    // Auto-focused inputs and the Android visual viewport can otherwise shift
-    // the document underneath the modal, making Home appear to jump down.
+    // Freeze Home at the exact visual position where the action was opened.
+    // Android/Chrome may otherwise scroll the document to an input inside the
+    // newly-mounted sheet, especially while the visual viewport is changing.
+    const scrollX = window.scrollX;
     const scrollY = window.scrollY;
     const body = document.body;
     const root = document.documentElement;
+    const active = document.activeElement;
+
+    if (active instanceof HTMLElement) active.blur();
+
     const previous = {
-      position: body.style.position,
-      top: body.style.top,
-      left: body.style.left,
-      right: body.style.right,
-      width: body.style.width,
-      overflow: body.style.overflow,
-      overscrollBehavior: root.style.overscrollBehavior,
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyLeft: body.style.left,
+      bodyRight: body.style.right,
+      bodyWidth: body.style.width,
+      bodyOverflow: body.style.overflow,
+      bodyOverflowAnchor: body.style.overflowAnchor,
+      rootOverflow: root.style.overflow,
+      rootOverscrollBehavior: root.style.overscrollBehavior,
+      rootScrollBehavior: root.style.scrollBehavior,
     };
+
+    root.style.scrollBehavior = "auto";
+    root.style.overflow = "hidden";
+    root.style.overscrollBehavior = "none";
 
     Object.assign(body.style, {
       position: "fixed",
       top: `-${scrollY}px`,
-      left: "0",
+      left: `-${scrollX}px`,
       right: "0",
       width: "100%",
       overflow: "hidden",
+      overflowAnchor: "none",
     });
-    root.style.overscrollBehavior = "none";
+
+    const frame = window.requestAnimationFrame(() => {
+      // Always open the sheet itself from its first row. This is independent
+      // from the frozen document behind it.
+      sheetRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
 
     return () => {
+      window.cancelAnimationFrame(frame);
+
       Object.assign(body.style, {
-        position: previous.position,
-        top: previous.top,
-        left: previous.left,
-        right: previous.right,
-        width: previous.width,
-        overflow: previous.overflow,
+        position: previous.bodyPosition,
+        top: previous.bodyTop,
+        left: previous.bodyLeft,
+        right: previous.bodyRight,
+        width: previous.bodyWidth,
+        overflow: previous.bodyOverflow,
+        overflowAnchor: previous.bodyOverflowAnchor,
       });
-      root.style.overscrollBehavior = previous.overscrollBehavior;
-      window.requestAnimationFrame(() => window.scrollTo(0, scrollY));
+      root.style.overflow = previous.rootOverflow;
+      root.style.overscrollBehavior = previous.rootOverscrollBehavior;
+      // Keep smooth scrolling disabled for the restoration frame so closing a
+      // sheet never visibly animates the underlying page.
+      root.style.scrollBehavior = "auto";
+      window.scrollTo({ left: scrollX, top: scrollY, behavior: "auto" });
+      window.requestAnimationFrame(() => {
+        root.style.scrollBehavior = previous.rootScrollBehavior;
+      });
     };
   }, [mode]);
 
@@ -288,11 +317,9 @@ export function ActionModal({
         onClick={stageIsBusy ? undefined : onClose}
       >
         <div
-
-
-
+          ref={sheetRef}
           onClick={(e) => e.stopPropagation()}
-          className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto rounded-[30px] p-5 sm:max-h-[92vh] sm:w-full sm:p-6"
+          className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto overscroll-contain rounded-[30px] p-5 sm:max-h-[92vh] sm:w-full sm:p-6"
         >
           {stage === "form" && (
             <>
