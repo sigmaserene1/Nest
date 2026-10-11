@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import type { ElementType, ReactNode } from "react";
+import { useEffect, type ElementType, type ReactNode } from "react";
 import {
   Home,
   Receipt,
@@ -26,6 +26,7 @@ import { useNestChain } from "@/lib/chain/nest-chain";
 import { getMember } from "@/lib/nest-data";
 import { ProfileOnboarding } from "./profile-modal";
 import { RpcBanner } from "./rpc-banner";
+import { restoreProfileAvatar } from "@/lib/profile-avatar";
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
@@ -139,6 +140,11 @@ export function AppShell({
   const me = getMember(myId ?? "");
   const wallet = useArcWallet();
   const myName = displayName ?? "You";
+
+  useEffect(() => {
+    if (!wallet.address) return;
+    void restoreProfileAvatar(wallet.address);
+  }, [wallet.address]);
 
   return (
     <div className="app-canvas min-h-[100dvh] text-foreground">
