@@ -1,17 +1,26 @@
-// Lightweight CSS-only motion primitives. The exported API is unchanged.
+// Lightweight CSS-only motion primitives used across the Nest app.
+// Motion stays compositor-friendly (opacity + transform) and respects
+// prefers-reduced-motion in the global stylesheet.
 
-import type { HTMLAttributes, ReactNode } from "react";
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react";
+
+type MotionStyle = CSSProperties & {
+  "--nest-motion-delay"?: string;
+  "--nest-stagger-delay"?: string;
+};
+
+function delayStyle(delay?: number, variable: "--nest-motion-delay" | "--nest-stagger-delay" = "--nest-motion-delay"): MotionStyle | undefined {
+  if (!delay) return undefined;
+  return { [variable]: `${Math.max(0, delay)}ms` } as MotionStyle;
+}
 
 export function PageTransition({ children }: { children: ReactNode }) {
-  return (
-    <div className="animate-in fade-in slide-in-from-bottom-1 duration-100 ease-out motion-reduce:animate-none">
-      {children}
-    </div>
-  );
+  return <div className="nest-page-transition">{children}</div>;
 }
 
 export function Stagger({
   children,
+  delay = 0,
   className,
 }: {
   children: ReactNode;
@@ -19,7 +28,10 @@ export function Stagger({
   className?: string;
 }) {
   return (
-    <div className={`animate-in fade-in duration-100 motion-reduce:animate-none ${className ?? ""}`}>
+    <div
+      className={`nest-stagger ${className ?? ""}`}
+      style={delayStyle(delay, "--nest-stagger-delay")}
+    >
       {children}
     </div>
   );
@@ -37,10 +49,7 @@ export function Item({
 } & HTMLAttributes<HTMLElement>) {
   const Tag = as as "div";
   return (
-    <Tag
-      className={`animate-in fade-in slide-in-from-bottom-1 duration-100 motion-reduce:animate-none ${className ?? ""}`}
-      {...rest}
-    >
+    <Tag className={`nest-motion-item ${className ?? ""}`} {...rest}>
       {children}
     </Tag>
   );
@@ -52,10 +61,7 @@ export function Tap({
   ...rest
 }: HTMLAttributes<HTMLDivElement> & { children: ReactNode }) {
   return (
-    <div
-      className={`transition-transform duration-100 active:scale-[0.99] motion-reduce:transition-none ${className ?? ""}`}
-      {...rest}
-    >
+    <div className={`nest-tap ${className ?? ""}`} {...rest}>
       {children}
     </div>
   );
@@ -64,6 +70,7 @@ export function Tap({
 export function Reveal({
   children,
   className,
+  delay = 0,
 }: {
   children: ReactNode;
   delay?: number;
@@ -71,14 +78,15 @@ export function Reveal({
 }) {
   return (
     <div
-      className={`animate-in fade-in slide-in-from-bottom-1 duration-125 motion-reduce:animate-none ${className ?? ""}`}
+      className={`nest-reveal ${className ?? ""}`}
+      style={delayStyle(delay)}
     >
       {children}
     </div>
   );
 }
 
-/** Plain formatted number (no counting animation). */
+/** Plain formatted number. Motion is handled by the surrounding card/layout. */
 export function AnimatedNumber({
   value,
   decimals = 2,
