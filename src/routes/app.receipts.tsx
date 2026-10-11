@@ -1,7 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
-import { ExternalLink, Copy, Check, ShieldCheck, Waypoints } from "lucide-react";
+import {
+  ExternalLink,
+  Copy,
+  Check,
+  ShieldCheck,
+  Waypoints,
+  ReceiptText,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CalendarDays,
+  WalletCards,
+  Hash,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
@@ -75,12 +89,17 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
+function receiptRef(hash: string) {
+  return `ARC-${hash.slice(2, 8).toUpperCase()}-${hash.slice(-6).toUpperCase()}`;
+}
+
 function ReceiptsPage() {
   const environment = useArcEnvironment();
   const { address } = useAccount();
   const { me } = useNestChain();
   const receipts = useReceipts(me);
   const { entries: bridges } = useBridgeHistory(address);
+  const [openReceipt, setOpenReceipt] = useState<string | null>(null);
 
   const total = useMemo(
     () =>
@@ -99,16 +118,34 @@ function ReceiptsPage() {
         </div>
       }
     >
-      <Card className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            Total settled by you
+      <Card className="mt-4 overflow-hidden !p-0">
+        <div className="grid gap-px bg-border/60 sm:grid-cols-3">
+          <div className="bg-card p-5">
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Total settled by you
+            </div>
+            <div className="mt-2 text-2xl font-bold tabular-nums">{fmtUSD(total)}</div>
+            <div className="mt-1 text-[11px] text-muted-foreground">Native USDC on Arc</div>
           </div>
-          <div className="mt-1 text-2xl font-bold tabular-nums">{fmtUSD(total)}</div>
-        </div>
-        <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[11px] font-semibold text-emerald-600">
-          <ShieldCheck className="h-3.5 w-3.5" />
-          {receipts.length + bridges.length} record{receipts.length + bridges.length === 1 ? "" : "s"}
+          <div className="bg-card p-5">
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Payment receipts
+            </div>
+            <div className="mt-2 text-2xl font-bold tabular-nums">{receipts.length}</div>
+            <div className="mt-1 text-[11px] text-muted-foreground">Recovered from confirmed events</div>
+          </div>
+          <div className="bg-card p-5">
+            <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+              Proof status
+            </div>
+            <div className="mt-2 flex items-center gap-2 text-sm font-bold text-emerald-600">
+              <ShieldCheck className="h-4 w-4" />
+              Onchain verified
+            </div>
+            <div className="mt-1 text-[11px] text-muted-foreground">
+              {receipts.length + bridges.length} total record{receipts.length + bridges.length === 1 ? "" : "s"}
+            </div>
+          </div>
         </div>
       </Card>
 
@@ -121,77 +158,154 @@ function ReceiptsPage() {
           />
         </Card>
       ) : (
-        <Stagger className="mt-4 space-y-3">
+        <Stagger className="mt-4 space-y-4">
           {receipts.map((r) => {
             const counterparty = getMember(
               (me && r.from.toLowerCase() === me.toLowerCase() ? r.to : r.from).toLowerCase(),
             );
             const outgoing = !!me && r.from.toLowerCase() === me.toLowerCase();
+            const expanded = openReceipt === r.hash;
+            const reference = receiptRef(r.hash);
+
             return (
               <Item key={r.hash}>
-                <Card className="!p-4">
-                  <div className="flex items-start gap-3">
-                    <MemberAvatar member={counterparty} size={40} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
+                <article className="overflow-hidden rounded-[26px] border border-border/80 bg-card shadow-sm">
+                  <div className="border-b border-dashed border-border bg-gradient-to-b from-muted/40 to-card px-5 py-4 sm:px-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-foreground text-background">
+                          <ReceiptText className="h-4.5 w-4.5" />
+                        </span>
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+                            Nest payment receipt
+                          </div>
+                          <div className="mt-0.5 font-mono text-xs font-bold">{reference}</div>
+                        </div>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        Confirmed
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="px-5 py-5 sm:px-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <MemberAvatar member={counterparty} size={44} />
                         <div className="min-w-0">
-                          <div className="truncate text-sm font-bold">
-                            {outgoing ? "Paid" : "Received from"} {counterparty.name}
+                          <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                            {outgoing ? (
+                              <ArrowUpRight className="h-3.5 w-3.5" />
+                            ) : (
+                              <ArrowDownLeft className="h-3.5 w-3.5" />
+                            )}
+                            {outgoing ? "Payment sent" : "Payment received"}
+                          </div>
+                          <div className="mt-1 truncate text-base font-bold">
+                            {outgoing ? counterparty.name : `From ${counterparty.name}`}
                           </div>
                           <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {fmtStamp(r.date)}
+                            {r.note || (r.kind === "settle" ? "Expense settlement" : "USDC transfer")}
                           </div>
-                        </div>
-                        <div className="text-right">
-                          <div
-                            className={`text-sm font-bold tabular-nums ${outgoing ? "text-foreground" : "text-emerald-600"}`}
-                          >
-                            {outgoing ? "−" : "+"}
-                            {fmtUSD(r.amount)}
-                          </div>
-                          <div className="text-[10px] font-medium text-muted-foreground">USDC</div>
                         </div>
                       </div>
 
-                      <div className="mt-3 grid grid-cols-2 gap-3 rounded-2xl bg-muted/60 p-3">
-                        <Field label="Sender">
-                          <span className="truncate font-mono">{short(r.from)}</span>
-                          <CopyBtn value={r.from} label="Copy sender address" />
+                      <div className="shrink-0 text-right">
+                        <div className={`text-2xl font-bold tabular-nums tracking-[-0.03em] ${
+                          outgoing ? "text-foreground" : "text-emerald-600"
+                        }`}>
+                          {outgoing ? "−" : "+"}{fmtUSD(r.amount)}
+                        </div>
+                        <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                          USDC
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="my-5 border-t border-dashed border-border" />
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="flex items-start gap-2.5">
+                        <CalendarDays className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                        <Field label="Date & time">
+                          <span>{fmtStamp(r.date)}</span>
                         </Field>
-                        <Field label="Recipient">
-                          <span className="truncate font-mono">{short(r.to)}</span>
-                          <CopyBtn value={r.to} label="Copy recipient address" />
+                      </div>
+                      <div className="flex items-start gap-2.5">
+                        <WalletCards className="mt-0.5 h-4 w-4 text-muted-foreground" />
+                        <Field label="Payment method">
+                          <span>Native USDC · Arc {arcEnvironmentLabel(environment)}</span>
                         </Field>
-                        <div className="col-span-2">
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setOpenReceipt(expanded ? null : r.hash)}
+                      className="mt-5 flex min-h-11 w-full items-center justify-between rounded-2xl bg-muted/55 px-4 text-xs font-bold transition hover:bg-muted"
+                    >
+                      <span>{expanded ? "Hide receipt details" : "View full receipt"}</span>
+                      {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </button>
+
+                    {expanded ? (
+                      <div className="mt-3 overflow-hidden rounded-2xl border border-border bg-background/60">
+                        <div className="grid gap-px bg-border/70 sm:grid-cols-2">
+                          <div className="bg-card p-4">
+                            <Field label="Sender">
+                              <span className="truncate font-mono">{short(r.from)}</span>
+                              <CopyBtn value={r.from} label="Copy sender address" />
+                            </Field>
+                          </div>
+                          <div className="bg-card p-4">
+                            <Field label="Recipient">
+                              <span className="truncate font-mono">{short(r.to)}</span>
+                              <CopyBtn value={r.to} label="Copy recipient address" />
+                            </Field>
+                          </div>
+                          <div className="bg-card p-4">
+                            <div className="flex items-start gap-2">
+                              <Hash className="mt-0.5 h-3.5 w-3.5 text-muted-foreground" />
+                              <Field label="Receipt reference">
+                                <span className="font-mono">{reference}</span>
+                              </Field>
+                            </div>
+                          </div>
+                          <div className="bg-card p-4">
+                            <Field label="Network">
+                              <span>Arc {arcEnvironmentLabel(environment)} · Chain {r.chainId ?? "—"}</span>
+                            </Field>
+                          </div>
+                        </div>
+
+                        <div className="border-t border-border bg-card p-4">
                           <Field label="Transaction hash">
-                            <span className="truncate font-mono">{r.hash}</span>
+                            <span className="min-w-0 flex-1 truncate font-mono">{r.hash}</span>
                             <CopyBtn value={r.hash} label="Copy transaction hash" />
                           </Field>
                         </div>
-                      </div>
 
-                      <div className="mt-3 flex items-center justify-between gap-2">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-600">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          Confirmed on Arc {arcEnvironmentLabel(environment)}
-                        </span>
-                        <a
-                          href={explorerTxUrl(r.hash)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            openExplorerTx(r.hash);
-                          }}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-3 py-1.5 text-[11px] font-semibold text-background transition hover:opacity-90"
-                        >
-                          View on explorer
-                          <ExternalLink className="h-3 w-3" />
-                        </a>
+                        <div className="border-t border-border bg-card p-4">
+                          <a
+                            href={explorerTxUrl(r.hash)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              openExplorerTx(r.hash);
+                            }}
+                            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-xs font-bold text-background transition hover:opacity-90"
+                          >
+                            View transaction proof
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </a>
+                        </div>
                       </div>
-                    </div>
+                    ) : null}
                   </div>
-                </Card>
+                </article>
               </Item>
             );
           })}
