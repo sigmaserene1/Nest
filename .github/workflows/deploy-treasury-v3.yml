@@ -1,5 +1,3 @@
-# Retry Treasury V3 deployment after package fix
-# Trigger Treasury V3 Arc Testnet deployment
 name: Deploy Nest Treasury V3
 
 on:
