@@ -234,7 +234,7 @@ Deploy only to Arc Testnet after a review:
 ```bash
 # Store this only as a Codespaces secret; never put it in .env committed to git.
 export DEPLOYER_PRIVATE_KEY=0x...
-npm run deploy:business-v2
+bun run deploy:business-v2
 ```
 
 Set the emitted contract address in the app environment before publishing:
