@@ -14,7 +14,8 @@
     "verify:contract:publish": "node scripts/verify-contract.mjs",
     "deploy:business-v2": "node scripts/deploy-business-v2.mjs",
     "deploy:expense-manager": "node scripts/deploy-expense-manager.mjs",
-    "deploy:bridge-registry": "node scripts/deploy-bridge-registry.mjs",\n    "deploy:treasury-v3": "node scripts/deploy-treasury-v3.mjs"
+    "deploy:bridge-registry": "node scripts/deploy-bridge-registry.mjs",
+    "deploy:treasury-v3": "node scripts/deploy-treasury-v3.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai": "^4.0.72",
