@@ -14,6 +14,8 @@ import {
   Briefcase,
   Building2,
   Vault,
+  Ellipsis,
+  ChevronRight,
 } from "lucide-react";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
@@ -27,6 +29,14 @@ import { getMember } from "@/lib/nest-data";
 import { ProfileOnboarding } from "./profile-modal";
 import { RpcBanner } from "./rpc-banner";
 import { restoreProfileAvatar } from "@/lib/profile-avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
@@ -118,6 +128,64 @@ function BottomTab({
         {label}
       </span>
     </Link>
+  );
+}
+
+function MobileToolsMenu() {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const activeItem = visibleDesktopExtra.find(
+    (item) => pathname === item.to || pathname.startsWith(item.to + "/"),
+  );
+
+  return (
+    <div className="mx-auto flex max-w-6xl justify-end px-4 pt-3 sm:px-6 lg:hidden">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border/75 bg-card/85 px-3.5 text-xs font-bold text-muted-foreground shadow-sm backdrop-blur transition hover:border-brand/30 hover:text-foreground"
+          >
+            <Ellipsis className="h-4 w-4" />
+            {activeItem?.label ?? "More"}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          sideOffset={8}
+          className="w-64 rounded-2xl border-border/80 bg-popover/95 p-2 shadow-elevated backdrop-blur-xl"
+        >
+          <DropdownMenuLabel className="px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
+            More in Nest
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {visibleDesktopExtra.map((item) => {
+            const active = pathname === item.to || pathname.startsWith(item.to + "/");
+            const Icon = item.icon;
+            return (
+              <DropdownMenuItem key={item.to} asChild>
+                <Link
+                  to={item.to}
+                  preload="intent"
+                  className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl px-3 text-sm font-semibold ${
+                    active ? "bg-foreground text-background" : ""
+                  }`}
+                >
+                  <span
+                    className={`grid h-8 w-8 place-items-center rounded-xl ${
+                      active ? "bg-background/10" : "bg-muted text-muted-foreground"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="flex-1">{item.label}</span>
+                  <ChevronRight className="h-3.5 w-3.5 opacity-55" />
+                </Link>
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }
 
@@ -265,22 +333,7 @@ export function AppShell({
             )}
         </div>
 
-        {/* Secondary sections — the bottom bar only holds the five primary tabs */}
-        <div className="scroll-clean mx-auto max-w-6xl overflow-x-auto px-4 pt-3 sm:px-6 lg:hidden">
-          <div className="flex w-max gap-2 pb-0.5">
-            {visibleDesktopExtra.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                preload="render"
-                className="inline-flex min-h-9 items-center gap-1.5 whitespace-nowrap rounded-full border border-border/70 bg-card/80 px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm transition active:scale-[0.98] hover:border-brand/30 hover:text-foreground"
-              >
-                <item.icon className="h-3.5 w-3.5" />
-                {item.label}
-              </Link>
-            ))}
-          </div>
-        </div>
+        <MobileToolsMenu />
         {greeting && (
           <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">{greeting}</div>
         )}
