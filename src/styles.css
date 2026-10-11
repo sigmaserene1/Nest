@@ -259,10 +259,10 @@
     0 12px 34px rgb(15 23 42 / 0.058);
   backdrop-filter: blur(18px) saturate(1.06);
   transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease;
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease,
+    box-shadow 240ms ease,
+    background-color 240ms ease;
 }
 
 @utility lift {
@@ -323,6 +323,105 @@
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* App motion system: fast enough to feel responsive, slow enough to feel intentional. */
+@keyframes nest-page-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 9px, 0) scale(0.997);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes nest-item-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes nest-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes nest-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.nest-page-transition {
+  animation: nest-page-enter 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center top;
+}
+
+.nest-reveal {
+  animation: nest-item-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--nest-motion-delay, 0ms);
+}
+
+.nest-motion-item {
+  animation: nest-item-enter 330ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--nest-stagger-delay, 0ms);
+}
+
+.nest-stagger .nest-motion-item:nth-child(1) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 0ms); }
+.nest-stagger .nest-motion-item:nth-child(2) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 36ms); }
+.nest-stagger .nest-motion-item:nth-child(3) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 72ms); }
+.nest-stagger .nest-motion-item:nth-child(4) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 108ms); }
+.nest-stagger .nest-motion-item:nth-child(5) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 144ms); }
+.nest-stagger .nest-motion-item:nth-child(6) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 180ms); }
+.nest-stagger .nest-motion-item:nth-child(7) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 216ms); }
+.nest-stagger .nest-motion-item:nth-child(8) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 252ms); }
+.nest-stagger .nest-motion-item:nth-child(9) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 288ms); }
+.nest-stagger .nest-motion-item:nth-child(10) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 324ms); }
+
+.nest-tap {
+  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.nest-tap:active {
+  transform: scale(0.985);
+}
+
+.nest-modal-backdrop {
+  animation: nest-backdrop-enter 180ms ease-out both;
+}
+
+.nest-sheet-enter {
+  animation: nest-sheet-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: center bottom;
+}
+
+/* Shared app controls get one consistent response curve without changing layout. */
+.app-canvas button,
+.app-canvas a,
+.app-canvas input,
+.app-canvas textarea,
+.app-canvas select {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.app-canvas button:not(:disabled),
+.app-canvas a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app-canvas .card-premium:hover {
+  border-color: color-mix(in oklab, var(--brand) 16%, var(--border));
 }
 
 /* Core entrance motion uses transform/opacity so the largest animations stay on the compositor. */
@@ -722,7 +821,7 @@ html {
   /* Mobile should acknowledge a press on the very next painted frame.
      Keep feedback compositor-only so it never waits on layout/network work. */
   button:not(:disabled) {
-    transition-duration: 80ms !important;
+    transition-duration: 120ms !important;
     -webkit-user-select: none;
     user-select: none;
   }
