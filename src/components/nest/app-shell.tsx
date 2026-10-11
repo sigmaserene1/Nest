@@ -87,13 +87,16 @@ function NavItem({
     <Link
       to={to}
       preload={eager ? "render" : "intent"}
-      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-150 active:scale-[0.985] ${
+      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-200 ease-out active:scale-[0.985] ${
         active
           ? "bg-foreground text-background shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
       }`}
     >
-      <Icon className="h-[18px] w-[18px]" strokeWidth={active ? 2.4 : 2} />
+      <Icon
+        className={`h-[18px] w-[18px] transition-transform duration-200 ease-out ${active ? "scale-105" : "group-hover:translate-x-0.5 group-hover:scale-105"}`}
+        strokeWidth={active ? 2.4 : 2}
+      />
       {label}
     </Link>
   );
@@ -115,12 +118,12 @@ function BottomTab({
     <Link
       to={to}
       preload="render"
-      className="flex min-w-0 flex-1 flex-col items-center gap-1 py-1.5 active:scale-[0.97]"
+      className="group flex min-w-0 flex-1 flex-col items-center gap-1 py-1.5 transition-transform duration-200 ease-out active:scale-[0.96]"
     >
       <span
-        className={`grid h-9 w-11 place-items-center rounded-2xl transition-all duration-200 ${active ? "bg-brand/10 text-brand" : "text-muted-foreground"}`}
+        className={`grid h-9 w-11 place-items-center rounded-2xl transition-all duration-250 ease-out ${active ? "scale-105 bg-brand/10 text-brand shadow-sm" : "text-muted-foreground group-active:scale-95"}`}
       >
-        <Icon className="h-[19px] w-[19px]" strokeWidth={active ? 2.45 : 2} />
+        <Icon className={`h-[19px] w-[19px] transition-transform duration-250 ease-out ${active ? "scale-105" : ""}`} strokeWidth={active ? 2.45 : 2} />
       </span>
       <span
         className={`max-w-full truncate text-[11px] font-bold tracking-[-0.01em] transition-colors ${active ? "text-brand" : "text-muted-foreground"}`}
@@ -143,7 +146,7 @@ function MobileToolsMenu() {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border/75 bg-card/85 px-3.5 text-xs font-bold text-muted-foreground shadow-sm backdrop-blur transition hover:border-brand/30 hover:text-foreground"
+            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border/75 bg-card/85 px-3.5 text-xs font-bold text-muted-foreground shadow-sm backdrop-blur transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-brand/30 hover:text-foreground active:translate-y-0"
           >
             <Ellipsis className="h-4 w-4" />
             {activeItem?.label ?? "More"}
@@ -254,7 +257,7 @@ export function AppShell({
           <Link
             to="/app/profile"
             preload="render"
-            className="mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3 transition hover:bg-muted active:scale-[0.985]"
+            className="group mt-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-muted hover:shadow-sm active:translate-y-0 active:scale-[0.985]"
             aria-label="Open your profile"
           >
             <MemberAvatar member={{ ...me, name: myName }} size={38} ring />
@@ -335,7 +338,9 @@ export function AppShell({
 
         <MobileToolsMenu />
         {greeting && (
-          <div className="mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">{greeting}</div>
+          <div className="nest-reveal mx-auto max-w-6xl px-4 pt-4 sm:px-6 sm:pt-5 lg:px-8">
+            {greeting}
+          </div>
         )}
         <main className="mobile-safe-main mx-auto max-w-6xl px-4 pt-3 sm:px-6 sm:pt-4 lg:px-8 lg:pb-12">
           <PageTransition>{children}</PageTransition>
@@ -352,7 +357,7 @@ export function AppShell({
             {onFabClick ? (
               <button
                 onClick={onFabClick}
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition active:scale-[0.96]"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition-all duration-200 ease-out hover:-translate-y-1 active:translate-y-0 active:scale-[0.95]"
                 aria-label="Quick action"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
@@ -361,7 +366,7 @@ export function AppShell({
               <Link
                 to="/app/settle"
                 preload="render"
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition active:scale-[0.96]"
+                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition-all duration-200 ease-out hover:-translate-y-1 active:translate-y-0 active:scale-[0.95]"
                 aria-label="Settle up"
               >
                 <ArrowLeftRight className="h-5 w-5" strokeWidth={2.4} />
