@@ -292,4 +292,52 @@ export const NEST_TREASURY_V3_ABI = [
     ],
     outputs: [],
   },
+  {
+    type: "function",
+    name: "getWorkspaceMembers",
+    stateMutability: "view",
+    inputs: [{ name: "workspaceId", type: "uint256" }],
+    outputs: [{ name: "", type: "address[]" }],
+  },
+  {
+    type: "function",
+    name: "isManager",
+    stateMutability: "view",
+    inputs: [
+      { name: "", type: "uint256" },
+      { name: "", type: "address" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    type: "function",
+    name: "cancelProposal",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "proposalId", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "cancelRecurringPayment",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "recurringId", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "cancelMilestone",
+    stateMutability: "nonpayable",
+    inputs: [{ name: "milestoneId", type: "uint256" }],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "revokeBudgetPolicy",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "workspaceId", type: "uint256" },
+      { name: "spender", type: "address" },
+    ],
+    outputs: [],
+  },
 ] as const;
