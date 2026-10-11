@@ -24,7 +24,7 @@ The original household expense experience remains supported. Treasury V3 adds a 
 - Provision new Circle email/social wallets as Arc Testnet SCAs for Circle Gas Station sponsorship when a matching policy is enabled in Circle Console. Existing legacy EOA wallets are preserved.
 - Retain transaction-linked receipts and inspect activity on the Arc Testnet explorer.
 
-Nest does not claim a global minimum-transfer algorithm, autonomous custody, Circle Gateway integration, or a production SDK. The deployed contract is callable directly; a typed SDK and embeddable interface remain roadmap work.
+Nest does not claim a global minimum-transfer algorithm, autonomous custody, an independent security audit, or a production SDK. Circle Gateway/Unified Balance support is testnet-only in the current build, and Gas Station sponsorship depends on a matching policy being enabled in Circle Console.
 
 ## Deployed Arc Testnet contracts
 
@@ -91,48 +91,70 @@ All balances and transactions shown by the current deployment use testnet assets
 | Language             | TypeScript                                |
 | UI                   | Tailwind CSS 4, Radix UI, Lucide          |
 | Wallets              | Wagmi, Viem, RainbowKit                   |
-| Contracts            | Solidity 0.8.x                            |
-| Build and deployment | Vite, Nitro, Cloudflare module output     |
+| Contracts            | Solidity 0.8.24 / solc 0.8.28            |
+| Circle               | User-Controlled Wallets, App Kit, CCTP-preferred routing, Unified Balance (testnet) |
+| Build/runtime        | Vite, Nitro, Cloudflare module output     |
 
 ## Run locally
+
+Bun is the canonical package manager used by CI:
 
 ```bash
 git clone https://github.com/sigmaserene1/Nest.git
 cd Nest
-npm install
-npm run dev
+bun install --frozen-lockfile
+bun run dev
 ```
-
-Vite prints the local URL when the development server is ready.
-
-`npm run preview` starts the same local development server. A production-like
-Cloudflare Worker preview must run in a Worker runtime; `vite preview` is not
-compatible with this Nitro Cloudflare build.
 
 Useful checks:
 
 ```bash
-npm run build
-npx tsc --noEmit
-npx eslint src/routes/index.tsx src/routes/__root.tsx
+bunx tsc --noEmit
+bun run build
+forge test -vvv
 ```
 
-The repository currently contains pre-existing lint debt outside the landing page; a production build and TypeScript check are the reliable whole-app gates until that baseline is cleaned up.
+`bun run preview` currently starts the same development server. A production-like Cloudflare Worker preview must run in a Worker-compatible runtime; `vite preview` is not the production deployment path for this Nitro build.
 
-## Fast account restore and cross-device cache
+## Runtime configuration
 
-Arc remains the source of truth for rooms, members, expenses, balances and
-settlements. Nest also supports a server-side Supabase cache so returning Circle
-email/social users can paint their last verified account state immediately while
-Arc refreshes in the background.
+### Circle authentication and wallets
 
-Apply the checked-in migration:
+These are server-side secrets/config values for Circle User-Controlled Wallets:
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `CIRCLE_API_KEY` | Yes for Circle email/Google wallets | Circle server API authentication; never expose through `VITE_` |
+| `CIRCLE_APP_ID` | Yes for Circle web SDK login | Circle application ID |
+| `CIRCLE_GOOGLE_CLIENT_ID` | Required for Google login | Google OAuth client used by Circle social login |
+
+Circle email OTP and Google sign-in create or restore the same user-controlled Arc wallet. New Circle users are initialized as SCAs. Gas sponsorship is only available when a matching Circle Gas Station policy is enabled in Circle Console.
+
+### Browser/network variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `VITE_WALLETCONNECT_PROJECT_ID` | Optional | Enables external WalletConnect-compatible wallets |
+| `VITE_ARC_DEFAULT_NETWORK` | Optional | `testnet` by default; set to `mainnet` only when production contracts are configured |
+| `VITE_NEST_BUSINESS_V2_ADDRESS` | Optional | Enables the experimental Business V2 UI when deployed |
+| `VITE_NEST_BRIDGE_REGISTRY_ADDRESS` | Optional on testnet | Overrides the checked-in verified Bridge Registry address |
+| `VITE_NEST_TREASURY_V3_ADDRESS` | Optional on testnet | Overrides the checked-in verified Treasury V3 address |
+| `VITE_NEST_EXPENSE_MANAGER_MAINNET_ADDRESS` | Mainnet only | ExpenseManager deployment for Arc Mainnet |
+| `VITE_NEST_EXPENSE_MANAGER_MAINNET_BLOCK` | Mainnet only | ExpenseManager deployment block for indexed history |
+| `VITE_NEST_BRIDGE_REGISTRY_MAINNET_ADDRESS` | Mainnet only | Bridge Registry deployment for Arc Mainnet |
+| `VITE_NEST_TREASURY_V3_MAINNET_ADDRESS` | Mainnet only | Treasury V3 deployment for Arc Mainnet |
+
+Arc Testnet ExpenseManager, Bridge Registry and Treasury V3 addresses are already checked into the application. There is currently no configured production Treasury V3 or Bridge Registry mainnet address.
+
+### Optional account cache
+
+For fast cross-device restore, apply:
 
 ```text
 supabase/migrations/202610080001_nest_account_cache.sql
 ```
 
-Configure these **server-side** deployment secrets:
+and configure these **server-side** values:
 
 ```bash
 SUPABASE_URL=https://<project>.supabase.co
@@ -141,21 +163,62 @@ SUPABASE_SERVICE_ROLE_KEY=<server-only-service-role-key>
 
 Never expose `SUPABASE_SERVICE_ROLE_KEY` through a `VITE_` variable.
 
-The cache stores only rebuildable app/index data such as verified workspace
-snapshots, bridge history, receipt history and preferences. It does not store
-wallet private keys. Server functions validate the current short-lived Circle
-user token, resolve that user's Circle wallet server-side, and then read/write
-the matching cache row.
+## Circle and cross-chain flows
 
-If Supabase is not configured, Nest keeps working from Arc and uses the local
-verified snapshot for fast same-device reloads; only cross-device cache restore
-is unavailable.
+Nest currently uses Circle across several separate flows:
+
+- Circle User-Controlled Wallets for email OTP and Google authentication.
+- Arc SCA initialization for new Circle wallet users.
+- Circle Gas Station-compatible transactions when sponsorship policy is enabled.
+- Circle App Kit for supported swap flows.
+- Circle Unified Balance / Gateway-style testnet funding from Base Sepolia and Avalanche Fuji into Arc Testnet.
+- LI.FI for broader bridge routing, preferring Circle CCTP/native-USDC routes where available.
+- NestBridgeRegistry as a Nest-side onchain record of completed Arc-involved bridge receipts; source and destination chain transactions remain the execution truth.
+
+## GitHub Actions workflows
+
+| Workflow | Trigger | What it does | Secrets |
+| --- | --- | --- | --- |
+| `CI` | Every push to `main` and pull request | Runs `bunx tsc --noEmit`, frontend build, and `forge test -vvv` | None |
+| `Deploy Nest Bridge Registry` | Manual, or an eligible push with `[deploy-bridge-registry]` | Deploys `NestBridgeRegistry` to Arc Testnet | `DEPLOYER_PRIVATE_KEY`; optional `ARC_RPC_URL` |
+| `Deploy Nest Treasury V3` | Manual, or an eligible push with `[deploy-treasury-v3]` | Deploys `NestTreasuryV3` to Arc Testnet | `DEPLOYER_PRIVATE_KEY`; optional `ARC_RPC_URL` |
+| `Verify Nest Bridge Registry` | Relevant source/workflow changes or manual | Verifies the checked-in Bridge Registry deployment on the Arc Testnet explorer | None |
+| `Verify Nest Treasury V3` | Relevant source/workflow changes or manual | Verifies the checked-in Treasury V3 deployment on the Arc Testnet explorer | None |
+| `Nest Business agent` | Manual only | Runs the experimental Business V2 settlement agent if its secrets are configured | `NEST_BUSINESS_V2_ADDRESS`, `NEST_AGENT_PRIVATE_KEY`; optional `NEST_AGENT_ROOM_ID`, `ARC_RPC_URL` |
+
+Deployment private keys belong only in GitHub Actions/Codespaces secrets. Never commit them, put them in a public `.env`, or paste them into issues/logs.
+
+The repository currently has **no GitHub Actions workflow that publishes the public website**. CI success means the code builds and tests pass; it does not by itself mean `nestarc.xyz` has been republished by the hosting platform.
+
+## Contract commands
+
+```bash
+# Deploy (testnet by default; requires DEPLOYER_PRIVATE_KEY)
+bun run deploy:bridge-registry
+bun run deploy:treasury-v3
+
+# Verify the currently checked-in Arc Testnet deployments
+bun run verify:bridge-registry
+bun run verify:treasury-v3
+
+# Legacy / experimental contracts
+bun run deploy:expense-manager
+bun run deploy:business-v2
+```
+
+The deployment scripts verify the RPC chain ID before broadcasting. Mainnet deployment paths require explicit production configuration and should not be run against real-value funds without a separate security and deployment review.
+
+## Fast account restore and cross-device cache
+
+Arc remains the source of truth for rooms, members, expenses, balances and settlements. The optional Supabase layer stores only rebuildable app/index data such as verified snapshots, bridge history, receipt history, preferences and agent settings.
+
+It does **not** store wallet private keys or replace onchain financial state. Server functions validate the current short-lived Circle user token and resolve that user's Circle wallet before reading or updating the matching cache row.
+
+If Supabase is not configured, Nest continues to work from Arc and local verified snapshots; only cross-device cache restore is unavailable.
 
 ## Business V2 (experimental / not listed as a live core contract)
 
 The repository also contains `NestBusinessV2.sol`. It is separate experimental testnet code and is not part of the live core-contract table above unless a deployment address is explicitly configured.
-
-
 
 The deployed `ExpenseManager` cannot lend or grant an unattended settlement
 authority. `NestBusinessV2.sol` is separate experimental contract source for
@@ -180,11 +243,12 @@ Set the emitted contract address in the app environment before publishing:
 VITE_NEST_BUSINESS_V2_ADDRESS=0x...
 ```
 
-The checked-in GitHub workflow can run the capped settlement key hourly after
-these GitHub Actions secrets are added: `NEST_BUSINESS_V2_ADDRESS`,
-`NEST_AGENT_ROOM_ID`, `NEST_AGENT_PRIVATE_KEY`, and optionally `ARC_RPC_URL`.
-Use a dedicated funded session key, not an owner wallet. The runner can also be
-started directly with `node scripts/run-business-agent.mjs`.
+The checked-in `Nest Business agent` workflow is **manual-only**. It runs only
+when explicitly dispatched and only when the required agent secrets are configured:
+`NEST_BUSINESS_V2_ADDRESS`, `NEST_AGENT_PRIVATE_KEY`, and optionally
+`NEST_AGENT_ROOM_ID` / `ARC_RPC_URL`. Use a dedicated funded session key,
+not an owner wallet. The runner can also be started directly with
+`bun scripts/run-business-agent.mjs`.
 
 Business V2 is testnet code, not an audited lending product. It must receive an
 independent security review, including economic and liquidation design review,
