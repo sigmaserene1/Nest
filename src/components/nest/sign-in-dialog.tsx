@@ -15,6 +15,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   onWallet: () => void;
   onAuthenticated: () => void;
+  inviteMode?: boolean;
 };
 
 export function SignInDialog({
@@ -22,6 +23,7 @@ export function SignInDialog({
   onOpenChange,
   onWallet,
   onAuthenticated,
+  inviteMode = false,
 }: Props) {
   const { signIn, signInWithGoogle } = useEmailAuth();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -55,7 +57,7 @@ export function SignInDialog({
       setError("Enter the name you want members to see in Nest.");
       return false;
     }
-    if (workspace.length < 2 || workspace.length > 80) {
+    if (!inviteMode && (workspace.length < 2 || workspace.length > 80)) {
       setError("Enter a workspace name between 2 and 80 characters.");
       return false;
     }
@@ -69,7 +71,7 @@ export function SignInDialog({
     }
     saveSignupDraft({
       displayName,
-      workspaceName,
+      workspaceName: inviteMode ? undefined : workspaceName,
       email: emailValue,
     });
   };
@@ -160,12 +162,22 @@ export function SignInDialog({
 
           <DialogHeader className="text-left">
             <DialogTitle className="font-display text-2xl tracking-tight">
-              {mode === "signup" ? "Create your Nest account" : "Welcome back"}
+              {mode === "signup"
+                ? inviteMode
+                  ? "Create your account to join"
+                  : "Create your Nest account"
+                : inviteMode
+                  ? "Sign in to join"
+                  : "Welcome back"}
             </DialogTitle>
             <DialogDescription className="max-w-[30rem] text-sm leading-6">
               {mode === "signup"
-                ? "Set up your identity and first shared workspace. Circle creates your user-controlled Arc wallet after verification."
-                : "Sign in with the same Google account, email or wallet you used before."}
+                ? inviteMode
+                  ? "Set up your Nest identity, then review and join the workspace you were invited to. Nest will not create another workspace."
+                  : "Set up your identity and first shared workspace. Circle creates your user-controlled Arc wallet after verification."
+                : inviteMode
+                  ? "Sign in, review the invitation, then join the existing workspace."
+                  : "Sign in with the same Google account, email or wallet you used before."}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -189,20 +201,22 @@ export function SignInDialog({
                 />
               </label>
 
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-bold text-muted-foreground">
-                  First workspace
-                </span>
-                <input
-                  type="text"
-                  maxLength={80}
-                  placeholder="e.g. Apartment 12, Design Team"
-                  value={workspaceName}
-                  onChange={(e) => setWorkspaceName(e.target.value)}
-                  disabled={busy !== null}
-                  className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
-                />
-              </label>
+              {!inviteMode ? (
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold text-muted-foreground">
+                    First workspace
+                  </span>
+                  <input
+                    type="text"
+                    maxLength={80}
+                    placeholder="e.g. Apartment 12, Design Team"
+                    value={workspaceName}
+                    onChange={(e) => setWorkspaceName(e.target.value)}
+                    disabled={busy !== null}
+                    className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
+                  />
+                </label>
+              ) : null}
             </div>
           ) : null}
 
@@ -288,7 +302,9 @@ export function SignInDialog({
             </>
           ) : (
             <div className="rounded-2xl border border-brand/15 bg-brand/5 px-3.5 py-3 text-[11px] leading-5 text-muted-foreground">
-              Your Nest name is written onchain once during onboarding. Workspace creation also requires one secure wallet confirmation.
+              {inviteMode
+                ? "Your Nest name is written onchain once during onboarding. After verification, you’ll review the invitation before joining."
+                : "Your Nest name is written onchain once during onboarding. Workspace creation also requires one secure wallet confirmation."}
             </div>
           )}
 
