@@ -79,8 +79,11 @@ function applyNestTheme(s: W3SSdk) {
     inputBorderFocused: brand,
     inputBorderFocusedError: "#DC2626",
 
-    pinDotBase: raised,
-    pinDotBaseBorder: border,
+    // Circle's secure iframe controls the OTP/PIN indicator geometry. Keep
+    // the supported indicators high-contrast and simple so they read like
+    // distinct code slots even though Circle renders them as dots.
+    pinDotBase: dark ? "#1B1F27" : "#FFFFFF",
+    pinDotBaseBorder: dark ? "#596273" : "#CBD2DC",
     pinDotActivated: brand,
     enteredPinText: text,
 
