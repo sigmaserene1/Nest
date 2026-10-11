@@ -1,38 +1,74 @@
 # Nest
 
-Nest is programmable group finance on Arc Testnet. A workspace records shared obligations, resolves exact balances, and lets members settle open shares peer-to-peer in native USDC.
+Nest is a shared USDC treasury and settlement app on Arc Testnet. Workspaces can pool USDC, coordinate approval-controlled payments, manage recurring payouts and delegated budgets, record shared obligations, and settle balances onchain.
 
-The original household experience remains supported. The same contract-backed workflow also serves distributed teams, collectives, and project syndicates that need one transparent state for shared money.
+The original household expense experience remains supported. Treasury V3 adds a separate programmable shared-treasury layer for teams, collectives, and project groups without migrating or mutating legacy ExpenseManager state.
 
 **Live application:** [nestarc.xyz](https://nestarc.xyz)
 
 ## What works today
 
 - Create group workspaces and invite wallet addresses.
-- Record recurring or one-off expenses with equal or custom member allocations.
+- Pool USDC into a shared Treasury V3 workspace balance.
+- Create N-of-M approval-controlled treasury payments.
+- Configure recurring payouts for retainers, subscriptions, payroll-style flows, or other scheduled payments.
+- Reserve treasury funds in milestone escrow and release them after the configured approval threshold is met.
+- Delegate capped member spending budgets with onchain period limits and revocation.
+- Add treasury members, promote or remove managers, and configure approval thresholds.
+- Record recurring or one-off shared expenses with equal or custom member allocations.
 - Resolve each member's net position from the shared onchain ledger.
-- Group open shares by debtor and creditor.
-- Clear every open share owed to one counterparty with `settleWith`.
+- Clear open shares owed to one counterparty with `settleWith`.
 - Settle wallet-to-wallet through the USDC ERC-20 interface on Arc Testnet.
-- Fund Arc from six EVM testnets through Circle CCTP v2.
-- Plan weighted syndicate payouts and send them directly in USDC.
+- Bridge USDC through LI.FI with Circle CCTP/native-USDC routes preferred where available.
+- Persist completed Arc-involved bridge receipts in the Nest Bridge Registry after user confirmation.
 - Provision new Circle email/social wallets as Arc Testnet SCAs for Circle Gas Station sponsorship when a matching policy is enabled in Circle Console. Existing legacy EOA wallets are preserved.
-- Queue client-side assisted settlements with dust filters and per-run caps.
-- Retain transaction-linked receipts and inspect activity in Arcscan.
+- Retain transaction-linked receipts and inspect activity on the Arc Testnet explorer.
 
 Nest does not claim a global minimum-transfer algorithm, autonomous custody, Circle Gateway integration, or a production SDK. The deployed contract is callable directly; a typed SDK and embeddable interface remain roadmap work.
 
-## Deployed contract
+## Deployed Arc Testnet contracts
 
-`ExpenseManager`
+| Contract | Address | Purpose |
+| --- | --- | --- |
+| `ExpenseManager` | `0x709cbAd88162b999882788155cde79aDe46A6D42` | Legacy/shared-expense rooms, members, obligations, balances, settlements and activity |
+| `NestBridgeRegistry` | `0x2dd392fc3f6b10e5520c309164216351f4f7c27b` | Permanent Nest-side index of completed Arc-involved cross-chain bridge receipts |
+| `NestTreasuryV3` | `0x1173776512ae96af2a480a8a1898df8582489425` | Shared USDC treasury, N-of-M payments, recurring payouts, milestone escrow and delegated budgets |
+
+### ExpenseManager
+
+[Open ExpenseManager on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x709cbAd88162b999882788155cde79aDe46A6D42).
+
+ExpenseManager remains the canonical contract for existing Nest expense rooms. It stores rooms, membership, expenses, member shares, settlement status and activity. Expense settlement does not require Nest to pool customer funds: approved USDC moves from the caller to the expense payer.
+
+### NestBridgeRegistry
+
+[Open the verified Bridge Registry on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x2dd392fc3f6b10e5520c309164216351f4f7c27b).
+
+Deployment transaction:
 
 ```text
-0x709cbAd88162b999882788155cde79aDe46A6D42
+0xe811d4e8aee5a656ad4b0c65b1dfc9cf1cc2a53ce103eaadcdc3e09e9ec6c723
 ```
 
-[Inspect the deployment on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x709cbAd88162b999882788155cde79aDe46A6D42).
+Deployment block: `66079022`.
 
-The contract stores rooms, membership, expenses, member shares, settlement status, and activity. Expense settlement does not require Nest to pool customer funds: approved USDC moves from the caller to the expense payer.
+The registry stores the Nest-side record for completed Arc-involved bridge transfers, including source/destination chain IDs, source/destination transaction hashes, amount, recipient and provider metadata. The external source and destination chain transactions remain the execution truth; the registry does not independently prove another chain's state.
+
+### NestTreasuryV3
+
+[Open the fully verified Treasury V3 contract on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x1173776512ae96af2a480a8a1898df8582489425).
+
+Deployment transaction:
+
+```text
+0x0dda929f9f6af4317c921ca01e913567cc2dc4c6bbb52fdb3f51e7fffe5bf720
+```
+
+Deployment block: `66613152`.
+
+Treasury V3 is separate from ExpenseManager so legacy workspaces are not migrated implicitly. It provides shared USDC deposits, configurable manager approval thresholds, payment proposals, recurring payments, milestone escrow and delegated period-based spending budgets.
+
+Treasury V3 and Bridge Registry are testnet contracts and are not represented as independently audited production contracts.
 
 ## Arc Testnet configuration
 
@@ -115,7 +151,11 @@ If Supabase is not configured, Nest keeps working from Arc and uses the local
 verified snapshot for fast same-device reloads; only cross-device cache restore
 is unavailable.
 
-## Business V2 (new workspaces)
+## Business V2 (experimental / not listed as a live core contract)
+
+The repository also contains `NestBusinessV2.sol`. It is separate experimental testnet code and is not part of the live core-contract table above unless a deployment address is explicitly configured.
+
+
 
 The deployed `ExpenseManager` cannot lend or grant an unattended settlement
 authority. `NestBusinessV2.sol` is a separate Arc Testnet contract for new
