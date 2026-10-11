@@ -1,14 +1,17 @@
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useReadContract } from "wagmi";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
-import { CheckCircle2, Link2, Loader2, ShieldCheck, Wallet, X } from "lucide-react";
+import { CheckCircle2, Link2, Loader2, ShieldCheck, Wallet, X, UserPlus } from "lucide-react";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
 import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
-import { useArcEnvironment } from "@/lib/arc-network";
+import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useEmailAuth } from "@/lib/use-email-auth";
+import { SignInDialog } from "@/components/nest/sign-in-dialog";
+import { NestLogo } from "@/components/nest/logo";
+import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 
 
 const PENDING_INVITE = "nest.invite.pending";
@@ -17,6 +20,103 @@ type PendingInvite = {
   address: `0x${string}`;
   roomId: number;
 };
+
+function useInviteRoomName(invite: PendingInvite | null) {
+  const environment = useArcEnvironment();
+  const chain = arcChainFor(environment);
+  const query = useReadContract({
+    address: invite?.address,
+    abi: EXPENSE_MANAGER_ABI,
+    functionName: "getRoom",
+    args: invite ? [BigInt(invite.roomId)] : undefined,
+    chainId: chain.id,
+    query: { enabled: !!invite },
+  });
+
+  const room = query.data as
+    | { id: bigint; name: string; creator: string; createdAt: bigint }
+    | undefined;
+
+  return room?.id && room.id > 0n && room.name?.trim()
+    ? room.name.trim()
+    : "this shared workspace";
+}
+
+function InviteEntry({
+  invite,
+  onContinue,
+  onWallet,
+  onDecline,
+}: {
+  invite: PendingInvite;
+  onContinue: () => void;
+  onWallet: () => void;
+  onDecline: () => void;
+}) {
+  const roomName = useInviteRoomName(invite);
+
+  return (
+    <div className="min-h-[100dvh] bg-background px-4 py-8">
+      <div className="mx-auto w-full max-w-md">
+        <div className="flex items-center justify-between">
+          <NestLogo />
+          <button
+            type="button"
+            onClick={onDecline}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border bg-card text-muted-foreground"
+            aria-label="Close invitation"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <div className="mt-6 overflow-hidden rounded-[30px] border border-border bg-card shadow-xl">
+          <div className="border-b border-border bg-gradient-to-b from-brand/10 to-transparent p-6">
+            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-brand text-white shadow-sm">
+              <UserPlus className="h-5 w-5" />
+            </span>
+            <div className="mt-5 text-[10px] font-bold uppercase tracking-[0.16em] text-brand">
+              Workspace invitation
+            </div>
+            <h1 className="mt-1 text-2xl font-bold tracking-tight">Join {roomName}</h1>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Sign in or create your Nest account first. You’ll review the invitation before
+              anything is written onchain.
+            </p>
+          </div>
+
+          <div className="p-6">
+            <div className="rounded-2xl bg-muted/50 p-4">
+              <div className="text-xs font-bold">No duplicate workspace</div>
+              <div className="mt-1 text-[11px] leading-5 text-muted-foreground">
+                If you’re new to Nest, this flow joins the existing workspace. Nest will not create
+                a separate workspace for you.
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={onContinue}
+              className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl btn-gradient px-5 text-sm font-bold"
+            >
+              <UserPlus className="h-4 w-4" />
+              Continue to invitation
+            </button>
+
+            <button
+              type="button"
+              onClick={onWallet}
+              className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background px-4 text-xs font-bold"
+            >
+              <Wallet className="h-4 w-4" />
+              Use an existing wallet
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function InviteAcceptance({
   invite,
@@ -31,6 +131,8 @@ function InviteAcceptance({
   joining: boolean;
   error: string;
 }) {
+  const roomName = useInviteRoomName(invite);
+
   return (
     <div className="grid min-h-[100dvh] place-items-center bg-background px-4 py-8">
       <div className="w-full max-w-md overflow-hidden rounded-[30px] border border-border bg-card shadow-xl">
@@ -52,10 +154,10 @@ function InviteAcceptance({
           <div className="mt-5 text-[10px] font-bold uppercase tracking-[0.16em] text-brand">
             Workspace invitation
           </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight">Join this Nest workspace?</h1>
+          <h1 className="mt-1 text-2xl font-bold tracking-tight">Join {roomName}?</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            You were invited to a shared workspace on Arc. Joining adds your connected wallet
-            to the workspace onchain.
+            Joining adds your connected wallet to this existing workspace on Arc. It does not
+            create a new workspace.
           </p>
         </div>
 
@@ -64,10 +166,10 @@ function InviteAcceptance({
             <div className="flex items-start gap-3 rounded-2xl bg-muted/45 p-4">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
               <div>
-                <div className="text-xs font-bold">Verified Nest invite</div>
+                <div className="text-xs font-bold">Nest workspace link</div>
                 <div className="mt-1 text-[11px] leading-5 text-muted-foreground">
-                  The invite points to the current Nest contract on Arc. Contract and room IDs
-                  stay hidden from the normal join flow.
+                  The link resolves to the current Nest ExpenseManager deployment on the selected
+                  Arc network. Internal contract details stay out of the normal join flow.
                 </div>
               </div>
             </div>
@@ -139,12 +241,14 @@ function AppLayout() {
   const { rooms, refresh } = useNestChain();
   const { joinRoom } = useNestWrites();
   const [pendingInvite, setPendingInvite] = useState<PendingInvite | null>(null);
+  const [inviteChecked, setInviteChecked] = useState(false);
+  const [inviteAuthOpen, setInviteAuthOpen] = useState(false);
   const [joiningInvite, setJoiningInvite] = useState(false);
   const [inviteError, setInviteError] = useState("");
 
-  // Preserve an invite through authentication, but do not silently add the
-  // recipient. A connected user gets a clear acceptance screen and explicitly
-  // confirms the onchain join.
+  // Preserve an invite through Circle/email authentication and external-wallet
+  // connection. The invitation is resolved before the normal workspace gate so
+  // a brand-new invitee never gets an accidental personal workspace.
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -158,29 +262,37 @@ function AppLayout() {
     }
 
     const token = tokenFromUrl ?? localStorage.getItem(PENDING_INVITE);
-    if (!token || !address) return;
+    if (!token) {
+      setPendingInvite(null);
+      setInviteChecked(true);
+      return;
+    }
 
     const parsed = resolveInvite(token);
     if (!parsed) {
       localStorage.removeItem(PENDING_INVITE);
-      setInviteError("This invite link is invalid or expired.");
+      setPendingInvite(null);
+      setInviteError("This invitation link is invalid.");
+      setInviteChecked(true);
       return;
     }
 
     const typed = parsed as PendingInvite;
-    const alreadyJoined = rooms.some((room) => room.id === typed.roomId);
-    if (alreadyJoined) {
+    if (address && rooms.some((room) => room.id === typed.roomId)) {
       try {
         applyInvite(address, typed);
         localStorage.removeItem(PENDING_INVITE);
         setPendingInvite(null);
+        setInviteError("");
       } catch {
-        setInviteError("This invite belongs to a different Nest network.");
+        setInviteError("This invitation belongs to a different Nest network.");
       }
+      setInviteChecked(true);
       return;
     }
 
     setPendingInvite(typed);
+    setInviteChecked(true);
   }, [address, rooms]);
 
   const acceptInvite = async () => {
@@ -218,16 +330,22 @@ function AppLayout() {
   // No separate sign-in page: the wallet chooser opens straight away, and if the
   // person closes it without connecting we send them back to the landing page.
   useEffect(() => {
-    if (!isConnected && !isBusy) openConnectModal?.();
-  }, [isConnected, isBusy, openConnectModal]);
+    if (inviteChecked && !pendingInvite && !isConnected && !isBusy) openConnectModal?.();
+  }, [inviteChecked, pendingInvite, isConnected, isBusy, openConnectModal]);
 
   const wasOpen = useRef(false);
   useEffect(() => {
-    if (wasOpen.current && !connectModalOpen && !isConnected && !isBusy) {
+    if (
+      wasOpen.current &&
+      !connectModalOpen &&
+      !isConnected &&
+      !isBusy &&
+      !pendingInvite
+    ) {
       void navigate({ to: "/" });
     }
     wasOpen.current = connectModalOpen;
-  }, [connectModalOpen, isConnected, isBusy, navigate]);
+  }, [connectModalOpen, isConnected, isBusy, navigate, pendingInvite]);
 
   if (isConnected && pendingInvite) {
     return (
@@ -238,6 +356,29 @@ function AppLayout() {
         joining={joiningInvite}
         error={inviteError}
       />
+    );
+  }
+
+  if (!isConnected && inviteChecked && pendingInvite) {
+    return (
+      <>
+        <InviteEntry
+          invite={pendingInvite}
+          onContinue={() => setInviteAuthOpen(true)}
+          onWallet={() => openConnectModal?.()}
+          onDecline={declineInvite}
+        />
+        <SignInDialog
+          open={inviteAuthOpen}
+          onOpenChange={setInviteAuthOpen}
+          onWallet={() => {
+            setInviteAuthOpen(false);
+            openConnectModal?.();
+          }}
+          onAuthenticated={() => setInviteAuthOpen(false)}
+          inviteMode
+        />
+      </>
     );
   }
 
