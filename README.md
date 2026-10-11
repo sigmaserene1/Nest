@@ -28,11 +28,11 @@ Nest does not claim a global minimum-transfer algorithm, autonomous custody, Cir
 
 ## Deployed Arc Testnet contracts
 
-| Contract | Address | Purpose |
-| --- | --- | --- |
-| `ExpenseManager` | `0x709cbAd88162b999882788155cde79aDe46A6D42` | Legacy/shared-expense rooms, members, obligations, balances, settlements and activity |
-| `NestBridgeRegistry` | `0x2dd392fc3f6b10e5520c309164216351f4f7c27b` | Permanent Nest-side index of completed Arc-involved cross-chain bridge receipts |
-| `NestTreasuryV3` | `0x1173776512ae96af2a480a8a1898df8582489425` | Shared USDC treasury, N-of-M payments, recurring payouts, milestone escrow and delegated budgets |
+| Contract | Address | Explorer status | Purpose |
+| --- | --- | --- | --- |
+| `ExpenseManager` | `0x709cbAd88162b999882788155cde79aDe46A6D42` | Live | Legacy/shared-expense rooms, members, obligations, balances, settlements and activity |
+| `NestBridgeRegistry` | `0x2dd392fc3f6b10e5520c309164216351f4f7c27b` | Verified | Permanent Nest-side index of completed Arc-involved cross-chain bridge receipts |
+| `NestTreasuryV3` | `0x1173776512ae96af2a480a8a1898df8582489425` | Fully verified | Shared USDC treasury, N-of-M payments, recurring payouts, milestone escrow and delegated budgets |
 
 ### ExpenseManager
 
@@ -158,8 +158,8 @@ The repository also contains `NestBusinessV2.sol`. It is separate experimental t
 
 
 The deployed `ExpenseManager` cannot lend or grant an unattended settlement
-authority. `NestBusinessV2.sol` is a separate Arc Testnet contract for new
-business workspaces; it leaves every legacy Nest home unchanged.
+authority. `NestBusinessV2.sol` is separate experimental contract source for
+new business workspaces; it leaves every legacy Nest home unchanged when deployed.
 
 It provides a 50%-LTV, USDC-collateral credit line and a revocable session-key
 policy. A session key can settle only genuine open shares for the workspace
