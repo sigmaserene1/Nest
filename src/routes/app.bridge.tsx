@@ -42,6 +42,11 @@ import { UsdcMark } from "@/components/nest/chain";
 import { Button } from "@/components/ui/button";
 import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
 import {
+  circleBridgeHashes,
+  executeCircleBridge,
+  isCircleArcTestnetBridgeRoute,
+} from "@/lib/circle-bridge";
+import {
   getLifiApprovalAddress,
   getLifiChains,
   getLifiQuote,
@@ -157,17 +162,26 @@ function BridgePage() {
   const recipient = recipientInput.trim() || address || "";
   const value = Number(amount);
   const hasValidAmount = Number.isFinite(value) && value > 0;
+  const useCircleAppKitBridge = Boolean(
+    source &&
+      destination &&
+      isCircleArcTestnetBridgeRoute(source.id, destination.id),
+  );
+  const amountDecimals = useCircleAppKitBridge ? 6 : sourceToken?.decimals;
   const amountUnits = useMemo(() => {
-    if (!sourceToken || !hasValidAmount) return 0n;
+    if (amountDecimals === undefined || !hasValidAmount) return 0n;
     try {
-      return parseUnits(amount, sourceToken.decimals);
+      return parseUnits(amount, amountDecimals);
     } catch {
       return 0n;
     }
-  }, [amount, hasValidAmount, sourceToken]);
+  }, [amount, amountDecimals, hasValidAmount]);
 
   const routeSupported = Boolean(
-    source && destination && source.id !== destination.id && sourceToken && destinationToken,
+    source &&
+      destination &&
+      source.id !== destination.id &&
+      (useCircleAppKitBridge || (sourceToken && destinationToken)),
   );
   const isMainnetRoute = Boolean(source?.mainnet || destination?.mainnet);
   const isBusy = !["idle", "complete", "error"].includes(state);
@@ -182,11 +196,13 @@ function BridgePage() {
     quote && destinationToken?.decimals !== undefined && quote.estimate.toAmountMin
       ? formatUnits(BigInt(quote.estimate.toAmountMin), destinationToken.decimals)
       : null;
-  const routePreferenceLabel = quote
-    ? isCircleNativeUsdcRoute(quote)
-      ? "Circle CCTP/native USDC selected"
-      : "CCTP preferred; LI.FI fallback selected"
-    : "CCTP/native USDC preferred";
+  const routePreferenceLabel = useCircleAppKitBridge
+    ? "Circle App Kit · CCTP standard transfer"
+    : quote
+      ? isCircleNativeUsdcRoute(quote)
+        ? "Circle CCTP/native USDC selected"
+        : "CCTP preferred; LI.FI fallback selected"
+      : "CCTP/native USDC preferred";
 
   useEffect(() => {
     let cancelled = false;
@@ -256,6 +272,15 @@ function BridgePage() {
 
   useEffect(() => {
     if (isBusy) return;
+
+    if (useCircleAppKitBridge) {
+      setQuote(null);
+      setQuoteError("");
+      setQuoteAt(Date.now());
+      setQuoteLoading(false);
+      return;
+    }
+
     if (
       !address ||
       !source ||
@@ -318,6 +343,7 @@ function BridgePage() {
     routeSupported,
     source,
     sourceToken,
+    useCircleAppKitBridge,
   ]);
 
   const quoteAgeLabel = useMemo(() => {
@@ -364,9 +390,9 @@ function BridgePage() {
 
   async function executeBridge() {
     if (!address || !connector) return setError("Connect the wallet that holds the source USDC.");
-    if (!source || !destination) return setError("LI.FI chains are still loading.");
-    if (!sourceToken || !destinationToken) {
-      return setError("USDC is not available for this source/destination pair on LI.FI.");
+    if (!source || !destination) return setError("Bridge networks are still loading.");
+    if (!useCircleAppKitBridge && (!sourceToken || !destinationToken)) {
+      return setError("USDC is not available for this source/destination pair.");
     }
     if (!Number.isFinite(value) || value <= 0 || amountUnits <= 0n)
       return setError("Enter a valid USDC amount.");
@@ -379,6 +405,134 @@ function BridgePage() {
     activeEntryId.current = null;
 
     try {
+      const provider = await getConnectorProvider(connector);
+
+      if (useCircleAppKitBridge) {
+        setState("switching");
+        setStatusText(`Switching wallet to ${source.name}...`);
+        await switchToLifiChain(provider, source);
+
+        const entryId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        activeEntryId.current = entryId;
+        addEntry({
+          id: entryId,
+          fromId: String(source.id),
+          toId: String(destination.id),
+          fromName: source.name,
+          toName: destination.name,
+          amount: value.toFixed(2),
+          status: "pending",
+          startedAt: Date.now(),
+          explorerFrom: lifiExplorerFor(source),
+          explorerTo: lifiExplorerFor(destination),
+          tool: "Circle App Kit / CCTP",
+          recipient,
+        });
+
+        setState("bridging");
+        setStatusText("Starting Circle App Kit CCTP bridge...");
+
+        const result = await executeCircleBridge({
+          provider,
+          fromChainId: source.id,
+          toChainId: destination.id,
+          amount,
+          recipient:
+            recipient.toLowerCase() === address.toLowerCase()
+              ? undefined
+              : (recipient as Address),
+          onProgress: (label, txHash) => {
+            setStatusText(label + "...");
+            if (txHash && /^0x[0-9a-fA-F]{64}$/.test(txHash)) {
+              const hash = txHash as Hex;
+              if (label.toLowerCase().includes("burn")) {
+                setSourceTxHash(hash);
+                updateEntry(entryId, { burnHash: hash });
+              }
+              if (label.toLowerCase().includes("mint")) {
+                setDestinationTxHash(hash);
+                updateEntry(entryId, { mintHash: hash });
+              }
+            }
+          },
+        });
+
+        if (String(result.state ?? "").toLowerCase() === "error") {
+          const failedStep = (result.steps ?? []).find(
+            (step) => String(step.state ?? "").toLowerCase() === "error",
+          );
+          throw new Error(
+            failedStep?.errorMessage || "Circle App Kit bridge did not complete.",
+          );
+        }
+
+        const hashes = circleBridgeHashes(result);
+        const sourceHash =
+          hashes.sourceHash && /^0x[0-9a-fA-F]{64}$/.test(hashes.sourceHash)
+            ? (hashes.sourceHash as Hex)
+            : undefined;
+        const receivingHash =
+          hashes.destinationHash && /^0x[0-9a-fA-F]{64}$/.test(hashes.destinationHash)
+            ? (hashes.destinationHash as Hex)
+            : undefined;
+
+        if (sourceHash) setSourceTxHash(sourceHash);
+        if (receivingHash) setDestinationTxHash(receivingHash);
+
+        updateEntry(entryId, {
+          status: "complete",
+          burnHash: sourceHash,
+          mintHash: receivingHash,
+          completedAt: Date.now(),
+          tool: "Circle App Kit / CCTP",
+        });
+
+        let registryTxHash: Hex | undefined;
+        const isNestArcRoute =
+          source.id === nestArcChain.id || destination.id === nestArcChain.id;
+
+        if (
+          bridgeRegistryAddress &&
+          sourceHash &&
+          receivingHash &&
+          isNestArcRoute
+        ) {
+          try {
+            setStatusText("Bridge delivered. Saving your Nest onchain bridge receipt...");
+            registryTxHash = await recordBridgeOnNest(provider, {
+              registry: bridgeRegistryAddress,
+              owner: address,
+              arcChain: nestArcChain,
+              source,
+              destination,
+              amount: parseUnits(amount, 6),
+              recipient: recipient as Address,
+              sourceHash,
+              destinationHash: receivingHash,
+              providerName: "Circle App Kit / CCTP",
+            });
+            updateEntry(entryId, {
+              registryTxHash,
+              registryExplorer: bridgeRegistryExplorer,
+            });
+          } catch (registryError) {
+            console.warn("Nest bridge registry write skipped:", registryError);
+          }
+        }
+
+        setState("complete");
+        setStatusText(
+          registryTxHash
+            ? `${formatCompactAmount(amount)} USDC delivered to ${destination.name} · saved onchain in Nest.`
+            : `${formatCompactAmount(amount)} USDC delivered to ${destination.name}.`,
+        );
+        return;
+      }
+
+      if (!sourceToken || !destinationToken) {
+        throw new Error("LI.FI USDC token metadata is unavailable for this pair.");
+      }
+
       setState("quoting");
       setStatusText("Getting executable LI.FI route...");
       const executionQuote =
@@ -394,8 +548,6 @@ function BridgePage() {
         }));
       setQuote(executionQuote);
       setQuoteAt(Date.now());
-
-      const provider = await getConnectorProvider(connector);
 
       setState("switching");
       setStatusText(`Switching wallet to ${source.name}...`);
@@ -481,11 +633,10 @@ function BridgePage() {
       const receivingHash = status.receiving?.txHash;
       if (receivingHash) setDestinationTxHash(receivingHash);
 
-      const completedAt = Date.now();
       updateEntry(entryId, {
         status: "complete",
         mintHash: receivingHash,
-        completedAt,
+        completedAt: Date.now(),
       });
 
       let registryTxHash: Hex | undefined;
@@ -512,8 +663,6 @@ function BridgePage() {
             registryExplorer: bridgeRegistryExplorer,
           });
         } catch (registryError) {
-          // The bridge itself is already complete. A rejected/failed registry
-          // write must never turn a successful cross-chain transfer into an error.
           console.warn("Nest bridge registry write skipped:", registryError);
         }
       }
@@ -525,7 +674,7 @@ function BridgePage() {
           : `${formatCompactAmount(estimatedReceived)} USDC delivered to ${destination.name}.`,
       );
     } catch (caught) {
-      console.error("LI.FI bridge error:", caught);
+      console.error("Bridge error:", caught);
       setState("error");
       const message = getReadableError(caught);
       setError(message);
@@ -627,9 +776,11 @@ function BridgePage() {
                   <div className="min-w-0">
                     <div className="text-sm font-bold">USDC</div>
                     <div className="text-[10px] text-muted-foreground">
-                      {sourceToken && destinationToken
-                        ? `${sourceToken.name} -> ${destinationToken.name}`
-                        : "Loading LI.FI token lists..."}
+                      {useCircleAppKitBridge
+                        ? "Native USDC via Circle App Kit / CCTP"
+                        : sourceToken && destinationToken
+                          ? `${sourceToken.name} -> ${destinationToken.name}`
+                          : "Loading LI.FI token lists..."}
                     </div>
                   </div>
                 </div>
@@ -680,8 +831,9 @@ function BridgePage() {
                 </span>
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
-                LI.FI checks liquidity, approval target, bridge tool, and destination estimate
-                before execution.
+                {useCircleAppKitBridge
+                  ? "Arc Testnet routes use Circle App Kit CCTP directly, matching Arc's recommended bridge flow."
+                  : "LI.FI checks liquidity, approval target, bridge tool, and destination estimate before execution."}
               </div>
             </div>
 
@@ -731,11 +883,13 @@ function BridgePage() {
               <div className="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>Route provider</span>
                 <span>
-                  {quote
-                    ? lifiToolName(quote)
-                    : isQuoteLoading
-                      ? "Finding route..."
-                      : "LI.FI quote"}
+                  {useCircleAppKitBridge
+                    ? "Circle App Kit / CCTP"
+                    : quote
+                      ? lifiToolName(quote)
+                      : isQuoteLoading
+                        ? "Finding route..."
+                        : "LI.FI quote"}
                 </span>
               </div>
               <div className="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">
@@ -745,11 +899,13 @@ function BridgePage() {
               <div className="mt-1 flex items-center justify-between gap-3 text-xs text-muted-foreground">
                 <span>Estimated network/bridge cost</span>
                 <span>
-                  {quoteCostUsd > 0
-                    ? `$${quoteCostUsd.toFixed(2)}`
-                    : quote
-                      ? "Included in quote"
-                      : "--"}
+                  {useCircleAppKitBridge
+                    ? "CCTP standard transfer"
+                    : quoteCostUsd > 0
+                      ? `${quoteCostUsd.toFixed(2)}`
+                      : quote
+                        ? "Included in quote"
+                        : "--"}
                 </span>
               </div>
               {minimumReceived && (
@@ -772,8 +928,8 @@ function BridgePage() {
               {quoteError && (
                 <div className="mt-2 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-[11px] text-foreground">
                   {quoteError}
-                  {(source?.id === 5042002 || destination?.id === 5042002) && (
-                    <p className="mt-1">LI.FI may list Arc Testnet without an executable route for this pair. Try a different amount or chain; no transfer will be sent without a quote.</p>
+                  {!useCircleAppKitBridge && (source?.id === 5042002 || destination?.id === 5042002) && (
+                    <p className="mt-1">This pair is outside the direct Circle App Kit CCTP testnet route set. Try a supported Arc testnet pair or another LI.FI route.</p>
                   )}
                 </div>
               )}
@@ -785,7 +941,7 @@ function BridgePage() {
                   type="button"
                   disabled={
                     isConnected &&
-                    (isBusy || isQuoteLoading || !quote || !hasValidAmount || !source || !destination || !routeSupported)
+                    (isBusy || isQuoteLoading || (!useCircleAppKitBridge && !quote) || !hasValidAmount || !source || !destination || !routeSupported)
                   }
                   onClick={isConnected ? executeBridge : openConnectModal}
                   className="h-12 w-full rounded-2xl btn-gradient text-sm font-bold"
@@ -807,20 +963,26 @@ function BridgePage() {
                           ? "USDC route unavailable"
                         : !hasValidAmount
                           ? "Enter an amount"
-                            : isQuoteLoading
-                              ? "Finding LI.FI route..."
-                              : !quote
-                                ? "No executable LI.FI route"
-                              : `Confirm transfer · ${value.toLocaleString(undefined, {
+                            : useCircleAppKitBridge
+                              ? `Confirm CCTP transfer · ${value.toLocaleString(undefined, {
                                   maximumFractionDigits: 6,
-                                })} USDC to ${destination.name}`}
+                                })} USDC to ${destination.name}`
+                              : isQuoteLoading
+                                ? "Finding LI.FI route..."
+                                : !quote
+                                  ? "No executable LI.FI route"
+                                  : `Confirm transfer · ${value.toLocaleString(undefined, {
+                                      maximumFractionDigits: 6,
+                                    })} USDC to ${destination.name}`}
                 </Button>
               )}
             </ConnectButton.Custom>
 
             <div className="flex items-center justify-center gap-2 text-[10px] font-semibold text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5 text-success" /> LI.FI routing · CCTP/native USDC
-              preferred · Destination status tracked
+              <ShieldCheck className="h-3.5 w-3.5 text-success" />{" "}
+              {useCircleAppKitBridge
+                ? "Circle App Kit CCTP · standard-fee mode · destination tracked"
+                : "LI.FI routing · CCTP/native USDC preferred · destination tracked"}
             </div>
 
             <TransferNotice state={state} statusText={statusText} error={error} />
