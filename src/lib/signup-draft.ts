@@ -1,6 +1,6 @@
 export type NestSignupDraft = {
   displayName: string;
-  workspaceName: string;
+  workspaceName?: string;
   email?: string;
   createdAt: number;
 };
@@ -10,13 +10,13 @@ const MAX_AGE = 24 * 60 * 60 * 1000;
 
 export function saveSignupDraft(input: {
   displayName: string;
-  workspaceName: string;
+  workspaceName?: string;
   email?: string;
 }) {
   if (typeof window === "undefined") return;
   const draft: NestSignupDraft = {
     displayName: input.displayName.trim(),
-    workspaceName: input.workspaceName.trim(),
+    workspaceName: input.workspaceName?.trim() || undefined,
     email: input.email?.trim() || undefined,
     createdAt: Date.now(),
   };
@@ -30,7 +30,6 @@ export function readSignupDraft(): NestSignupDraft | null {
     if (
       !raw ||
       !raw.displayName ||
-      !raw.workspaceName ||
       Date.now() - raw.createdAt > MAX_AGE
     ) {
       window.localStorage.removeItem(KEY);
