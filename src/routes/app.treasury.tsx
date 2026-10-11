@@ -76,7 +76,8 @@ function TreasuryPage() {
   const configured =
     arc.environment === "mainnet"
       ? (import.meta.env.VITE_NEST_TREASURY_V3_MAINNET_ADDRESS as string | undefined)
-      : (import.meta.env.VITE_NEST_TREASURY_V3_ADDRESS as string | undefined);
+      : ((import.meta.env.VITE_NEST_TREASURY_V3_ADDRESS as string | undefined) ??
+        "0x1173776512ae96af2a480a8a1898df8582489425");
 
   const treasuryAddress =
     configured && isAddress(configured) ? (configured as Address) : null;
