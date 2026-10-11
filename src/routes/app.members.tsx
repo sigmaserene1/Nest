@@ -2,10 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { WalletChip, ArcBadge } from "@/components/nest/chain";
+import { WalletChip } from "@/components/nest/chain";
 import { fmtUSD } from "@/lib/nest-data";
 import { useComputedBalances, useMembers, useMe, useNestChain } from "@/lib/chain/nest-chain";
-import { Check, Copy, Link2, Pencil, ShieldCheck, Share2, UserCheck } from "lucide-react";
+import { Check, Copy, Link2, Pencil, ShieldCheck, Share2, UsersRound } from "lucide-react";
 import { ProfileNameModal } from "@/components/nest/profile-modal";
 import { buildInviteLink } from "@/lib/chain/config";
 
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/app/members")({
 function MembersPage() {
   const members = useMembers();
   const currentUserId = useMe();
-  const { myName, roomId, contractAddress } = useNestChain();
+  const { myName, roomId, room, contractAddress } = useNestChain();
   const nameLocked = !!myName;
   const { net } = useComputedBalances();
   const [copied, setCopied] = useState(false);
@@ -37,7 +37,7 @@ function MembersPage() {
       if (navigator.share) {
         await navigator.share({
           title: "Join my Nest workspace",
-          text: "Join my shared Nest workspace on Arc.",
+          text: `Join ${room?.name ?? "my Nest workspace"} on Arc.`,
           url: link,
         });
       }
@@ -74,61 +74,51 @@ function MembersPage() {
         </div>
       }
     >
-      <Card className="mt-5 overflow-hidden !p-0 sm:mt-6">
-        <div className="grid gap-0 lg:grid-cols-[1.15fr_.85fr]">
-          <div className="p-5 sm:p-6">
+      <Card className="mt-5 !p-5 sm:mt-6 sm:!p-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div className="max-w-2xl">
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-brand">
               <Link2 className="h-3.5 w-3.5" />
-              Invite members
+              Invite member
             </div>
-            <h2 className="mt-2 text-xl font-bold tracking-tight">One link. One onchain join.</h2>
-            <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-              Share your workspace invite. The recipient signs in, reviews the invitation, and
-              confirms one Arc transaction to join the workspace.
+            <h2 className="mt-2 text-xl font-bold tracking-tight">
+              Invite to {room?.name ?? "this workspace"}
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Share one invite link. New users can create their Nest account and join this existing
+              workspace; existing users can sign in and join directly.
             </p>
-
-            <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-              <button
-                onClick={() => void shareInvite()}
-                disabled={!contractAddress || !roomId}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl btn-gradient px-5 text-sm font-bold disabled:opacity-50"
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
-                {copied ? "Invite link copied" : "Share invite link"}
-              </button>
-              <button
-                onClick={() => void copyInvite()}
-                disabled={!contractAddress || !roomId}
-                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-background px-5 text-sm font-bold disabled:opacity-50"
-              >
-                <Copy className="h-4 w-4" />
-                Copy link
-              </button>
-            </div>
           </div>
 
-          <div className="border-t border-border bg-muted/35 p-5 sm:p-6 lg:border-l lg:border-t-0">
-            <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-              How joining works
-            </div>
-            <div className="mt-4 space-y-3">
-              {[
-                ["1", "Open invite", "The link opens the exact Nest workspace."],
-                ["2", "Sign in", "Use Circle email/Google or a connected wallet."],
-                ["3", "Join onchain", "Confirm once and the workspace appears in Nest."],
-              ].map(([step, title, body]) => (
-                <div key={step} className="flex gap-3">
-                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-foreground text-[11px] font-bold text-background">
-                    {step}
-                  </span>
-                  <div>
-                    <div className="text-xs font-bold">{title}</div>
-                    <div className="mt-0.5 text-[11px] leading-5 text-muted-foreground">{body}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="inline-flex items-center gap-2 rounded-full bg-muted/60 px-3 py-1.5 text-[11px] font-bold text-muted-foreground">
+            <UsersRound className="h-3.5 w-3.5" />
+            {members.length} member{members.length === 1 ? "" : "s"}
           </div>
+        </div>
+
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button
+            onClick={() => void shareInvite()}
+            disabled={!contractAddress || !roomId}
+            className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl btn-gradient px-5 text-sm font-bold disabled:opacity-50"
+          >
+            {copied ? <Check className="h-4 w-4" /> : <Share2 className="h-4 w-4" />}
+            {copied ? "Invite link ready" : "Share invite"}
+          </button>
+          <button
+            onClick={() => void copyInvite()}
+            disabled={!contractAddress || !roomId}
+            className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-background px-5 text-sm font-bold disabled:opacity-50"
+          >
+            <Copy className="h-4 w-4" />
+            Copy link
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-2xl bg-muted/50 px-4 py-3 text-[11px] leading-5 text-muted-foreground">
+          Anyone with this link can join the current ExpenseManager workspace, so share it only
+          with intended members. Treasury manager roles and delegated spending permissions are
+          separate and are not granted by this invite.
         </div>
       </Card>
 
@@ -168,9 +158,8 @@ function MembersPage() {
                     )}
                   </div>
                   <div className="text-xs text-muted-foreground">{m.handle}</div>
-                  <div className="mt-1.5 flex items-center gap-1.5">
+                  <div className="mt-1.5">
                     {m.wallet && <WalletChip address={m.wallet} />}
-                    <ArcBadge />
                   </div>
                 </div>
               </div>
@@ -189,21 +178,7 @@ function MembersPage() {
 
       </div>
 
-      {members.length === 1 ? (
-        <Card className="mt-4 !p-4">
-          <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
-              <UserCheck className="h-4 w-4" />
-            </span>
-            <div>
-              <div className="text-sm font-bold">You’re the only member right now</div>
-              <div className="mt-0.5 text-xs text-muted-foreground">
-                Share the invite above when you’re ready to add someone.
-              </div>
-            </div>
-          </div>
-        </Card>
-      ) : null}
+
 
       <ProfileNameModal open={nameOpen} onClose={() => setNameOpen(false)} />
     </AppShell>
