@@ -9,6 +9,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { PrivyProvider } from "@privy-io/react-auth";
 
 import appCss from "../styles.css?url";
 import rainbowKitCss from "@rainbow-me/rainbowkit/styles.css?url";
@@ -151,14 +152,36 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  const app = (
+    <Web3Provider>
+      <NestChainProvider>
+        <Outlet />
+        <Toaster />
+      </NestChainProvider>
+    </Web3Provider>
+  );
+
+  const privyAppId = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Web3Provider>
-        <NestChainProvider>
-          <Outlet />
-          <Toaster />
-        </NestChainProvider>
-      </Web3Provider>
+      {privyAppId ? (
+        <PrivyProvider
+          appId={privyAppId}
+          config={{
+            loginMethods: ["email"],
+            appearance: {
+              theme: "light",
+              accentColor: "#E53935",
+              logo: "https://nestarc.xyz/favicon.ico",
+            },
+          }}
+        >
+          {app}
+        </PrivyProvider>
+      ) : (
+        app
+      )}
     </QueryClientProvider>
   );
 }
