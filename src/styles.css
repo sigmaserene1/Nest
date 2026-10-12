@@ -325,15 +325,14 @@
   }
 }
 
-/* App motion system: fast enough to feel responsive, slow enough to feel intentional. */
+/* Page wrappers must never transform: fixed payment/expense overlays live inside
+   them and must remain anchored to the viewport, including during entrance. */
 @keyframes nest-page-enter {
   from {
     opacity: 0;
-    transform: translate3d(0, 9px, 0) scale(0.997);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
@@ -344,7 +343,7 @@
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: none;
   }
 }
 
@@ -365,17 +364,16 @@
 }
 
 .nest-page-transition {
-  animation: nest-page-enter 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  transform-origin: center top;
+  animation: nest-page-enter 340ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 .nest-reveal {
-  animation: nest-item-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: nest-item-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
   animation-delay: var(--nest-motion-delay, 0ms);
 }
 
 .nest-motion-item {
-  animation: nest-item-enter 330ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: nest-item-enter 330ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
   animation-delay: var(--nest-stagger-delay, 0ms);
 }
 
