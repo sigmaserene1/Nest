@@ -8,7 +8,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import rainbowKitCss from "@rainbow-me/rainbowkit/styles.css?url";
@@ -148,17 +148,48 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * SSR stays on the existing Circle/wagmi provider tree. Privy is loaded only
+ * after hydration, and only when explicitly configured for the beta rollout.
+ */
+function WalletAuthProviders({ children }: { children: ReactNode }) {
+  const [privy, setPrivy] = useState<typeof import("@/components/nest/privy-auth-provider") | null>(null);
+  const enabled = import.meta.env.VITE_ENABLE_PRIVY_OTP === "true" &&
+    Boolean(import.meta.env.VITE_PRIVY_APP_ID);
+
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    void import("@/components/nest/privy-auth-provider")
+      .then((module) => { if (!cancelled) setPrivy(module); })
+      .catch((error) => console.error("Privy sign-in could not load", error));
+    return () => { cancelled = true; };
+  }, [enabled]);
+
+  const app = privy
+    ? (
+      <Web3Provider>
+        <privy.PrivyWalletSync>{children}</privy.PrivyWalletSync>
+      </Web3Provider>
+    )
+    : <Web3Provider>{children}</Web3Provider>;
+
+  return privy
+    ? <privy.NestPrivyProvider>{app}</privy.NestPrivyProvider>
+    : app;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Web3Provider>
+      <WalletAuthProviders>
         <NestChainProvider>
           <Outlet />
           <Toaster />
         </NestChainProvider>
-      </Web3Provider>
+      </WalletAuthProviders>
     </QueryClientProvider>
   );
 }
