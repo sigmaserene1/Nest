@@ -55,7 +55,10 @@ export function privyWalletConnector() {
       const chain = config.chains.find((c) => c.id === (config.chains[1]?.id ?? config.chains[0].id)) ?? config.chains[0];
       // Prefer Arc Testnet for the present Nest email-wallet deployment.
       await currentWallet.switchChain(chain.id);
-      return { accounts: [currentWallet.address as Address] as readonly [Address], chainId: chain.id };
+      // Wagmi's connect return type is generic over optional EIP-5792
+      // capabilities, exactly like Nest's pre-existing Circle connector.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { accounts: [currentWallet.address as Address] as readonly [Address], chainId: chain.id } as any;
     },
     async disconnect() {
       currentWallet = null;
