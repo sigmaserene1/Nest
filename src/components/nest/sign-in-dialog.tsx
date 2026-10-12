@@ -192,10 +192,14 @@ export function SignInDialog({
               {mode === "signup"
                 ? inviteMode
                   ? "Set up your Nest identity, then review and join the workspace you were invited to. Nest will not create another workspace."
-                  : "Set up your identity and first shared workspace. A private email wallet is created after verification. Existing Circle wallets remain available separately."
+                  : privyEnabled
+                    ? "Set up your identity and first shared workspace. New email wallets use Privy; existing Circle wallets remain accessible separately."
+                    : "Set up your identity and first shared workspace. Circle creates your user-controlled Arc wallet after verification."
                 : inviteMode
                   ? "Sign in, review the invitation, then join the existing workspace."
-                  : "Sign in to your Privy email wallet, or choose Circle to access an existing Circle wallet."}
+                  : privyEnabled
+                    ? "Sign in with a Privy email wallet, or use Circle to open an existing Circle wallet."
+                    : "Sign in with the same Google account, email or wallet you used before."}
             </DialogDescription>
           </DialogHeader>
         </div>
@@ -287,7 +291,9 @@ export function SignInDialog({
                 G
               </span>
             )}
-            {mode === "signup" ? "Sign up with Circle Google" : "Continue with Circle Google"}
+            {mode === "signup"
+              ? (privyEnabled ? "Sign up with Circle Google" : "Sign up with Google")
+              : (privyEnabled ? "Continue with Circle Google" : "Continue with Google")}
           </button>
           ) : null}
 
