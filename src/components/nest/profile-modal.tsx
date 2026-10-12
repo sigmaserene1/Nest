@@ -42,6 +42,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
   };
 
   return (
+    <ViewportPortal>
     <div
 
 
@@ -82,7 +83,6 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
             {PROFILE_AVATARS.map((option) => {
               const selected = avatar === option.id;
   return (
-    <ViewportPortal>
                 <button
                   key={option.id}
                   type="button"
