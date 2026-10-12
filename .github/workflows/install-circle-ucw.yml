@@ -1,3 +1,4 @@
+# Retry after transient setup-bun 504
 name: Install Circle UCW server SDK
 
 on:
