@@ -9,6 +9,7 @@ import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
 import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useEmailAuth } from "@/lib/use-email-auth";
+import { isPrivySelected } from "@/lib/privy-wallet";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { NestLogo } from "@/components/nest/logo";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
@@ -323,9 +324,19 @@ function AppLayout() {
   };
 
   const emailAuth = useEmailAuth();
-  // Wait only while an email session is being restored; once that attempt
-  // finishes, a disconnected person always gets the wallet chooser.
-  const isBusy = isConnecting || isReconnecting || !emailAuth.ready;
+  const [privyRestoreTimedOut, setPrivyRestoreTimedOut] = useState(false);
+
+  useEffect(() => {
+    // The Privy SDK restores its login asynchronously after hydration. Do not
+    // immediately cover its session restoration with RainbowKit's wallet picker.
+    // A timeout still lets signed-out users choose another wallet.
+    if (!isPrivySelected()) return;
+    const timer = window.setTimeout(() => setPrivyRestoreTimedOut(true), 7000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const restoringPrivy = isPrivySelected() && !isConnected && !privyRestoreTimedOut;
+  const isBusy = isConnecting || isReconnecting || !emailAuth.ready || restoringPrivy;
 
   // No separate sign-in page: the wallet chooser opens straight away, and if the
   // person closes it without connecting we send them back to the landing page.
