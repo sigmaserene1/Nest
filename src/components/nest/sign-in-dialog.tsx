@@ -297,11 +297,13 @@ export function SignInDialog({
           </button>
           ) : null}
 
+          {!usePrivyFlow ? (
           <div className="flex items-center gap-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
             or
             <span className="h-px flex-1 bg-border" />
           </div>
+          ) : null}
 
           <form onSubmit={submitEmail} className="space-y-2.5">
             <label htmlFor="nest-email" className="sr-only">
