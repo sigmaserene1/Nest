@@ -109,6 +109,7 @@ export const openExplorerTx = (hash: string) => openExternal(explorerTxUrl(hash)
 export const openExplorerAddr = (addr: string) => openExternal(explorerAddrUrl(addr));
 
 import { embeddedWalletConnector } from "@/lib/embedded-wallet";
+import { privyWalletConnector } from "@/lib/privy-wallet";
 
 /**
  * Builds the wagmi config. External wallet connectors are optional because
@@ -122,7 +123,7 @@ export function createWagmiConfig(connectors: CreateConnectorFn[] = []) {
     // Both Arc environments are first-class wallet networks. The remaining
     // chains are the existing CCTP v2 testnet sources used by the bridge.
     chains: [arcMainnet, arcTestnet, sepolia, avalancheFuji, optimismSepolia, arbitrumSepolia, baseSepolia, polygonAmoy],
-    connectors: [embeddedWalletConnector(), ...connectors],
+    connectors: [embeddedWalletConnector(), privyWalletConnector(), ...connectors],
     transports: {
     [arcMainnet.id]: fallback(
       ARC_MAINNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),

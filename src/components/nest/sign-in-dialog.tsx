@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { Mail, Wallet, Loader2, ShieldCheck, UserPlus, LogIn } from "lucide-react";
 import {
   Dialog,
@@ -9,6 +9,11 @@ import {
 } from "@/components/ui/dialog";
 import { useEmailAuth } from "@/lib/use-email-auth";
 import { clearSignupDraft, saveSignupDraft } from "@/lib/signup-draft";
+import { selectCircleLogin } from "@/lib/privy-wallet";
+
+const privyEnabled = import.meta.env.VITE_ENABLE_PRIVY_OTP === "true" &&
+  Boolean(import.meta.env.VITE_PRIVY_APP_ID);
+const PrivyEmailOtp = lazy(() => import("@/components/nest/privy-email-otp").then((m) => ({ default: m.PrivyEmailOtp })));
 
 type Props = {
   open: boolean;
@@ -32,18 +37,22 @@ export function SignInDialog({
   const [workspaceName, setWorkspaceName] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [emailProvider, setEmailProvider] = useState<"privy" | "circle">("privy");
+  const [otpEmail, setOtpEmail] = useState<string | null>(null);
+  const usePrivyFlow = privyEnabled && emailProvider === "privy";
 
-  // Warm Circle's relatively heavy browser SDK while the user is reading the
-  // sign-in sheet, not after they tap Continue.
+  // Warm the Circle SDK only when the person chooses a Circle wallet.
+  // New Privy users should not pay the download cost of both wallet SDKs.
   useEffect(() => {
-    if (!open) return;
+    if (!open || usePrivyFlow) return;
     void import("@/lib/circle-sdk");
-  }, [open]);
+  }, [open, usePrivyFlow]);
 
   const reset = (o: boolean) => {
     if (!o) {
       setError(null);
       setBusy(null);
+      setOtpEmail(null);
     }
     onOpenChange(o);
   };
@@ -86,6 +95,12 @@ export function SignInDialog({
 
     if (!validateSignup()) return;
     persistSignupDraft(normalized);
+    if (usePrivyFlow) {
+      setError(null);
+      setOtpEmail(normalized);
+      return;
+    }
+    selectCircleLogin();
     setBusy("email");
     setError(null);
     try {
@@ -105,6 +120,7 @@ export function SignInDialog({
   const submitGoogle = async () => {
     if (!validateSignup()) return;
     persistSignupDraft();
+    selectCircleLogin();
     setBusy("google");
     setError(null);
     try {
@@ -130,6 +146,7 @@ export function SignInDialog({
             <button
               type="button"
               onClick={() => {
+                setOtpEmail(null);
                 setMode("signin");
                 setError(null);
                 clearSignupDraft();
@@ -146,6 +163,7 @@ export function SignInDialog({
             <button
               type="button"
               onClick={() => {
+                setOtpEmail(null);
                 setMode("signup");
                 setError(null);
               }}
@@ -174,15 +192,51 @@ export function SignInDialog({
               {mode === "signup"
                 ? inviteMode
                   ? "Set up your Nest identity, then review and join the workspace you were invited to. Nest will not create another workspace."
-                  : "Set up your identity and first shared workspace. Circle creates your user-controlled Arc wallet after verification."
+                  : privyEnabled
+                    ? "Set up your identity and first shared workspace. New email wallets use Privy; existing Circle wallets remain accessible separately."
+                    : "Set up your identity and first shared workspace. Circle creates your user-controlled Arc wallet after verification."
                 : inviteMode
                   ? "Sign in, review the invitation, then join the existing workspace."
-                  : "Sign in with the same Google account, email or wallet you used before."}
+                  : privyEnabled
+                    ? "Sign in with a Privy email wallet, or use Circle to open an existing Circle wallet."
+                    : "Sign in with the same Google account, email or wallet you used before."}
             </DialogDescription>
           </DialogHeader>
         </div>
 
         <div className="space-y-3 px-6 pb-6 pt-5">
+          {otpEmail ? (
+            <Suspense fallback={<p className="py-8 text-center text-sm text-muted-foreground">Loading secure verification…</p>}>
+              <PrivyEmailOtp
+                email={otpEmail}
+                onBack={() => setOtpEmail(null)}
+                onAuthenticated={() => {
+                  onAuthenticated();
+                  reset(false);
+                }}
+              />
+            </Suspense>
+          ) : (
+          <>
+          {privyEnabled ? (
+            <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-muted/40 p-1">
+              <button
+                type="button"
+                onClick={() => { setEmailProvider("privy"); setError(null); }}
+                className={`min-h-10 rounded-lg px-2 text-[11px] font-bold transition ${emailProvider === "privy" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                Email OTP · New wallet
+              </button>
+              <button
+                type="button"
+                onClick={() => { setEmailProvider("circle"); setError(null); }}
+                className={`min-h-10 rounded-lg px-2 text-[11px] font-bold transition ${emailProvider === "circle" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"}`}
+              >
+                Existing Circle wallet
+              </button>
+            </div>
+          ) : null}
+
           {mode === "signup" ? (
             <div className="space-y-2.5">
               <label className="block">
@@ -220,6 +274,7 @@ export function SignInDialog({
             </div>
           ) : null}
 
+          {(!usePrivyFlow) ? (
           <button
             type="button"
             onClick={submitGoogle}
@@ -236,14 +291,19 @@ export function SignInDialog({
                 G
               </span>
             )}
-            {mode === "signup" ? "Sign up with Google" : "Continue with Google"}
+            {mode === "signup"
+              ? (privyEnabled ? "Sign up with Circle Google" : "Sign up with Google")
+              : (privyEnabled ? "Continue with Circle Google" : "Continue with Google")}
           </button>
+          ) : null}
 
+          {!usePrivyFlow ? (
           <div className="flex items-center gap-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
             <span className="h-px flex-1 bg-border" />
             or
             <span className="h-px flex-1 bg-border" />
           </div>
+          ) : null}
 
           <form onSubmit={submitEmail} className="space-y-2.5">
             <label htmlFor="nest-email" className="sr-only">
@@ -272,9 +332,11 @@ export function SignInDialog({
               )}
               {busy === "email"
                 ? "Opening secure verification…"
-                : mode === "signup"
-                  ? "Create account with email"
-                  : "Continue with email"}
+                : usePrivyFlow
+                  ? "Send verification code"
+                  : mode === "signup"
+                    ? "Create Circle account with email"
+                    : "Continue with Circle email"}
             </button>
           </form>
 
@@ -309,9 +371,9 @@ export function SignInDialog({
           )}
 
           <p className="px-1 pt-1 text-center text-[11px] leading-4 text-muted-foreground">
-            {mode === "signup"
-              ? "No password. Circle handles secure email or Google verification and wallet recovery."
-              : "Email verification is completed in Circle’s secure wallet window."}
+            {usePrivyFlow
+              ? "Privy authenticates this email and creates a separate wallet. Existing Circle wallet addresses are unchanged."
+              : "Circle handles email or Google verification for existing Circle wallets."}
           </p>
 
           {error ? (
@@ -322,6 +384,8 @@ export function SignInDialog({
               {error}
             </p>
           ) : null}
+          </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

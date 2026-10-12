@@ -28,6 +28,14 @@ export default defineConfig({
           find: /^rpc-websockets$/,
           replacement: rpcWebsocketsBrowserEntry,
         },
+        // Keep the existing Circle-only production build lean: Privy is only
+        // bundled for an explicit, configured OTP beta rollout.
+        ...(process.env.VITE_ENABLE_PRIVY_OTP === "true" && process.env.VITE_PRIVY_APP_ID
+          ? []
+          : [{
+              find: /^@privy-io\/react-auth$/,
+              replacement: fileURLToPath(new URL("./src/lib/privy-sdk-disabled.tsx", import.meta.url)),
+            }]),
       ],
     },
     // Pre-bundle the router packages so Vite never lazily re-optimizes them
