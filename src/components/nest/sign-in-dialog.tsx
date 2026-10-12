@@ -10,6 +10,7 @@ import {
 import { useEmailAuth } from "@/lib/use-email-auth";
 import { clearSignupDraft, saveSignupDraft } from "@/lib/signup-draft";
 import { PrivyEmailOtp } from "@/components/nest/privy-email-otp";
+import { privyAppId } from "@/lib/privy-config";
 
 type Props = {
   open: boolean;
@@ -27,6 +28,7 @@ export function SignInDialog({
   inviteMode = false,
 }: Props) {
   const { signIn, signInWithGoogle } = useEmailAuth();
+  const hasPrivyEmail = Boolean(privyAppId());
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -246,7 +248,7 @@ export function SignInDialog({
             <span className="h-px flex-1 bg-border" />
           </div>
 
-          {import.meta.env.VITE_PRIVY_APP_ID ? (
+          {hasPrivyEmail ? (
             <PrivyEmailOtp
               email={email}
               onEmailChange={setEmail}
@@ -299,7 +301,7 @@ export function SignInDialog({
                       </form>
           )}
 
-          {import.meta.env.VITE_PRIVY_APP_ID ? (
+          {hasPrivyEmail ? (
             <details className="rounded-2xl border border-border/70 bg-muted/30 px-3.5 py-3">
               <summary className="cursor-pointer list-none text-center text-[11px] font-bold text-muted-foreground">
                 Existing Circle email wallet
@@ -352,10 +354,10 @@ export function SignInDialog({
 
           <p className="px-1 pt-1 text-center text-[11px] leading-4 text-muted-foreground">
             {mode === "signup"
-              ? import.meta.env.VITE_PRIVY_APP_ID
+              ? hasPrivyEmail
                 ? "No password. Privy verifies your email; Circle keeps the user-controlled Arc wallet and secure PIN recovery."
                 : "No password. Circle handles secure email or Google verification and wallet recovery."
-              : import.meta.env.VITE_PRIVY_APP_ID
+              : hasPrivyEmail
                 ? "Email uses a boxed Privy code flow. Circle remains the wallet provider."
                 : "Email verification is completed in Circle’s secure wallet window."}
           </p>
