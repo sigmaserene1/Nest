@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLoginWithEmail } from "@privy-io/react-auth";
 import { ArrowLeft, CheckCircle2, Loader2, MailCheck } from "lucide-react";
-import { useAccount } from "wagmi";
+import { useAccount, useDisconnect } from "wagmi";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { PRIVY_CONNECTOR_ID, selectPrivyLogin } from "@/lib/privy-wallet";
 
@@ -14,6 +14,7 @@ type Props = {
 export function PrivyEmailOtp({ email, onBack, onAuthenticated }: Props) {
   const { sendCode, loginWithCode } = useLoginWithEmail();
   const { connector, isConnected } = useAccount();
+  const { disconnectAsync } = useDisconnect();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"sending" | "verifying" | null>("sending");
   const [error, setError] = useState("");
@@ -51,6 +52,11 @@ export function PrivyEmailOtp({ email, onBack, onAuthenticated }: Props) {
     setError("");
     try {
       await loginWithCode({ code });
+      // Switching wallet providers is intentional and must never leave a
+      // previously connected Circle/external wallet active under a Privy login.
+      if (isConnected && connector?.id !== PRIVY_CONNECTOR_ID) {
+        await disconnectAsync();
+      }
       // Privy produces its own user-controlled wallet. Existing Circle
       // addresses and their assets remain with Circle's separate login.
       selectPrivyLogin();
