@@ -33,7 +33,7 @@ export default defineConfig({
         ...(process.env.VITE_ENABLE_PRIVY_OTP === "true" && process.env.VITE_PRIVY_APP_ID
           ? []
           : [{
-              find: /^@privy-io\\/react-auth$/,
+              find: /^@privy-io\/react-auth$/,
               replacement: fileURLToPath(new URL("./src/lib/privy-sdk-disabled.tsx", import.meta.url)),
             }]),
       ],
