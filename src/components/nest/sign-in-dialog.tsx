@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { useEmailAuth } from "@/lib/use-email-auth";
 import { clearSignupDraft, saveSignupDraft } from "@/lib/signup-draft";
+import { PrivyEmailOtp } from "@/components/nest/privy-email-otp";
 
 type Props = {
   open: boolean;
@@ -30,7 +31,7 @@ export function SignInDialog({
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [workspaceName, setWorkspaceName] = useState("");
-  const [busy, setBusy] = useState<"email" | "google" | null>(null);
+  const [busy, setBusy] = useState<"email" | "google" | "privy" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Warm Circle's relatively heavy browser SDK while the user is reading the
@@ -245,38 +246,79 @@ export function SignInDialog({
             <span className="h-px flex-1 bg-border" />
           </div>
 
-          <form onSubmit={submitEmail} className="space-y-2.5">
-            <label htmlFor="nest-email" className="sr-only">
-              Email address
-            </label>
-            <input
-              id="nest-email"
-              type="email"
-              autoComplete="email"
-              inputMode="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={busy !== null}
-              className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
+          {import.meta.env.VITE_PRIVY_APP_ID ? (
+            <PrivyEmailOtp
+              email={email}
+              onEmailChange={setEmail}
+              disabled={busy !== null && busy !== "privy"}
+              prepare={(normalized) => {
+                if (!validateSignup()) return false;
+                persistSignupDraft(normalized);
+                setError(null);
+                return true;
+              }}
+              onBusyChange={(isBusy) => setBusy(isBusy ? "privy" : null)}
+              onError={setError}
+              onAuthenticated={() => {
+                onAuthenticated();
+                reset(false);
+              }}
             />
-            <button
-              type="submit"
-              disabled={busy !== null}
-              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-bold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {busy === "email" ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Mail className="h-4 w-4" />
-              )}
-              {busy === "email"
-                ? "Opening secure verification…"
-                : mode === "signup"
-                  ? "Create account with email"
-                  : "Continue with email"}
-            </button>
-          </form>
+          ) : (
+                      <form onSubmit={submitEmail} className="space-y-2.5">
+                        <label htmlFor="nest-email" className="sr-only">
+                          Email address
+                        </label>
+                        <input
+                          id="nest-email"
+                          type="email"
+                          autoComplete="email"
+                          inputMode="email"
+                          placeholder="you@example.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          disabled={busy !== null}
+                          className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
+                        />
+                        <button
+                          type="submit"
+                          disabled={busy !== null}
+                          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-bold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {busy === "email" ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Mail className="h-4 w-4" />
+                          )}
+                          {busy === "email"
+                            ? "Opening secure verification…"
+                            : mode === "signup"
+                              ? "Create account with email"
+                              : "Continue with email"}
+                        </button>
+                      </form>
+          )}
+
+          {import.meta.env.VITE_PRIVY_APP_ID ? (
+            <details className="rounded-2xl border border-border/70 bg-muted/30 px-3.5 py-3">
+              <summary className="cursor-pointer list-none text-center text-[11px] font-bold text-muted-foreground">
+                Existing Circle email wallet
+              </summary>
+              <p className="mt-2 text-center text-[10px] leading-4 text-muted-foreground">
+                Use this only if your Nest wallet was created with the older Circle email verification flow.
+              </p>
+              <form onSubmit={submitEmail} className="mt-3 space-y-2.5">
+                <button
+                  type="submit"
+                  disabled={busy !== null}
+                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-xs font-bold transition hover:border-brand/35 disabled:opacity-60"
+                >
+                  {busy === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
+                  {busy === "email" ? "Opening Circle verification…" : "Continue with legacy Circle email"}
+                </button>
+              </form>
+            </details>
+          ) : null}
 
           {mode === "signin" ? (
             <>
@@ -310,8 +352,12 @@ export function SignInDialog({
 
           <p className="px-1 pt-1 text-center text-[11px] leading-4 text-muted-foreground">
             {mode === "signup"
-              ? "No password. Circle handles secure email or Google verification and wallet recovery."
-              : "Email verification is completed in Circle’s secure wallet window."}
+              ? import.meta.env.VITE_PRIVY_APP_ID
+                ? "No password. Privy verifies your email; Circle keeps the user-controlled Arc wallet and secure PIN recovery."
+                : "No password. Circle handles secure email or Google verification and wallet recovery."
+              : import.meta.env.VITE_PRIVY_APP_ID
+                ? "Email uses a boxed Privy code flow. Circle remains the wallet provider."
+                : "Email verification is completed in Circle’s secure wallet window."}
           </p>
 
           {error ? (
