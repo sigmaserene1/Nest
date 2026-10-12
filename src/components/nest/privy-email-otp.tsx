@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { OTPInput } from "input-otp";
 import { useLoginWithEmail, useToken, useLogout } from "@privy-io/react-auth";
 
@@ -28,6 +28,8 @@ export function PrivyEmailOtp({
   const [step, setStep] = useState<"email" | "code">("email");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"send" | "verify" | "resend" | null>(null);
+  const [verified, setVerified] = useState(false);
+  const verifyingRef = useRef(false);
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
 
@@ -44,6 +46,7 @@ export function PrivyEmailOtp({
     try {
       await sendCode({ email: normalizedEmail, disableSignup: false });
       setCode("");
+      setVerified(false);
       setStep("code");
     } catch (error) {
       onError(error instanceof Error ? error.message : "Could not send the verification code.");
@@ -53,29 +56,45 @@ export function PrivyEmailOtp({
     }
   };
 
-  const verify = async () => {
-    if (code.length !== 6) return;
+  const verify = async (completedCode = code) => {
+    const candidate = completedCode.replace(/\D/g, "").slice(0, 6);
+    if (candidate.length !== 6 || verifyingRef.current || verified) return;
+
+    verifyingRef.current = true;
+    setCode(candidate);
     setBusy("verify");
     onBusyChange(true);
     onError(null);
+
     try {
-      await loginWithCode({ code });
+      // Use the completed value directly. Waiting for React state here can
+      // race the sixth OTP digit and leave the user stuck on the code screen.
+      await loginWithCode({ code: candidate });
       const accessToken = await getAccessToken();
       if (!accessToken) throw new Error("Privy did not return a verified session.");
 
       const { loginCircleWalletFromPrivy } = await import("@/lib/circle-sdk");
       await loginCircleWalletFromPrivy(accessToken, normalizedEmail);
 
-      // Privy is Nest's OTP/authentication broker here; Circle remains the
-      // wallet session. Clear the temporary Privy browser session afterwards.
+      // Privy is only the OTP broker; Circle remains the wallet session.
       await logout().catch(() => undefined);
+
+      setBusy(null);
+      setVerified(true);
+      onBusyChange(false);
+
+      // Let the user see the successful verification state briefly, then move
+      // into Nest automatically without requiring another tap.
+      await new Promise((resolve) => window.setTimeout(resolve, 450));
       onAuthenticated();
     } catch (error) {
+      setVerified(false);
       onError(error instanceof Error ? error.message : "That code could not be verified.");
       setCode("");
-    } finally {
       setBusy(null);
       onBusyChange(false);
+    } finally {
+      verifyingRef.current = false;
     }
   };
 
@@ -87,6 +106,8 @@ export function PrivyEmailOtp({
           onClick={() => {
             setStep("email");
             setCode("");
+            setVerified(false);
+            verifyingRef.current = false;
             onError(null);
           }}
           disabled={!!busy}
@@ -111,7 +132,10 @@ export function PrivyEmailOtp({
         <OTPInput
           maxLength={6}
           value={code}
-          onChange={setCode}
+          onChange={(value) => {
+            setVerified(false);
+            setCode(value.replace(/\D/g, "").slice(0, 6));
+          }}
           disabled={!!busy || disabled}
           inputMode="numeric"
           containerClassName="mt-5 flex justify-between gap-2"
@@ -122,11 +146,13 @@ export function PrivyEmailOtp({
                   key={index}
                   className={
                     "grid h-13 min-w-0 flex-1 place-items-center rounded-2xl border bg-card text-xl font-bold tabular-nums transition-all " +
-                    (slot.isActive
-                      ? "border-brand ring-4 ring-brand/10"
-                      : slot.char
-                        ? "border-foreground/20"
-                        : "border-border")
+                    (verified
+                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 ring-2 ring-emerald-500/10"
+                      : slot.isActive
+                        ? "border-brand ring-4 ring-brand/10"
+                        : slot.char
+                          ? "border-foreground/20"
+                          : "border-border")
                   }
                 >
                   {slot.char ?? ""}
@@ -137,17 +163,21 @@ export function PrivyEmailOtp({
               ))}
             </>
           )}
-          onComplete={() => void verify()}
+          onComplete={(value) => void verify(value)}
         />
 
         <button
           type="button"
-          onClick={() => void verify()}
+          onClick={() => void verify(code)}
           disabled={code.length !== 6 || !!busy || disabled}
           className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-4 text-sm font-bold text-background transition active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
         >
-          {busy === "verify" ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-          {busy === "verify" ? "Verifying…" : "Verify & continue"}
+          {verified ? (
+            <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+          ) : busy === "verify" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : null}
+          {verified ? "Verified · opening Nest…" : busy === "verify" ? "Verifying…" : "Verify & continue"}
         </button>
 
         <button
