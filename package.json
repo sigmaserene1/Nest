@@ -25,6 +25,8 @@
     "@circle-fin/app-kit": "^1.16.0",
     "@circle-fin/w3s-pw-web-sdk": "^1.1.11",
     "@hookform/resolvers": "^5.2.2",
+    "@privy-io/node": "0.35.0",
+    "@privy-io/react-auth": "3.48.1",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-aspect-ratio": "^1.1.8",
