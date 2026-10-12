@@ -8,6 +8,7 @@
         "@ai-sdk/openai": "^4.0.72",
         "@circle-fin/adapter-viem-v2": "^1.19.0",
         "@circle-fin/app-kit": "^1.16.0",
+        "@circle-fin/user-controlled-wallets": "10.8.0",
         "@circle-fin/w3s-pw-web-sdk": "^1.1.11",
         "@hookform/resolvers": "^5.2.2",
         "@privy-io/node": "0.35.0",
@@ -184,6 +185,8 @@
     "@circle-fin/swap-kit": ["@circle-fin/swap-kit@1.7.1", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@circle-fin/swap-kit/-/swap-kit-1.7.1.tgz", { "dependencies": { "@circle-fin/provider-stablecoin-service-swap": "^1.6.1", "@coral-xyz/anchor": "^0.31.1", "@ethersproject/abi": "^5.8.0", "@ethersproject/address": "^5.8.0", "@ethersproject/bytes": "^5.8.0", "@ethersproject/units": "^5.8.0", "@noble/curves": "1.4.2", "@solana/web3.js": "^1.98.4", "abitype": "^1.1.0", "bn.js": "^5.2.3", "bs58": "6.0.0", "zod": "3.25.67" } }, "sha512-9FJQancKFXuPDrGjyutkh5wpMCVfYlj6EU+tw8l1+3Kv/woHARJM0JkRU+zkH6PEO375ec6CjjztV2nTEJDK0A=="],
 
     "@circle-fin/unified-balance-kit": ["@circle-fin/unified-balance-kit@1.8.0", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@circle-fin/unified-balance-kit/-/unified-balance-kit-1.8.0.tgz", { "dependencies": { "@circle-fin/provider-cctp-v2": "1.14.1", "@circle-fin/provider-fee-v1": "0.3.2", "@circle-fin/provider-gateway-v1": "1.5.1", "@coral-xyz/anchor": "^0.31.1", "@ethersproject/abi": "^5.8.0", "@ethersproject/address": "^5.8.0", "@ethersproject/bytes": "^5.8.0", "@ethersproject/units": "^5.8.0", "@noble/curves": "1.4.2", "@solana/web3.js": "^1.98.4", "abitype": "^1.1.0", "bn.js": "^5.2.3", "bs58": "6.0.0", "uuid": "^14.0.1", "zod": "3.25.67" } }, "sha512-R66r7l9IcMIh2LbQb/qEtW9fzQcMgk5PiiXkbXbfUvy/XMWWAnZAPMMyvAHxlQI8eStdqBoft8GPc3e9klvJJw=="],
+
+    "@circle-fin/user-controlled-wallets": ["@circle-fin/user-controlled-wallets@10.8.0", "", { "dependencies": { "axios": "^1.15.0" } }, "sha512-V4cD6/D5JUvpTCSSCMZ3F9W/alXHDpihgvuHKXF/2qzpE6+ZJPW8HFuA94ijM65nJKhCtsORdfnZmmV3efJCGQ=="],
 
     "@circle-fin/w3s-pw-web-sdk": ["@circle-fin/w3s-pw-web-sdk@1.1.11", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@circle-fin/w3s-pw-web-sdk/-/w3s-pw-web-sdk-1.1.11.tgz", { "dependencies": { "dotenv": "^16.3.1", "firebase": "^10.12.1", "jsonwebtoken": "^9.0.2", "uuid": "^9.0.1" } }, "sha512-EPiIE+Os+atMHUUIodPQz6CSunSAQsClvqxBpxXNPW1CsvdNE5rnyhWDkiik8z53zgiXLtksYo0sek241edO2A=="],
 
