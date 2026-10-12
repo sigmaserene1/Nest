@@ -12,6 +12,7 @@ import { USDC_ADDRESS, USDC_DECIMALS, openExplorerTx } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { recordReceipt } from "@/lib/receipts-store";
 import type { ActionMode } from "./action-modal-types";
+import { ViewportPortal } from "./viewport-portal";
 
 export type { ActionMode };
 
@@ -310,6 +311,7 @@ export function ActionModal({
   const stageIsBusy = stage === "confirming" || stage === "pending";
 
   return (
+    <ViewportPortal>
           <div
 
 
@@ -667,7 +669,8 @@ export function ActionModal({
           )}
         </div>
       </div>
-      );
+    </ViewportPortal>
+  );
 }
 
 /**

@@ -8,6 +8,7 @@ import { ExpenseDetail } from "@/components/nest/expense-detail";
 import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
 import { useExpenses } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
+import { ViewportPortal } from "@/components/nest/viewport-portal";
 import { Loader2, Search, Plus, X } from "lucide-react";
 
 export const Route = createFileRoute("/app/expenses")({
@@ -169,7 +170,7 @@ function Expenses() {
       </div>
 
               {modal && (
-          <div
+          <ViewportPortal><div
 
 
 
@@ -214,7 +215,7 @@ function Expenses() {
               )}
               {modal.mode === "detail" && <ExpenseDetail expense={modal.expense} onClose={close} />}
             </div>
-          </div>
+          </div></ViewportPortal>
         )}
           </AppShell>
   );

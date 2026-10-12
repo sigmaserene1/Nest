@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ViewportPortal } from "@/components/nest/viewport-portal";
 import { Check, Loader2, ShieldCheck, Sparkles, X } from "lucide-react";
 import { useAccount } from "wagmi";
 import { ProfileAvatarGraphic } from "@/components/nest/avatar";
@@ -80,7 +81,8 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
           <div className="mt-4 grid grid-cols-5 gap-2.5">
             {PROFILE_AVATARS.map((option) => {
               const selected = avatar === option.id;
-              return (
+  return (
+    <ViewportPortal>
                 <button
                   key={option.id}
                   type="button"
@@ -135,6 +137,7 @@ function NameForm({ onDone, dismissible }: { onDone: () => void; dismissible: bo
         </button>
       </div>
     </div>
+    </ViewportPortal>
   );
 }
 
