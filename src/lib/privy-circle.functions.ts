@@ -2,11 +2,15 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { PrivyClient } from "@privy-io/node";
 import { initiateUserControlledWalletsClient } from "@circle-fin/user-controlled-wallets";
+import { NEST_PRIVY_APP_ID } from "@/lib/privy-config";
 
 const accessTokenSchema = z.string().min(20).max(10000);
 
 function getPrivyClient() {
-  const appId = process.env["PRIVY_APP_ID"] ?? process.env["VITE_PRIVY_APP_ID"] ?? "";
+  const appId =
+    process.env["PRIVY_APP_ID"] ??
+    process.env["VITE_PRIVY_APP_ID"] ??
+    NEST_PRIVY_APP_ID;
   const appSecret = process.env["PRIVY_APP_SECRET"] ?? "";
   if (!appId || !appSecret) {
     throw new Error("Privy email login is not configured on the server.");
