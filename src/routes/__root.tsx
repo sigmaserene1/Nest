@@ -16,6 +16,7 @@ import rainbowKitCss from "@rainbow-me/rainbowkit/styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { Web3Provider } from "../components/web3-provider";
 import { Toaster } from "../components/ui/sonner";
+import { privyAppId } from "@/lib/privy-config";
 
 function NotFoundComponent() {
   return (
@@ -161,13 +162,12 @@ function RootComponent() {
     </Web3Provider>
   );
 
-  const privyAppId = import.meta.env.VITE_PRIVY_APP_ID as string | undefined;
+  const configuredPrivyAppId = privyAppId();
 
   return (
     <QueryClientProvider client={queryClient}>
-      {privyAppId ? (
-        <PrivyProvider
-          appId={privyAppId}
+      <PrivyProvider
+          appId={configuredPrivyAppId}
           config={{
             loginMethods: ["email"],
             appearance: {
@@ -179,9 +179,6 @@ function RootComponent() {
         >
           {app}
         </PrivyProvider>
-      ) : (
-        app
-      )}
     </QueryClientProvider>
   );
 }
