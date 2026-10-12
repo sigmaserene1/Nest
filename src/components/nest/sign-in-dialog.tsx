@@ -41,12 +41,12 @@ export function SignInDialog({
   const [otpEmail, setOtpEmail] = useState<string | null>(null);
   const usePrivyFlow = privyEnabled && emailProvider === "privy";
 
-  // Warm Circle's relatively heavy browser SDK while the user is reading the
-  // sign-in sheet, not after they tap Continue.
+  // Warm the Circle SDK only when the person chooses a Circle wallet.
+  // New Privy users should not pay the download cost of both wallet SDKs.
   useEffect(() => {
-    if (!open) return;
+    if (!open || usePrivyFlow) return;
     void import("@/lib/circle-sdk");
-  }, [open]);
+  }, [open, usePrivyFlow]);
 
   const reset = (o: boolean) => {
     if (!o) {
