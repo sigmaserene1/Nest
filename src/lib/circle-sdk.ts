@@ -12,6 +12,7 @@ import {
   circleSign,
   circleLatestTxHash,
 } from "@/lib/circle-wallet.functions";
+import { circleSessionFromPrivy } from "@/lib/privy-circle.functions";
 
 /** Browser-only Circle wallet session helpers. */
 const SESSION_KEY = "nest.circle.session";
@@ -684,6 +685,48 @@ async function finishLogin(login: { userToken: string; encryptionKey: string }, 
   // the first frame while Arc/explorer refreshes silently in the background.
   void primeCachedAccountAfterLogin(session);
 
+  return session;
+}
+
+/** Complete a Privy email login while keeping Circle as the wallet provider. */
+export async function loginCircleWalletFromPrivy(
+  accessToken: string,
+  email: string,
+): Promise<CircleSession> {
+  const auth = await circleSessionFromPrivy({ data: { accessToken } });
+  const s = await sdk();
+
+  if (auth.challengeId) {
+    // First Privy login for this Circle identity: Circle still owns the secure
+    // wallet PIN/recovery ceremony. Nest only customizes the surrounding copy.
+    await runChallenge(
+      s,
+      { userToken: auth.userToken, encryptionKey: auth.encryptionKey },
+      auth.challengeId,
+    );
+  }
+
+  let wallet = null;
+  for (let i = 0; i < 12 && !wallet; i++) {
+    wallet = await circleWallet({ data: { userToken: auth.userToken } });
+    if (!wallet) await new Promise((resolve) => setTimeout(resolve, 1250));
+  }
+  if (!wallet) {
+    throw new Error("Your Circle wallet is still being created. Try again in a moment.");
+  }
+
+  const session: CircleSession = {
+    userToken: auth.userToken,
+    encryptionKey: auth.encryptionKey,
+    walletId: wallet.walletId,
+    address: wallet.address as `0x${string}`,
+    email,
+    createdAt: Date.now(),
+  };
+
+  window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  window.dispatchEvent(new Event("nest-circle-session"));
+  void primeCachedAccountAfterLogin(session);
   return session;
 }
 
