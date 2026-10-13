@@ -9,7 +9,10 @@ import {
 } from "@/components/ui/dialog";
 import { useEmailAuth } from "@/lib/use-email-auth";
 import { clearSignupDraft, saveSignupDraft } from "@/lib/signup-draft";
-import { PrivyEmailOtp } from "@/components/nest/privy-email-otp";
+import { lazy } from "react";
+const PrivyEmailOtp = lazy(() =>
+  import("@/components/nest/privy-email-otp").then((m) => ({ default: m.PrivyEmailOtp })),
+);
 import { privyAppId } from "@/lib/privy-config";
 
 type Props = {
