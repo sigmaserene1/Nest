@@ -24,7 +24,7 @@ The original household expense experience remains supported. Treasury V3 adds a 
 - Provision new Circle email/social wallets as Arc Testnet SCAs for Circle Gas Station sponsorship when a matching policy is enabled in Circle Console. Existing legacy EOA wallets are preserved.
 - Retain transaction-linked receipts and inspect activity on the Arc Testnet explorer.
 
-Nest does not claim a global minimum-transfer algorithm, autonomous custody, an independent security audit, or a production SDK. Circle Gateway/Unified Balance support is testnet-only in the current build, and Gas Station sponsorship depends on a matching policy being enabled in Circle Console.
+Nest does not claim a global minimum-transfer algorithm, autonomous custody, an independent security audit, or a production SDK. Gas Station sponsorship depends on a matching policy being enabled in Circle Console.
 
 ## Live Arc Testnet contracts
 
@@ -92,7 +92,7 @@ All balances and transactions shown by the current deployment use testnet assets
 | UI                   | Tailwind CSS 4, Radix UI, Lucide          |
 | Wallets              | Wagmi, Viem, RainbowKit                   |
 | Contracts            | Solidity 0.8.24 / solc 0.8.28            |
-| Circle               | User-Controlled Wallets, App Kit, CCTP-preferred routing, Unified Balance (testnet) |
+| Circle               | User-Controlled Wallets, App Kit and CCTP-preferred routing |
 | Build/runtime        | Vite, Nitro, Cloudflare module output     |
 
 ## Product architecture
@@ -103,7 +103,7 @@ Nest separates its core financial responsibilities across dedicated onchain comp
 - **NestTreasuryV3** manages pooled USDC, approval-controlled payments, recurring payouts, milestone escrow and delegated spending policies.
 - **NestBridgeRegistry** records completed Arc-involved bridge receipts while the underlying source and destination chain transactions remain the execution truth.
 - **Circle User-Controlled Wallets** provide email OTP and Google-based wallet access, with SCA initialization for new users.
-- **Circle App Kit, Unified Balance and CCTP-preferred routing** support swap, funding and cross-chain USDC flows where available.
+- **Circle App Kit and CCTP-preferred routing** support swap and cross-chain USDC flows where available.
 - **LI.FI** provides broader bridge routing with Circle-native paths preferred when supported.
 
 This separation keeps legacy shared-expense state intact while allowing treasury and cross-chain capabilities to evolve independently.
