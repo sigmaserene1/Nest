@@ -10,3 +10,4 @@
 <!-- LOVABLE:END -->
 
 - Page-entrance wrappers must not animate transforms or retain animation stacking contexts; nested fixed payment and expense overlays must stay viewport-anchored above navigation.
+- Build scripts set NODE_OPTIONS max-old-space-size and Privy loads browser-only (lazy) — the wallet/auth SDKs otherwise exhaust memory in the server build.
