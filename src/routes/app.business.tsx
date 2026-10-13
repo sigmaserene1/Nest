@@ -8,9 +8,7 @@ import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { NEST_BUSINESS_V2_ABI } from "@/contracts/nest-business-v2-artifact";
 import { ERC20_ABI, USDC_ADDRESS, wagmiConfig } from "@/lib/wagmi";
-import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { spendUnifiedUsdcToArc } from "@/lib/circle-unified";
 
 export const Route = createFileRoute("/app/business")({
   component: BusinessPage,
@@ -197,41 +195,9 @@ function BusinessPage() {
         if (currentBalance < units) {
           const shortfallUnits = units - currentBalance;
           const shortfall = formatUnits(shortfallUnits, 6);
-
-          if (arcWallet.environment === "mainnet") {
-            throw new Error(
-              `Insufficient USDC on Arc Mainnet. Add ${shortfall} USDC to this wallet before continuing.`,
-            );
-          }
-
-          setBusy(`Funding ${shortfall} USDC to Arc…`);
-          await spendUnifiedUsdcToArc(shortfall, account);
-
-          setBusy("Waiting for USDC on Arc…");
-          const deadline = Date.now() + 3 * 60 * 1000;
-          let funded = false;
-
-          while (Date.now() < deadline) {
-            const updatedBalance = (await publicClient.readContract({
-              address: USDC_ADDRESS,
-              abi: ERC20_ABI,
-              functionName: "balanceOf",
-              args: [account],
-            })) as bigint;
-
-            if (updatedBalance >= units) {
-              funded = true;
-              break;
-            }
-
-            await new Promise((resolve) => setTimeout(resolve, 2_000));
-          }
-
-          if (!funded) {
-            throw new Error(
-              `Circle submitted the funding transfer, but the Arc balance has not updated yet. Retry ${labels[action]} once the USDC arrives.`,
-            );
-          }
+          throw new Error(
+            `Insufficient USDC on ${arcChain.name}. Bridge or add ${shortfall} USDC to this wallet before continuing.`,
+          );
         }
 
         if (!arcWallet.isOnArc) {
@@ -403,10 +369,10 @@ function BusinessPage() {
                   >
                     <ArrowDownToLine className="h-3.5 w-3.5" />
                     {actionShortfall > 0
-                      ? `Manual CCTP fallback · ${actionShortfall.toFixed(2)} USDC`
+                      ? `Bridge shortfall · ${actionShortfall.toFixed(2)} USDC`
                       : action === "repay"
-                        ? "Fund Arc repayment via CCTP"
-                        : "Fund Arc collateral via CCTP"}
+                        ? "Bridge USDC for repayment"
+                        : "Bridge USDC for collateral"}
                   </Link>
                 )}
               </div>
@@ -427,19 +393,7 @@ function BusinessPage() {
           <Stat label="Debt" value={position.debt} />
         </div>
 
-        <UnifiedBalancePanel
-          compact
-          defaultSpendAmount={actionShortfall > 0 ? actionShortfall : undefined}
-          contextLabel={
-            actionShortfall > 0
-              ? action === "repay"
-                ? `Your Arc wallet is short ${actionShortfall.toFixed(2)} USDC for this repayment. Fund only the shortfall with Gateway.`
-                : `Your Arc wallet is short ${actionShortfall.toFixed(2)} USDC for this collateral supply. Fund only the shortfall with Gateway.`
-              : action === "repay"
-                ? "Keep confirmed Gateway USDC ready for Arc credit repayments."
-                : "Keep confirmed Gateway USDC ready for future Arc collateral funding."
-          }
-        />
+
 
         <Card>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -475,9 +429,9 @@ function BusinessPage() {
                 (actionShortfall > 0 && arcWallet.environment === "mainnet"
                   ? `Need ${actionShortfall.toFixed(2)} USDC on Mainnet`
                   : action === "supply" && actionShortfall > 0
-                    ? `Fund & supply · ${requestedAmount.toFixed(2)} USDC`
+                    ? `Supply · ${requestedAmount.toFixed(2)} USDC`
                     : action === "repay" && actionShortfall > 0
-                      ? `Fund & repay · ${requestedAmount.toFixed(2)} USDC`
+                      ? `Repay · ${requestedAmount.toFixed(2)} USDC`
                       : labels[action])}
             </button>
           </div>
