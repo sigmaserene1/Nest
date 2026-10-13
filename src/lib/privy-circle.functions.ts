@@ -75,7 +75,7 @@ export const circleSessionFromPrivy = createServerFn({ method: "POST" })
       );
     }
 
-    const userId = await circleUserIdForPrivy(verified.userId);
+    const userId = await circleUserIdForPrivy(verified.user_id);
     const circle = getCircleClient();
 
     try {
