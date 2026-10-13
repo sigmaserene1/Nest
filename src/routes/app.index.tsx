@@ -6,8 +6,6 @@ import { EmptyState } from "@/components/nest/feedback";
 import { ActionModal, useActionModal, type ActionMode } from "@/components/nest/action-modal";
 import { ArcBadge, UsdcBadge, UsdcMark, WalletChip, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
-
 import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
 import {
   useExpenses,
@@ -202,17 +200,6 @@ function Dashboard() {
               : "Fund Arc from another chain"}
           </Link>
         </div>
-      </section>
-
-      <section className="mt-5">
-        <UnifiedBalancePanel
-          defaultSpendAmount={settlementShortfall > 0 ? settlementShortfall : undefined}
-          contextLabel={
-            settlementShortfall > 0
-              ? `Your Arc wallet is short ${fmtUSD(settlementShortfall)} for current settlements. Use confirmed Gateway USDC or deposit more from Base/Avalanche.`
-              : "Keep USDC available across supported chains and deliver it to Arc when Nest needs it."
-          }
-        />
       </section>
 
       {/* Quick actions — compact five-up strip on phones */}
