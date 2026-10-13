@@ -89,9 +89,17 @@ export function PrivyEmailOtp({
       await new Promise((resolve) => window.setTimeout(resolve, 450));
       onAuthenticated();
     } catch (error) {
+      // Clear any half-finished Privy session so the next attempt starts clean.
+      await logout().catch(() => undefined);
       setVerified(false);
-      onError(error instanceof Error ? error.message : "That code could not be verified.");
+      const message = error instanceof Error ? error.message : "That code could not be verified.";
+      onError(
+        /not configured/i.test(message)
+          ? "Email sign-in isn't fully set up yet. Please try again shortly."
+          : message,
+      );
       setCode("");
+      setStep("email");
       setBusy(null);
       onBusyChange(false);
     } finally {
