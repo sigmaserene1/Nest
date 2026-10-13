@@ -1,7 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { formatUnits } from "viem";
-import { toast } from "sonner";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { UsdcBadge, WalletChip } from "@/components/nest/chain";
@@ -9,9 +7,7 @@ import { getMember, fmtUSD, type Debt } from "@/lib/nest-data";
 import { useComputedBalances, useMe } from "@/lib/chain/nest-chain";
 import { ActionModal } from "@/components/nest/action-modal";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { UnifiedBalancePanel } from "@/components/nest/unified-balance-panel";
-import { spendUnifiedUsdcToArc } from "@/lib/circle-unified";
-import { Shield, Zap, ArrowRight, ArrowDownToLine, Loader2 } from "lucide-react";
+import { Shield, Zap, ArrowRight, ArrowDownToLine } from "lucide-react";
 
 export const Route = createFileRoute("/app/settle")({
   component: Settle,
@@ -35,7 +31,6 @@ function Settle() {
   const [active, setActive] = useState<Debt | null>(null);
   const [queue, setQueue] = useState(false);
   const [freeSend, setFreeSend] = useState(false);
-  const [fundingStep, setFundingStep] = useState<string | null>(null);
 
   const startSettlement = () => {
     if (mine.length === 0) {
@@ -47,63 +42,9 @@ function Settle() {
     setActive(mine[0]);
   };
 
-  const fundAndSettle = async () => {
-    if (shortfall <= 0) {
-      startSettlement();
-      return;
-    }
-
-    if (!wallet.address) {
-      toast.error("Connect your wallet first.");
-      return;
-    }
-
-    if (wallet.environment === "mainnet") {
-      toast.error("Add USDC to your Arc Mainnet wallet before settling. Gateway auto-funding is still testnet-only.");
-      return;
-    }
-
-    try {
-      setFundingStep(`Moving ${fmtUSD(shortfall)} to Arc…`);
-      await spendUnifiedUsdcToArc(shortfall.toFixed(6), wallet.address);
-
-      setFundingStep("Waiting for USDC on Arc…");
-      const deadline = Date.now() + 3 * 60 * 1000;
-      let funded = false;
-
-      while (Date.now() < deadline) {
-        const result = await wallet.refetchBalance();
-        const rawBalance = result.data;
-        const arcBalance =
-          typeof rawBalance === "bigint" ? Number(formatUnits(rawBalance, 6)) : 0;
-
-        if (arcBalance + 0.000001 >= total) {
-          funded = true;
-          break;
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 2_000));
-      }
-
-      if (!funded) {
-        throw new Error(
-          "Circle submitted the funding transfer, but the Arc balance has not updated yet. Refresh and settle once the USDC arrives.",
-        );
-      }
-
-      setFundingStep("Switching to Arc…");
-      if (!wallet.isOnArc) {
-        await wallet.switchToArcAsync();
-      }
-
-      await wallet.refetchBalance();
-      toast.success("Arc funded. Continue with settlement.");
-      setFundingStep(null);
-      startSettlement();
-    } catch (error) {
-      setFundingStep(null);
-      toast.error(error instanceof Error ? error.message : "Fund & Settle failed.");
-    }
+  const settle = () => {
+    if (shortfall > 0) return;
+    startSettlement();
   };
 
   return (
@@ -142,28 +83,21 @@ function Settle() {
                 <span>
                   Need {fmtUSD(shortfall)} more USDC on Arc
                   <span className="mt-0.5 block font-medium text-background/60">
-                    Manual CCTP fallback for the exact shortfall
+                    Bridge the exact shortfall before settling
                   </span>
                 </span>
                 <ArrowDownToLine className="h-4 w-4" />
               </Link>
             )}
             <button
-              onClick={fundAndSettle}
-              disabled={!!fundingStep}
+              onClick={settle}
+              disabled={shortfall > 0}
               className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-60"
             >
-              {fundingStep ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {fundingStep}
-                </>
-              ) : mine.length === 0 ? (
+              {mine.length === 0 ? (
                 "Send USDC to a roommate"
               ) : shortfall > 0 ? (
-                wallet.environment === "mainnet"
-                  ? `Need ${fmtUSD(shortfall)} more on Mainnet`
-                  : `Fund & settle · ${fmtUSD(total)}`
+                `Bridge ${fmtUSD(shortfall)} USDC first`
               ) : mine.length > 1 ? (
                 `Settle all onchain · ${fmtUSD(total)}`
               ) : (
@@ -172,13 +106,6 @@ function Settle() {
             </button>
           </Card>
 
-          {wallet.isConnected && shortfall > 0 && (
-            <UnifiedBalancePanel
-              compact
-              defaultSpendAmount={shortfall}
-              contextLabel={`Use your confirmed Gateway balance to cover the ${fmtUSD(shortfall)} Arc settlement shortfall, or deposit more USDC first.`}
-            />
-          )}
 
           <Card>
             <h2 className="text-sm font-bold">Breakdown</h2>
