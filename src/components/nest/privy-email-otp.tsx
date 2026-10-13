@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { OTPInput } from "input-otp";
 import { useLoginWithEmail, useToken, useLogout } from "@privy-io/react-auth";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   email: string;
@@ -100,8 +101,10 @@ export function PrivyEmailOtp({
 
   if (step === "code") {
     return (
-      <div className="rounded-[24px] border border-border bg-background/70 p-4 sm:p-5">
-        <button
+      <section aria-label="Email verification" className="space-y-5 border-t border-border pt-5">
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
           onClick={() => {
             setStep("email");
@@ -110,54 +113,59 @@ export function PrivyEmailOtp({
             verifyingRef.current = false;
             onError(null);
           }}
-          disabled={!!busy}
-          className="mb-4 inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground transition hover:text-foreground disabled:opacity-50"
+          disabled={!!busy || verified}
+          className="h-8 rounded-md px-0 text-xs text-muted-foreground hover:bg-transparent hover:text-foreground"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
           Change email
-        </button>
+        </Button>
 
         <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-brand/10 text-brand">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
             <ShieldCheck className="h-4.5 w-4.5" />
           </span>
           <div className="min-w-0">
-            <div className="text-sm font-bold">Check your email</div>
+            <h3 className="font-display text-lg font-semibold">Verify your email</h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Enter the 6-digit code sent to <span className="font-semibold text-foreground">{normalizedEmail}</span>.
+              Code sent to <span className="break-all font-semibold text-foreground">{normalizedEmail}</span>
             </p>
           </div>
         </div>
 
         <OTPInput
           maxLength={6}
+          aria-label="6-digit email verification code"
+          autoComplete="one-time-code"
+          autoFocus
+          pattern="[0-9]*"
           value={code}
           onChange={(value) => {
             setVerified(false);
             setCode(value.replace(/\D/g, "").slice(0, 6));
           }}
-          disabled={!!busy || disabled}
+          disabled={!!busy || disabled || verified}
           inputMode="numeric"
-          containerClassName="mt-5 flex justify-between gap-2"
+          containerClassName="grid w-full grid-cols-6 gap-1.5 sm:gap-2"
           render={({ slots }) => (
             <>
               {slots.map((slot, index) => (
                 <div
                   key={index}
+                  aria-hidden="true"
                   className={
-                    "grid h-13 min-w-0 flex-1 place-items-center rounded-2xl border bg-card text-xl font-bold tabular-nums transition-all " +
+                    "relative grid aspect-square min-w-0 place-items-center rounded-[4px] border-2 bg-background font-display text-xl font-semibold tabular-nums transition-[border-color,background-color,box-shadow] motion-reduce:transition-none " +
                     (verified
-                      ? "border-emerald-500 bg-emerald-500/10 text-emerald-700 ring-2 ring-emerald-500/10"
+                      ? "border-success bg-success/10 text-success"
                       : slot.isActive
-                        ? "border-brand ring-4 ring-brand/10"
+                        ? "border-brand bg-brand/5 ring-2 ring-brand/15"
                         : slot.char
-                          ? "border-foreground/20"
+                          ? "border-foreground/30 text-foreground"
                           : "border-border")
                   }
                 >
                   {slot.char ?? ""}
                   {slot.hasFakeCaret ? (
-                    <span className="h-5 w-px animate-pulse bg-brand" />
+                    <span className="absolute h-5 w-px animate-pulse bg-brand motion-reduce:animate-none" />
                   ) : null}
                 </div>
               ))}
@@ -166,30 +174,40 @@ export function PrivyEmailOtp({
           onComplete={(value) => void verify(value)}
         />
 
-        <button
+        <Button
+          size="lg"
           type="button"
           onClick={() => void verify(code)}
-          disabled={code.length !== 6 || !!busy || disabled}
-          className="mt-4 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-4 text-sm font-bold text-background transition active:scale-[0.985] disabled:cursor-not-allowed disabled:opacity-45"
+          disabled={code.length !== 6 || !!busy || disabled || verified}
+          className="w-full rounded-lg bg-brand text-brand-foreground shadow-none hover:bg-brand/90"
         >
           {verified ? (
-            <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+            <CheckCircle2 className="h-4 w-4" />
           ) : busy === "verify" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : null}
           {verified ? "Verified · opening Nest…" : busy === "verify" ? "Verifying…" : "Verify & continue"}
-        </button>
+        </Button>
 
-        <button
+        <div className="flex flex-wrap items-center justify-center gap-x-1 text-xs">
+          <span className="text-muted-foreground">Didn’t get a code?</span>
+        <Button
+          variant="link"
+          size="sm"
           type="button"
           onClick={() => void send(true)}
-          disabled={!!busy || disabled}
-          className="mt-2 inline-flex min-h-10 w-full items-center justify-center gap-1.5 rounded-xl text-xs font-bold text-brand transition hover:bg-brand/5 disabled:opacity-50"
+          disabled={!!busy || disabled || verified}
+          className="h-9 px-1 text-brand"
         >
           {busy === "resend" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-          Send another code
-        </button>
-      </div>
+          {busy === "resend" ? "Sending…" : "Resend code"}
+        </Button>
+        </div>
+        <p role="status" aria-live="polite" className="flex min-h-5 items-center justify-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+          {verified ? "Email verified. Opening Nest…" : busy === "verify" ? "Verifying your code…" : "Secure, password-free sign in"}
+        </p>
+      </section>
     );
   }
 
@@ -213,16 +231,17 @@ export function PrivyEmailOtp({
         value={email}
         onChange={(event) => onEmailChange(event.target.value)}
         disabled={!!busy || disabled}
-        className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
+        className="min-h-12 w-full rounded-lg border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
       />
-      <button
+      <Button
+        size="lg"
         type="submit"
         disabled={!!busy || disabled}
-        className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-bold text-background transition active:scale-[0.985] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-brand text-brand-foreground shadow-none hover:bg-brand/90"
       >
         {busy === "send" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
         {busy === "send" ? "Sending code…" : "Continue with email"}
-      </button>
+      </Button>
     </form>
   );
 }
