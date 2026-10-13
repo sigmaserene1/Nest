@@ -33,6 +33,24 @@ function alreadyExists(error: unknown) {
   );
 }
 
+async function circleUserIdForPrivy(privyUserId: string) {
+  const normalized = privyUserId.trim();
+  if (!normalized) {
+    throw new Error("Privy returned an invalid authenticated user.");
+  }
+
+  // Circle accepts an application-owned user ID. Use a stable, compact,
+  // alphanumeric identifier derived from Privy's verified DID rather than
+  // passing provider punctuation or an undefined field through to Circle.
+  const bytes = new TextEncoder().encode(normalized);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  const hex = Array.from(new Uint8Array(digest), (value) =>
+    value.toString(16).padStart(2, "0"),
+  ).join("");
+
+  return `nestprivy${hex.slice(0, 32)}`;
+}
+
 /**
  * Verifies the Privy access token server-side, then creates/restores the
  * Circle user-controlled wallet identity mapped to that Privy user.
@@ -45,8 +63,19 @@ export const circleSessionFromPrivy = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const privy = getPrivyClient();
-    const verified = await privy.utils().auth().verifyAccessToken(data.accessToken);
-    const userId = `privy:${verified.user_id}`;
+
+    let verified: Awaited<
+      ReturnType<ReturnType<ReturnType<typeof privy.utils>["auth"]>["verifyAccessToken"]>
+    >;
+    try {
+      verified = await privy.utils().auth().verifyAccessToken(data.accessToken);
+    } catch {
+      throw new Error(
+        "Privy session verification failed. Check that the server Privy secret belongs to this Privy app.",
+      );
+    }
+
+    const userId = await circleUserIdForPrivy(verified.userId);
     const circle = getCircleClient();
 
     try {
