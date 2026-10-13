@@ -9,7 +9,13 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-import { PrivyProvider } from "@privy-io/react-auth";
+import { lazy as lazyPrivy, Suspense, useEffect as usePrivyEffect, useState as usePrivyState } from "react";
+const LazyPrivyProvider = lazyPrivy(() => import("@/components/nest/privy-client-provider"));
+function usePrivyMounted() {
+  const [m, setM] = usePrivyState(false);
+  usePrivyEffect(() => setM(true), []);
+  return m;
+}
 
 import appCss from "../styles.css?url";
 import rainbowKitCss from "@rainbow-me/rainbowkit/styles.css?url";
@@ -163,22 +169,17 @@ function RootComponent() {
   );
 
   const configuredPrivyAppId = privyAppId();
+  const privyMounted = usePrivyMounted();
 
   return (
     <QueryClientProvider client={queryClient}>
-      <PrivyProvider
-          appId={configuredPrivyAppId}
-          config={{
-            loginMethods: ["email"],
-            appearance: {
-              theme: "light",
-              accentColor: "#E53935",
-              logo: "https://nestarc.xyz/favicon.ico",
-            },
-          }}
-        >
-          {app}
-        </PrivyProvider>
+      {configuredPrivyAppId && privyMounted ? (
+        <Suspense fallback={app}>
+          <LazyPrivyProvider appId={configuredPrivyAppId}>{app}</LazyPrivyProvider>
+        </Suspense>
+      ) : (
+        app
+      )}
     </QueryClientProvider>
   );
 }

@@ -9,7 +9,17 @@ import {
 } from "@/components/ui/dialog";
 import { useEmailAuth } from "@/lib/use-email-auth";
 import { clearSignupDraft, saveSignupDraft } from "@/lib/signup-draft";
-import { PrivyEmailOtp } from "@/components/nest/privy-email-otp";
+import { lazy, Suspense, type ComponentProps } from "react";
+const LazyPrivyEmailOtp = lazy(() =>
+  import("@/components/nest/privy-email-otp").then((m) => ({ default: m.PrivyEmailOtp })),
+);
+function PrivyEmailOtp(props: ComponentProps<typeof LazyPrivyEmailOtp>) {
+  return (
+    <Suspense fallback={null}>
+      <LazyPrivyEmailOtp {...props} />
+    </Suspense>
+  );
+}
 import { privyAppId } from "@/lib/privy-config";
 
 type Props = {
