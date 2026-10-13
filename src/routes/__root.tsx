@@ -169,6 +169,7 @@ function RootComponent() {
   );
 
   const configuredPrivyAppId = privyAppId();
+  const privyMounted = usePrivyMounted();
 
   return (
     <QueryClientProvider client={queryClient}>
