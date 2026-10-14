@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Nest — Group finance and USDC settlement on Arc" },
       {
         property: "og:title",
-        content: "Nest — One ledger. Clear every balance.",
+        content: "Nest — Split expenses and settle on Arc.",
       },
       { name: "twitter:title", content: "Nest — Group settlement on Arc" },
       {
@@ -111,16 +111,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content:
           "Record shared obligations, resolve exact balances and settle peer-to-peer in native USDC on Arc.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
