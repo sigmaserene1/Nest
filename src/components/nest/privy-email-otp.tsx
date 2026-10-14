@@ -200,9 +200,14 @@ export function PrivyEmailOtp({
           size="sm"
           type="button"
           onClick={() => {
+            if (emailVerified) void logout().catch(() => undefined);
             setStep("email");
             setCode("");
             setVerified(false);
+            setEmailVerified(false);
+            setWalletRetry(false);
+            setWalletAddress(null);
+            setConnectionTimedOut(false);
             verifyingRef.current = false;
             onError(null);
           }}
@@ -236,7 +241,7 @@ export function PrivyEmailOtp({
             setVerified(false);
             setCode(value.replace(/\D/g, "").slice(0, 6));
           }}
-          disabled={!!busy || disabled || verified}
+          disabled={!!busy || disabled || verified || emailVerified}
           inputMode="numeric"
           containerClassName="grid w-full grid-cols-6 gap-1.5 sm:gap-2"
           render={({ slots }) => (
@@ -264,14 +269,14 @@ export function PrivyEmailOtp({
               ))}
             </>
           )}
-          onComplete={(value) => void verify(value)}
+          onComplete={(value) => { if (!emailVerified) void verify(value); }}
         />
 
         <Button
           size="lg"
           type="button"
-          onClick={() => void verify(code)}
-          disabled={code.length !== 6 || !!busy || disabled || verified}
+          onClick={() => { if (walletRetry) void retryWalletSetup(); else void verify(code); }}
+          disabled={(code.length !== 6 && !walletRetry) || !!busy || disabled || verified}
           className="w-full rounded-lg bg-brand text-brand-foreground shadow-none hover:bg-brand/90"
         >
           {verified ? (
@@ -279,8 +284,26 @@ export function PrivyEmailOtp({
           ) : busy === "verify" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : null}
-          {verified ? "Verified · opening Nest…" : busy === "verify" ? "Verifying…" : "Verify & continue"}
+          {verified
+            ? "Verified · connecting Circle wallet…"
+            : busy === "verify"
+              ? "Connecting securely…"
+              : walletRetry
+                ? "Retry wallet setup"
+                : "Verify & continue"}
         </Button>
+
+        {verified && connectionTimedOut ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!!busy}
+            onClick={() => void reconnectCircle()}
+            className="w-full rounded-lg"
+          >
+            Retry wallet connection
+          </Button>
+        ) : null}
 
         <div className="flex flex-wrap items-center justify-center gap-x-1 text-xs">
           <span className="text-muted-foreground">Didn’t get a code?</span>
@@ -289,7 +312,7 @@ export function PrivyEmailOtp({
           size="sm"
           type="button"
           onClick={() => void send(true)}
-          disabled={!!busy || disabled || verified}
+          disabled={!!busy || disabled || verified || emailVerified}
           className="h-9 px-1 text-brand"
         >
           {busy === "resend" ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
@@ -298,7 +321,13 @@ export function PrivyEmailOtp({
         </div>
         <p role="status" aria-live="polite" className="flex min-h-5 items-center justify-center gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-          {verified ? "Email verified. Opening Nest…" : busy === "verify" ? "Verifying your code…" : "Secure, password-free sign in"}
+          {verified
+            ? "Email verified. Connecting your Circle wallet…"
+            : emailVerified
+              ? "Email verified. Complete Circle wallet setup to continue."
+              : busy === "verify"
+                ? "Verifying your code…"
+                : "Secure, password-free sign in"}
         </p>
       </section>
     );
