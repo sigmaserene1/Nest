@@ -38,13 +38,30 @@ export function SignInDialog({
   inviteMode = false,
 }: Props) {
   const { signIn, signInWithGoogle } = useEmailAuth();
-  const hasPrivyEmail = Boolean(privyAppId());
+  const [privyAvailable, setPrivyAvailable] = useState<boolean | null>(null);
+  const hasPrivyEmail = Boolean(privyAppId()) && privyAvailable === true;
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [workspaceName, setWorkspaceName] = useState("");
   const [busy, setBusy] = useState<"email" | "google" | "privy" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Offer boxed Privy OTP only if BOTH wallet providers are configured on the
+  // server; otherwise use the still-functional Circle email login.
+  useEffect(() => {
+    if (!open || !privyAppId()) return;
+    let cancelled = false;
+    void import("@/lib/privy-circle.functions")
+      .then((m) => m.privyCircleSignInStatus())
+      .then((status) => {
+        if (!cancelled) setPrivyAvailable(status.ready);
+      })
+      .catch(() => {
+        if (!cancelled) setPrivyAvailable(false);
+      });
+    return () => { cancelled = true; };
+  }, [open]);
 
   // Warm Circle's relatively heavy browser SDK while the user is reading the
   // sign-in sheet, not after they tap Continue.
@@ -258,7 +275,12 @@ export function SignInDialog({
             <span className="h-px flex-1 bg-border" />
           </div>
 
-          {hasPrivyEmail ? (
+          {privyAvailable === null && Boolean(privyAppId()) ? (
+            <div role="status" className="flex min-h-24 items-center justify-center gap-2 text-xs text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Checking secure email sign-in…
+            </div>
+          ) : hasPrivyEmail ? (
             <PrivyEmailOtp
               email={email}
               onEmailChange={setEmail}
@@ -310,6 +332,13 @@ export function SignInDialog({
                         </button>
                       </form>
           )}
+
+          {privyAvailable === false ? (
+            <p role="status" className="text-center text-[11px] leading-5 text-muted-foreground">
+              Boxed email verification is currently unavailable. Use Circle’s secure email
+              verification above; existing wallet addresses are preserved.
+            </p>
+          ) : null}
 
           {hasPrivyEmail ? (
             <details className="rounded-2xl border border-border/70 bg-muted/30 px-3.5 py-3">
