@@ -49,6 +49,11 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
+  --color-wallet-foreground: var(--wallet-foreground);
+  --color-wallet-positive: var(--wallet-positive);
+  --color-wallet-negative: var(--wallet-negative);
+  --color-settle-foreground: var(--settle-foreground);
+  --color-overlay: var(--overlay);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -67,6 +72,14 @@
 }
 
 :root {
+  --wallet-background: oklch(0.19 0.035 270);
+  --wallet-foreground: oklch(0.98 0.005 270);
+  --wallet-positive: oklch(0.84 0.13 170);
+  --wallet-negative: oklch(0.83 0.10 15);
+  --settle-background: oklch(0.94 0.009 270);
+  --settle-end: oklch(0.72 0.025 270);
+  --settle-foreground: oklch(0.15 0.015 270);
+  --overlay: oklch(0.12 0.015 270 / 0.4);
   --radius: 0.5rem;
 
   --background: #f7f8fc;
@@ -177,13 +190,13 @@
 }
 
 .dark {
-  --background: #111318;
+  --background: oklch(0.13 0.013 270);
   --foreground: #f4f5f7;
 
-  --surface: #171a21;
-  --surface-muted: #1c2028;
+  --surface: oklch(0.17 0.017 270);
+  --surface-muted: oklch(0.19 0.018 270);
 
-  --card: #191d25;
+  --card: oklch(0.17 0.017 270);
   --card-foreground: #f4f5f7;
 
   --popover: #1b1f27;
@@ -208,7 +221,7 @@
   --destructive: #ff625b;
   --destructive-foreground: #ffffff;
 
-  --border: #2d333e;
+  --border: oklch(0.25 0.019 270);
   --input: #343b48;
   --ring: #ff6b63;
 
@@ -267,13 +280,11 @@
 
 /* Dark mode uses solid graphite surfaces rather than smoky translucent glass. */
 .dark body {
-  background:
-    radial-gradient(circle at 82% -10%, rgb(255 107 99 / 0.09), transparent 29rem),
-    linear-gradient(180deg, #12151b 0%, #101218 52%, #0f1116 100%);
+  background: var(--background);
 }
 
 .dark .glass {
-  background: rgb(24 28 36 / 0.92);
+  background: var(--card);
   border-color: rgb(255 255 255 / 0.075);
   box-shadow:
     0 1px 0 rgb(255 255 255 / 0.035) inset,
@@ -282,7 +293,7 @@
 }
 
 .dark .glass-strong {
-  background: rgb(24 28 36 / 0.96);
+  background: var(--card);
   border-color: rgb(255 255 255 / 0.085);
   box-shadow:
     0 1px 0 rgb(255 255 255 / 0.04) inset,
@@ -291,7 +302,7 @@
 }
 
 .dark .card-premium {
-  background: linear-gradient(180deg, #1b1f27 0%, #181c23 100%);
+  background: var(--card);
   border-color: rgb(255 255 255 / 0.075);
   box-shadow:
     0 1px 0 rgb(255 255 255 / 0.035) inset,
@@ -300,7 +311,7 @@
 }
 
 .dark .mobile-app-header {
-  background: rgb(17 19 24 / 0.92);
+  background: color-mix(in oklab, var(--background) 92%, transparent);
   border-color: rgb(255 255 255 / 0.065);
 }
 
@@ -313,7 +324,7 @@
 .dark input,
 .dark select,
 .dark textarea {
-  background-color: #171b22;
+  background-color: var(--card);
   border-color: #323844;
 }
 
@@ -815,6 +826,32 @@ html {
 
 .mobile-sheet {
   margin-bottom: max(0.4rem, env(safe-area-inset-bottom));
+}
+
+.nest-wallet-panel {
+  background: linear-gradient(115deg, var(--wallet-background) 60%, color-mix(in oklab, var(--wallet-background) 76%, var(--brand)));
+  color: var(--wallet-foreground);
+  box-shadow: var(--shadow-elevated);
+}
+
+.nest-settle-panel {
+  background: linear-gradient(125deg, var(--settle-background), var(--settle-end));
+  color: var(--settle-foreground);
+}
+
+.nest-expense-sheet {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.app-canvas h1 { font-size: 1.5rem; letter-spacing: 0; }
+.app-canvas h2, .app-canvas h3 { letter-spacing: 0; }
+.app-canvas button { letter-spacing: 0; }
+.app-canvas .card-premium { border-radius: 20px; }
+
+@media (max-width: 640px) {
+  .app-canvas h1 { font-size: 1.375rem; }
+  .app-canvas button { font-size: 12px; }
+  .nest-expense-sheet { max-height: calc(100dvh - 1rem); }
 }
 
 @media (max-width: 640px) {
