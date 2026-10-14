@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { UsdcBadge, WalletChip } from "@/components/nest/chain";
@@ -15,6 +16,8 @@ export const Route = createFileRoute("/app/settle")({
     meta: [
       { title: "Settle up · Nest" },
       { name: "description", content: "See exactly what you owe each roommate and settle your share peer-to-peer in native USDC on Arc." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { property: "og:title", content: "Settle up · Nest" },
       { property: "og:description", content: "See exactly what you owe each roommate and settle your share peer-to-peer in native USDC on Arc." },
     ],
@@ -58,15 +61,15 @@ function Settle() {
     >
       <div className="mt-6 grid gap-5 lg:grid-cols-5">
         <div className="lg:col-span-3 space-y-4">
-          <Card className="!p-5 bg-gradient-to-br from-foreground to-slate-800 text-background ring-0 sm:!p-6">
-            <div className="text-[11px] font-semibold uppercase tracking-widest text-background/60">
+          <Card className="nest-settle-panel !p-5 ring-0 sm:!p-6">
+            <div className="text-[11px] font-semibold uppercase tracking-widest text-settle-foreground/60">
               Total to pay
             </div>
             <div className="mt-2 flex items-baseline gap-2">
               <div className="text-4xl font-bold tracking-[-0.04em] tabular-nums sm:text-5xl">{fmtUSD(total)}</div>
-              <span className="text-sm font-semibold text-background/60">USDC</span>
+              <span className="text-sm font-semibold text-settle-foreground/60">USDC</span>
             </div>
-            <div className="mt-3 flex items-center gap-2 text-xs text-background/70">
+            <div className="mt-3 flex items-center gap-2 text-xs text-settle-foreground/70">
               <Zap className="h-3.5 w-3.5 text-brand" /> Instant on Arc · ~$0.001 fee
             </div>
             {wallet.isConnected && shortfall > 0 && wallet.environment === "testnet" && (
@@ -78,21 +81,21 @@ function Settle() {
                   amount: shortfall.toFixed(6),
                   returnTo: "/app/settle",
                 }}
-                className="mt-4 flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-xs font-bold text-background transition hover:bg-white/15"
+                className="mt-4 flex items-center justify-between rounded-2xl border border-settle-foreground/15 bg-settle-foreground/10 px-4 py-3 text-xs font-bold text-settle-foreground transition hover:bg-settle-foreground/15"
               >
                 <span>
                   Need {fmtUSD(shortfall)} more USDC on Arc
-                  <span className="mt-0.5 block font-medium text-background/60">
+                  <span className="mt-0.5 block font-medium text-settle-foreground/60">
                     Bridge the exact shortfall before settling
                   </span>
                 </span>
                 <ArrowDownToLine className="h-4 w-4" />
               </Link>
             )}
-            <button
+            <Button
               onClick={settle}
               disabled={shortfall > 0}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-2xl btn-gradient py-4 text-sm font-bold disabled:opacity-60"
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 h-12 rounded-full btn-gradient py-3 text-xs sm:text-[13px] font-bold disabled:opacity-60"
             >
               {mine.length === 0 ? (
                 "Send USDC to a roommate"
@@ -103,7 +106,7 @@ function Settle() {
               ) : (
                 `Pay ${getMember(mine[0].toId).name.split(" ")[0]} ${fmtUSD(mine[0].amount)}`
               )}
-            </button>
+            </Button>
           </Card>
 
 
@@ -127,17 +130,17 @@ function Settle() {
                         <UsdcBadge />
                       </div>
                     </div>
-                    <button
+                    <Button
                       onClick={() => setActive(d)}
                       className="inline-flex min-h-10 w-full items-center justify-center gap-1 rounded-xl btn-gradient px-3 py-2 text-xs font-bold sm:ml-2 sm:w-auto sm:rounded-full"
                     >
                       Pay <ArrowRight className="h-3 w-3" />
-                    </button>
+                    </Button>
                   </li>
                 );
               })}
               {mine.length === 0 && (
-                <li className="rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+                <li className="rounded-full bg-success/10 p-4 text-xs text-success">
                   Nothing to pay 🎉
                 </li>
               )}

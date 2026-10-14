@@ -2,11 +2,10 @@ export function NestLogo({ size = 32, showWord = true }: { size?: number; showWo
   return (
     <span className="inline-flex items-center gap-2">
       <span
-        className="grid place-items-center rounded-2xl text-white shadow-brand"
+        className="grid place-items-center rounded-full bg-brand text-brand-foreground shadow-brand"
         style={{
           width: size,
           height: size,
-          background: "linear-gradient(135deg, #ff6a5b, #e53935)",
         }}
         aria-hidden
       >

@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { MemberAvatar, AvatarStack } from "./avatar";
 import { UsdcBadge } from "./chain";
 import { getMember, fmtUSD, categoryMeta, type Expense } from "@/lib/nest-data";
@@ -20,14 +21,14 @@ export function ExpenseDetail({ expense, onClose }: { expense: Expense; onClose:
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-bold">Expense details</h3>
-        <button
+        <h3 className="text-sm font-bold">Expense details</h3>
+        <Button variant="ghost" size="icon"
           onClick={onClose}
           className="grid h-9 w-9 place-items-center rounded-full bg-muted"
           aria-label="Close"
         >
           <X className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
 
       <div className="mt-6 flex items-center gap-4">
@@ -38,7 +39,7 @@ export function ExpenseDetail({ expense, onClose }: { expense: Expense; onClose:
           {meta.icon}
         </span>
         <div className="min-w-0">
-          <div className="truncate text-xl font-bold">{expense.title}</div>
+          <div className="truncate text-lg font-bold">{expense.title}</div>
           <div className="text-sm text-muted-foreground">{expense.category}</div>
         </div>
       </div>
