@@ -149,14 +149,13 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  const app = (
-    <Web3Provider>
-      <NestChainProvider>
-        <Outlet />
-        <Toaster />
-      </NestChainProvider>
-    </Web3Provider>
+  const walletApp = (
+    <NestChainProvider>
+      <Outlet />
+      <Toaster />
+    </NestChainProvider>
   );
+  const app = <Web3Provider>{walletApp}</Web3Provider>;
 
   const configuredPrivyAppId = privyAppId();
   const privyMounted = usePrivyMounted();
@@ -165,7 +164,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {configuredPrivyAppId && privyMounted ? (
         <Suspense fallback={app}>
-          <LazyPrivyProvider appId={configuredPrivyAppId}>{app}</LazyPrivyProvider>
+          <LazyPrivyProvider appId={configuredPrivyAppId}>{walletApp}</LazyPrivyProvider>
         </Suspense>
       ) : (
         app
