@@ -6,6 +6,25 @@ import { NEST_PRIVY_APP_ID } from "@/lib/privy-config";
 
 const accessTokenSchema = z.string().min(20).max(10000);
 
+/**
+ * Public, non-sensitive readiness check. A public Privy app ID does not
+ * guarantee that its server secret or Circle wallet credentials are present.
+ * Without them OTP can succeed while wallet creation always fails.
+ */
+export const privyCircleSignInStatus = createServerFn({ method: "GET" })
+  .handler(async () => {
+    const backendAppId = (process.env["PRIVY_APP_ID"] ??
+      process.env["VITE_PRIVY_APP_ID"] ?? NEST_PRIVY_APP_ID).trim();
+    const publicAppId = (process.env["VITE_PRIVY_APP_ID"] ?? NEST_PRIVY_APP_ID).trim();
+    const configured = Boolean(
+      backendAppId &&
+      process.env["PRIVY_APP_SECRET"]?.trim() &&
+      process.env["CIRCLE_API_KEY"]?.trim() &&
+      process.env["CIRCLE_APP_ID"]?.trim()
+    );
+    return { ready: configured && backendAppId === publicAppId };
+  });
+
 function getPrivyClient() {
   const appId =
     process.env["PRIVY_APP_ID"] ??
