@@ -9,7 +9,6 @@ import { ContractSetup, RoomSetup } from "@/components/nest/setup";
 import { applyInvite, resolveInvite } from "@/lib/chain/config";
 import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useEmailAuth } from "@/lib/use-email-auth";
-import { isPrivyEmailWalletSelected } from "@/lib/privy-embedded-wallet";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { NestLogo } from "@/components/nest/logo";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
@@ -324,18 +323,9 @@ function AppLayout() {
   };
 
   const emailAuth = useEmailAuth();
-  const [privyRestoreFinished, setPrivyRestoreFinished] = useState(false);
-
-  useEffect(() => {
-    // Give Privy's authenticated wallet time to reconnect on refresh rather
-    // than opening an external-wallet picker and bouncing the user home.
-    if (!isPrivyEmailWalletSelected()) return;
-    const timer = window.setTimeout(() => setPrivyRestoreFinished(true), 8000);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  const waitingForPrivy = isPrivyEmailWalletSelected() && !isConnected && !privyRestoreFinished;
-  const isBusy = isConnecting || isReconnecting || !emailAuth.ready || waitingForPrivy;
+  // Wait only while an email session is being restored; once that attempt
+  // finishes, a disconnected person always gets the wallet chooser.
+  const isBusy = isConnecting || isReconnecting || !emailAuth.ready;
 
   // No separate sign-in page: the wallet chooser opens straight away, and if the
   // person closes it without connecting we send them back to the landing page.

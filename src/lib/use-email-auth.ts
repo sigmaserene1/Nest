@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useConnect, useDisconnect } from "wagmi";
 import { EMBEDDED_CONNECTOR_ID, clearActiveEmbeddedSession } from "@/lib/embedded-wallet";
-import { isPrivyEmailWalletSelected } from "@/lib/privy-embedded-wallet";
 
 type Session = { address: string; email: string; createdAt: number };
 
 function readSession(): Session | null {
-  if (typeof window === "undefined" || isPrivyEmailWalletSelected()) return null;
+  if (typeof window === "undefined") return null;
   try {
     const s = JSON.parse(window.localStorage.getItem("nest.circle.session") ?? "null") as Session | null;
     return s && Date.now() - s.createdAt < 55 * 60 * 1000 ? s : null;
@@ -59,9 +58,6 @@ export function useEmailAuth() {
         // person to sign in again instead of failing every action.
         const remaining = s.createdAt + 55 * 60 * 1000 - Date.now();
         expiryTimer = setTimeout(() => {
-          // Do not interrupt a PIN-free Privy session when a previous Circle
-          // email token reaches its own expiry.
-          if (isPrivyEmailWalletSelected()) return;
           void disconnectAsync().catch(() => {});
           clearActiveEmbeddedSession();
         }, Math.max(0, remaining));
@@ -72,12 +68,10 @@ export function useEmailAuth() {
     void sync();
     const onChange = () => void sync();
     window.addEventListener("nest-circle-session", onChange);
-    window.addEventListener("nest-email-wallet-provider", onChange);
     return () => {
       cancelled = true;
       if (expiryTimer) clearTimeout(expiryTimer);
       window.removeEventListener("nest-circle-session", onChange);
-      window.removeEventListener("nest-email-wallet-provider", onChange);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [connectors]);

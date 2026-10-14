@@ -1,10 +1,5 @@
 # Roadmap
 
-## Current
-- [ ] Restore screenshot-era shell, home, settle, expense and popup appearance
-- [ ] Match compact buttons and put newer tools last
-- [ ] Replace ledger landing wording and verify visual behavior
-
 ## Done
 - [x] Polish Settlement Assistant (clear status header, small on/off switch, plain-language limits, highlighted action)
 - [x] Polish Syndicate mode (highlighted mode selector, simple revenue split, clearer payout rows)

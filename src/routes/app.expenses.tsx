@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
 import { UsdcBadge } from "@/components/nest/chain";
@@ -18,8 +17,6 @@ export const Route = createFileRoute("/app/expenses")({
     meta: [
       { title: "Expenses · Nest" },
       { name: "description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
       { property: "og:title", content: "Expenses · Nest" },
       { property: "og:description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
     ],
@@ -80,7 +77,7 @@ function Expenses() {
       onFabClick={() => setModal({ mode: "add" })}
     >
       <div className="mt-4 flex flex-col gap-3">
-        <div className="glass flex min-h-10 items-center gap-2 rounded-full px-4 py-2">
+        <div className="glass flex min-h-12 items-center gap-2 rounded-2xl px-4 py-2.5">
           <Search className="h-4 w-4 text-muted-foreground" />
           <input
             value={q}
@@ -92,17 +89,17 @@ function Expenses() {
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0">
           {cats.map((c) => (
-            <Button variant="ghost"
+            <button
               key={c}
               onClick={() => setCat(c)}
-              className={`h-8 shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-semibold transition ${
+              className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
                 cat === c
                   ? "bg-foreground text-background"
-                  : "bg-card text-muted-foreground hover:text-foreground"
+                  : "bg-card text-muted-foreground ring-1 ring-black/[0.04] hover:text-foreground"
               }`}
             >
               {c}
-            </Button>
+            </button>
           ))}
         </div>
       </div>
@@ -126,8 +123,6 @@ function Expenses() {
                     <li
                       key={e.id}
                       onClick={() => setModal({ mode: "detail", expense: e })}
-                      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setModal({ mode: "detail", expense: e }); } }}
-                      tabIndex={0} role="button" aria-label={`View ${e.title}`}
                       className="flex cursor-pointer items-center gap-3 rounded-2xl p-3 transition hover:bg-muted/50 active:scale-[0.99]"
                     >
                       <span
@@ -180,15 +175,14 @@ function Expenses() {
 
 
             onClick={close}
-            role="dialog" aria-modal="true" aria-label={modal.mode === "detail" ? "Expense details" : "New expense"}
-            className="nest-expense-backdrop fixed inset-0 z-50 flex items-end justify-center bg-overlay backdrop-blur-[6px] sm:items-center"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
           >
             <div
 
 
 
               onClick={(e) => e.stopPropagation()}
-              className="nest-expense-sheet mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto rounded-[30px] p-5 sm:max-h-[90vh] sm:w-full sm:p-6"
+              className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto rounded-[30px] p-5 sm:max-h-[90vh] sm:w-full sm:p-6"
             >
               {modal.mode !== "detail" && (
                 <>
@@ -196,14 +190,14 @@ function Expenses() {
                     <h3 className="text-lg font-bold">
                       {modal.mode === "edit" ? "Edit expense" : "New expense"}
                     </h3>
-                    <Button variant="ghost"
+                    <button
                       onClick={close}
                       disabled={saving}
                       className="grid h-9 w-9 place-items-center rounded-full bg-muted disabled:opacity-40"
                       aria-label="Close"
                     >
                       <X className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </div>
                   <ExpenseForm
                     onSave={handleSave}
@@ -234,12 +228,12 @@ function Header({ onAdd }: { onAdd: () => void }) {
         <div className="text-sm font-medium text-muted-foreground">Your household</div>
         <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Expenses</h1>
       </div>
-      <Button variant="ghost"
+      <button
         onClick={onAdd}
-        className="inline-flex h-10 items-center gap-1.5 rounded-full btn-gradient px-4 py-2 text-xs font-bold"
+        className="inline-flex min-h-11 items-center gap-1.5 rounded-full btn-gradient px-4 py-2.5 text-sm font-bold"
       >
         <Plus className="h-4 w-4" /> Add
-      </Button>
+      </button>
     </div>
   );
 }

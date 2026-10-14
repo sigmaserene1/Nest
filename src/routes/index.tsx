@@ -310,14 +310,17 @@ function Landing() {
                 className="animate-float-in mt-7 font-display text-[2.4rem] leading-[1.02] tracking-[-0.05em] sm:text-6xl lg:text-[5.2rem]"
                 style={{ animationDelay: "80ms" }}
               >
-                Nest
+                Shared treasury.
+                <br />
+                <span className="text-brand">Clear every balance.</span>
               </h1>
 
               <p
                 className="animate-float-in mx-auto mt-5 max-w-2xl text-[15px] leading-6 text-muted-foreground sm:text-lg sm:leading-7 lg:mx-0 lg:max-w-xl"
                 style={{ animationDelay: "130ms" }}
               >
-                Split expenses. Send USDC. Settle together on Arc.
+                Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals,
+                manage recurring payouts and delegated budgets, track group obligations, and settle in native USDC.
               </p>
 
               <div

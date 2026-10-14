@@ -1,11 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
 import { AppShell } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
 import { Stagger, Item, Tap, AnimatedNumber } from "@/components/nest/motion";
 import { EmptyState } from "@/components/nest/feedback";
 import { ActionModal, useActionModal, type ActionMode } from "@/components/nest/action-modal";
-import { ArcBadge, UsdcBadge, UsdcMark, WalletChip } from "@/components/nest/chain";
+import { ArcBadge, UsdcBadge, UsdcMark, WalletChip, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
 import {
@@ -45,7 +44,6 @@ export const Route = createFileRoute("/app/")({
         property: "og:description",
         content: "Balances, recent shared expenses and one-tap USDC settlement for your household.",
       },
-      { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
   }),
@@ -102,17 +100,21 @@ function Dashboard() {
 
         className="mt-6"
       >
-        <div className="nest-wallet-panel relative overflow-hidden rounded-[28px] p-5 sm:p-6">
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-5 text-background shadow-2xl sm:p-6">
+          {/* decorative blobs */}
+          <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/40 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
 
           <div className="relative flex items-center justify-between">
             <ArcBadge variant="light" />
             <div className="flex items-center gap-2">
+              <BlockTicker />
               <UsdcBadge />
             </div>
           </div>
 
           <div className="relative mt-8">
-            <div className="text-[11px] uppercase tracking-widest text-wallet-foreground/60">
+            <div className="text-[11px] uppercase tracking-widest text-background/60">
               Available balance
             </div>
             <div className="mt-1 flex items-center gap-3">
@@ -125,7 +127,7 @@ function Dashboard() {
               </div>
               <UsdcMark size={40} />
             </div>
-            <div className="mt-2 flex items-center gap-2 text-xs text-wallet-foreground/60">
+            <div className="mt-2 flex items-center gap-2 text-xs text-background/60">
               {wallet.address && <WalletChip address={wallet.address} variant="dark" />}
               <span>
                 {wallet.isConnected
@@ -139,55 +141,69 @@ function Dashboard() {
             </div>
           </div>
 
-          <div className="relative mt-6 grid grid-cols-3 gap-1.5 rounded-2xl bg-wallet-foreground/10 p-3 backdrop-blur sm:gap-2">
+          <div className="relative mt-6 grid grid-cols-3 gap-1.5 rounded-2xl bg-white/10 p-3 backdrop-blur sm:gap-2">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-wallet-foreground/60">Net</div>
-              <div className={`mt-0.5 text-sm font-bold tabular-nums ${myNet >= 0 ? "text-wallet-positive" : "text-wallet-negative"}`}>
+              <div className="text-[10px] uppercase tracking-wider text-background/60">Net</div>
+              <div className={`mt-0.5 text-sm font-bold tabular-nums ${myNet >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
                 {myNet >= 0 ? "+" : ""}
                 <AnimatedNumber value={Math.abs(myNet)} prefix="$" />
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-wallet-foreground/60">You owe</div>
-              <div className="mt-0.5 text-sm font-bold tabular-nums text-wallet-negative">
+              <div className="text-[10px] uppercase tracking-wider text-background/60">You owe</div>
+              <div className="mt-0.5 text-sm font-bold tabular-nums text-rose-300">
                 <AnimatedNumber value={iOwe} prefix="$" />
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-wallet-foreground/60">To receive</div>
-              <div className="mt-0.5 text-sm font-bold tabular-nums text-wallet-positive">
+              <div className="text-[10px] uppercase tracking-wider text-background/60">To receive</div>
+              <div className="mt-0.5 text-sm font-bold tabular-nums text-emerald-300">
                 <AnimatedNumber value={owedToMe} prefix="$" />
               </div>
             </div>
           </div>
 
           <div className="relative mt-7 flex items-center gap-3">
-            <Button variant="ghost"
+            <button
               onClick={() => action.open("settle")}
-              className="group flex flex-1 items-center justify-center gap-1.5 h-11 rounded-full btn-gradient text-xs font-bold sm:text-[13px]"
+              className="group flex flex-1 items-center justify-center gap-1.5 rounded-2xl btn-gradient py-3 text-[13px] font-bold sm:py-3.5 sm:text-sm"
             >
               Settle Now
               {iOwe > 0 && (
-                <span className="rounded-full bg-wallet-foreground/25 px-2 py-0.5 text-[10px] font-bold">
+                <span className="rounded-full bg-white/25 px-2 py-0.5 text-[10px] font-bold">
                   {fmtUSD(iOwe)}
                 </span>
               )}
               <ArrowUpRight className="h-4 w-4 transition group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Button>
-            <Button variant="ghost"
+            </button>
+            <button
               onClick={() => action.open("send")}
-              className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-wallet-foreground/10 text-wallet-foreground backdrop-blur transition duration-200 hover:bg-wallet-foreground/20 active:scale-95"
+              className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition duration-200 hover:bg-white/20 active:scale-95"
               aria-label="Send"
             >
               <Plus className="h-5 w-5" strokeWidth={2.5} />
-            </Button>
+            </button>
           </div>
-
+          <Link
+            to="/app/bridge"
+            search={{
+              from: "base",
+              to: "arc",
+              amount: settlementShortfall > 0 ? settlementShortfall.toFixed(6) : undefined,
+              returnTo: "/app/",
+            }}
+            className="relative mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 py-3 text-xs font-bold text-background transition hover:bg-white/15"
+          >
+            <ArrowDownToLine className="h-4 w-4" />
+            {settlementShortfall > 0
+              ? `Fund ${fmtUSD(settlementShortfall)} from another chain`
+              : "Fund Arc from another chain"}
+          </Link>
         </div>
       </section>
 
       {/* Quick actions — compact five-up strip on phones */}
-      <Stagger className="mt-4 grid grid-cols-4 gap-2 sm:gap-3">
+      <Stagger className="mt-5 grid grid-cols-5 gap-1.5 sm:gap-3">
         <QuickPill
           onClick={() => action.open("send")}
           label="Send"
@@ -198,20 +214,25 @@ function Dashboard() {
           onClick={() => action.open("request")}
           label="Request"
           icon={<Download className="h-[17px] w-[17px]" />}
-          tint="bg-success/10 text-success"
+          tint="bg-emerald-500/10 text-emerald-600"
         />
         <QuickPill
           onClick={() => action.open("split")}
           label="Split"
           icon={<Split className="h-[17px] w-[17px]" />}
-          tint="bg-info/10 text-info"
+          tint="bg-indigo-500/10 text-indigo-600"
         />
-
+        <QuickLinkPill
+          to="/app/swap"
+          label="Swap"
+          icon={<ArrowLeftRight className="h-[17px] w-[17px]" />}
+          tint="bg-sky-500/10 text-sky-600"
+        />
         <QuickPill
           onClick={() => action.open("scan")}
-          label="Scan QR"
+          label="QR"
           icon={<QrCode className="h-[17px] w-[17px]" />}
-          tint="bg-warning/10 text-warning"
+          tint="bg-amber-500/10 text-amber-600"
         />
       </Stagger>
 
@@ -270,6 +291,7 @@ function Dashboard() {
       {/* Monthly insight */}
       <section className="mt-6">
         <div className="card-premium relative overflow-hidden p-5">
+          <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-brand/10 blur-3xl" />
           <div className="relative flex items-start justify-between gap-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
               <Sparkles className="h-3 w-3" /> Monthly insight
@@ -361,18 +383,6 @@ function Dashboard() {
           />
         )}
       </section>
-      <section className="mt-7">
-        <h2 className="text-base font-bold">More in Nest</h2>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          <QuickLinkPill to="/app/swap" label="Swap" icon={<ArrowLeftRight className="h-[17px] w-[17px]" />} tint="bg-info/10 text-info" />
-          <Button asChild variant="outline" className="h-16 justify-start rounded-2xl bg-card px-4 text-xs">
-            <Link to="/app/bridge" search={{ from: "base", to: "arc", amount: settlementShortfall > 0 ? settlementShortfall.toFixed(6) : undefined, returnTo: "/app/" }}>
-              <ArrowDownToLine className="h-4 w-4" />
-              {settlementShortfall > 0 ? `Fund ${fmtUSD(settlementShortfall)} from another chain` : "Fund Arc from another chain"}
-            </Link>
-          </Button>
-        </div>
-      </section>
       <ActionModal mode={action.mode} onClose={action.close} />
     </AppShell>
   );
@@ -392,18 +402,18 @@ function QuickPill({
   return (
     <Item>
       <Tap>
-        <Button variant="ghost"
+        <button
           type="button"
           onClick={onClick}
-          className="card-premium flex h-auto min-h-16 w-full min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2.5 text-center transition hover:border-brand/40 sm:flex-row sm:justify-start sm:gap-3 sm:px-3"
+          className="card-premium flex min-h-[72px] w-full min-w-0 flex-col items-center justify-center gap-1.5 px-1.5 py-2.5 text-center transition active:scale-[0.975] hover:border-brand/40 sm:min-h-[82px] sm:gap-2 sm:px-2"
         >
-          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full sm:h-10 sm:w-10 ${tint}`}>
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}>
             {icon}
           </span>
-          <span className="truncate text-[10px] font-bold leading-none sm:text-xs">
+          <span className="w-full truncate text-[10px] font-bold leading-none sm:text-xs">
             {label}
           </span>
-        </Button>
+        </button>
       </Tap>
     </Item>
   );
@@ -426,12 +436,12 @@ function QuickLinkPill({
         <Link
           to={to}
           preload="intent"
-          className="card-premium flex h-auto min-h-16 w-full min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2.5 text-center transition hover:border-brand/40 sm:flex-row sm:justify-start sm:gap-3 sm:px-3"
+          className="card-premium flex min-h-[72px] w-full min-w-0 flex-col items-center justify-center gap-1.5 px-1.5 py-2.5 text-center transition active:scale-[0.975] hover:border-brand/40 sm:min-h-[82px] sm:gap-2 sm:px-2"
         >
-          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-full sm:h-10 sm:w-10 ${tint}`}>
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}>
             {icon}
           </span>
-          <span className="truncate text-[10px] font-bold leading-none sm:text-xs">
+          <span className="w-full truncate text-[10px] font-bold leading-none sm:text-xs">
             {label}
           </span>
         </Link>

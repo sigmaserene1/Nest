@@ -17,7 +17,6 @@ import {
   Ellipsis,
   ChevronRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { NestLogo } from "./logo";
 import { MemberAvatar } from "./avatar";
 import { PageTransition } from "./motion";
@@ -41,20 +40,19 @@ import {
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
-  { to: "/app/expenses", label: "Expenses", icon: Receipt },
+  { to: "/app/treasury", label: "Treasury", icon: Vault },
   { to: "/app/settle", label: "Settle", icon: ArrowLeftRight, center: true },
   { to: "/app/activity", label: "Activity", icon: Activity },
-  { to: "/app/analytics", label: "Insights", icon: PieChart },
+  { to: "/app/expenses", label: "Expenses", icon: Receipt },
 ] as const;
 
 const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
+  { to: "/app/analytics", label: "Insights", icon: PieChart },
   { to: "/app/agent", label: "Settlement assistant", icon: Bot },
   { to: "/app/bridge", label: "Bridge", icon: Waypoints },
   { to: "/app/syndicate", label: "Payouts", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
-  { to: "/app/treasury", label: "Treasury", icon: Vault },
-  { to: "/app/swap", label: "Swap", icon: ArrowLeftRight },
 ] as const;
 
 const businessV2Configured = Boolean(
@@ -89,7 +87,7 @@ function NavItem({
     <Link
       to={to}
       preload={eager ? "render" : "intent"}
-      className={`group flex items-center gap-3 rounded-full px-3.5 py-2 text-[13px] font-semibold transition-[background-color,color,transform,box-shadow] duration-200 ease-out active:scale-[0.985] ${
+      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-200 ease-out active:scale-[0.985] ${
         active
           ? "bg-foreground text-background shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -146,13 +144,13 @@ function MobileToolsMenu() {
     <div className="mx-auto flex max-w-6xl justify-end px-4 pt-3 sm:px-6 lg:hidden">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
+          <button
             type="button"
             className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border/75 bg-card/85 px-3.5 text-xs font-bold text-muted-foreground shadow-sm backdrop-blur transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-brand/30 hover:text-foreground active:translate-y-0"
           >
             <Ellipsis className="h-4 w-4" />
             {activeItem?.label ?? "More"}
-          </Button>
+          </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
@@ -222,13 +220,13 @@ export function AppShell({
   return (
     <div className="app-canvas min-h-[100dvh] text-foreground">
       {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col p-3 lg:flex">
-        <div className="glass-strong flex h-full flex-col rounded-[28px] p-3">
+      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col p-4 lg:flex">
+        <div className="glass-strong flex h-full flex-col rounded-3xl p-4">
           <div className="flex items-center justify-between px-1.5 py-1">
             <NestLogo />
           </div>
 
-          <nav className="scroll-clean mt-5 flex-1 space-y-1.5 overflow-y-auto">
+          <nav className="scroll-clean mt-5 flex-1 space-y-1 overflow-y-auto">
             <div className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
               Workspace
             </div>
@@ -278,9 +276,9 @@ export function AppShell({
       </aside>
 
       {/* Main area */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-72">
         <header className="mobile-app-header sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-2xl">
-          <div className="mx-auto grid min-h-14 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-2.5 sm:min-h-14 sm:px-6 lg:px-8">
+          <div className="mx-auto grid min-h-14 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-2.5 sm:min-h-16 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center lg:hidden">
               <NestLogo />
             </div>
@@ -354,16 +352,16 @@ export function AppShell({
       <nav className="mobile-bottom-nav fixed left-1/2 z-40 w-[calc(100%-1rem)] max-w-[430px] -translate-x-1/2 lg:hidden">
         <div className="glass-strong relative flex min-h-[66px] items-center rounded-[26px] border-border/75 px-1.5 py-1.5 shadow-[0_16px_48px_rgba(15,23,42,0.16)]">
           <BottomTab to="/app" label="Home" icon={Home} exact />
-          <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
+          <BottomTab to="/app/treasury" label="Treasury" icon={Vault} />
           <div className="relative -mt-7 mx-0.5">
             {onFabClick ? (
-              <Button
+              <button
                 onClick={onFabClick}
                 className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition-all duration-200 ease-out hover:-translate-y-1 active:translate-y-0 active:scale-[0.95]"
                 aria-label="Quick action"
               >
                 <Plus className="h-6 w-6" strokeWidth={2.5} />
-              </Button>
+              </button>
             ) : (
               <Link
                 to="/app/settle"
@@ -376,7 +374,7 @@ export function AppShell({
             )}
           </div>
           <BottomTab to="/app/activity" label="Activity" icon={Activity} />
-          <BottomTab to="/app/members" label="Members" icon={Users} />
+          <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
         </div>
       </nav>
 

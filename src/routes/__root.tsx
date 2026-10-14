@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Nest — Group finance and USDC settlement on Arc" },
       {
         property: "og:title",
-        content: "Nest — Split expenses and settle on Arc.",
+        content: "Nest — One ledger. Clear every balance.",
       },
       { name: "twitter:title", content: "Nest — Group settlement on Arc" },
       {
@@ -111,6 +111,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         name: "twitter:description",
         content:
           "Record shared obligations, resolve exact balances and settle peer-to-peer in native USDC on Arc.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
       },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
@@ -149,13 +159,14 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  const walletApp = (
-    <NestChainProvider>
-      <Outlet />
-      <Toaster />
-    </NestChainProvider>
+  const app = (
+    <Web3Provider>
+      <NestChainProvider>
+        <Outlet />
+        <Toaster />
+      </NestChainProvider>
+    </Web3Provider>
   );
-  const app = <Web3Provider>{walletApp}</Web3Provider>;
 
   const configuredPrivyAppId = privyAppId();
   const privyMounted = usePrivyMounted();
@@ -164,7 +175,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {configuredPrivyAppId && privyMounted ? (
         <Suspense fallback={app}>
-          <LazyPrivyProvider appId={configuredPrivyAppId}>{walletApp}</LazyPrivyProvider>
+          <LazyPrivyProvider appId={configuredPrivyAppId}>{app}</LazyPrivyProvider>
         </Suspense>
       ) : (
         app
