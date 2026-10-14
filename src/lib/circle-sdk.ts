@@ -697,6 +697,10 @@ export async function loginCircleWalletFromPrivy(
   const s = await sdk();
 
   if (auth.challengeId) {
+    // The PIN-secured User-Controlled Wallet flow requires Circle's device
+    // registration before executing the first wallet-initialization challenge.
+    // Privy OTP does not perform this Circle SDK step for us.
+    await s.getDeviceId();
     // First Privy login for this Circle identity: Circle still owns the secure
     // wallet PIN/recovery ceremony. Nest only customizes the surrounding copy.
     await runChallenge(
