@@ -1,7 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { OTPInput } from "input-otp";
 import { useLoginWithEmail, useToken, useLogout } from "@privy-io/react-auth";
+import { useAccount, useConnect } from "wagmi";
+import { EMBEDDED_CONNECTOR_ID } from "@/lib/embedded-wallet";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -26,13 +28,85 @@ export function PrivyEmailOtp({
   const { sendCode, loginWithCode } = useLoginWithEmail();
   const { getAccessToken } = useToken();
   const { logout } = useLogout();
+  const { address: connectedAddress, isConnected } = useAccount();
+  const { connectors, connectAsync } = useConnect();
   const [step, setStep] = useState<"email" | "code">("email");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"send" | "verify" | "resend" | null>(null);
   const [verified, setVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [walletRetry, setWalletRetry] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [connectionTimedOut, setConnectionTimedOut] = useState(false);
   const verifyingRef = useRef(false);
+  const finishedRef = useRef(false);
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+
+  // Privy may not publish its JWT to the hook on the exact same microtask as
+  // loginWithCode resolves. Wait briefly for its verified session rather than
+  // requiring the user to request and enter an entirely new OTP.
+  const waitForAccessToken = async () => {
+    for (const delay of [0, 150, 250, 400, 700]) {
+      if (delay) await new Promise((resolve) => window.setTimeout(resolve, delay));
+      const token = await getAccessToken();
+      if (token) return token;
+    }
+    throw new Error("Your email was verified, but the sign-in session isn't ready. Retry wallet connection.");
+  };
+
+  const finishWalletLogin = async () => {
+    const accessToken = await waitForAccessToken();
+    const { loginCircleWalletFromPrivy } = await import("@/lib/circle-sdk");
+    const session = await loginCircleWalletFromPrivy(accessToken, normalizedEmail);
+    setWalletAddress(session.address);
+    setWalletRetry(false);
+    setConnectionTimedOut(false);
+    setVerified(true);
+  };
+
+  // Only enter /app AFTER wagmi has actually restored the Circle wallet.
+  // Navigating immediately after the OTP's promise resolves can open the
+  // wallet-picker modal over the dashboard and bounce users to the landing page.
+  useEffect(() => {
+    if (
+      !verified || !walletAddress || !isConnected || !connectedAddress ||
+      connectedAddress.toLowerCase() !== walletAddress.toLowerCase() ||
+      finishedRef.current
+    ) return;
+    finishedRef.current = true;
+    void logout().catch(() => undefined).finally(onAuthenticated);
+  }, [verified, walletAddress, isConnected, connectedAddress, logout, onAuthenticated]);
+
+  useEffect(() => {
+    if (!verified || !walletAddress || finishedRef.current) return;
+    const timer = window.setTimeout(() => {
+      setConnectionTimedOut(true);
+      onError("Email verified. Nest is waiting for your Circle wallet connection. Tap Retry wallet connection.");
+    }, 12000);
+    return () => window.clearTimeout(timer);
+  }, [verified, walletAddress, onError]);
+
+  const reconnectCircle = async () => {
+    if (busy || finishedRef.current) return;
+    const connector = connectors.find((candidate) => candidate.id === EMBEDDED_CONNECTOR_ID);
+    if (!connector) {
+      onError("Circle wallet connector is still loading. Try again shortly.");
+      return;
+    }
+    setBusy("verify");
+    onBusyChange(true);
+    onError(null);
+    setConnectionTimedOut(false);
+    try {
+      await connectAsync({ connector });
+    } catch (error) {
+      onError(error instanceof Error ? error.message : "Could not reconnect Circle wallet.");
+    } finally {
+      setBusy(null);
+      onBusyChange(false);
+    }
+  };
 
   const send = async (resend = false) => {
     if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
@@ -40,7 +114,6 @@ export function PrivyEmailOtp({
       return;
     }
     if (!resend && !prepare(normalizedEmail)) return;
-
     setBusy(resend ? "resend" : "send");
     onBusyChange(true);
     onError(null);
@@ -48,6 +121,9 @@ export function PrivyEmailOtp({
       await sendCode({ email: normalizedEmail, disableSignup: false });
       setCode("");
       setVerified(false);
+      setEmailVerified(false);
+      setWalletRetry(false);
+      setWalletAddress(null);
       setStep("code");
     } catch (error) {
       onError(error instanceof Error ? error.message : "Could not send the verification code.");
@@ -59,50 +135,59 @@ export function PrivyEmailOtp({
 
   const verify = async (completedCode = code) => {
     const candidate = completedCode.replace(/\D/g, "").slice(0, 6);
-    if (candidate.length !== 6 || verifyingRef.current || verified) return;
+    if (candidate.length !== 6 || verifyingRef.current || verified || emailVerified) return;
 
     verifyingRef.current = true;
     setCode(candidate);
     setBusy("verify");
     onBusyChange(true);
     onError(null);
+    let otpSucceeded = false;
 
     try {
-      // Use the completed value directly. Waiting for React state here can
-      // race the sixth OTP digit and leave the user stuck on the code screen.
       await loginWithCode({ code: candidate });
-      const accessToken = await getAccessToken();
-      if (!accessToken) throw new Error("Privy did not return a verified session.");
-
-      const { loginCircleWalletFromPrivy } = await import("@/lib/circle-sdk");
-      await loginCircleWalletFromPrivy(accessToken, normalizedEmail);
-
-      // Privy is only the OTP broker; Circle remains the wallet session.
-      await logout().catch(() => undefined);
-
-      setBusy(null);
-      setVerified(true);
-      onBusyChange(false);
-
-      // Let the user see the successful verification state briefly, then move
-      // into Nest automatically without requiring another tap.
-      await new Promise((resolve) => window.setTimeout(resolve, 450));
-      onAuthenticated();
+      otpSucceeded = true;
+      setEmailVerified(true);
+      await finishWalletLogin();
+      // No need for another OTP. Privy is authenticated, while Circle's
+      // account is reconnecting asynchronously via useEmailAuth.
     } catch (error) {
-      // Clear any half-finished Privy session so the next attempt starts clean.
-      await logout().catch(() => undefined);
-      setVerified(false);
-      const message = error instanceof Error ? error.message : "That code could not be verified.";
-      onError(
-        /not configured/i.test(message)
-          ? "Email sign-in isn't fully set up yet. Please try again shortly."
-          : message,
-      );
-      setCode("");
-      setStep("email");
+      const message = error instanceof Error ? error.message : "Sign-in failed.";
+      if (otpSucceeded) {
+        // Do not log out the verified Privy session after a downstream Circle
+        // error. Retrying wallet setup must NOT require another verification code.
+        setWalletRetry(true);
+        onError(
+          /not configured/i.test(message)
+            ? "Circle wallet sign-in is not configured on this server. You can use the existing Circle email option instead."
+            : `Email verified, but wallet setup failed: ${message}. Tap Retry wallet setup.`,
+        );
+      } else {
+        setCode("");
+        onError(message);
+      }
+    } finally {
       setBusy(null);
       onBusyChange(false);
+      verifyingRef.current = false;
+    }
+  };
+
+  const retryWalletSetup = async () => {
+    if (!emailVerified || verifyingRef.current || verified) return;
+    verifyingRef.current = true;
+    setBusy("verify");
+    onBusyChange(true);
+    onError(null);
+    try {
+      await finishWalletLogin();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Wallet setup failed.";
+      setWalletRetry(true);
+      onError(`Circle wallet setup failed: ${message}`);
     } finally {
+      setBusy(null);
+      onBusyChange(false);
       verifyingRef.current = false;
     }
   };
