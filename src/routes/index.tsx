@@ -6,6 +6,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowRight,
   BadgeCheck,
+  BookOpen,
   Bot,
   BriefcaseBusiness,
   Calculator,
@@ -604,6 +605,12 @@ function Landing() {
                   >
                     {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight className="h-4 w-4" />
                   </button>
+                  <Link
+                    to="/docs"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[13px] font-bold text-white transition-colors hover:bg-white/20 sm:px-6 sm:py-3.5 sm:text-sm"
+                  >
+                    Docs <BookOpen className="h-4 w-4" />
+                  </Link>
                 </div>
               </div>
             </div>
