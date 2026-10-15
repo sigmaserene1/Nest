@@ -1,10 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { ExternalLink } from "lucide-react";
 import { NestLogo } from "@/components/nest/logo";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
-
-const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 
 export function PublicShell({
   children,
@@ -31,14 +28,6 @@ export function PublicShell({
             <Link to="/support" className="transition-colors hover:text-foreground">
               Support
             </Link>
-            <a
-              href={GITHUB_URL}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
-            >
-              GitHub <ExternalLink className="h-3 w-3" />
-            </a>
           </nav>
           <ThemeToggle />
         </div>
@@ -85,9 +74,6 @@ export function PublicShell({
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">
-              GitHub
-            </a>
           </div>
         </div>
       </footer>
