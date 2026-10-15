@@ -12,7 +12,6 @@ import {
   Check,
   CheckCircle2,
   CircleDollarSign,
-  Code2,
   Coins,
   Combine,
   FileCheck2,
@@ -41,7 +40,6 @@ import { ThemeToggle } from "@/components/nest/theme-toggle";
 import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 
-const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 const NAV_LINKS = [
   { label: "How it works", href: "#flow" },
   { label: "Use cases", href: "#use-cases" },
@@ -606,14 +604,6 @@ function Landing() {
                   >
                     {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight className="h-4 w-4" />
                   </button>
-                  <a
-                    href={GITHUB_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-white transition-colors hover:bg-white/20"
-                  >
-                    Read the source <Code2 className="h-4 w-4" />
-                  </a>
                 </div>
               </div>
             </div>
@@ -640,7 +630,6 @@ function Landing() {
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
-            <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="hover:text-foreground">GitHub</a>
             <a
               href="#faq"
               onClick={(event) => scrollToSection(event, "#faq")}

@@ -68,8 +68,7 @@ function PrivacyPage() {
             <a className="font-semibold text-brand hover:underline" href="mailto:auth@nestarc.xyz">
               auth@nestarc.xyz
             </a>
-            . For technical issues, you can also use the public GitHub repository linked from the Nest
-            support page.
+            . For technical issues, you can also use the contact details on the Nest support page.
           </Section>
         </div>
       </article>

@@ -6,7 +6,6 @@ import {
   ExternalLink,
   FileCheck2,
   Fuel,
-  Github,
   Globe2,
   KeyRound,
   Network,
@@ -21,7 +20,6 @@ const CONTRACT = "0x709cbad88162b999882788155cde79ade46a6d42";
 const EXPLORER = "https://explorer.testnet.arc.io";
 const CONTRACT_URL = `${EXPLORER}/address/${CONTRACT}`;
 const FAUCET_URL = "https://faucet.circle.com/";
-const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
 
 export const Route = createFileRoute("/docs")({
   component: DocsPage,
@@ -225,9 +223,6 @@ function DocsPage() {
                 <ExternalButton href={CONTRACT_URL}>
                   <Globe2 className="h-4 w-4" /> Inspect contract
                 </ExternalButton>
-                <ExternalButton href={GITHUB_URL} secondary>
-                  <Github className="h-4 w-4" /> Source repository
-                </ExternalButton>
                 <Link
                   to="/app/activity"
                   className="inline-flex items-center gap-2 rounded-xl border border-border bg-background px-3.5 py-2.5 text-xs font-bold transition hover:border-brand/35 hover:bg-muted"
@@ -307,9 +302,6 @@ function DocsPage() {
               >
                 Support <ArrowRight className="h-3.5 w-3.5" />
               </Link>
-              <ExternalButton href={GITHUB_URL} secondary>
-                Open GitHub
-              </ExternalButton>
             </div>
           </section>
         </main>
