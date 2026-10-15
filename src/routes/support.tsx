@@ -1,9 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ExternalLink, Fuel, Github, LifeBuoy, SearchCheck } from "lucide-react";
+import { ExternalLink, Fuel, LifeBuoy, SearchCheck } from "lucide-react";
 import { PublicShell } from "@/components/nest/public-shell";
 
-const GITHUB_URL = "https://github.com/sigmaserene1/Nest";
-const ISSUES_URL = "https://github.com/sigmaserene1/Nest/issues";
 const FAUCET_URL = "https://faucet.circle.com/";
 const EXPLORER_URL = "https://explorer.testnet.arc.io/";
 
@@ -58,14 +56,6 @@ function SupportPage() {
           >
             <External href={EXPLORER_URL}>Open Arc explorer</External>
           </Card>
-
-          <Card
-            icon={Github}
-            title="Report a reproducible issue"
-            body="Include the route, wallet type, network, expected result, actual result and transaction hash when available. Never post private keys."
-          >
-            <External href={ISSUES_URL}>Open GitHub issues</External>
-          </Card>
         </div>
 
         <section className="mt-8 rounded-3xl border border-border bg-card p-6">
@@ -83,7 +73,6 @@ function SupportPage() {
           <Link to="/docs" className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold hover:bg-muted">
             Read Nest docs
           </Link>
-          <External href={GITHUB_URL}>Source repository</External>
         </div>
       </main>
     </PublicShell>
