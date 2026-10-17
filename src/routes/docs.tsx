@@ -159,11 +159,16 @@ function Note({ children }: { children: React.ReactNode }) {
 }
 
 const faqs: [string, string][] = [
-  ["Do I need ETH or another gas token?", "No. On Arc, gas is paid in USDC. If you hold USDC on Arc you can use every part of Nest."],
+  ["What is Nest?", "A shared money app on Arc: create a home, split expenses, settle up in USDC, send gasless payments and bridge USDC with Circle CCTP v2."],
+  ["Which network do I need?", "Arc Testnet, chain ID 5042002. The app adds it to your wallet when you connect; you can also add it manually from the network setup section."],
+  ["What do I pay gas in?", "USDC. Arc has no separate gas token. Fees are typically a fraction of a cent, and simple sends are gasless."],
+  ["Why does my wallet show USDC with 18 decimals?", "The native balance interface on Arc is 18-decimal; the ERC-20 interface of the same USDC (0x3600…0000) is 6-decimal. They are the same asset."],
   ["Does Nest hold my money?", "No. Payments move wallet-to-wallet or through the public contract. Nest never takes custody of funds."],
-  ["Can everyone in my home see the same numbers?", "Yes. Homes, expenses and settlements are read from the contract, so every member sees the same state."],
-  ["What does gasless mean here?", "For simple sends, you sign a USDC authorization (EIP-3009) and a sponsor wallet submits it, so you pay no network fee."],
-  ["Can I sign in without a wallet?", "Yes. Continue with email creates a wallet for you. You can also connect MetaMask, Rabby, Coinbase or WalletConnect."],
+  ["Can everyone in my home see the same numbers?", "Yes. Homes, expenses and settlements are read from the contract, so every member sees the same state on any device."],
+  ["What does gasless mean here?", "For simple sends, you sign a USDC authorization (EIP-3009) and a sponsor wallet submits it, so you pay no network fee. Contract settlements still need a small USDC fee."],
+  ["How long does a bridge take?", "CCTP v2 Fast Transfer routes settle in seconds where supported; Standard Transfer waits for source-chain finality (minutes on Ethereum). Minting on Arc is sub-second once the attestation arrives."],
+  ["Are there fees?", "Only network gas, shown before you sign. Nest adds no platform fee to payments, splits or settlements."],
+  ["Can I sign in without a wallet?", "Yes. Continue with email creates a wallet for you through Circle. You can also connect MetaMask, Rabby, Coinbase or WalletConnect."],
   ["Who can see my bridge history?", "Only you. Bridge history is stored per wallet address on your device."],
   ["Is EURC supported?", "EURC is shown but transfers are disabled until a confirmed cross-chain route is available."],
   ["Where can I verify a transaction?", "Every receipt links to the Arc explorer with the transaction hash."],
@@ -353,13 +358,24 @@ function DocsPage() {
           </Section>
 
           <Section id="architecture" eyebrow="Technical" title="Architecture">
+            <p>
+              Nest is deliberately thin: a non-custodial front-end on top of Arc and Circle's rails, plus one public
+              contract that stores homes, expenses and settlements.
+            </p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Request flow</h3>
+            <Code>{`Browser (wagmi / viem)
+  ├─ reads  → Arc RPC → ExpenseManager (homes, members, debts)
+  ├─ writes → your wallet signs → ExpenseManager / USDC
+  ├─ gasless → you sign EIP-3009 → sponsor submits → USDC
+  └─ bridge → TokenMessengerV2 → Circle attestation → receiveMessage`}</Code>
             <div className="grid gap-3 sm:grid-cols-3">
               <Card icon={Layers} title="App">React app reading Arc directly via viem/wagmi.</Card>
               <Card icon={ReceiptText} title="Receipts">Built from contract event logs, not local storage.</Card>
               <Card icon={RouteIcon} title="Bridge">Circle CCTP v2 contracts and attestation API.</Card>
             </div>
-            <p>There is no private ledger: balances, members and receipts all come from public chain data.</p>
+            <p>There is no private ledger: balances, members and receipts all come from public chain data. If an RPC is slow, Nest keeps showing the last verified state instead of guessing.</p>
           </Section>
+
 
           <Section id="contracts" eyebrow="Technical" title="Smart contracts">
             <KV
@@ -393,14 +409,58 @@ const members = await client.readContract({
           </Section>
 
           <Section id="security" eyebrow="Resources" title="Security">
+            <p>What Nest controls, what it does not, and how to keep yourself safe.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Trust model</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-sm font-bold text-foreground">Nest never has</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li>Your private keys or seed phrase</li>
+                  <li>Custody of USDC during a payment, settlement or bridge</li>
+                  <li>The ability to move funds out of your wallet without your signature</li>
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-sm font-bold text-foreground">Nest does operate</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li>The website and its server functions</li>
+                  <li>A sponsor wallet that submits gasless USDC authorizations you sign</li>
+                  <li>A small fee top-up for brand-new email wallets on testnet</li>
+                </ul>
+              </div>
+            </div>
+            <h3 className="pt-2 text-base font-bold text-foreground">Key management</h3>
+            <p>
+              The sponsor key is a dedicated server-side key with no other permissions; it can only submit authorizations
+              that you have already signed, for the exact amount and recipient you approved. Provider credentials live in
+              server environment variables and are never shipped to the browser.
+            </p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Third-party components</h3>
             <ul className="list-disc space-y-1 pl-5">
-              <li>Non-custodial: Nest never holds user funds.</li>
+              <li><b className="text-foreground">Circle CCTP v2</b> — Circle-operated contracts and attestation service.</li>
+              <li><b className="text-foreground">Circle Wallets</b> — email wallets are created and secured by Circle; Nest never sees the keys.</li>
+              <li><b className="text-foreground">Wallets</b> — RainbowKit / WalletConnect. Always confirm the chain and the contract you approve inside your wallet.</li>
+            </ul>
+            <h3 className="pt-2 text-base font-bold text-foreground">Contract safety</h3>
+            <ul className="list-disc space-y-1 pl-5">
               <li>Exact approvals — only the amount you're paying.</li>
               <li>Every transaction is simulated before you sign.</li>
               <li>State updates happen before transfers to prevent re-entry.</li>
-              <li>Email wallets are secured by Circle; Nest never sees your keys.</li>
             </ul>
+            <h3 className="pt-2 text-base font-bold text-foreground">Staying safe</h3>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>Only use <b className="text-foreground">nestarc.xyz</b>. We will never DM you first or ask for your seed phrase.</li>
+              <li>Check that approvals target the ExpenseManager address listed on the contracts section.</li>
+              <li>Revoke token approvals you no longer need from your wallet.</li>
+              <li>Verify the chain ID is 5042002 (Arc Testnet) before signing.</li>
+            </ul>
+            <h3 className="pt-2 text-base font-bold text-foreground">Report a vulnerability</h3>
+            <p>
+              Reach us through the <Link to="/support" className="font-bold text-brand">support page</Link> with details
+              and reproduction steps. Please don't disclose publicly until we've had a chance to fix it.
+            </p>
           </Section>
+
 
           <Section id="limitations" eyebrow="Resources" title="Limitations">
             <ul className="list-disc space-y-1 pl-5">
