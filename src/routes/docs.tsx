@@ -159,11 +159,16 @@ function Note({ children }: { children: React.ReactNode }) {
 }
 
 const faqs: [string, string][] = [
-  ["Do I need ETH or another gas token?", "No. On Arc, gas is paid in USDC. If you hold USDC on Arc you can use every part of Nest."],
+  ["What is Nest?", "A shared money app on Arc: create a home, split expenses, settle up in USDC, send gasless payments and bridge USDC with Circle CCTP v2."],
+  ["Which network do I need?", "Arc Testnet, chain ID 5042002. The app adds it to your wallet when you connect; you can also add it manually from the network setup section."],
+  ["What do I pay gas in?", "USDC. Arc has no separate gas token. Fees are typically a fraction of a cent, and simple sends are gasless."],
+  ["Why does my wallet show USDC with 18 decimals?", "The native balance interface on Arc is 18-decimal; the ERC-20 interface of the same USDC (0x3600…0000) is 6-decimal. They are the same asset."],
   ["Does Nest hold my money?", "No. Payments move wallet-to-wallet or through the public contract. Nest never takes custody of funds."],
-  ["Can everyone in my home see the same numbers?", "Yes. Homes, expenses and settlements are read from the contract, so every member sees the same state."],
-  ["What does gasless mean here?", "For simple sends, you sign a USDC authorization (EIP-3009) and a sponsor wallet submits it, so you pay no network fee."],
-  ["Can I sign in without a wallet?", "Yes. Continue with email creates a wallet for you. You can also connect MetaMask, Rabby, Coinbase or WalletConnect."],
+  ["Can everyone in my home see the same numbers?", "Yes. Homes, expenses and settlements are read from the contract, so every member sees the same state on any device."],
+  ["What does gasless mean here?", "For simple sends, you sign a USDC authorization (EIP-3009) and a sponsor wallet submits it, so you pay no network fee. Contract settlements still need a small USDC fee."],
+  ["How long does a bridge take?", "CCTP v2 Fast Transfer routes settle in seconds where supported; Standard Transfer waits for source-chain finality (minutes on Ethereum). Minting on Arc is sub-second once the attestation arrives."],
+  ["Are there fees?", "Only network gas, shown before you sign. Nest adds no platform fee to payments, splits or settlements."],
+  ["Can I sign in without a wallet?", "Yes. Continue with email creates a wallet for you through Circle. You can also connect MetaMask, Rabby, Coinbase or WalletConnect."],
   ["Who can see my bridge history?", "Only you. Bridge history is stored per wallet address on your device."],
   ["Is EURC supported?", "EURC is shown but transfers are disabled until a confirmed cross-chain route is available."],
   ["Where can I verify a transaction?", "Every receipt links to the Arc explorer with the transaction hash."],
@@ -353,13 +358,24 @@ function DocsPage() {
           </Section>
 
           <Section id="architecture" eyebrow="Technical" title="Architecture">
+            <p>
+              Nest is deliberately thin: a non-custodial front-end on top of Arc and Circle's rails, plus one public
+              contract that stores homes, expenses and settlements.
+            </p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Request flow</h3>
+            <Code>{`Browser (wagmi / viem)
+  ├─ reads  → Arc RPC → ExpenseManager (homes, members, debts)
+  ├─ writes → your wallet signs → ExpenseManager / USDC
+  ├─ gasless → you sign EIP-3009 → sponsor submits → USDC
+  └─ bridge → TokenMessengerV2 → Circle attestation → receiveMessage`}</Code>
             <div className="grid gap-3 sm:grid-cols-3">
               <Card icon={Layers} title="App">React app reading Arc directly via viem/wagmi.</Card>
               <Card icon={ReceiptText} title="Receipts">Built from contract event logs, not local storage.</Card>
               <Card icon={RouteIcon} title="Bridge">Circle CCTP v2 contracts and attestation API.</Card>
             </div>
-            <p>There is no private ledger: balances, members and receipts all come from public chain data.</p>
+            <p>There is no private ledger: balances, members and receipts all come from public chain data. If an RPC is slow, Nest keeps showing the last verified state instead of guessing.</p>
           </Section>
+
 
           <Section id="contracts" eyebrow="Technical" title="Smart contracts">
             <KV
