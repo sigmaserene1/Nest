@@ -393,14 +393,58 @@ const members = await client.readContract({
           </Section>
 
           <Section id="security" eyebrow="Resources" title="Security">
+            <p>What Nest controls, what it does not, and how to keep yourself safe.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Trust model</h3>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-sm font-bold text-foreground">Nest never has</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li>Your private keys or seed phrase</li>
+                  <li>Custody of USDC during a payment, settlement or bridge</li>
+                  <li>The ability to move funds out of your wallet without your signature</li>
+                </ul>
+              </div>
+              <div className="rounded-2xl border border-border bg-card p-5">
+                <p className="text-sm font-bold text-foreground">Nest does operate</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  <li>The website and its server functions</li>
+                  <li>A sponsor wallet that submits gasless USDC authorizations you sign</li>
+                  <li>A small fee top-up for brand-new email wallets on testnet</li>
+                </ul>
+              </div>
+            </div>
+            <h3 className="pt-2 text-base font-bold text-foreground">Key management</h3>
+            <p>
+              The sponsor key is a dedicated server-side key with no other permissions; it can only submit authorizations
+              that you have already signed, for the exact amount and recipient you approved. Provider credentials live in
+              server environment variables and are never shipped to the browser.
+            </p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Third-party components</h3>
             <ul className="list-disc space-y-1 pl-5">
-              <li>Non-custodial: Nest never holds user funds.</li>
+              <li><b className="text-foreground">Circle CCTP v2</b> — Circle-operated contracts and attestation service.</li>
+              <li><b className="text-foreground">Circle Wallets</b> — email wallets are created and secured by Circle; Nest never sees the keys.</li>
+              <li><b className="text-foreground">Wallets</b> — RainbowKit / WalletConnect. Always confirm the chain and the contract you approve inside your wallet.</li>
+            </ul>
+            <h3 className="pt-2 text-base font-bold text-foreground">Contract safety</h3>
+            <ul className="list-disc space-y-1 pl-5">
               <li>Exact approvals — only the amount you're paying.</li>
               <li>Every transaction is simulated before you sign.</li>
               <li>State updates happen before transfers to prevent re-entry.</li>
-              <li>Email wallets are secured by Circle; Nest never sees your keys.</li>
             </ul>
+            <h3 className="pt-2 text-base font-bold text-foreground">Staying safe</h3>
+            <ul className="list-disc space-y-1 pl-5">
+              <li>Only use <b className="text-foreground">nestarc.xyz</b>. We will never DM you first or ask for your seed phrase.</li>
+              <li>Check that approvals target the ExpenseManager address listed on the contracts section.</li>
+              <li>Revoke token approvals you no longer need from your wallet.</li>
+              <li>Verify the chain ID is 5042002 (Arc Testnet) before signing.</li>
+            </ul>
+            <h3 className="pt-2 text-base font-bold text-foreground">Report a vulnerability</h3>
+            <p>
+              Reach us through the <Link to="/support" className="font-bold text-brand">support page</Link> with details
+              and reproduction steps. Please don't disclose publicly until we've had a chance to fix it.
+            </p>
           </Section>
+
 
           <Section id="limitations" eyebrow="Resources" title="Limitations">
             <ul className="list-disc space-y-1 pl-5">
