@@ -236,6 +236,12 @@ function DocsPage() {
                 </div>
               ))}
             </div>
+            <h3 className="pt-2 text-base font-bold text-foreground">Who it's for</h3>
+            <p>Nest is built for anyone who shares money with other people: flatmates splitting rent and bills, friends on a trip, couples with a joint budget, and small teams paying for shared tools. Instead of one person keeping a spreadsheet and chasing everyone for payments, every member sees the same balances and can settle in a single tap.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Why Arc</h3>
+            <p>Arc is Circle's Layer 1 blockchain designed for stablecoin finance. Gas is paid in USDC, blocks finalise in under a second, and fees are typically a fraction of a cent. That makes small, everyday payments like a share of the electricity bill practical onchain for the first time, without anyone needing to buy a separate gas token.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">How it fits together</h3>
+            <p>Nest does not run its own ledger or hold anyone's funds. Homes, members, expenses and settlements live in one public contract on Arc, payments move native USDC directly between wallets, and bridging uses Circle's CCTP v2. The app is a front-end that reads that public data and helps you sign the right transactions.</p>
           </Section>
 
           <Section id="quick-start" eyebrow="Getting started" title="Quick start">
@@ -258,6 +264,10 @@ function DocsPage() {
                 <Fuel className="h-3.5 w-3.5" /> Circle faucet <ExternalLink className="h-3 w-3" />
               </a>
             </div>
+            <h3 className="pt-2 text-base font-bold text-foreground">Before you start</h3>
+            <p>You need either an email address or an EVM wallet such as MetaMask, Rabby or Coinbase Wallet. If you sign in with email, Nest creates a wallet for you through Circle and sends a small amount of testnet USDC to cover your first network fees. If you bring your own wallet, claim test USDC from the Circle faucet first.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">What to expect</h3>
+            <p>Each step that changes data asks your wallet to confirm. Arc confirms transactions in under a second, so your new home, expense or settlement appears almost immediately. If something fails, Nest shows the reason on the same screen and nothing is charged.</p>
           </Section>
 
           <Section id="network" eyebrow="Getting started" title="Network setup">
@@ -273,6 +283,10 @@ function DocsPage() {
               ]}
             />
             <Note>Testnet USDC has no value. Never send real funds to a testnet address.</Note>
+            <h3 className="pt-2 text-base font-bold text-foreground">Adding Arc automatically</h3>
+            <p>When you connect a wallet, Nest checks which network it is on. If it isn't Arc Testnet, Nest asks your wallet to add or switch to it. Approve the request and you're ready; no manual setup is needed for most wallets.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">USDC as gas</h3>
+            <p>On Arc your wallet shows USDC as the native balance. That balance pays for gas and is the same USDC you send and receive. The native interface uses 18 decimals while the token contract at 0x3600…0000 uses 6 decimals; they are the same asset, so the numbers always match once rounded.</p>
           </Section>
 
           <Section id="homes" eyebrow="Products" title="Homes & members">
@@ -285,6 +299,8 @@ function DocsPage() {
               <Card icon={Users} title="Invite">Share a link or add an address.</Card>
               <Card icon={KeyRound} title="Manage">Owners can rename and remove members.</Card>
             </div>
+            <p>Each home has an owner (the person who created it) and a list of members identified by wallet address. Members can have a display name, which is set from their profile and shown everywhere in the app instead of a raw address.</p>
+            <p>Invite links contain the home ID, so anyone who opens one and signs in can join. Owners can remove a member at any time, but a member with an open balance should settle first so the history stays clear. Because the home lives onchain, it can't be lost if you change phones or clear your browser.</p>
           </Section>
 
           <Section id="expenses" eyebrow="Products" title="Expenses & splits">
@@ -295,6 +311,10 @@ function DocsPage() {
               <li><b className="text-foreground">Recurring rent</b> — repeat a cost every month.</li>
             </ul>
             <p>Amounts use exact 6-decimal USDC math, so balances never drift by rounding.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Recording an expense</h3>
+            <p>Pick the home, enter the amount in USDC, choose who paid and add a short description like 'March rent' or 'Groceries'. Nest calculates each member's share and records the expense with one transaction. Everyone in the home sees it straight away.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">How balances are calculated</h3>
+            <p>Every expense creates debts from each participant to the person who paid. Nest adds these up across all expenses so you always see one net number per person: what you owe, or what you're owed. Shares are stored in the smallest USDC unit, so 10 USDC split three ways is 3.333334 + 3.333333 + 3.333333, never a cent more or less.</p>
           </Section>
 
           <Section id="settle" eyebrow="Products" title="Settle up">
@@ -310,6 +330,8 @@ function DocsPage() {
                 ["Receipt", "A receipt with an explorer link appears in Activity."],
               ]}
             />
+            <p>Settlements go through the ExpenseManager contract, which transfers USDC from you to the person you owe and marks the matching debt as paid in the same transaction. Because both happen together, a balance can never be marked paid without the money moving, or the other way round.</p>
+            <p>The first time you settle, your wallet asks you to approve USDC spending. Nest requests only the exact amount needed, not unlimited access. Each settlement emits a SplitSettled event that Nest reads back to build your receipt, so receipts are verifiable on the explorer by anyone.</p>
           </Section>
 
           <Section id="pay" eyebrow="Products" title="Pay & gasless">
@@ -319,6 +341,10 @@ function DocsPage() {
               sponsor submits it, so you pay no fee.
             </p>
             <Note>Contract settlements are not gasless — they need a small USDC fee from your wallet.</Note>
+            <h3 className="pt-2 text-base font-bold text-foreground">Sending USDC</h3>
+            <p>Enter an address or scan a payment request, type the amount and confirm. Payments go directly from your wallet to theirs; Nest never touches the funds in between. Every payment shows up in Activity with a link to the Arc explorer.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">How gasless works</h3>
+            <p>Instead of sending a normal transaction, you sign a short message that authorises one exact USDC transfer: amount, recipient and an expiry time. Nest's sponsor wallet submits that message to the USDC contract and pays the network fee. The sponsor cannot change the amount or recipient, and the authorisation can only be used once.</p>
           </Section>
 
           <Section id="bridge" eyebrow="Products" title="Bridge (CCTP v2)">
@@ -332,6 +358,10 @@ function DocsPage() {
               ]}
             />
             <p>Supported: Arc, Ethereum Sepolia, Base Sepolia, Arbitrum Sepolia, OP Sepolia, Avalanche Fuji and more. Your bridge history is private to your wallet.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Fast and standard transfers</h3>
+            <p>CCTP v2 Fast Transfer settles in seconds on chains that support it. Standard Transfer waits for the source chain to finalise, which can take several minutes on Ethereum. Once Circle's attestation is ready, minting on Arc is sub-second. Nest shows the expected time before you start.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">If you close the page</h3>
+            <p>Your bridge is saved to your device's history for your wallet. Come back to the Bridge page, open the pending transfer and Nest will pick up the attestation and let you finish the mint step. Your USDC is never lost; it is safely burned on the source chain until you mint it on the destination.</p>
           </Section>
 
           <Section id="assistant" eyebrow="Products" title="Settlement assistant">
@@ -343,6 +373,8 @@ function DocsPage() {
               <Card icon={Sparkles} title="Suggests">Finds the smallest set of payments.</Card>
               <Card icon={ShieldCheck} title="Stays in limits">Never exceeds your caps.</Card>
             </div>
+            <p>Turn the assistant on and set two limits: the most it can pay in one settlement and the most it can pay per day. It then looks at every open balance in your homes and prepares the smallest set of payments that clears them, showing the total before anything happens.</p>
+            <p>You stay in control the whole time. The assistant can't send money by itself; it only prepares the batch, and you confirm it in your wallet. If a payment would go over your limits, it is left out and clearly marked so you can settle it manually.</p>
           </Section>
 
           <Section id="wallets" eyebrow="Accounts" title="Wallets & email login">
@@ -351,10 +383,16 @@ function DocsPage() {
               <Card icon={Wallet} title="Bring a wallet">MetaMask, Rabby, Coinbase Wallet or any WalletConnect wallet.</Card>
             </div>
             <p>Email sessions last about an hour; after that you'll be asked to verify again.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Email wallets</h3>
+            <p>Enter your email and Nest sends a 6-digit code. Once you verify it, Circle creates a wallet linked to your email, or restores the one you already have. You can sign in on any device with the same email and see the same homes and balances. Circle may ask you to set a PIN on first sign-in to protect transactions.</p>
+            <h3 className="pt-2 text-base font-bold text-foreground">Bring your own wallet</h3>
+            <p>If you already use a wallet, tap Connect wallet and pick it from the list. Nest supports injected browser wallets and any mobile wallet through WalletConnect. You can switch between email and your own wallet at any time; each address has its own homes and history.</p>
           </Section>
 
           <Section id="profile" eyebrow="Accounts" title="Profile & activity">
             <p>Tap your wallet address in the sidebar to see your net position, what you've paid and received, and every onchain receipt for your wallet.</p>
+            <p>Your profile is built from your wallet's onchain history, so it's always accurate and identical on every device. It shows your total paid, total received, open balance across all homes, and a filtered list of every expense, settlement and payment you were part of.</p>
+            <p>From your profile you can copy your address, open it on the Arc explorer, and set the display name your housemates see. Changing your name never changes your address or history.</p>
           </Section>
 
           <Section id="architecture" eyebrow="Technical" title="Architecture">
@@ -389,6 +427,8 @@ function DocsPage() {
             <a href={`${EXPLORER}/address/${CONTRACT}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-xs font-bold text-brand">
               View on Arc explorer <ExternalLink className="h-3 w-3" />
             </a>
+            <p>ExpenseManager is the single source of truth for Nest. It stores homes, members, expenses and debt balances, and executes settlements in USDC. The contract is verified on the Arc explorer, so anyone can read the source code and every transaction it has processed.</p>
+            <p>Key events: RoomCreated when a home is made, ExpenseAdded when a cost is recorded, SplitSettled when a debt is paid, and DirectTransfer for direct payments between members. Nest uses these events to build receipts and activity.</p>
           </Section>
 
           <Section id="integration" eyebrow="Technical" title="Integration guide">
@@ -406,6 +446,8 @@ const members = await client.readContract({
   args: [homeId],
 });`}</Code>
             <p>Listen for <code className="font-mono text-foreground">SplitSettled</code> and <code className="font-mono text-foreground">DirectTransfer</code> events to build your own receipts.</p>
+            <p>Because everything lives in a public contract, other apps can read Nest data or build on top of it without permission. Use any Arc RPC endpoint, the ABI from the verified contract on the explorer, and standard viem or ethers tooling.</p>
+            <p>For writes, remember that settlements require a USDC approval to the ExpenseManager first, and all amounts use 6 decimals. Simulate transactions before sending them to catch errors like an insufficient balance or an already-settled debt.</p>
           </Section>
 
           <Section id="security" eyebrow="Resources" title="Security">
@@ -468,6 +510,8 @@ const members = await client.readContract({
               <li>EURC and cirBTC transfers are disabled until routes are confirmed.</li>
               <li>Some testnet RPCs can be slow; Nest keeps the last verified state.</li>
             </ul>
+            <p>Nest is in active development and the public version runs on Arc Testnet, so every balance is test money with no real value. We list known gaps here so you always know what to expect.</p>
+            <p>Email sessions expire after about an hour for security, after which you verify your email again. The sponsor wallet that pays gasless fees has a limited testnet balance; if it runs low, sends fall back to a normal transaction that you pay for in USDC.</p>
           </Section>
 
           <Section id="faq" eyebrow="Resources" title="FAQ">
