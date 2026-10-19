@@ -1,8 +1,9 @@
 # Roadmap
 
 ## Current
-- [ ] Replace the Privy-to-Circle email flow with native Privy EVM wallet creation and restoration.
-- [ ] Verify sign-in, wallet connector behavior, and preview; report any inbox-dependent checks.
+- [x] Replace the Privy-to-Circle email flow with native Privy EVM wallet creation and restoration.
+- [x] Verify the preview and sign-in dialog load without browser errors; resolve wallet connector type errors.
+- [ ] Verify real OTP completion, wallet creation/restoration and app entry — blocked by access to the email verification code.
 
 ## Done
 - [x] Polish Settlement Assistant (clear status header, small on/off switch, plain-language limits, highlighted action)
