@@ -1,5 +1,9 @@
 # Roadmap
 
+## Current
+- [ ] Replace the Privy-to-Circle email flow with native Privy EVM wallet creation and restoration.
+- [ ] Verify sign-in, wallet connector behavior, and preview; report any inbox-dependent checks.
+
 ## Done
 - [x] Polish Settlement Assistant (clear status header, small on/off switch, plain-language limits, highlighted action)
 - [x] Polish Syndicate mode (highlighted mode selector, simple revenue split, clearer payout rows)
