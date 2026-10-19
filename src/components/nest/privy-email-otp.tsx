@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck, CheckCircle2, Wallet } from "lucide-react";
 import { OTPInput } from "input-otp";
 import { useLoginWithEmail, usePrivy } from "@privy-io/react-auth";
 import { waitForPrivyWallet } from "@/lib/privy-wallet-session";
@@ -97,6 +97,21 @@ export function PrivyEmailOtp({
       verifyingRef.current = false;
     }
   };
+
+  if (authenticated) {
+    return <Button className="w-full" disabled={!!busy || disabled} onClick={async () => {
+      setBusy("verify");
+      onBusyChange(true);
+      onError(null);
+      try { await waitForPrivyWallet(); onAuthenticated(); }
+      catch (error) { onError(error instanceof Error ? error.message : "Could not open your wallet."); }
+      finally { setBusy(null); onBusyChange(false); }
+    }}>
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wallet className="h-4 w-4" />}
+      {busy ? "Opening wallet…" : "Continue to Nest"}
+    </Button>;
+  }
+
 
   if (step === "code") {
     return (
@@ -210,19 +225,6 @@ export function PrivyEmailOtp({
     );
   }
 
-  if (authenticated) {
-    return <Button className="w-full" disabled={!!busy || disabled} onClick={async () => {
-      setBusy("verify");
-      onBusyChange(true);
-      onError(null);
-      try { await waitForPrivyWallet(); onAuthenticated(); }
-      catch (error) { onError(error instanceof Error ? error.message : "Could not open your wallet."); }
-      finally { setBusy(null); onBusyChange(false); }
-    }}>
-      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <WalletIcon />}
-      {busy ? "Opening wallet…" : "Continue to Nest"}
-    </Button>;
-  }
 
   return (
     <form

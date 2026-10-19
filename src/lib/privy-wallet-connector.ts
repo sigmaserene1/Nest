@@ -1,7 +1,6 @@
 import { createConnector } from "wagmi";
 import { numberToHex, type Address } from "viem";
 import { disconnectPrivyWallet, getPrivyWalletSession, PRIVY_CONNECTOR_ID } from "@/lib/privy-wallet-session";
-import { arcChainFor, getArcEnvironment } from "@/lib/arc-network";
 
 export function privyWalletConnector() {
   return createConnector((config) => {

@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { useConnect, useDisconnect } from "wagmi";
 import { EMBEDDED_CONNECTOR_ID, clearActiveEmbeddedSession } from "@/lib/embedded-wallet";
+
+import { getPrivyWalletSession, getServerPrivyWalletSession, subscribePrivyWalletSession, disconnectPrivyWallet } from "@/lib/privy-wallet-session";
 
 type Session = { address: string; email: string; createdAt: number };
 
@@ -19,6 +21,7 @@ function readSession(): Session | null {
  * Google OAuth, then the user's Circle wallet is connected through wagmi.
  */
 export function useEmailAuth() {
+  const privy = useSyncExternalStore(subscribePrivyWalletSession, getPrivyWalletSession, getServerPrivyWalletSession);
   const { connectAsync, connectors } = useConnect();
   const { disconnectAsync } = useDisconnect();
   const [session, setSession] = useState<Session | null>(null);
@@ -45,7 +48,7 @@ export function useEmailAuth() {
       if (cancelled) return;
       const s = readSession();
       setSession(s);
-      if (s) {
+      if (s && !getPrivyWalletSession().address) {
         const connector = connectors.find((c) => c.id === EMBEDDED_CONNECTOR_ID);
         if (connector) {
           try {
@@ -87,13 +90,14 @@ export function useEmailAuth() {
   }, []);
 
   const signOut = useCallback(async () => {
-    clearActiveEmbeddedSession();
+    if (getPrivyWalletSession().address) await disconnectPrivyWallet();
+    else clearActiveEmbeddedSession();
   }, []);
 
   return {
-    ready,
-    userId: session?.address ?? null,
-    email: session?.email ?? null,
+    ready: ready && privy.ready,
+    userId: privy.address ?? session?.address ?? null,
+    email: privy.email ?? session?.email ?? null,
     signIn,
     signInWithGoogle,
     signOut,

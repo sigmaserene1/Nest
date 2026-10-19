@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Mail, Wallet, Loader2, ShieldCheck, UserPlus, LogIn } from "lucide-react";
 import {
   Dialog,
@@ -46,12 +46,6 @@ export function SignInDialog({
   const [busy, setBusy] = useState<"email" | "google" | "privy" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Warm Circle's relatively heavy browser SDK while the user is reading the
-  // sign-in sheet, not after they tap Continue.
-  useEffect(() => {
-    if (!open) return;
-    void import("@/lib/circle-sdk");
-  }, [open]);
 
   const reset = (o: boolean) => {
     if (!o) {
@@ -187,7 +181,7 @@ export function SignInDialog({
               {mode === "signup"
                 ? inviteMode
                   ? "Set up your Nest identity, then review and join the workspace you were invited to. Nest will not create another workspace."
-                  : "Set up your identity and first shared workspace. Circle creates your user-controlled Arc wallet after verification."
+                  : "Set up your identity and first shared workspace. Privy creates your EVM wallet after email verification."
                 : inviteMode
                   ? "Sign in, review the invitation, then join the existing workspace."
                   : "Sign in with the same Google account, email or wallet you used before."}
@@ -365,10 +359,10 @@ export function SignInDialog({
           <p className="px-1 pt-1 text-center text-[11px] leading-4 text-muted-foreground">
             {mode === "signup"
               ? hasPrivyEmail
-                ? "No password. Privy verifies your email; Circle keeps the user-controlled Arc wallet and secure PIN recovery."
+                ? "No password. Sign in with your email to create or restore your Privy EVM wallet."
                 : "No password. Circle handles secure email or Google verification and wallet recovery."
               : hasPrivyEmail
-                ? "Email uses a boxed Privy code flow. Circle remains the wallet provider."
+                ? "Your email opens the same Privy EVM wallet when you return."
                 : "Email verification is completed in Circle’s secure wallet window."}
           </p>
 
