@@ -34,8 +34,9 @@ export function PrivyWalletBridge() {
       if (account.connector?.id === PRIVY_CONNECTOR_ID) void disconnectAsync();
       return;
     }
+    if (failed.current) return;
     updatePrivyWalletSession({ ready: false, email: user?.email?.address ?? null });
-    if (!walletsReady || !user || failed.current) return;
+    if (!walletsReady || !user) return;
     if (!wallet) {
       // Linked-account metadata may arrive before the wallet provider; do not
       // create a second wallet while the existing one is still restoring.

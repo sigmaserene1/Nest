@@ -1,4 +1,5 @@
-import type { Address, EIP1193Provider } from "viem";
+import type { Address } from "viem";
+import type { EIP1193Provider } from "@privy-io/react-auth";
 
 export const PRIVY_CONNECTOR_ID = "nest.privy";
 type WalletSession = {
