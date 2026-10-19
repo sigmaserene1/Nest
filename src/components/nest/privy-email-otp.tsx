@@ -1,7 +1,8 @@
 import { useMemo, useRef, useState } from "react";
 import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck, CheckCircle2 } from "lucide-react";
 import { OTPInput } from "input-otp";
-import { useLoginWithEmail, useToken, useLogout } from "@privy-io/react-auth";
+import { useLoginWithEmail, usePrivy } from "@privy-io/react-auth";
+import { waitForPrivyWallet } from "@/lib/privy-wallet-session";
 import { Button } from "@/components/ui/button";
 
 type Props = {
@@ -24,8 +25,7 @@ export function PrivyEmailOtp({
   onAuthenticated,
 }: Props) {
   const { sendCode, loginWithCode } = useLoginWithEmail();
-  const { getAccessToken } = useToken();
-  const { logout } = useLogout();
+  const { authenticated } = usePrivy();
   const [step, setStep] = useState<"email" | "code">("email");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState<"send" | "verify" | "resend" | null>(null);
@@ -70,15 +70,8 @@ export function PrivyEmailOtp({
     try {
       // Use the completed value directly. Waiting for React state here can
       // race the sixth OTP digit and leave the user stuck on the code screen.
-      await loginWithCode({ code: candidate });
-      const accessToken = await getAccessToken();
-      if (!accessToken) throw new Error("Privy did not return a verified session.");
-
-      const { loginCircleWalletFromPrivy } = await import("@/lib/circle-sdk");
-      await loginCircleWalletFromPrivy(accessToken, normalizedEmail);
-
-      // Privy is only the OTP broker; Circle remains the wallet session.
-      await logout().catch(() => undefined);
+      if (!authenticated) await loginWithCode({ code: candidate });
+      await waitForPrivyWallet();
 
       setBusy(null);
       setVerified(true);
@@ -89,8 +82,8 @@ export function PrivyEmailOtp({
       await new Promise((resolve) => window.setTimeout(resolve, 450));
       onAuthenticated();
     } catch (error) {
-      // Clear any half-finished Privy session so the next attempt starts clean.
-      await logout().catch(() => undefined);
+      // Keep the verified Privy session so a wallet failure is retryable and
+      // the same embedded wallet is restored rather than starting over.
       setVerified(false);
       const message = error instanceof Error ? error.message : "That code could not be verified.";
       onError(
@@ -98,8 +91,6 @@ export function PrivyEmailOtp({
           ? "Email sign-in isn't fully set up yet. Please try again shortly."
           : message,
       );
-      setCode("");
-      setStep("email");
       setBusy(null);
       onBusyChange(false);
     } finally {
@@ -217,6 +208,20 @@ export function PrivyEmailOtp({
         </p>
       </section>
     );
+  }
+
+  if (authenticated) {
+    return <Button className="w-full" disabled={!!busy || disabled} onClick={async () => {
+      setBusy("verify");
+      onBusyChange(true);
+      onError(null);
+      try { await waitForPrivyWallet(); onAuthenticated(); }
+      catch (error) { onError(error instanceof Error ? error.message : "Could not open your wallet."); }
+      finally { setBusy(null); onBusyChange(false); }
+    }}>
+      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <WalletIcon />}
+      {busy ? "Opening wallet…" : "Continue to Nest"}
+    </Button>;
   }
 
   return (

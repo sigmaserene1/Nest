@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { lazy as lazyPrivy, Suspense, useEffect as usePrivyEffect, useState as usePrivyState } from "react";
 const LazyPrivyProvider = lazyPrivy(() => import("@/components/nest/privy-client-provider"));
+const LazyPrivyWalletBridge = lazyPrivy(() => import("@/components/nest/privy-wallet-bridge").then((m) => ({ default: m.PrivyWalletBridge })));
 function usePrivyMounted() {
   const [m, setM] = usePrivyState(false);
   usePrivyEffect(() => setM(true), []);
@@ -112,16 +113,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "Record shared obligations, resolve exact balances and settle peer-to-peer in native USDC on Arc.",
       },
-      {
-        property: "og:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/275d37a9-1876-48ba-91cb-076625cfcf0d",
-      },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],
@@ -159,8 +150,9 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
-  const app = (
+  const app = (withPrivy = false) => (
     <Web3Provider>
+      {withPrivy ? <Suspense fallback={null}><LazyPrivyWalletBridge /></Suspense> : null}
       <NestChainProvider>
         <Outlet />
         <Toaster />
@@ -174,11 +166,11 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       {configuredPrivyAppId && privyMounted ? (
-        <Suspense fallback={app}>
-          <LazyPrivyProvider appId={configuredPrivyAppId}>{app}</LazyPrivyProvider>
+        <Suspense fallback={app()}>
+          <LazyPrivyProvider appId={configuredPrivyAppId}>{app(true)}</LazyPrivyProvider>
         </Suspense>
       ) : (
-        app
+        app()
       )}
     </QueryClientProvider>
   );
