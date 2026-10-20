@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [ ] Simplify email sign-in to Privy OTP and wallet only; match the popup and square PIN boxes to Nest.
 - [x] Replace the Privy-to-Circle email flow with native Privy EVM wallet creation and restoration.
 - [x] Verify the preview and sign-in dialog load without browser errors; resolve wallet connector type errors.
 - [ ] Verify real OTP completion, wallet creation/restoration and app entry — blocked by access to the email verification code.
