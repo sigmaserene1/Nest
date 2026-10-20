@@ -3,11 +3,14 @@
 
 import { useCallback } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
-import { parseUnits } from "viem";
+import { useServerFn } from "@tanstack/react-start";
+import { parseEther, parseUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
 import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useNestChain } from "./nest-chain";
+import { PRIVY_CONNECTOR_ID, getPrivyGasGrantAccessToken } from "@/lib/privy-wallet-session";
+import { fundFirstWorkspaceGas } from "@/lib/onboarding-gas.functions";
 
 export type TxStep = (label: string) => void;
 
@@ -16,7 +19,8 @@ export function toUnits(amount: number): bigint {
 }
 
 export function useNestWrites() {
-  const { address } = useAccount();
+  const { address, connector } = useAccount();
+  const firstWorkspaceGas = useServerFn(fundFirstWorkspaceGas);
   const environment = useArcEnvironment();
   const arcChain = arcChainFor(environment);
   const { data: walletClient } = useWalletClient();
@@ -101,7 +105,26 @@ export function useNestWrites() {
     [ensureAllowanceUnits],
   );
 
-  const createRoom = useCallback((name: string) => send("createRoom", [name]), [send]);
+  // Only the *first workspace create* of a zero-balance Privy email wallet
+  // can receive a tiny testnet gas stipend. No other transaction is changed.
+  // Privy EOA gas fees are paid in Arc native USDC, not ERC-20 decimals.
+  const createRoom = useCallback(async (name: string) => {
+    if (environment === "testnet" && connector?.id === PRIVY_CONNECTOR_ID) {
+      const { address: wallet, publicClient } = requireEnv();
+      const balance = await publicClient.getBalance({ address: wallet });
+      if (balance < parseEther("0.02")) {
+        const accessToken = await getPrivyGasGrantAccessToken();
+        if (!accessToken) {
+          throw new Error("Your email session expired. Sign in again or use the Circle Faucet to get Arc Testnet USDC.");
+        }
+        // The server verifies ownership and enforces one per Privy user AND
+        // recipient wallet. If funding is disabled, fail transparently instead
+        // of opening the doomed 0-USDC Privy approval popup.
+        await firstWorkspaceGas({ data: { accessToken, walletAddress: wallet } });
+      }
+    }
+    return send("createRoom", [name]);
+  }, [environment, connector?.id, requireEnv, firstWorkspaceGas, send]);
   const joinRoom = useCallback((id: number) => send("joinRoom", [BigInt(id)]), [send]);
   const inviteMember = useCallback(
     (member: `0x${string}`) => {
