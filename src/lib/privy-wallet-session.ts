@@ -34,7 +34,6 @@ export async function disconnectPrivyWallet() {
   updatePrivyWalletSession({ ...empty, ready: true });
 }
 export function waitForPrivyWallet(timeout = 90_000): Promise<Address> {
-  retry?.();
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       unsubscribe();
@@ -53,6 +52,7 @@ export function waitForPrivyWallet(timeout = 90_000): Promise<Address> {
       }
     };
     const unsubscribe = subscribePrivyWalletSession(check);
+    retry?.();
     check();
   });
 }
