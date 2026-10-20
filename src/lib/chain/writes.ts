@@ -112,7 +112,7 @@ export function useNestWrites() {
     if (environment === "testnet" && connector?.id === PRIVY_CONNECTOR_ID) {
       const { address: wallet, publicClient } = requireEnv();
       const balance = await publicClient.getBalance({ address: wallet });
-      if (balance < parseEther("0.02")) {
+      if (balance < parseEther("0.35")) {
         const accessToken = await getPrivyGasGrantAccessToken();
         if (!accessToken) {
           throw new Error("Your email session expired. Sign in again or use the Circle Faucet to get Arc Testnet USDC.");
@@ -120,7 +120,9 @@ export function useNestWrites() {
         // The server verifies ownership and enforces one per Privy user AND
         // recipient wallet. If funding is disabled, fail transparently instead
         // of opening the doomed 0-USDC Privy approval popup.
-        await firstWorkspaceGas({ data: { accessToken, walletAddress: wallet } });
+        await firstWorkspaceGas({
+          data: { accessToken, walletAddress: wallet, workspaceName: name },
+        });
       }
     }
     return send("createRoom", [name]);
