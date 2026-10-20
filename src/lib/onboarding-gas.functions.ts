@@ -20,6 +20,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 import { arcTestnet } from "@/lib/arc-network";
 import { TESTNET_EXPENSE_MANAGER_ADDRESS } from "@/lib/chain/config";
+import { NEST_PRIVY_APP_ID } from "@/lib/privy-config";
 
 const REQUEST = z.object({
   accessToken: z.string().min(20).max(10_000),
@@ -41,7 +42,7 @@ function sponsorWallet() {
 
 function privy() {
   const appId = (process.env.PRIVY_APP_ID ??
-    process.env.VITE_PRIVY_APP_ID ?? "").trim();
+    process.env.VITE_PRIVY_APP_ID ?? NEST_PRIVY_APP_ID).trim();
   const appSecret = String(process.env.PRIVY_APP_SECRET ?? "").trim();
   if (!appId || !appSecret) {
     throw new Error("Privy server verification is not configured.");
