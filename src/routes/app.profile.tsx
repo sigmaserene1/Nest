@@ -21,10 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { AppShell, Card } from "@/components/nest/app-shell";
-import {
-  MemberAvatar,
-  ProfileAvatarGraphic,
-} from "@/components/nest/avatar";
+import { MemberAvatar, ProfileAvatarGraphic } from "@/components/nest/avatar";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
 import { ViewportPortal } from "@/components/nest/viewport-portal";
@@ -49,8 +46,7 @@ export const Route = createFileRoute("/app/profile")({
       { title: "Your profile · Nest" },
       {
         name: "description",
-        content:
-          "Your Nest identity, avatar, wallet and verified onchain activity on Arc.",
+        content: "Your Nest identity, avatar, wallet and verified onchain activity on Arc.",
       },
       { property: "og:title", content: "Your profile · Nest" },
       {
@@ -80,10 +76,7 @@ function ProfilePage() {
   const avatar = useProfileAvatar(address || member.id);
 
   const mine = useMemo(
-    () =>
-      activity.filter(
-        (a) => a.actorId === me || a.counterpartyId === me,
-      ),
+    () => activity.filter((a) => a.actorId === me || a.counterpartyId === me),
     [activity, me],
   );
 
@@ -106,9 +99,7 @@ function ProfilePage() {
   const filtered = mine.filter((a) => {
     if (tab === "All") return true;
     if (tab === "Paid") {
-      return (
-        (a.kind === "transfer" || a.kind === "settlement") && a.actorId === me
-      );
+      return (a.kind === "transfer" || a.kind === "settlement") && a.actorId === me;
     }
     if (tab === "Received") return a.counterpartyId === me;
     return a.kind === "expense" && a.actorId === me;
@@ -304,7 +295,7 @@ function ProfilePage() {
             className={`min-h-9 shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
               tab === t
                 ? "bg-foreground text-background"
-                : "bg-card text-muted-foreground ring-1 ring-black/[0.04]"
+                : "bg-card text-muted-foreground ring-1 ring-border"
             }`}
           >
             {t}
@@ -359,9 +350,7 @@ function ProfilePage() {
                   {a.amount != null ? (
                     <div
                       className={`shrink-0 text-sm font-bold tabular-nums ${
-                        outgoing && a.kind !== "expense"
-                          ? "text-red-500"
-                          : "text-emerald-600"
+                        outgoing && a.kind !== "expense" ? "text-red-500" : "text-emerald-600"
                       }`}
                     >
                       {a.kind === "expense" ? "" : outgoing ? "-" : "+"}
@@ -534,7 +523,9 @@ function EditProfileModal({
                 placeholder="e.g. Managing the shared treasury"
                 className="w-full resize-none rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15"
               />
-              <span className="text-right text-[10px] text-muted-foreground">{note.length}/140</span>
+              <span className="text-right text-[10px] text-muted-foreground">
+                {note.length}/140
+              </span>
             </label>
 
             <div className="rounded-3xl border border-border/70 bg-muted/30 p-4">

@@ -325,24 +325,128 @@
 }
 
 /* Keep status panels readable when a page still uses a light semantic utility. */
-.dark .bg-amber-50 { background-color: rgb(245 158 11 / 0.12) !important; }
-.dark .bg-sky-50 { background-color: rgb(14 165 233 / 0.12) !important; }
-.dark .bg-red-50 { background-color: rgb(239 68 68 / 0.12) !important; }
+.dark .bg-amber-50 {
+  background-color: rgb(245 158 11 / 0.12) !important;
+}
+.dark .bg-sky-50 {
+  background-color: rgb(14 165 233 / 0.12) !important;
+}
+.dark .bg-red-50 {
+  background-color: rgb(239 68 68 / 0.12) !important;
+}
 .dark .bg-emerald-50,
-.dark .bg-green-50 { background-color: rgb(16 185 129 / 0.12) !important; }
+.dark .bg-green-50 {
+  background-color: rgb(16 185 129 / 0.12) !important;
+}
 .dark .text-amber-950,
 .dark .text-amber-900,
 .dark .text-amber-700,
-.dark .text-amber-600 { color: #fcd34d !important; }
+.dark .text-amber-600 {
+  color: #fcd34d !important;
+}
 .dark .text-sky-950,
 .dark .text-sky-700,
-.dark .text-sky-600 { color: #7dd3fc !important; }
+.dark .text-sky-600 {
+  color: #7dd3fc !important;
+}
 .dark .text-red-700,
-.dark .text-red-600 { color: #ffaaa4 !important; }
+.dark .text-red-600 {
+  color: #ffaaa4 !important;
+}
 .dark .text-emerald-700,
 .dark .text-emerald-600,
-.dark .text-green-600 { color: #6ee7b7 !important; }
-.dark .border-amber-200 { border-color: rgb(245 158 11 / 0.3) !important; }
+.dark .text-green-600 {
+  color: #6ee7b7 !important;
+}
+.dark .border-amber-200 {
+  border-color: rgb(245 158 11 / 0.3) !important;
+}
+.dark .bg-amber-100 {
+  background-color: rgb(245 158 11 / 0.2) !important;
+}
+.dark .bg-indigo-50 {
+  background-color: rgb(99 102 241 / 0.14) !important;
+}
+.dark .text-indigo-700,
+.dark .text-indigo-600 {
+  color: #a5b4fc !important;
+}
+
+/* High-contrast app surfaces. Keep wallet and settle totals readable even
+   when the surrounding theme is near-black. */
+.app-wallet-hero {
+  background: linear-gradient(135deg, #0b1020 0%, #11172a 48%, #24263a 100%);
+  border: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.settle-total-card {
+  color: #111827;
+  background: linear-gradient(
+    135deg,
+    rgb(247 249 255 / 0.99) 0%,
+    rgb(222 227 239 / 0.98) 54%,
+    rgb(186 194 211 / 0.97) 100%
+  );
+  border-color: rgb(255 255 255 / 0.28);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.78) inset,
+    0 24px 54px rgb(4 9 22 / 0.18);
+}
+
+.dark .settle-total-card {
+  background: linear-gradient(135deg, #f7f9ff 0%, #dfe4ef 54%, #b6bfce 100%);
+  border-color: rgb(255 255 255 / 0.24);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / 0.8) inset,
+    0 26px 62px rgb(0 0 0 / 0.34);
+}
+
+.settle-total-card__glow {
+  background: radial-gradient(
+    circle,
+    rgb(255 107 99 / 0.42),
+    rgb(75 84 119 / 0.22) 44%,
+    transparent 72%
+  );
+  filter: blur(4px);
+  opacity: 0.8;
+}
+
+.settle-explainer {
+  min-height: 100%;
+}
+
+.settle-step-number {
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+
+.settle-security-note {
+  background: color-mix(in oklab, var(--muted) 76%, transparent);
+  border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
+}
+
+.settle-empty-state {
+  background: rgb(16 185 129 / 0.1);
+  border-color: rgb(16 185 129 / 0.22);
+  color: #087f5b;
+}
+
+.dark .settle-step-number {
+  background: rgb(255 107 99 / 0.16);
+  color: #ffaaa4;
+}
+
+.dark .settle-security-note {
+  background: rgb(255 255 255 / 0.045);
+  border-color: rgb(255 255 255 / 0.08);
+}
+
+.dark .settle-empty-state {
+  background: rgb(16 185 129 / 0.14);
+  border-color: rgb(110 231 183 / 0.22);
+  color: #a7f3d0;
+}
 
 @utility lift {
   border-radius: 1.25rem;
@@ -429,8 +533,12 @@
 }
 
 @keyframes nest-backdrop-enter {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .nest-page-transition {
@@ -450,16 +558,36 @@
   animation-delay: var(--nest-stagger-delay, 0ms);
 }
 
-.nest-stagger .nest-motion-item:nth-child(1) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 0ms); }
-.nest-stagger .nest-motion-item:nth-child(2) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 36ms); }
-.nest-stagger .nest-motion-item:nth-child(3) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 72ms); }
-.nest-stagger .nest-motion-item:nth-child(4) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 108ms); }
-.nest-stagger .nest-motion-item:nth-child(5) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 144ms); }
-.nest-stagger .nest-motion-item:nth-child(6) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 180ms); }
-.nest-stagger .nest-motion-item:nth-child(7) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 216ms); }
-.nest-stagger .nest-motion-item:nth-child(8) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 252ms); }
-.nest-stagger .nest-motion-item:nth-child(9) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 288ms); }
-.nest-stagger .nest-motion-item:nth-child(10) { animation-delay: calc(var(--nest-stagger-delay, 0ms) + 324ms); }
+.nest-stagger .nest-motion-item:nth-child(1) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 0ms);
+}
+.nest-stagger .nest-motion-item:nth-child(2) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 36ms);
+}
+.nest-stagger .nest-motion-item:nth-child(3) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 72ms);
+}
+.nest-stagger .nest-motion-item:nth-child(4) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 108ms);
+}
+.nest-stagger .nest-motion-item:nth-child(5) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 144ms);
+}
+.nest-stagger .nest-motion-item:nth-child(6) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 180ms);
+}
+.nest-stagger .nest-motion-item:nth-child(7) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 216ms);
+}
+.nest-stagger .nest-motion-item:nth-child(8) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 252ms);
+}
+.nest-stagger .nest-motion-item:nth-child(9) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 288ms);
+}
+.nest-stagger .nest-motion-item:nth-child(10) {
+  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 324ms);
+}
 
 .nest-tap {
   transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -815,7 +943,10 @@
     linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
     linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px),
     radial-gradient(circle at 76% 3%, rgb(255 107 99 / 0.08), transparent 23rem);
-  background-size: 52px 52px, 52px 52px, auto;
+  background-size:
+    52px 52px,
+    52px 52px,
+    auto;
   mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
 }
 
@@ -925,4 +1056,3 @@ html {
     display: none;
   }
 }
-

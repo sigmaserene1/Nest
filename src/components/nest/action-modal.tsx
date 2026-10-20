@@ -284,14 +284,27 @@ export function ActionModal({
       toast.success(
         mode === "settle" ? `Settled ${fmtUSD(amt)} USDC onchain` : "Transaction confirmed onchain",
       );
-      if (hash && me && isAddress(toAddress) && (mode === "settle" || !isSplit) && mode !== "request") {
+      if (
+        hash &&
+        me &&
+        isAddress(toAddress) &&
+        (mode === "settle" || !isSplit) &&
+        mode !== "request"
+      ) {
         recordReceipt({
           hash,
           from: me,
           to: toAddress.toLowerCase(),
           amount: amt,
           date: new Date().toISOString(),
-          kind: mode === "settle" ? "settle" : mode === "rent" ? "rent" : mode === "scan" ? "qr" : "pay",
+          kind:
+            mode === "settle"
+              ? "settle"
+              : mode === "rent"
+                ? "rent"
+                : mode === "scan"
+                  ? "qr"
+                  : "pay",
           note: note.trim() || undefined,
           chainId: wallet.arcChain.id,
         });
@@ -312,9 +325,7 @@ export function ActionModal({
 
   return (
     <ViewportPortal>
-          <div
-
-
+      <div
         className="fixed inset-0 z-50 flex items-end justify-center overscroll-contain bg-black/45 backdrop-blur-[6px] sm:items-center"
         onClick={stageIsBusy ? undefined : onClose}
       >
@@ -371,7 +382,9 @@ export function ActionModal({
                   onClick={wallet.switchToArc}
                   className="mt-4 flex w-full items-center justify-between rounded-2xl bg-amber-50 px-4 py-3 text-xs ring-1 ring-amber-200 hover:bg-amber-100"
                 >
-                  <span className="font-semibold text-amber-900">Switch to {wallet.arcChain.name}</span>
+                  <span className="font-semibold text-amber-900">
+                    Switch to {wallet.arcChain.name}
+                  </span>
                   <span className="rounded-full bg-amber-600 px-3 py-1 font-bold text-white">
                     Switch
                   </span>
@@ -441,7 +454,7 @@ export function ActionModal({
                           className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${
                             active
                               ? "border-indigo-500 bg-indigo-50 text-indigo-700"
-                              : "border-border bg-white text-foreground"
+                              : "border-border bg-card text-foreground"
                           }`}
                         >
                           <MemberAvatar member={m} size={26} />
@@ -477,7 +490,7 @@ export function ActionModal({
                         className={`flex items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-sm font-semibold transition ${
                           recipientId === m.id
                             ? "border-brand bg-brand/10 text-brand"
-                            : "border-border bg-white text-foreground"
+                            : "border-border bg-card text-foreground"
                         }`}
                       >
                         <MemberAvatar member={m} size={26} />
@@ -533,7 +546,7 @@ export function ActionModal({
                   type="button"
                   onClick={() => setGasFree((v) => !v)}
                   className={`mt-4 flex w-full items-center justify-between rounded-2xl border px-4 py-3 text-left transition ${
-                    gasFree ? "border-emerald-500 bg-emerald-50" : "border-border bg-white"
+                    gasFree ? "border-emerald-500 bg-emerald-50" : "border-border bg-card"
                   }`}
                 >
                   <span className="min-w-0">
@@ -607,10 +620,7 @@ export function ActionModal({
                 className={`mx-auto grid h-20 w-20 place-items-center rounded-full ${stage === "failed" ? "bg-brand/10" : "bg-brand-soft"}`}
               >
                 {stage === "done" ? (
-                  <div
-
-
-                  >
+                  <div>
                     <Check className="h-10 w-10 text-brand" strokeWidth={2.5} />
                   </div>
                 ) : stage === "failed" ? (

@@ -16,9 +16,17 @@ export const Route = createFileRoute("/app/expenses")({
   head: () => ({
     meta: [
       { title: "Expenses · Nest" },
-      { name: "description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
+      {
+        name: "description",
+        content:
+          "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share.",
+      },
       { property: "og:title", content: "Expenses · Nest" },
-      { property: "og:description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
+      {
+        property: "og:description",
+        content:
+          "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share.",
+      },
     ],
   }),
 });
@@ -65,7 +73,9 @@ function Expenses() {
       });
       close();
     } catch (error) {
-      setSaveError(error instanceof Error ? error.message.split("\n")[0] : "Could not add expense.");
+      setSaveError(
+        error instanceof Error ? error.message.split("\n")[0] : "Could not add expense.",
+      );
     } finally {
       setSaving(false);
     }
@@ -95,7 +105,7 @@ function Expenses() {
               className={`shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
                 cat === c
                   ? "bg-foreground text-background"
-                  : "bg-card text-muted-foreground ring-1 ring-black/[0.04] hover:text-foreground"
+                  : "bg-card text-muted-foreground ring-1 ring-border hover:text-foreground"
               }`}
             >
               {c}
@@ -169,18 +179,13 @@ function Expenses() {
         )}
       </div>
 
-              {modal && (
-          <ViewportPortal><div
-
-
-
+      {modal && (
+        <ViewportPortal>
+          <div
             onClick={close}
             className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
           >
             <div
-
-
-
               onClick={(e) => e.stopPropagation()}
               className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto rounded-[30px] p-5 sm:max-h-[90vh] sm:w-full sm:p-6"
             >
@@ -199,10 +204,7 @@ function Expenses() {
                       <X className="h-4 w-4" />
                     </button>
                   </div>
-                  <ExpenseForm
-                    onSave={handleSave}
-                    saving={saving}
-                  />
+                  <ExpenseForm onSave={handleSave} saving={saving} />
                   {saveError ? (
                     <div
                       role="alert"
@@ -215,9 +217,10 @@ function Expenses() {
               )}
               {modal.mode === "detail" && <ExpenseDetail expense={modal.expense} onClose={close} />}
             </div>
-          </div></ViewportPortal>
-        )}
-          </AppShell>
+          </div>
+        </ViewportPortal>
+      )}
+    </AppShell>
   );
 }
 
