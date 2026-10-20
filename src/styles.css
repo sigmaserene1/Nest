@@ -136,18 +136,12 @@
     font-family: var(--font-sans);
   }
   body {
-    min-height: 100dvh;
-    overflow-x: hidden;
+    min-height: 100vh;
     background:
       radial-gradient(
-        circle at 88% -10%,
-        color-mix(in oklab, var(--brand) 18%, transparent),
-        transparent 34rem
-      ),
-      radial-gradient(
-        circle at 100% 72%,
-        color-mix(in oklab, var(--brand) 5%, transparent),
-        transparent 32rem
+        circle at 82% -12%,
+        color-mix(in oklab, var(--brand) 12%, transparent),
+        transparent 31rem
       ),
       radial-gradient(circle at 3% 24%, rgb(99 102 241 / 0.06), transparent 27rem),
       var(--color-background);
@@ -182,72 +176,63 @@
 }
 
 .dark {
-  /* Keep the app on the same near-black navy/coral palette as nestarc.xyz. */
-  --background: #080a11;
-  --foreground: #f5f7fb;
+  --background: #080a10;
+  --foreground: #f7f8fc;
 
-  --surface: #0d1018;
-  --surface-muted: #151925;
+  --surface: rgb(16 19 29 / 0.82);
+  --surface-muted: #121622;
 
-  --card: #141722;
+  --card: rgb(16 19 29 / 0.78);
   --card-foreground: #f5f7fb;
 
-  --popover: #171b27;
+  --popover: #0d0f15;
   --popover-foreground: #f5f7fb;
 
-  --brand: #ff6b63;
-  --brand-foreground: #ffffff;
-  --brand-soft: #2b171b;
+  --brand: #ff685f;
+  --brand-foreground: #140605;
+  --brand-soft: #301717;
 
-  --primary: #ff6b63;
-  --primary-foreground: #ffffff;
+  --primary: #ff5a52;
+  --primary-foreground: #140605;
 
-  --secondary: #171b26;
+  --secondary: #171b28;
   --secondary-foreground: #f5f7fb;
 
-  --muted: #171b26;
-  --muted-foreground: #9299aa;
+  --muted: #171b28;
+  --muted-foreground: #9da6ba;
 
-  --accent: #1e2330;
+  --accent: #1b2030;
   --accent-foreground: #f5f7fb;
 
-  --destructive: #ff6b63;
-  --destructive-foreground: #ffffff;
+  --destructive: #ff5a52;
+  --destructive-foreground: #140605;
 
-  --border: #262b38;
-  --input: #2e3444;
-  --ring: #ff6b63;
+  --border: #262c3b;
+  --input: #2a3040;
+  --ring: #ff5a52;
 
-  --sidebar: #0d1018;
+  --sidebar: #10131d;
   --sidebar-foreground: #f5f7fb;
-  --sidebar-primary: #ff6b63;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #171b26;
+  --sidebar-primary: #ff5a52;
+  --sidebar-primary-foreground: #140605;
+  --sidebar-accent: #15181f;
   --sidebar-accent-foreground: #f5f7fb;
-  --sidebar-border: #252a36;
-  --sidebar-ring: #ff6b63;
+  --sidebar-border: #22262f;
+  --sidebar-ring: #ff5a52;
 }
 
 @utility glass {
-  background:
-    linear-gradient(145deg, color-mix(in oklab, #fff 30%, transparent), transparent 42%),
-    color-mix(in oklab, var(--card) 92%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 86%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in oklab, #fff 62%, transparent) inset,
-    0 10px 32px rgb(15 23 42 / 0.06);
-  backdrop-filter: blur(20px) saturate(1.08);
+  background: color-mix(in oklab, var(--card) 91%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 88%, transparent);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(18px);
 }
 
 @utility glass-strong {
-  background:
-    linear-gradient(145deg, color-mix(in oklab, #fff 38%, transparent), transparent 46%),
-    color-mix(in oklab, var(--card) 97%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 90%, transparent);
-  box-shadow:
-    0 1px 0 color-mix(in oklab, #fff 70%, transparent) inset,
-    0 20px 58px rgb(15 23 42 / 0.105);
-  backdrop-filter: blur(24px) saturate(1.1);
+  background: color-mix(in oklab, var(--card) 96%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 92%, transparent);
+  box-shadow: var(--shadow-elevated);
+  backdrop-filter: blur(22px);
 }
 
 @utility hairline {
@@ -255,203 +240,15 @@
 }
 
 @utility card-premium {
-  background:
-    linear-gradient(150deg, color-mix(in oklab, #fff 32%, transparent), transparent 48%),
-    color-mix(in oklab, var(--card) 97%, transparent);
-  border: 1px solid color-mix(in oklab, var(--color-border) 90%, transparent);
-  border-radius: 1.55rem;
-  box-shadow:
-    0 1px 0 color-mix(in oklab, #fff 76%, transparent) inset,
-    0 12px 34px rgb(15 23 42 / 0.058);
-  backdrop-filter: blur(18px) saturate(1.06);
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-border) 92%, transparent);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(16px);
   transition:
-    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 240ms ease,
-    box-shadow 240ms ease,
-    background-color 240ms ease;
-}
-
-/* Dark mode uses solid graphite surfaces rather than smoky translucent glass. */
-.dark body {
-  background:
-    radial-gradient(circle at 88% -10%, rgb(255 107 99 / 0.16), transparent 33rem),
-    radial-gradient(circle at 100% 72%, rgb(255 107 99 / 0.055), transparent 35rem),
-    radial-gradient(circle at 16% 18%, rgb(69 83 151 / 0.08), transparent 27rem),
-    linear-gradient(180deg, #090b12 0%, #080a10 52%, #07090f 100%);
-}
-
-.dark .glass {
-  background: rgb(18 21 31 / 0.9);
-  border-color: rgb(255 255 255 / 0.1);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.045) inset,
-    0 18px 42px rgb(0 0 0 / 0.3);
-  backdrop-filter: blur(20px) saturate(1.02);
-}
-
-.dark .glass-strong {
-  background: rgb(13 16 24 / 0.96);
-  border-color: rgb(255 255 255 / 0.11);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.05) inset,
-    0 22px 52px rgb(0 0 0 / 0.34);
-  backdrop-filter: blur(22px) saturate(1.02);
-}
-
-.dark .card-premium {
-  background: linear-gradient(180deg, #171a25 0%, #121520 100%);
-  border-color: rgb(255 255 255 / 0.1);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.045) inset,
-    0 14px 34px rgb(0 0 0 / 0.25);
-  backdrop-filter: none;
-}
-
-.dark .mobile-app-header {
-  background: rgb(8 10 17 / 0.92);
-  border-color: rgb(255 255 255 / 0.09);
-}
-
-.dark .mobile-bottom-nav > div {
-  background: rgb(17 21 32 / 0.97);
-  border-color: rgb(255 255 255 / 0.11);
-  box-shadow: 0 20px 48px rgb(0 0 0 / 0.38);
-}
-
-.dark input,
-.dark select,
-.dark textarea {
-  background-color: #0f131d;
-  border-color: #2a3040;
-}
-
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: #747d91;
-}
-
-/* Keep status panels readable when a page still uses a light semantic utility. */
-.dark .bg-amber-50 {
-  background-color: rgb(245 158 11 / 0.12) !important;
-}
-.dark .bg-sky-50 {
-  background-color: rgb(14 165 233 / 0.12) !important;
-}
-.dark .bg-red-50 {
-  background-color: rgb(239 68 68 / 0.12) !important;
-}
-.dark .bg-emerald-50,
-.dark .bg-green-50 {
-  background-color: rgb(16 185 129 / 0.12) !important;
-}
-.dark .text-amber-950,
-.dark .text-amber-900,
-.dark .text-amber-700,
-.dark .text-amber-600 {
-  color: #fcd34d !important;
-}
-.dark .text-sky-950,
-.dark .text-sky-700,
-.dark .text-sky-600 {
-  color: #7dd3fc !important;
-}
-.dark .text-red-700,
-.dark .text-red-600 {
-  color: #ffaaa4 !important;
-}
-.dark .text-emerald-700,
-.dark .text-emerald-600,
-.dark .text-green-600 {
-  color: #6ee7b7 !important;
-}
-.dark .border-amber-200 {
-  border-color: rgb(245 158 11 / 0.3) !important;
-}
-.dark .bg-amber-100 {
-  background-color: rgb(245 158 11 / 0.2) !important;
-}
-.dark .bg-indigo-50 {
-  background-color: rgb(99 102 241 / 0.14) !important;
-}
-.dark .text-indigo-700,
-.dark .text-indigo-600 {
-  color: #a5b4fc !important;
-}
-
-/* High-contrast app surfaces. Keep wallet and settle totals readable even
-   when the surrounding theme is near-black. */
-.app-wallet-hero {
-  background: linear-gradient(135deg, #0b1020 0%, #11172a 48%, #24263a 100%);
-  border: 1px solid rgb(255 255 255 / 0.08);
-}
-
-.settle-total-card {
-  color: #111827;
-  background: linear-gradient(
-    135deg,
-    rgb(247 249 255 / 0.99) 0%,
-    rgb(222 227 239 / 0.98) 54%,
-    rgb(186 194 211 / 0.97) 100%
-  );
-  border-color: rgb(255 255 255 / 0.28);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.78) inset,
-    0 24px 54px rgb(4 9 22 / 0.18);
-}
-
-.dark .settle-total-card {
-  background: linear-gradient(135deg, #f7f9ff 0%, #dfe4ef 54%, #b6bfce 100%);
-  border-color: rgb(255 255 255 / 0.24);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.8) inset,
-    0 26px 62px rgb(0 0 0 / 0.34);
-}
-
-.settle-total-card__glow {
-  background: radial-gradient(
-    circle,
-    rgb(255 107 99 / 0.42),
-    rgb(75 84 119 / 0.22) 44%,
-    transparent 72%
-  );
-  filter: blur(4px);
-  opacity: 0.8;
-}
-
-.settle-explainer {
-  min-height: 100%;
-}
-
-.settle-step-number {
-  background: var(--brand-soft);
-  color: var(--brand);
-}
-
-.settle-security-note {
-  background: color-mix(in oklab, var(--muted) 76%, transparent);
-  border: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
-}
-
-.settle-empty-state {
-  background: rgb(16 185 129 / 0.1);
-  border-color: rgb(16 185 129 / 0.22);
-  color: #087f5b;
-}
-
-.dark .settle-step-number {
-  background: rgb(255 107 99 / 0.16);
-  color: #ffaaa4;
-}
-
-.dark .settle-security-note {
-  background: rgb(255 255 255 / 0.045);
-  border-color: rgb(255 255 255 / 0.08);
-}
-
-.dark .settle-empty-state {
-  background: rgb(16 185 129 / 0.14);
-  border-color: rgb(110 231 183 / 0.22);
-  color: #a7f3d0;
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
 @utility lift {
@@ -512,121 +309,6 @@
   &::-webkit-scrollbar {
     display: none;
   }
-}
-
-/* Page wrappers must never transform: fixed payment/expense overlays live inside
-   them and must remain anchored to the viewport, including during entrance. */
-@keyframes nest-item-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 10px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-@keyframes nest-sheet-enter {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 18px, 0) scale(0.985);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes nest-backdrop-enter {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-.nest-page-transition {
-  /* Opacity animations also create a stacking context while running. Keep
-     this structural wrapper neutral; individual items retain entrance motion. */
-  animation: none;
-  transform: none;
-}
-
-.nest-reveal {
-  animation: nest-item-enter 400ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  animation-delay: var(--nest-motion-delay, 0ms);
-}
-
-.nest-motion-item {
-  animation: nest-item-enter 330ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
-  animation-delay: var(--nest-stagger-delay, 0ms);
-}
-
-.nest-stagger .nest-motion-item:nth-child(1) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 0ms);
-}
-.nest-stagger .nest-motion-item:nth-child(2) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 36ms);
-}
-.nest-stagger .nest-motion-item:nth-child(3) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 72ms);
-}
-.nest-stagger .nest-motion-item:nth-child(4) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 108ms);
-}
-.nest-stagger .nest-motion-item:nth-child(5) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 144ms);
-}
-.nest-stagger .nest-motion-item:nth-child(6) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 180ms);
-}
-.nest-stagger .nest-motion-item:nth-child(7) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 216ms);
-}
-.nest-stagger .nest-motion-item:nth-child(8) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 252ms);
-}
-.nest-stagger .nest-motion-item:nth-child(9) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 288ms);
-}
-.nest-stagger .nest-motion-item:nth-child(10) {
-  animation-delay: calc(var(--nest-stagger-delay, 0ms) + 324ms);
-}
-
-.nest-tap {
-  transition: transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.nest-tap:active {
-  transform: scale(0.985);
-}
-
-.nest-modal-backdrop {
-  animation: nest-backdrop-enter 180ms ease-out both;
-}
-
-.nest-sheet-enter {
-  animation: nest-sheet-enter 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  transform-origin: center bottom;
-}
-
-/* Shared app controls get one consistent response curve without changing layout. */
-.app-canvas button,
-.app-canvas a,
-.app-canvas input,
-.app-canvas textarea,
-.app-canvas select {
-  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.app-canvas button:not(:disabled),
-.app-canvas a {
-  -webkit-tap-highlight-color: transparent;
-}
-
-.app-canvas .card-premium:hover {
-  border-color: color-mix(in oklab, var(--brand) 16%, var(--border));
 }
 
 /* Core entrance motion uses transform/opacity so the largest animations stay on the compositor. */
@@ -935,115 +617,31 @@
   height: 22rem;
   pointer-events: none;
   background:
-    linear-gradient(180deg, color-mix(in oklab, var(--brand) 8%, transparent), transparent),
+    linear-gradient(180deg, color-mix(in oklab, var(--brand) 5%, transparent), transparent),
     radial-gradient(
-      circle at 82% 4%,
-      color-mix(in oklab, var(--brand) 20%, transparent),
-      transparent 25rem
+      circle at 72% 4%,
+      color-mix(in oklab, var(--brand) 13%, transparent),
+      transparent 22rem
     );
   content: "";
 }
 
 .dark .app-canvas::before {
   background:
-    linear-gradient(to right, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(255 255 255 / 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 82% 3%, rgb(255 107 99 / 0.14), transparent 27rem);
-  background-size:
-    52px 52px,
-    52px 52px,
-    auto;
-  mask-image: linear-gradient(to bottom, #000 0%, #000 72%, transparent 100%);
+    linear-gradient(180deg, rgb(255 104 95 / 0.06), transparent),
+    radial-gradient(circle at 74% 4%, rgb(255 104 95 / 0.12), transparent 24rem),
+    radial-gradient(circle at 8% 12%, rgb(99 102 241 / 0.08), transparent 20rem);
 }
 
 html {
   scroll-behavior: smooth;
 }
 
-/* Mobile app shell: keep native-sized type and controls instead of shrinking
-   the whole UI. Safe-area helpers keep controls clear of phone cutouts/bars. */
-.mobile-app-header {
-  padding-top: max(0px, env(safe-area-inset-top));
-}
-
-.mobile-bottom-nav {
-  bottom: max(0.65rem, env(safe-area-inset-bottom));
-}
-
-.mobile-safe-main {
-  padding-bottom: calc(7.5rem + env(safe-area-inset-bottom));
-}
-
-.mobile-sheet {
-  margin-bottom: max(0.4rem, env(safe-area-inset-bottom));
-}
-
+/* Mobile: slightly smaller root scale so type, buttons and spacing feel
+   app-like instead of blown-up desktop text. */
 @media (max-width: 640px) {
   html {
-    font-size: 100%;
-  }
-
-  body {
-    background:
-      radial-gradient(
-        circle at 92% -8%,
-        color-mix(in oklab, var(--brand) 12%, transparent),
-        transparent 26rem
-      ),
-      radial-gradient(
-        circle at 100% 74%,
-        color-mix(in oklab, var(--brand) 4%, transparent),
-        transparent 25rem
-      ),
-      var(--color-background);
-  }
-
-  input,
-  select,
-  textarea {
-    font-size: 16px;
-  }
-
-  .app-canvas {
-    min-height: 100dvh;
-  }
-
-  .app-canvas::before {
-    height: 13rem;
-    opacity: 0.72;
-  }
-
-  .card-premium {
-    border-radius: 1.45rem;
-    box-shadow:
-      0 1px 0 color-mix(in oklab, #fff 66%, transparent) inset,
-      0 7px 22px rgb(15 23 42 / 0.05);
-  }
-
-  .glass,
-  .glass-strong {
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-  }
-
-  button,
-  a[role="button"] {
-    -webkit-touch-callout: none;
-  }
-}
-
-@media (hover: none) and (pointer: coarse) {
-  /* Mobile should acknowledge a press on the very next painted frame.
-     Keep feedback compositor-only so it never waits on layout/network work. */
-  button:not(:disabled) {
-    transition-duration: 120ms !important;
-    -webkit-user-select: none;
-    user-select: none;
-  }
-
-  button:not(:disabled):active {
-    transform: scale(0.975);
-    filter: brightness(0.97);
+    font-size: 93.75%;
   }
 }
 
@@ -1067,3 +665,4 @@ html {
     display: none;
   }
 }
+
