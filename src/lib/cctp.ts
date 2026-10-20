@@ -27,7 +27,7 @@ export const ARC_DOMAIN = 26;
 
 export const ARC_CHAIN_ID = 5042002;
 
-export const ARC_RPC_URL = "https://rpc.testnet.arc.network";
+export const ARC_RPC_URL = "https://rpc.testnet.arc.io";
 
 export const ARC_USDC = "0x3600000000000000000000000000000000000000" as Address;
 
@@ -699,6 +699,7 @@ export async function waitForAttestation(
     timeoutMs?: number;
     intervalMs?: number;
     onPending?: () => void;
+    environment?: ArcEnvironment;
   },
 ) {
   const timeoutMs = options?.timeoutMs ?? 30 * 60 * 1000;
