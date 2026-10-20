@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Mail, Loader2, ArrowLeft, RefreshCw, ShieldCheck, CheckCircle2, Wallet } from "lucide-react";
 import { OTPInput } from "input-otp";
 import { useLoginWithEmail, usePrivy } from "@privy-io/react-auth";
@@ -13,6 +13,7 @@ type Props = {
   onBusyChange: (busy: boolean) => void;
   onError: (message: string | null) => void;
   onAuthenticated: () => void;
+  onStepChange?: (step: "email" | "code" | "wallet") => void;
 };
 
 export function PrivyEmailOtp({
@@ -23,6 +24,7 @@ export function PrivyEmailOtp({
   onBusyChange,
   onError,
   onAuthenticated,
+  onStepChange,
 }: Props) {
   const { sendCode, loginWithCode } = useLoginWithEmail();
   const { authenticated } = usePrivy();
@@ -33,6 +35,9 @@ export function PrivyEmailOtp({
   const verifyingRef = useRef(false);
 
   const normalizedEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  useEffect(() => {
+    onStepChange?.(authenticated ? "wallet" : step);
+  }, [authenticated, step, onStepChange]);
 
   const send = async (resend = false) => {
     if (!/^\S+@\S+\.\S+$/.test(normalizedEmail)) {
@@ -98,7 +103,7 @@ export function PrivyEmailOtp({
     }
   };
 
-  if (authenticated) {
+  if (authenticated && step !== "code") {
     return <Button className="w-full" disabled={!!busy || disabled} onClick={async () => {
       setBusy("verify");
       onBusyChange(true);
@@ -115,7 +120,7 @@ export function PrivyEmailOtp({
 
   if (step === "code") {
     return (
-      <section aria-label="Email verification" className="space-y-5 border-t border-border pt-5">
+      <section aria-label="Email verification" className="space-y-5">
         <Button
           variant="ghost"
           size="sm"
@@ -134,17 +139,9 @@ export function PrivyEmailOtp({
           Change email
         </Button>
 
-        <div className="flex items-start gap-3">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand">
-            <ShieldCheck className="h-4.5 w-4.5" />
-          </span>
-          <div className="min-w-0">
-            <h3 className="font-display text-lg font-semibold">Verify your email</h3>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Code sent to <span className="break-all font-semibold text-foreground">{normalizedEmail}</span>
-            </p>
-          </div>
-        </div>
+        <p className="text-xs leading-5 text-muted-foreground">
+          Code sent to <span className="break-all font-semibold text-foreground">{normalizedEmail}</span>
+        </p>
 
         <OTPInput
           maxLength={6}
@@ -167,7 +164,7 @@ export function PrivyEmailOtp({
                   key={index}
                   aria-hidden="true"
                   className={
-                    "relative grid aspect-square min-w-0 place-items-center rounded-[4px] border-2 bg-background font-display text-xl font-semibold tabular-nums transition-[border-color,background-color,box-shadow] motion-reduce:transition-none " +
+                     "relative grid aspect-square min-w-0 place-items-center rounded-[4px] border-2 bg-muted/30 font-display text-xl font-semibold tabular-nums transition-[border-color,background-color,box-shadow] motion-reduce:transition-none " +
                     (verified
                       ? "border-success bg-success/10 text-success"
                       : slot.isActive
@@ -234,7 +231,7 @@ export function PrivyEmailOtp({
       }}
       className="space-y-2.5"
     >
-      <label htmlFor="nest-privy-email" className="sr-only">
+      <label htmlFor="nest-privy-email" className="block text-xs font-medium text-muted-foreground">
         Email address
       </label>
       <input
