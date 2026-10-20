@@ -1,6 +1,6 @@
 # Nest
 
-Nest is a shared USDC treasury and settlement app on Arc Testnet. Workspaces can pool USDC, coordinate approval-controlled payments, manage recurring payouts and delegated budgets, record shared obligations, and settle balances onchain.
+Nest is a shared USDC treasury and settlement app with Arc Testnet and guarded Arc Mainnet support. Workspaces can pool USDC, coordinate approval-controlled payments, manage recurring payouts and delegated budgets, record shared obligations, and settle balances onchain.
 
 The original household expense experience remains supported. Treasury V3 adds a separate programmable shared-treasury layer for teams, collectives, and project groups without migrating or mutating legacy ExpenseManager state.
 
@@ -18,13 +18,32 @@ The original household expense experience remains supported. Treasury V3 adds a 
 - Record recurring or one-off shared expenses with equal or custom member allocations.
 - Resolve each member's net position from the shared onchain ledger.
 - Clear open shares owed to one counterparty with `settleWith`.
-- Settle wallet-to-wallet through the USDC ERC-20 interface on Arc Testnet.
+- Settle wallet-to-wallet through the USDC ERC-20 interface on the selected Arc network when that environment is configured.
 - Bridge USDC through LI.FI with Circle CCTP/native-USDC routes preferred where available.
 - Persist completed Arc-involved bridge receipts in the Nest Bridge Registry after user confirmation.
-- Provision new Circle email/social wallets as Arc Testnet SCAs for Circle Gas Station sponsorship when a matching policy is enabled in Circle Console. Existing legacy EOA wallets are preserved.
-- Retain transaction-linked receipts and inspect activity on the Arc Testnet explorer.
+- Provision new Circle email/social wallets as Arc SCAs on the selected network for Circle Gas Station sponsorship when a matching policy is enabled in Circle Console. Existing legacy EOA wallets are preserved.
+- Retain transaction-linked receipts and inspect activity on the selected Arc explorer.
 
 Nest does not claim a global minimum-transfer algorithm, autonomous custody, an independent security audit, or a production SDK. Gas Station sponsorship depends on a matching policy being enabled in Circle Console.
+
+## Arc Mainnet activation
+
+The Mainnet toggle is wired in the frontend, wagmi transports, Circle Wallets, Circle App Kit bridge routing, and CCTP helpers. Mainnet financial writes stay unavailable until the production contract addresses are configured.
+
+To activate Mainnet:
+
+1. Add `DEPLOYER_PRIVATE_KEY` to GitHub Actions secrets and optionally add `ARC_MAINNET_RPC_URL`.
+2. Run **Actions → Deploy Nest contracts to Arc Mainnet** and type `DEPLOY_MAINNET`.
+3. Copy the emitted values into the production frontend environment:
+
+   - `VITE_NEST_EXPENSE_MANAGER_MAINNET_ADDRESS`
+   - `VITE_NEST_EXPENSE_MANAGER_MAINNET_BLOCK`
+   - `VITE_NEST_BRIDGE_REGISTRY_MAINNET_ADDRESS`
+   - `VITE_NEST_TREASURY_V3_MAINNET_ADDRESS`
+
+4. Redeploy the production frontend. Keep `VITE_ARC_DEFAULT_NETWORK=testnet` until the Mainnet deployment has been tested with a small amount of real USDC.
+
+The repository intentionally does not commit Mainnet contract addresses or private keys.
 
 ## Live Arc Testnet contracts
 
