@@ -27,12 +27,16 @@ import { NEST_PRIVY_APP_ID } from "@/lib/privy-config";
 const REQUEST = z.object({
   accessToken: z.string().min(20).max(10_000),
   walletAddress: z.string().refine((value) => isAddress(value), "Invalid wallet address"),
+  workspaceName: z.string().min(2).max(80),
 });
 
-// Match the original Nest sponsor behavior.
-const CREDIT = parseEther("0.05");
-const MIN_USER_BALANCE = parseEther("0.02");
-const MIN_SPONSOR_RESERVE = parseEther("0.25");
+// First-workspace gas is estimated from the real createRoom call instead of
+// assuming a fixed tiny stipend. Arc's native gas asset is USDC with 18 decimals.
+const MIN_TARGET_BALANCE = parseEther("0.05");
+const MAX_TARGET_BALANCE = parseEther("0.35");
+const EXTRA_BUFFER = parseEther("0.01");
+const MIN_SPONSOR_RESERVE = parseEther("0.10");
+const MAX_TOTAL_GRANT_USDC = 0.35;
 
 function sponsorWallet() {
   // This is the same existing sponsor/deployer secret used by the older Nest
@@ -63,7 +67,11 @@ const rpcTransport = http(arcTestnet.rpcUrls.default.http[0], {
   retryCount: 2,
 });
 
-async function reserveClaim(privyUserId: string, walletAddress: Address) {
+async function reserveClaim(
+  privyUserId: string,
+  walletAddress: Address,
+  grant: bigint,
+) {
   // Keep the anti-repeat ledger when Supabase + the migration are available,
   // but do not make first-workspace onboarding depend on a new database table.
   if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -73,22 +81,48 @@ async function reserveClaim(privyUserId: string, walletAddress: Address) {
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as SupabaseClient;
+    const grantUsdc = Number(grant) / 1e18;
+
+    const { data: existing } = await db
+      .from("nest_onboarding_gas_grants")
+      .select("amount_usdc,wallet_address")
+      .eq("privy_user_id", privyUserId)
+      .maybeSingle();
+
+    if (existing) {
+      const alreadyGranted = Number(existing.amount_usdc ?? 0);
+      const nextTotal = alreadyGranted + grantUsdc;
+      if (
+        String(existing.wallet_address ?? "").toLowerCase() !==
+          walletAddress.toLowerCase() ||
+        nextTotal > MAX_TOTAL_GRANT_USDC + 1e-9
+      ) {
+        throw new Error("Your one-time testnet gas credit has already been used.");
+      }
+
+      // Older Nest builds granted only 0.05 USDC, which is no longer enough
+      // for current Arc createRoom gas. Permit a bounded recovery top-up while
+      // keeping the total lifetime onboarding grant capped.
+      await db
+        .from("nest_onboarding_gas_grants")
+        .update({
+          amount_usdc: nextTotal.toFixed(6),
+          status: "reserved",
+        })
+        .eq("privy_user_id", privyUserId);
+      return;
+    }
+
     const { error } = await db.from("nest_onboarding_gas_grants").insert({
       privy_user_id: privyUserId,
       wallet_address: walletAddress.toLowerCase(),
-      amount_usdc: "0.05",
+      amount_usdc: grantUsdc.toFixed(6),
       status: "reserved",
     });
-
     if (error?.code === "23505") {
-      throw new Error(
-        "Your one-time testnet gas credit has already been used.",
-      );
+      throw new Error("Your one-time testnet gas credit has already been used.");
     }
-
-    // A missing/unapplied optional ledger must not break the original sponsor
-    // wallet flow. Balance + existing-workspace checks still gate the grant.
-    if (error) return;
+    // A missing/unapplied optional ledger must not break onboarding.
   } catch (error) {
     if (
       error instanceof Error &&
@@ -150,28 +184,61 @@ export const fundFirstWorkspaceGas = createServerFn({ method: "POST" })
       transport: rpcTransport,
     });
 
-    const [recipientBalance, sponsorBalance, existingRooms] = await Promise.all([
-      publicClient.getBalance({ address: walletAddress }),
-      publicClient.getBalance({ address: account.address }),
-      publicClient.readContract({
-        address: TESTNET_EXPENSE_MANAGER_ADDRESS,
-        abi: EXPENSE_MANAGER_ABI,
-        functionName: "getRooms",
-        args: [walletAddress],
-      }),
-    ]);
+    const [recipientBalance, sponsorBalance, existingRooms, gasPrice] =
+      await Promise.all([
+        publicClient.getBalance({ address: walletAddress }),
+        publicClient.getBalance({ address: account.address }),
+        publicClient.readContract({
+          address: TESTNET_EXPENSE_MANAGER_ADDRESS,
+          abi: EXPENSE_MANAGER_ABI,
+          functionName: "getRooms",
+          args: [walletAddress],
+        }),
+        publicClient.getGasPrice(),
+      ]);
 
-    if (recipientBalance >= MIN_USER_BALANCE) {
-      return { status: "already-funded" as const };
-    }
     if (existingRooms.length > 0) {
       return { status: "workspace-exists" as const };
     }
-    if (sponsorBalance < CREDIT + MIN_SPONSOR_RESERVE) {
+
+    let estimatedGas: bigint;
+    try {
+      estimatedGas = await publicClient.estimateContractGas({
+        address: TESTNET_EXPENSE_MANAGER_ADDRESS,
+        abi: EXPENSE_MANAGER_ABI,
+        functionName: "createRoom",
+        args: [data.workspaceName],
+        account: walletAddress,
+      });
+    } catch {
+      // Keep onboarding recoverable if an RPC estimate endpoint is flaky.
+      // This fallback is deliberately generous but still bounded below.
+      estimatedGas = 1_000_000n;
+    }
+
+    // 50% gas-price buffer + a small fixed cushion avoids opening Privy's
+    // approval sheet only to fail because Arc fees moved between estimate/send.
+    const estimatedCost = (estimatedGas * gasPrice * 3n) / 2n + EXTRA_BUFFER;
+    const targetBalance =
+      estimatedCost < MIN_TARGET_BALANCE
+        ? MIN_TARGET_BALANCE
+        : estimatedCost > MAX_TARGET_BALANCE
+          ? MAX_TARGET_BALANCE
+          : estimatedCost;
+
+    if (recipientBalance >= targetBalance) {
+      return {
+        status: "already-funded" as const,
+        targetBalance: targetBalance.toString(),
+      };
+    }
+
+    const grant = targetBalance - recipientBalance;
+    if (sponsorBalance < grant + MIN_SPONSOR_RESERVE) {
       throw new Error("Nest's Arc Testnet gas sponsor needs a refill.");
     }
 
-    await reserveClaim(verified.user_id, walletAddress);
+    await reserveClaim(verified.user_id, walletAddress, grant);
 
     const wallet = createWalletClient({
       account,
@@ -180,7 +247,7 @@ export const fundFirstWorkspaceGas = createServerFn({ method: "POST" })
     });
     const hash = await wallet.sendTransaction({
       to: walletAddress,
-      value: CREDIT,
+      value: grant,
     });
     const receipt = await publicClient.waitForTransactionReceipt({
       hash,
@@ -191,5 +258,10 @@ export const fundFirstWorkspaceGas = createServerFn({ method: "POST" })
     }
 
     await markClaimSent(verified.user_id, hash);
-    return { status: "funded" as const, hash };
+    return {
+      status: "funded" as const,
+      hash,
+      targetBalance: targetBalance.toString(),
+      grant: grant.toString(),
+    };
   });
