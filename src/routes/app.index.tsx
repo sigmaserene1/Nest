@@ -98,8 +98,12 @@ function Dashboard() {
   return (
     <AppShell greeting={<Greeting />} onFabClick={() => action.open("send")}>
       {/* Hero wallet card */}
-      <section className="mt-6">
-        <div className="app-wallet-hero relative overflow-hidden rounded-[28px] p-5 text-white shadow-2xl sm:p-6">
+      <section
+
+
+        className="mt-6"
+      >
+        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-foreground via-slate-900 to-slate-800 p-5 text-background shadow-2xl sm:p-6">
           {/* decorative blobs */}
           <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/40 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-20 -left-10 h-56 w-56 rounded-full bg-indigo-500/20 blur-3xl" />
@@ -113,7 +117,7 @@ function Dashboard() {
           </div>
 
           <div className="relative mt-8">
-            <div className="text-[11px] uppercase tracking-widest text-white/65">
+            <div className="text-[11px] uppercase tracking-widest text-background/60">
               Available balance
             </div>
             <div className="mt-1 flex items-center gap-3">
@@ -126,7 +130,7 @@ function Dashboard() {
               </div>
               <UsdcMark size={40} />
             </div>
-            <div className="mt-2 flex items-center gap-2 text-xs text-white/70">
+            <div className="mt-2 flex items-center gap-2 text-xs text-background/60">
               {wallet.address && <WalletChip address={wallet.address} variant="dark" />}
               <span>
                 {wallet.isConnected
@@ -142,22 +146,20 @@ function Dashboard() {
 
           <div className="relative mt-6 grid grid-cols-3 gap-1.5 rounded-2xl bg-white/10 p-3 backdrop-blur sm:gap-2">
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-white/65">Net</div>
-              <div
-                className={`mt-0.5 text-sm font-bold tabular-nums ${myNet >= 0 ? "text-emerald-300" : "text-rose-300"}`}
-              >
+              <div className="text-[10px] uppercase tracking-wider text-background/60">Net</div>
+              <div className={`mt-0.5 text-sm font-bold tabular-nums ${myNet >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
                 {myNet >= 0 ? "+" : ""}
                 <AnimatedNumber value={Math.abs(myNet)} prefix="$" />
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-white/65">You owe</div>
+              <div className="text-[10px] uppercase tracking-wider text-background/60">You owe</div>
               <div className="mt-0.5 text-sm font-bold tabular-nums text-rose-300">
                 <AnimatedNumber value={iOwe} prefix="$" />
               </div>
             </div>
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-white/65">To receive</div>
+              <div className="text-[10px] uppercase tracking-wider text-background/60">To receive</div>
               <div className="mt-0.5 text-sm font-bold tabular-nums text-emerald-300">
                 <AnimatedNumber value={owedToMe} prefix="$" />
               </div>
@@ -179,7 +181,7 @@ function Dashboard() {
             </button>
             <button
               onClick={() => action.open("send")}
-              className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-white backdrop-blur transition duration-200 hover:bg-white/20 active:scale-95"
+              className="grid h-[52px] w-[52px] place-items-center rounded-2xl bg-white/10 text-background backdrop-blur transition duration-200 hover:bg-white/20 active:scale-95"
               aria-label="Send"
             >
               <Plus className="h-5 w-5" strokeWidth={2.5} />
@@ -193,7 +195,7 @@ function Dashboard() {
               amount: settlementShortfall > 0 ? settlementShortfall.toFixed(6) : undefined,
               returnTo: "/app/",
             }}
-            className="relative mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 py-3 text-xs font-bold text-white transition hover:bg-white/15"
+            className="relative mt-3 flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/10 py-3 text-xs font-bold text-background transition hover:bg-white/15"
           >
             <ArrowDownToLine className="h-4 w-4" />
             {settlementShortfall > 0
@@ -237,6 +239,7 @@ function Dashboard() {
         />
       </Stagger>
 
+
       {/* Roommate carousel */}
       <section className="mt-7">
         <div className="flex items-center justify-between">
@@ -255,7 +258,7 @@ function Dashboard() {
                 <div className="card-premium flex w-[128px] flex-col items-center p-4">
                   <div className="relative">
                     <MemberAvatar member={m} size={58} />
-                    <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-card text-xs text-foreground shadow-sm ring-1 ring-border">
+                    <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-white text-xs shadow-sm ring-1 ring-black/5">
                       {m.emoji}
                     </span>
                   </div>
@@ -320,6 +323,7 @@ function Dashboard() {
           </div>
         </div>
       </section>
+
 
       {/* Recent activity */}
       <section className="mt-7">
@@ -406,9 +410,7 @@ function QuickPill({
           onClick={onClick}
           className="card-premium flex min-h-[72px] w-full min-w-0 flex-col items-center justify-center gap-1.5 px-1.5 py-2.5 text-center transition active:scale-[0.975] hover:border-brand/40 sm:min-h-[82px] sm:gap-2 sm:px-2"
         >
-          <span
-            className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}
-          >
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}>
             {icon}
           </span>
           <span className="w-full truncate text-[10px] font-bold leading-none sm:text-xs">
@@ -439,9 +441,7 @@ function QuickLinkPill({
           preload="intent"
           className="card-premium flex min-h-[72px] w-full min-w-0 flex-col items-center justify-center gap-1.5 px-1.5 py-2.5 text-center transition active:scale-[0.975] hover:border-brand/40 sm:min-h-[82px] sm:gap-2 sm:px-2"
         >
-          <span
-            className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}
-          >
+          <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl sm:h-10 sm:w-10 ${tint}`}>
             {icon}
           </span>
           <span className="w-full truncate text-[10px] font-bold leading-none sm:text-xs">

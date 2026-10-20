@@ -165,7 +165,7 @@ export function TxHashPill({
       </span>
       <button
         onClick={copy}
-        className="grid h-4 w-4 place-items-center rounded-full hover:bg-foreground/10"
+        className="grid h-4 w-4 place-items-center rounded-full hover:bg-black/5"
         aria-label="Copy tx hash"
       >
         {copied ? (
@@ -183,7 +183,7 @@ export function TxHashPill({
           e.stopPropagation();
           openExplorerTx(hash);
         }}
-        className="grid h-4 w-4 place-items-center rounded-full hover:bg-foreground/10"
+        className="grid h-4 w-4 place-items-center rounded-full hover:bg-black/5"
         aria-label="View on Arc explorer"
       >
         <ExternalLink className="h-2.5 w-2.5" />

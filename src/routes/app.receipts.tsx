@@ -47,7 +47,8 @@ export const Route = createFileRoute("/app/receipts")({
 });
 
 const short = (a: string) => (a.length > 12 ? `${a.slice(0, 6)}…${a.slice(-4)}` : a);
-const explorerTx = (base: string, hash: string) => `${base.replace(/\/$/, "")}/tx/${hash}`;
+const explorerTx = (base: string, hash: string) =>
+  `${base.replace(/\/$/, "")}/tx/${hash}`;
 
 function fmtStamp(iso: string) {
   const d = new Date(iso);
@@ -70,7 +71,7 @@ function CopyBtn({ value, label }: { value: string; label: string }) {
         setTimeout(() => setDone(false), 1400);
       }}
       aria-label={label}
-      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted-foreground transition hover:bg-foreground/10 hover:text-foreground active:scale-[0.96]"
+      className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-muted-foreground transition hover:bg-black/5 hover:text-foreground active:scale-[0.96]"
     >
       {done ? <Check className="h-3.5 w-3.5 text-emerald-500" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
@@ -113,9 +114,7 @@ function ReceiptsPage() {
       greeting={
         <div>
           <div className="text-sm font-medium text-muted-foreground">Proof of payment</div>
-          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">
-            Payment & bridge history
-          </h1>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Payment & bridge history</h1>
         </div>
       }
     >
@@ -133,9 +132,7 @@ function ReceiptsPage() {
               Payment receipts
             </div>
             <div className="mt-2 text-2xl font-bold tabular-nums">{receipts.length}</div>
-            <div className="mt-1 text-[11px] text-muted-foreground">
-              Recovered from confirmed events
-            </div>
+            <div className="mt-1 text-[11px] text-muted-foreground">Recovered from confirmed events</div>
           </div>
           <div className="bg-card p-5">
             <div className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
@@ -146,8 +143,7 @@ function ReceiptsPage() {
               Onchain verified
             </div>
             <div className="mt-1 text-[11px] text-muted-foreground">
-              {receipts.length + bridges.length} total record
-              {receipts.length + bridges.length === 1 ? "" : "s"}
+              {receipts.length + bridges.length} total record{receipts.length + bridges.length === 1 ? "" : "s"}
             </div>
           </div>
         </div>
@@ -211,20 +207,16 @@ function ReceiptsPage() {
                             {outgoing ? counterparty.name : `From ${counterparty.name}`}
                           </div>
                           <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {r.note ||
-                              (r.kind === "settle" ? "Expense settlement" : "USDC transfer")}
+                            {r.note || (r.kind === "settle" ? "Expense settlement" : "USDC transfer")}
                           </div>
                         </div>
                       </div>
 
                       <div className="shrink-0 text-right">
-                        <div
-                          className={`text-2xl font-bold tabular-nums tracking-[-0.03em] ${
-                            outgoing ? "text-foreground" : "text-emerald-600"
-                          }`}
-                        >
-                          {outgoing ? "−" : "+"}
-                          {fmtUSD(r.amount)}
+                        <div className={`text-2xl font-bold tabular-nums tracking-[-0.03em] ${
+                          outgoing ? "text-foreground" : "text-emerald-600"
+                        }`}>
+                          {outgoing ? "−" : "+"}{fmtUSD(r.amount)}
                         </div>
                         <div className="mt-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                           USDC
@@ -255,11 +247,7 @@ function ReceiptsPage() {
                       className="mt-5 flex min-h-11 w-full items-center justify-between rounded-2xl bg-muted/55 px-4 text-xs font-bold transition hover:bg-muted"
                     >
                       <span>{expanded ? "Hide receipt details" : "View full receipt"}</span>
-                      {expanded ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
+                      {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </button>
 
                     {expanded ? (
@@ -287,9 +275,7 @@ function ReceiptsPage() {
                           </div>
                           <div className="bg-card p-4">
                             <Field label="Network">
-                              <span>
-                                Arc {arcEnvironmentLabel(environment)} · Chain {r.chainId ?? "—"}
-                              </span>
+                              <span>Arc {arcEnvironmentLabel(environment)} · Chain {r.chainId ?? "—"}</span>
                             </Field>
                           </div>
                         </div>
@@ -347,14 +333,14 @@ function ReceiptsPage() {
                             {bridge.fromName} → {bridge.toName}
                           </div>
                           <div className="mt-0.5 text-[11px] text-muted-foreground">
-                            {fmtStamp(
-                              new Date(bridge.completedAt ?? bridge.startedAt).toISOString(),
-                            )}
+                            {fmtStamp(new Date(bridge.completedAt ?? bridge.startedAt).toISOString())}
                             {bridge.tool ? ` · ${bridge.tool}` : ""}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-sm font-bold tabular-nums">{bridge.amount} USDC</div>
+                          <div className="text-sm font-bold tabular-nums">
+                            {bridge.amount} USDC
+                          </div>
                           <div
                             className={`text-[10px] font-bold uppercase ${
                               bridge.status === "complete"

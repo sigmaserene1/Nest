@@ -3,7 +3,13 @@ import { useMemo, useState } from "react";
 import { useAccount } from "wagmi";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar } from "@/components/nest/avatar";
-import { getMember, fmtUSD, fmtRelative, categoryMeta, type ActivityEvent } from "@/lib/nest-data";
+import {
+  getMember,
+  fmtUSD,
+  fmtRelative,
+  categoryMeta,
+  type ActivityEvent,
+} from "@/lib/nest-data";
 import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history";
 import { useReceipts } from "@/lib/receipts-store";
 import { useHouseholdActivity } from "@/lib/chain/nest-chain";
@@ -68,7 +74,8 @@ function ActivityPage() {
 
     const recoveredPayments: ActivityEvent[] = receipts
       .map((receipt) => {
-        const kind: ActivityEvent["kind"] = receipt.kind === "settle" ? "settlement" : "transfer";
+        const kind: ActivityEvent["kind"] =
+          receipt.kind === "settle" ? "settlement" : "transfer";
         return {
           id: `receipt-${receipt.hash}`,
           kind,
@@ -130,9 +137,7 @@ function ActivityPage() {
             key={c}
             onClick={() => setF(c)}
             className={`min-h-9 shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition ${
-              f === c
-                ? "bg-foreground text-background"
-                : "bg-card text-muted-foreground ring-1 ring-border"
+              f === c ? "bg-foreground text-background" : "bg-card text-muted-foreground ring-1 ring-black/[0.04]"
             }`}
           >
             {c}
@@ -142,117 +147,111 @@ function ActivityPage() {
 
       <Card className="mt-5 !p-2">
         <Stagger>
-          <ul>
-            {filtered.map((entry, i) => {
-              if (entry.type === "bridge") {
-                const bridge = entry.data;
-                return (
-                  <Item
-                    as="li"
-                    key={`bridge-${bridge.id}`}
-                    className={`flex items-start gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${
-                      i !== filtered.length - 1 ? "border-b border-border/60" : ""
-                    }`}
-                  >
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-500/10 text-sky-600">
-                      <Waypoints className="h-5 w-5" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                        <span className="text-sm font-bold">Bridged {bridge.amount} USDC</span>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
-                            bridge.status === "complete"
-                              ? "bg-emerald-500/10 text-emerald-600"
-                              : bridge.status === "error"
-                                ? "bg-red-500/10 text-red-600"
-                                : "bg-amber-500/10 text-amber-600"
-                          }`}
-                        >
-                          {bridge.status}
-                        </span>
-                      </div>
-                      <div className="mt-1 text-xs text-muted-foreground">
-                        {bridge.fromName} → {bridge.toName}
-                        {bridge.tool ? ` · ${bridge.tool}` : ""}
-                      </div>
-                      <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10px] text-muted-foreground">
-                        {bridge.burnHash ? (
-                          <span>
-                            Source {bridge.burnHash.slice(0, 10)}…{bridge.burnHash.slice(-6)}
-                          </span>
-                        ) : null}
-                        {bridge.mintHash ? (
-                          <span>
-                            Destination {bridge.mintHash.slice(0, 10)}…{bridge.mintHash.slice(-6)}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="mt-1 text-[10px] text-muted-foreground">
-                        {fmtRelative(new Date(entry.at).toISOString())}
-                        {bridge.recipient
-                          ? ` · To ${bridge.recipient.slice(0, 6)}…${bridge.recipient.slice(-4)}`
-                          : ""}
-                      </div>
-                    </div>
-                  </Item>
-                );
-              }
-
-              const a = entry.data;
-              const m = getMember(a.actorId);
-              const meta = a.category ? categoryMeta[a.category] : null;
-              const icon =
-                a.kind === "settlement" ? (
-                  <ArrowLeftRight className="h-4 w-4" />
-                ) : a.kind === "transfer" ? (
-                  <Send className="h-4 w-4" />
-                ) : a.kind === "member" ? (
-                  <UserPlus className="h-4 w-4" />
-                ) : (
-                  <Receipt className="h-4 w-4" />
-                );
+        <ul>
+          {filtered.map((entry, i) => {
+            if (entry.type === "bridge") {
+              const bridge = entry.data;
               return (
                 <Item
                   as="li"
-                  key={a.id}
-                  className={`flex items-center gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${
+                  key={`bridge-${bridge.id}`}
+                  className={`flex items-start gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${
                     i !== filtered.length - 1 ? "border-b border-border/60" : ""
                   }`}
                 >
-                  <div className="relative">
-                    <MemberAvatar member={m} size={42} />
-                    <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-card text-[11px] text-foreground shadow-sm ring-1 ring-border">
-                      {meta ? meta.icon : icon}
-                    </span>
-                  </div>
+                  <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-sky-500/10 text-sky-600">
+                    <Waypoints className="h-5 w-5" />
+                  </span>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm">
-                      <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
-                      <span className="text-muted-foreground">{a.text}</span>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="text-sm font-bold">
+                        Bridged {bridge.amount} USDC
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase ${
+                          bridge.status === "complete"
+                            ? "bg-emerald-500/10 text-emerald-600"
+                            : bridge.status === "error"
+                              ? "bg-red-500/10 text-red-600"
+                              : "bg-amber-500/10 text-amber-600"
+                        }`}
+                      >
+                        {bridge.status}
+                      </span>
                     </div>
-                    <div className="mt-0.5 text-[11px] text-muted-foreground">
-                      {fmtRelative(a.date)}
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      {bridge.fromName} → {bridge.toName}
+                      {bridge.tool ? ` · ${bridge.tool}` : ""}
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 font-mono text-[10px] text-muted-foreground">
+                      {bridge.burnHash ? (
+                        <span>Source {bridge.burnHash.slice(0, 10)}…{bridge.burnHash.slice(-6)}</span>
+                      ) : null}
+                      {bridge.mintHash ? (
+                        <span>Destination {bridge.mintHash.slice(0, 10)}…{bridge.mintHash.slice(-6)}</span>
+                      ) : null}
+                    </div>
+                    <div className="mt-1 text-[10px] text-muted-foreground">
+                      {fmtRelative(new Date(entry.at).toISOString())}
+                      {bridge.recipient ? ` · To ${bridge.recipient.slice(0, 6)}…${bridge.recipient.slice(-4)}` : ""}
                     </div>
                   </div>
-                  {a.amount != null && (
-                    <div
-                      className={`shrink-0 text-right text-sm font-bold tabular-nums ${
-                        a.kind === "settlement"
-                          ? "text-red-500"
-                          : a.kind === "transfer"
-                            ? "text-emerald-600"
-                            : "text-foreground"
-                      }`}
-                    >
-                      {a.kind === "settlement" ? "-" : a.kind === "transfer" ? "+" : ""}
-                      {fmtUSD(a.amount)}
-                    </div>
-                  )}
                 </Item>
               );
-            })}
-          </ul>
+            }
+
+            const a = entry.data;
+            const m = getMember(a.actorId);
+            const meta = a.category ? categoryMeta[a.category] : null;
+            const icon =
+              a.kind === "settlement" ? (
+                <ArrowLeftRight className="h-4 w-4" />
+              ) : a.kind === "transfer" ? (
+                <Send className="h-4 w-4" />
+              ) : a.kind === "member" ? (
+                <UserPlus className="h-4 w-4" />
+              ) : (
+                <Receipt className="h-4 w-4" />
+              );
+            return (
+              <Item
+                as="li"
+                key={a.id}
+                className={`flex items-center gap-3 rounded-2xl p-3.5 transition-colors hover:bg-muted/50 ${
+                  i !== filtered.length - 1 ? "border-b border-border/60" : ""
+                }`}
+              >
+                <div className="relative">
+                  <MemberAvatar member={m} size={42} />
+                  <span className="absolute -bottom-1 -right-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[11px] text-foreground shadow-sm ring-1 ring-black/5">
+                    {meta ? meta.icon : icon}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm">
+                    <span className="font-semibold">{m.name.split(" ")[0]}</span>{" "}
+                    <span className="text-muted-foreground">{a.text}</span>
+                  </div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">{fmtRelative(a.date)}</div>
+                </div>
+                {a.amount != null && (
+                  <div
+                    className={`shrink-0 text-right text-sm font-bold tabular-nums ${
+                      a.kind === "settlement"
+                        ? "text-red-500"
+                        : a.kind === "transfer"
+                          ? "text-emerald-600"
+                          : "text-foreground"
+                    }`}
+                  >
+                    {a.kind === "settlement" ? "-" : a.kind === "transfer" ? "+" : ""}
+                    {fmtUSD(a.amount)}
+                  </div>
+                )}
+              </Item>
+            );
+          })}
+        </ul>
         </Stagger>
         {filtered.length === 0 && (
           <EmptyState
