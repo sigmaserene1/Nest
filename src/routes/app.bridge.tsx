@@ -928,7 +928,11 @@ function BridgePage() {
               {quoteError && (
                 <div className="mt-2 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-[11px] text-foreground">
                   {quoteError}
-                  {!useCircleAppKitBridge && (source?.id === 5042002 || destination?.id === 5042002) && (
+                  {!useCircleAppKitBridge &&
+                    (source?.id === 5042 ||
+                      destination?.id === 5042 ||
+                      source?.id === 5042002 ||
+                      destination?.id === 5042002) && (
                     <p className="mt-1">This pair is outside the direct Circle App Kit CCTP route set. Try a supported Arc pair or another LI.FI route.</p>
                   )}
                 </div>
