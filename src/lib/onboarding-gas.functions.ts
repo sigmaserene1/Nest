@@ -9,8 +9,9 @@
  * The funded wallet signs its own createRoom transaction; no custody changes.
  *
  * No anonymous faucet: Privy JWT verification + linked-wallet lookup +
- * database uniqueness + nonempty workspace check + reserve budget. Fail
- * closed when Supabase, the sponsor key, or the Privy service is unconfigured.
+ * existing account-cache uniqueness + nonempty workspace check + reserve
+ * budget. No new database migration or sponsor key is required.
+ * Fail closed when Supabase, sponsor, or Privy are unconfigured.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -108,35 +109,66 @@ export const fundFirstWorkspaceGas = createServerFn({ method: "POST" })
       throw new Error("One-time gas-credit tracking is not configured. Use the Circle Faucet.");
     }
 
-    // The generated DB type intentionally does not expose this admin-only
-    // table; the migration provides its schema and unique constraints.
+    // Reuse the EXISTING nest_account_cache table (migration 202610080001),
+    // instead of requiring the new, undeployed onboarding-grants table.
+    // Privy identity keys have a distinct namespace from real 0x wallets,
+    // which are the only keys the regular Circle account-cache API can access.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = supabaseAdmin as unknown as SupabaseClient;
-    // Reserve BEFORE sending to avoid duplicates across server instances.
-    // A stuck reservation is intentionally fail-closed, never a second payout.
-    const { error: claimError } = await db.from("nest_onboarding_gas_grants").insert({
-      privy_user_id: verified.user_id,
-      wallet_address: walletAddress.toLowerCase(),
-      amount_usdc: "0.07",
+    const digest = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(`nest:arc-testnet:gas-once:${verified.user_id}`),
+    );
+    const claimKey = `privy-gas-${Array.from(new Uint8Array(digest), (b) =>
+      b.toString(16).padStart(2, "0")).join("")}`;
+    const preferences = {
+      purpose: "privy-first-workspace-gas",
       status: "reserved",
+      wallet: walletAddress.toLowerCase(),
+      amount: "0.07",
+    };
+
+    // Atomic INSERT into an already available composite primary key:
+    // unique (account_wallet, scope). Never upsert on a funding claim.
+    // This reserves the single grant before any USDC leaves the sponsor,
+    // including across concurrent serverless requests and browser retries.
+    const { error: claimError } = await db.from("nest_account_cache").insert({
+      account_wallet: claimKey,
+      scope: "global",
+      snapshot: null,
+      preferences,
     });
     if (claimError) {
       if (claimError.code === "23505") {
-        throw new Error("Your one-time testnet gas credit has already been claimed. Use the Circle Faucet for additional gas.");
+        throw new Error("Your first-workspace gas credit was already requested. Check your wallet balance or use the Circle Faucet.");
       }
-      throw new Error("Gas credit is temporarily unavailable. Use the Circle Faucet.");
+      // Capture diagnostic details server-side without exposing auth secrets.
+      console.error("[Nest gas credit] claim storage unavailable", {
+        code: claimError.code,
+        message: claimError.message,
+      });
+      if (claimError.code === "42P01" || claimError.code === "PGRST205" ||
+          claimError.code === "PGRST116") {
+        throw new Error("Nest cloud storage is not set up for gas credits. The operator must apply the existing account-cache migration.");
+      }
+      throw new Error("Gas credit storage is unavailable. Check the Nest server logs or use the Circle Faucet.");
     }
 
     const wallet = createWalletClient({ account, chain: arcTestnet, transport: rpcTransport });
-    // Sponsor bears this transaction's gas; the recipient's signing keys
-    // stay exclusively in the Privy embedded wallet.
-    const hash = await wallet.sendTransaction({
-      to: walletAddress,
-      value: CREDIT,
-    });
-    await db.from("nest_onboarding_gas_grants")
-      .update({ status: "sent", tx_hash: hash })
-      .eq("privy_user_id", verified.user_id);
+    // Sponsor bears this transfer's fee, while Privy retains exclusive
+    // control of the recipient signing keys.
+    const hash = await wallet.sendTransaction({ to: walletAddress, value: CREDIT });
+
+    // Save the submitted tx to the original cache row. A failed update
+    // does NOT create a new funding claim or send additional money.
+    const { error: updateError } = await db.from("nest_account_cache").update({
+      preferences: { ...preferences, status: "sent", txHash: hash },
+    }).eq("account_wallet", claimKey).eq("scope", "global");
+    if (updateError) {
+      console.error("[Nest gas credit] transaction record update failed", {
+        code: updateError.code, message: updateError.message,
+      });
+    }
     const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 60_000 });
     if (receipt.status !== "success") throw new Error("The gas credit transfer did not succeed.");
     return { status: "funded" as const };
