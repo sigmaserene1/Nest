@@ -6,6 +6,7 @@ export type ArcEnvironment = "testnet" | "mainnet";
 export const ARC_USDC_ADDRESS = "0x3600000000000000000000000000000000000000" as const;
 
 export const ARC_TESTNET_RPC_URLS = [
+  "https://rpc.testnet.arc.io",
   "https://arc-testnet.drpc.org",
   "https://5042002.rpc.thirdweb.com",
   "https://rpc.testnet.arc.network",
