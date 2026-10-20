@@ -1,26 +1,11 @@
-import { useState } from "react";
-import { Mail, Wallet, Loader2, ShieldCheck, UserPlus, LogIn } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { lazy, Suspense, useState } from "react";
+import { Loader2, Mail, ShieldCheck, Wallet } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useEmailAuth } from "@/lib/use-email-auth";
-import { clearSignupDraft, saveSignupDraft } from "@/lib/signup-draft";
-import { lazy, Suspense, type ComponentProps } from "react";
-const LazyPrivyEmailOtp = lazy(() =>
-  import("@/components/nest/privy-email-otp").then((m) => ({ default: m.PrivyEmailOtp })),
-);
-function PrivyEmailOtp(props: ComponentProps<typeof LazyPrivyEmailOtp>) {
-  return (
-    <Suspense fallback={null}>
-      <LazyPrivyEmailOtp {...props} />
-    </Suspense>
-  );
-}
-import { privyAppId } from "@/lib/privy-config";
+import { clearSignupDraft } from "@/lib/signup-draft";
+
+const PrivyEmailOtp = lazy(() => import("@/components/nest/privy-email-otp").then((module) => ({ default: module.PrivyEmailOtp })));
 
 type Props = {
   open: boolean;
@@ -30,350 +15,69 @@ type Props = {
   inviteMode?: boolean;
 };
 
-export function SignInDialog({
-  open,
-  onOpenChange,
-  onWallet,
-  onAuthenticated,
-  inviteMode = false,
-}: Props) {
-  const { signIn, signInWithGoogle } = useEmailAuth();
-  const hasPrivyEmail = Boolean(privyAppId());
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+export function SignInDialog({ open, onOpenChange, onWallet, onAuthenticated, inviteMode = false }: Props) {
+  const { signIn } = useEmailAuth();
   const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [workspaceName, setWorkspaceName] = useState("");
-  const [busy, setBusy] = useState<"email" | "google" | "privy" | null>(null);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<"email" | "code" | "wallet">("email");
+  const [legacy, setLegacy] = useState(false);
 
-
-  const reset = (o: boolean) => {
-    if (!o) {
-      setError(null);
-      setBusy(null);
-    }
-    onOpenChange(o);
+  const close = (next: boolean) => {
+    if (busy && !next) return;
+    if (!next) { setError(null); setLegacy(false); setStep("email"); }
+    onOpenChange(next);
   };
-
-
-  const validateSignup = () => {
-    const name = displayName.trim();
-    const workspace = workspaceName.trim();
-    if (mode !== "signup") return true;
-    if (name.length < 2 || name.length > 60) {
-      setError("Enter the name you want members to see in Nest.");
-      return false;
-    }
-    if (!inviteMode && (workspace.length < 2 || workspace.length > 80)) {
-      setError("Enter a workspace name between 2 and 80 characters.");
-      return false;
-    }
-    return true;
+  const complete = () => {
+    clearSignupDraft();
+    onAuthenticated();
+    onOpenChange(false);
   };
-
-  const persistSignupDraft = (emailValue?: string) => {
-    if (mode !== "signup") {
-      clearSignupDraft();
-      return;
-    }
-    saveSignupDraft({
-      displayName,
-      workspaceName: inviteMode ? undefined : workspaceName,
-      email: emailValue,
-    });
-  };
-
-  const submitEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const normalized = email.trim();
-    if (!/^\S+@\S+\.\S+$/.test(normalized)) {
-      setError("Enter a valid email address.");
-      return;
-    }
-
-    if (!validateSignup()) return;
-    persistSignupDraft(normalized);
-    setBusy("email");
+  const openLegacyWallet = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) { setError("Enter a valid email address."); return; }
+    setBusy(true);
     setError(null);
-    try {
-      // loginWithEmail resolves only after Circle has verified the OTP,
-      // initialized/restored the wallet and persisted the Nest Circle session.
-      // Move straight into /app; AppLayout will wait for wagmi to reconnect the
-      // embedded connector instead of leaving the user on the landing page.
-      await signIn(normalized);
-      onAuthenticated();
-      reset(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start secure email sign-in.");
-      setBusy(null);
-    }
-  };
-
-  const submitGoogle = async () => {
-    if (!validateSignup()) return;
-    persistSignupDraft();
-    setBusy("google");
-    setError(null);
-    try {
-      // Circle uses a full-page Google OAuth redirect. Keep this dialog in its
-      // loading state until navigation takes over instead of briefly dropping
-      // the user back on the landing page.
-      await signInWithGoogle();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start Google sign-in.");
-      setBusy(null);
-    }
+    try { clearSignupDraft(); await signIn(email.trim().toLowerCase()); complete(); }
+    catch (error) { setError(error instanceof Error ? error.message : "Could not open your existing wallet."); }
+    finally { setBusy(false); }
   };
 
   return (
-    <Dialog open={open} onOpenChange={reset}>
-      <DialogContent className="max-w-sm overflow-hidden rounded-[28px] border-border/80 bg-card p-0 shadow-2xl">
-        <div className="border-b border-border/70 bg-gradient-to-b from-brand/10 to-transparent px-6 pb-5 pt-6">
-          <div className="mb-4 grid h-11 w-11 place-items-center rounded-2xl bg-brand text-white shadow-sm">
-            {mode === "signup" ? <UserPlus className="h-5 w-5" /> : <ShieldCheck className="h-5 w-5" />}
-          </div>
-
-          <div className="mb-5 grid grid-cols-2 rounded-2xl border border-border bg-background/70 p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signin");
-                setError(null);
-                clearSignupDraft();
-              }}
-              className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition ${
-                mode === "signin"
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-            >
-              <LogIn className="h-3.5 w-3.5" />
-              Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setMode("signup");
-                setError(null);
-              }}
-              className={`inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl text-xs font-bold transition ${
-                mode === "signup"
-                  ? "bg-foreground text-background shadow-sm"
-                  : "text-muted-foreground"
-              }`}
-            >
-              <UserPlus className="h-3.5 w-3.5" />
-              Create account
-            </button>
-          </div>
-
+    <Dialog open={open} onOpenChange={close}>
+      <DialogContent className="gap-0 overflow-y-auto rounded-lg border-border bg-background p-0 sm:max-w-sm sm:p-0" onInteractOutside={(event) => { if (busy) event.preventDefault(); }}>
+        <div className="px-5 pb-5 pt-6 sm:px-6">
+          <span className="mb-5 grid h-11 w-11 place-items-center rounded-lg bg-brand-soft text-brand">
+            {step === "code" ? <ShieldCheck className="h-5 w-5" /> : step === "wallet" ? <Wallet className="h-5 w-5" /> : <Mail className="h-5 w-5" />}
+          </span>
           <DialogHeader className="text-left">
-            <DialogTitle className="font-display text-2xl tracking-tight">
-              {mode === "signup"
-                ? inviteMode
-                  ? "Create your account to join"
-                  : "Create your Nest account"
-                : inviteMode
-                  ? "Sign in to join"
-                  : "Welcome back"}
+            <DialogTitle className="font-display text-2xl leading-tight tracking-normal">
+              {step === "code" ? "Check your inbox" : step === "wallet" ? "Your Nest wallet" : "Sign in to Nest"}
             </DialogTitle>
-            <DialogDescription className="max-w-[30rem] text-sm leading-6">
-              {mode === "signup"
-                ? inviteMode
-                  ? "Set up your Nest identity, then review and join the workspace you were invited to. Nest will not create another workspace."
-                  : "Set up your identity and first shared workspace. Privy creates your EVM wallet after email verification."
-                : inviteMode
-                  ? "Sign in, review the invitation, then join the existing workspace."
-                  : "Sign in with the same Google account, email or wallet you used before."}
+            <DialogDescription className="text-sm leading-6">
+              {step === "code" ? "Enter the six-digit code to continue." : step === "wallet" ? "Continue with your email wallet." : inviteMode ? "Verify your email to join the workspace." : "Your email. Your wallet. No password."}
             </DialogDescription>
           </DialogHeader>
         </div>
-
-        <div className="space-y-3 px-6 pb-6 pt-5">
-          {mode === "signup" ? (
-            <div className="space-y-2.5">
-              <label className="block">
-                <span className="mb-1.5 block text-[11px] font-bold text-muted-foreground">
-                  Your name
-                </span>
-                <input
-                  type="text"
-                  autoComplete="name"
-                  maxLength={60}
-                  placeholder="e.g. Alex Chen"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  disabled={busy !== null}
-                  className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
-                />
-              </label>
-
-              {!inviteMode ? (
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-bold text-muted-foreground">
-                    First workspace
-                  </span>
-                  <input
-                    type="text"
-                    maxLength={80}
-                    placeholder="e.g. Apartment 12, Design Team"
-                    value={workspaceName}
-                    onChange={(e) => setWorkspaceName(e.target.value)}
-                    disabled={busy !== null}
-                    className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
-                  />
-                </label>
-              ) : null}
-            </div>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={submitGoogle}
-            disabled={busy !== null}
-            className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background px-4 py-3 text-sm font-bold transition hover:border-brand/35 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {busy === "google" ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <span
-                aria-hidden
-                className="grid h-5 w-5 place-items-center rounded-full bg-foreground text-[12px] font-black leading-none text-background"
-              >
-                G
-              </span>
-            )}
-            {mode === "signup" ? "Sign up with Google" : "Continue with Google"}
-          </button>
-
-          <div className="flex items-center gap-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or
-            <span className="h-px flex-1 bg-border" />
-          </div>
-
-          {hasPrivyEmail ? (
-            <PrivyEmailOtp
-              email={email}
-              onEmailChange={setEmail}
-              disabled={busy !== null && busy !== "privy"}
-              prepare={(normalized) => {
-                if (!validateSignup()) return false;
-                persistSignupDraft(normalized);
-                setError(null);
-                return true;
-              }}
-              onBusyChange={(isBusy) => setBusy(isBusy ? "privy" : null)}
-              onError={setError}
-              onAuthenticated={() => {
-                onAuthenticated();
-                reset(false);
-              }}
-            />
+        <div className="space-y-4 border-t border-border px-5 py-5 sm:px-6">
+          {legacy ? (
+            <form onSubmit={openLegacyWallet} className="space-y-3">
+              <label htmlFor="nest-legacy-email" className="text-xs font-medium text-muted-foreground">Existing Circle wallet email</label>
+              <input id="nest-legacy-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={busy} required className="h-12 w-full rounded-lg border border-input bg-background px-3 text-base" />
+              <Button type="submit" disabled={busy} className="w-full rounded-lg">{busy ? <Loader2 className="animate-spin" /> : <Wallet />}{busy ? "Opening wallet…" : "Open existing Circle wallet"}</Button>
+              <Button type="button" variant="ghost" disabled={busy} onClick={() => { setLegacy(false); setError(null); }} className="w-full rounded-lg">Back to email sign-in</Button>
+            </form>
           ) : (
-                      <form onSubmit={submitEmail} className="space-y-2.5">
-                        <label htmlFor="nest-email" className="sr-only">
-                          Email address
-                        </label>
-                        <input
-                          id="nest-email"
-                          type="email"
-                          autoComplete="email"
-                          inputMode="email"
-                          placeholder="you@example.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          disabled={busy !== null}
-                          className="min-h-12 w-full rounded-2xl border border-input bg-background px-4 py-3 text-base outline-none transition placeholder:text-muted-foreground focus:border-brand focus:ring-2 focus:ring-brand/10 disabled:opacity-60"
-                        />
-                        <button
-                          type="submit"
-                          disabled={busy !== null}
-                          className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-4 py-3 text-sm font-bold text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          {busy === "email" ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Mail className="h-4 w-4" />
-                          )}
-                          {busy === "email"
-                            ? "Opening secure verification…"
-                            : mode === "signup"
-                              ? "Create account with email"
-                              : "Continue with email"}
-                        </button>
-                      </form>
+            <Suspense fallback={<div role="status" className="flex h-24 items-center justify-center gap-2 text-sm text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" />Loading email sign-in…</div>}>
+              <PrivyEmailOtp email={email} onEmailChange={setEmail} prepare={() => { clearSignupDraft(); setError(null); return true; }} onBusyChange={setBusy} onError={setError} onAuthenticated={complete} onStepChange={setStep} />
+            </Suspense>
           )}
-
-          {hasPrivyEmail ? (
-            <details className="rounded-2xl border border-border/70 bg-muted/30 px-3.5 py-3">
-              <summary className="cursor-pointer list-none text-center text-[11px] font-bold text-muted-foreground">
-                Existing Circle email wallet
-              </summary>
-              <p className="mt-2 text-center text-[10px] leading-4 text-muted-foreground">
-                Use this only if your Nest wallet was created with the older Circle email verification flow.
-              </p>
-              <form onSubmit={submitEmail} className="mt-3 space-y-2.5">
-                <button
-                  type="submit"
-                  disabled={busy !== null}
-                  className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-xs font-bold transition hover:border-brand/35 disabled:opacity-60"
-                >
-                  {busy === "email" ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                  {busy === "email" ? "Opening Circle verification…" : "Continue with legacy Circle email"}
-                </button>
-              </form>
-            </details>
-          ) : null}
-
-          {mode === "signin" ? (
-            <>
-              <div className="flex items-center gap-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-                <span className="h-px flex-1 bg-border" />
-                or use your wallet
-                <span className="h-px flex-1 bg-border" />
-              </div>
-
-              <button
-                type="button"
-                disabled={busy !== null}
-                onClick={() => {
-                  clearSignupDraft();
-                  reset(false);
-                  onWallet();
-                }}
-                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border px-4 py-3 text-sm font-bold transition hover:border-brand/35 hover:bg-accent disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <Wallet className="h-4 w-4" />
-                Connect a wallet
-              </button>
-            </>
-          ) : (
-            <div className="rounded-2xl border border-brand/15 bg-brand/5 px-3.5 py-3 text-[11px] leading-5 text-muted-foreground">
-              {inviteMode
-                ? "Your Nest name is written onchain once during onboarding. After verification, you’ll review the invitation before joining."
-                : "Your Nest name is written onchain once during onboarding. Workspace creation also requires one secure wallet confirmation."}
-            </div>
-          )}
-
-          <p className="px-1 pt-1 text-center text-[11px] leading-4 text-muted-foreground">
-            {mode === "signup"
-              ? hasPrivyEmail
-                ? "No password. Sign in with your email to create or restore your Privy EVM wallet."
-                : "No password. Circle handles secure email or Google verification and wallet recovery."
-              : hasPrivyEmail
-                ? "Your email opens the same Privy EVM wallet when you return."
-                : "Email verification is completed in Circle’s secure wallet window."}
-          </p>
-
-          {error ? (
-            <p
-              role="alert"
-              className="rounded-2xl border border-destructive/20 bg-destructive/5 px-3.5 py-3 text-xs font-semibold leading-5 text-destructive"
-            >
-              {error}
-            </p>
-          ) : null}
+          {error ? <p role="alert" className="rounded-lg border border-destructive/20 bg-destructive/5 px-3 py-2 text-xs leading-5 text-destructive">{error}</p> : null}
+          {step === "email" && !legacy ? <>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />or<span className="h-px flex-1 bg-border" /></div>
+            <Button variant="outline" disabled={busy} onClick={() => { clearSignupDraft(); close(false); onWallet(); }} className="w-full rounded-lg shadow-none"><Wallet />Connect a wallet</Button>
+            <Button variant="link" size="sm" disabled={busy} onClick={() => { setLegacy(true); setError(null); }} className="h-auto w-full py-1 text-xs text-muted-foreground">Recover an older Circle wallet</Button>
+          </> : null}
         </div>
       </DialogContent>
     </Dialog>
