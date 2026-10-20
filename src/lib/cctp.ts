@@ -1,4 +1,5 @@
 import type { Address, Hex } from "viem";
+import type { ArcEnvironment } from "@/lib/arc-network";
 
 export type CctpChain = {
   id: string;
@@ -17,17 +18,31 @@ const TOKEN_MESSENGER_V2 = "0x8FE6B999Dc680CcFDD5Bf7EB0974218be2542DAA" as Addre
 
 const MESSAGE_TRANSMITTER_V2 = "0xE737e5cEBEEBa77EFE34D4aa090756590b1CE275" as Address;
 
+const MAINNET_TOKEN_MESSENGER_V2 =
+  "0x28b5a0e9C621a5BadaA536219b3a228C8168cf5d" as Address;
+const MAINNET_MESSAGE_TRANSMITTER_V2 =
+  "0x81D40F21F12A8F0E3252Bccb954D722d4c464B64" as Address;
+
 export const ARC_DOMAIN = 26;
 
 export const ARC_CHAIN_ID = 5042002;
 
-export const ARC_RPC_URL = "https://rpc.testnet.arc.network";
+export const ARC_RPC_URL = "https://rpc.testnet.arc.io";
 
 export const ARC_USDC = "0x3600000000000000000000000000000000000000" as Address;
 
 export const ARC_CCTP_CONTRACTS = {
   tokenMessengerV2: TOKEN_MESSENGER_V2,
   messageTransmitterV2: MESSAGE_TRANSMITTER_V2,
+  usdc: ARC_USDC,
+} as const;
+
+export const ARC_MAINNET_DOMAIN = 26;
+export const ARC_MAINNET_CHAIN_ID = 5042;
+export const ARC_MAINNET_RPC_URL = "https://rpc.mainnet.arc.io";
+export const ARC_MAINNET_CCTP_CONTRACTS = {
+  tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+  messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
   usdc: ARC_USDC,
 } as const;
 
@@ -45,12 +60,100 @@ export const ARC_CCTP_CHAIN: CctpChain = {
   eta: "~8 sec+",
 };
 
+export const ARC_MAINNET_CCTP_CHAIN: CctpChain = {
+  id: "arc",
+  name: "Arc",
+  domain: ARC_MAINNET_DOMAIN,
+  chainId: ARC_MAINNET_CHAIN_ID,
+  supportsFastTransfer: false,
+  usdc: ARC_USDC,
+  tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+  messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
+  explorer: "https://explorer.arc.io",
+  eta: "~8 sec+",
+};
+
 /**
  * Circle CCTP v2 testnet.
  *
  * All supported EVM testnets use the same CCTP V2
  * TokenMessengerV2 and MessageTransmitterV2 addresses.
  */
+export const CCTP_MAINNET_SOURCES: CctpChain[] = [
+  {
+    id: "ethereum",
+    name: "Ethereum",
+    domain: 0,
+    chainId: 1,
+    supportsFastTransfer: true,
+    usdc: "0xA0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+    tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+    messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
+    explorer: "https://etherscan.io",
+    eta: "~13–19 min",
+  },
+  {
+    id: "avalanche",
+    name: "Avalanche",
+    domain: 1,
+    chainId: 43114,
+    supportsFastTransfer: false,
+    usdc: "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E",
+    tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+    messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
+    explorer: "https://snowtrace.io",
+    eta: "~8 sec+",
+  },
+  {
+    id: "optimism",
+    name: "OP Mainnet",
+    domain: 2,
+    chainId: 10,
+    supportsFastTransfer: true,
+    usdc: "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+    tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+    messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
+    explorer: "https://optimistic.etherscan.io",
+    eta: "~13–19 min",
+  },
+  {
+    id: "arbitrum",
+    name: "Arbitrum",
+    domain: 3,
+    chainId: 42161,
+    supportsFastTransfer: true,
+    usdc: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+    messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
+    explorer: "https://arbiscan.io",
+    eta: "~13–19 min",
+  },
+  {
+    id: "base",
+    name: "Base",
+    domain: 6,
+    chainId: 8453,
+    supportsFastTransfer: true,
+    usdc: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+    tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+    messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
+    explorer: "https://basescan.org",
+    eta: "~13–19 min",
+  },
+  {
+    id: "polygon",
+    name: "Polygon PoS",
+    domain: 7,
+    chainId: 137,
+    supportsFastTransfer: false,
+    usdc: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+    tokenMessengerV2: MAINNET_TOKEN_MESSENGER_V2,
+    messageTransmitterV2: MAINNET_MESSAGE_TRANSMITTER_V2,
+    explorer: "https://polygonscan.com",
+    eta: "~8 sec+",
+  },
+];
+
 export const CCTP_SOURCES: CctpChain[] = [
   {
     id: "ethereum",
@@ -133,12 +236,28 @@ export const CCTP_SOURCES: CctpChain[] = [
 
 /** Every EVM testnet route Nest can present in either direction. */
 export const CCTP_CHAINS: CctpChain[] = [ARC_CCTP_CHAIN, ...CCTP_SOURCES];
+export const CCTP_MAINNET_CHAINS: CctpChain[] = [
+  ARC_MAINNET_CCTP_CHAIN,
+  ...CCTP_MAINNET_SOURCES,
+];
+
+export function cctpChainsFor(environment: ArcEnvironment): CctpChain[] {
+  return environment === "mainnet" ? CCTP_MAINNET_CHAINS : CCTP_CHAINS;
+}
 
 export const IRIS_SANDBOX_URL = "https://iris-api-sandbox.circle.com";
+export const IRIS_MAINNET_URL = "https://iris-api.circle.com";
 
 export const CCTP_MESSAGE_API = `${IRIS_SANDBOX_URL}/v2/messages`;
-
 export const CCTP_FEE_API = `${IRIS_SANDBOX_URL}/v2/burn/USDC/fees`;
+
+export function cctpMessageApiFor(environment: ArcEnvironment) {
+  return `${environment === "mainnet" ? IRIS_MAINNET_URL : IRIS_SANDBOX_URL}/v2/messages`;
+}
+
+export function cctpFeeApiFor(environment: ArcEnvironment) {
+  return `${environment === "mainnet" ? IRIS_MAINNET_URL : IRIS_SANDBOX_URL}/v2/burn/USDC/fees`;
+}
 
 export const ERC20_ABI = [
   {
@@ -336,12 +455,15 @@ export async function getCctpFee(
   destinationDomain: number,
   amountUnits: bigint,
   finalityThreshold: CctpFinalityThreshold,
+  environment: ArcEnvironment = "testnet",
 ): Promise<bigint> {
   if (amountUnits <= 0n) {
     return 0n;
   }
 
-  const response = await fetch(`${CCTP_FEE_API}/${sourceDomain}/${destinationDomain}`);
+  const response = await fetch(
+    `${cctpFeeApiFor(environment)}/${sourceDomain}/${destinationDomain}`,
+  );
 
   if (!response.ok) {
     throw new Error(`Unable to retrieve CCTP fee (${response.status})`);
@@ -400,13 +522,14 @@ export async function getCctpForwardingQuote(
   destinationDomain: number,
   amountUnits: bigint,
   finalityThreshold: CctpFinalityThreshold,
+  environment: ArcEnvironment = "testnet",
 ): Promise<CctpForwardingQuote> {
   if (amountUnits <= 0n) {
     return { protocolFee: 0n, forwardingFee: 0n, maxFee: 0n, totalAmount: 0n };
   }
 
   const response = await fetch(
-    `${CCTP_FEE_API}/${sourceDomain}/${destinationDomain}?forward=true`,
+    `${cctpFeeApiFor(environment)}/${sourceDomain}/${destinationDomain}?forward=true`,
   );
 
   if (!response.ok) {
@@ -475,6 +598,7 @@ export async function waitForForwardedMint(
     timeoutMs?: number;
     intervalMs?: number;
     onPending?: () => void;
+    environment?: ArcEnvironment;
   },
 ): Promise<Hex> {
   const timeoutMs = options?.timeoutMs ?? 30 * 60 * 1000;
@@ -483,7 +607,7 @@ export async function waitForForwardedMint(
 
   while (Date.now() - started < timeoutMs) {
     const response = await fetch(
-      `${CCTP_MESSAGE_API}/${sourceDomain}?transactionHash=${transactionHash}`,
+      `${cctpMessageApiFor(options?.environment ?? "testnet")}/${sourceDomain}?transactionHash=${transactionHash}`,
     );
 
     if (response.ok) {
@@ -511,13 +635,14 @@ export async function waitForForwardedMint(
 export async function getAttestation(
   sourceDomain: number,
   transactionHash: Hex,
+  environment: ArcEnvironment = "testnet",
 ): Promise<{
   status: "pending" | "complete";
   message?: Hex;
   attestation?: Hex;
 }> {
   const response = await fetch(
-    `${CCTP_MESSAGE_API}/${sourceDomain}?transactionHash=${transactionHash}`,
+    `${cctpMessageApiFor(environment)}/${sourceDomain}?transactionHash=${transactionHash}`,
   );
 
   /**
@@ -574,6 +699,7 @@ export async function waitForAttestation(
     timeoutMs?: number;
     intervalMs?: number;
     onPending?: () => void;
+    environment?: ArcEnvironment;
   },
 ) {
   const timeoutMs = options?.timeoutMs ?? 30 * 60 * 1000;
@@ -583,7 +709,11 @@ export async function waitForAttestation(
   const started = Date.now();
 
   while (Date.now() - started < timeoutMs) {
-    const result = await getAttestation(sourceDomain, transactionHash);
+    const result = await getAttestation(
+      sourceDomain,
+      transactionHash,
+      options?.environment ?? "testnet",
+    );
 
     if (result.status === "complete" && result.message && result.attestation) {
       return result;

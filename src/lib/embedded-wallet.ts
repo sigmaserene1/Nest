@@ -1,6 +1,6 @@
 import { createConnector } from "wagmi";
 import { createPublicClient, http, type Address } from "viem";
-import { arcChainFor } from "@/lib/arc-network";
+import { arcChainFor, getArcEnvironment } from "@/lib/arc-network";
 
 /**
  * Email wallet connector backed by Circle User-Controlled Wallets.
@@ -9,8 +9,10 @@ import { arcChainFor } from "@/lib/arc-network";
  * SSR-safe: the Circle SDK is only loaded in the browser on demand.
  */
 export const EMBEDDED_CONNECTOR_ID = "nest.circle";
-// Circle wallets currently run on Arc Testnet.
-const circleChainId = () => arcChainFor("testnet").id;
+// Circle wallets are network-specific. The connector follows the active
+// Nest environment, while the server session guard prevents cross-network
+// signing with the wrong wallet.
+const circleChainId = () => arcChainFor(getArcEnvironment()).id;
 
 const loadCircle = () => import("@/lib/circle-sdk");
 
@@ -18,7 +20,14 @@ function sessionAddress(): Address | null {
   if (typeof window === "undefined") return null;
   try {
     const s = JSON.parse(window.localStorage.getItem("nest.circle.session") ?? "null");
-    if (!s || Date.now() - s.createdAt > 55 * 60 * 1000) return null;
+    const sessionEnvironment = s?.environment === "mainnet" ? "mainnet" : "testnet";
+    if (
+      !s ||
+      sessionEnvironment !== getArcEnvironment() ||
+      Date.now() - s.createdAt > 55 * 60 * 1000
+    ) {
+      return null;
+    }
     return s.address as Address;
   } catch {
     return null;
@@ -94,8 +103,12 @@ export function embeddedWalletConnector() {
         return sessionAddress() !== null;
       },
       async switchChain({ chainId }) {
-        if (chainId !== chain().id) throw new Error("Email wallets run on Arc Testnet only.");
-        return chain();
+        const target = config.chains.find((candidate) => candidate.id === chainId);
+        const isArcNetwork = chainId === arcChainFor("testnet").id || chainId === arcChainFor("mainnet").id;
+        if (!target || !isArcNetwork) {
+          throw new Error("Email wallets support Arc Testnet and Arc Mainnet only.");
+        }
+        return target;
       },
       onAccountsChanged() {},
       onChainChanged() {},

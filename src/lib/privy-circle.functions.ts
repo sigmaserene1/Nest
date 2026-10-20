@@ -3,6 +3,7 @@ import { z } from "zod";
 import { PrivyClient } from "@privy-io/node";
 import { initiateUserControlledWalletsClient } from "@circle-fin/user-controlled-wallets";
 import { NEST_PRIVY_APP_ID } from "@/lib/privy-config";
+import { circleBlockchainFor } from "@/lib/circle-network";
 
 const accessTokenSchema = z.string().min(20).max(10000);
 
@@ -59,7 +60,10 @@ async function circleUserIdForPrivy(privyUserId: string) {
  */
 export const circleSessionFromPrivy = createServerFn({ method: "POST" })
   .inputValidator((input) =>
-    z.object({ accessToken: accessTokenSchema }).parse(input),
+    z.object({
+      accessToken: accessTokenSchema,
+      environment: z.enum(["testnet", "mainnet"]),
+    }).parse(input),
   )
   .handler(async ({ data }) => {
     const privy = getPrivyClient();
@@ -91,9 +95,10 @@ export const circleSessionFromPrivy = createServerFn({ method: "POST" })
       throw new Error("Circle did not return a wallet session.");
     }
 
+    const blockchain = circleBlockchainFor(data.environment);
     const walletsResponse = await circle.listWallets({ userToken });
     const existing = walletsResponse.data?.wallets?.find(
-      (wallet) => wallet.blockchain === "ARC-TESTNET",
+      (wallet) => wallet.blockchain === blockchain,
     );
 
     if (existing) {
@@ -107,7 +112,7 @@ export const circleSessionFromPrivy = createServerFn({ method: "POST" })
     const pin = await circle.createUserPinWithWallets({
       userToken,
       accountType: "SCA",
-      blockchains: ["ARC-TESTNET"],
+      blockchains: [blockchain],
     });
 
     return {

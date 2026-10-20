@@ -44,7 +44,7 @@ import { useBridgeHistory, type BridgeHistoryEntry } from "@/lib/bridge-history"
 import {
   circleBridgeHashes,
   executeCircleBridge,
-  isCircleArcTestnetBridgeRoute,
+  isCircleArcBridgeRoute,
 } from "@/lib/circle-bridge";
 import {
   getLifiApprovalAddress,
@@ -165,7 +165,7 @@ function BridgePage() {
   const useCircleAppKitBridge = Boolean(
     source &&
       destination &&
-      isCircleArcTestnetBridgeRoute(source.id, destination.id),
+      isCircleArcBridgeRoute(source.id, destination.id),
   );
   const amountDecimals = useCircleAppKitBridge ? 6 : sourceToken?.decimals;
   const amountUnits = useMemo(() => {
@@ -832,7 +832,7 @@ function BridgePage() {
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
                 {useCircleAppKitBridge
-                  ? "Arc Testnet routes use Circle App Kit CCTP directly, matching Arc's recommended bridge flow."
+                  ? "Arc Mainnet and Testnet routes use Circle App Kit CCTP directly when the selected pair is supported."
                   : "LI.FI checks liquidity, approval target, bridge tool, and destination estimate before execution."}
               </div>
             </div>
@@ -928,8 +928,12 @@ function BridgePage() {
               {quoteError && (
                 <div className="mt-2 rounded-lg border border-warning/30 bg-warning/10 px-2 py-1.5 text-[11px] text-foreground">
                   {quoteError}
-                  {!useCircleAppKitBridge && (source?.id === 5042002 || destination?.id === 5042002) && (
-                    <p className="mt-1">This pair is outside the direct Circle App Kit CCTP testnet route set. Try a supported Arc testnet pair or another LI.FI route.</p>
+                  {!useCircleAppKitBridge &&
+                    (source?.id === 5042 ||
+                      destination?.id === 5042 ||
+                      source?.id === 5042002 ||
+                      destination?.id === 5042002) && (
+                    <p className="mt-1">This pair is outside the direct Circle App Kit CCTP route set. Try a supported Arc pair or another LI.FI route.</p>
                   )}
                 </div>
               )}

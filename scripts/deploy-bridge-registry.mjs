@@ -25,7 +25,7 @@ const RPC_URL =
   process.env.ARC_RPC_URL ||
   (isMainnet
     ? "https://rpc.mainnet.arc.io"
-    : "https://rpc.testnet.arc.network");
+    : "https://rpc.testnet.arc.io");
 
 const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
 if (!privateKey || !/^0x[0-9a-fA-F]{64}$/.test(privateKey)) {

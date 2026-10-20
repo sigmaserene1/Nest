@@ -24,7 +24,7 @@ if (isMainnet && process.env.CONFIRM_MAINNET_DEPLOY !== "YES") {
 
 const defaultRpc = isMainnet
   ? "https://rpc.mainnet.arc.io"
-  : "https://rpc.testnet.arc.network";
+  : "https://rpc.testnet.arc.io";
 const RPC_URL = process.env.ARC_RPC_URL || defaultRpc;
 const USDC_ADDRESS =
   process.env.ARC_USDC_ADDRESS || "0x3600000000000000000000000000000000000000";

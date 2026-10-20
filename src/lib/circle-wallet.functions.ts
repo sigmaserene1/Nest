@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { circleBlockchainFor } from "@/lib/circle-network";
 
 /**
  * Circle User-Controlled Wallets (email + social login) — server side.
@@ -7,7 +8,7 @@ import { z } from "zod";
  * short-lived per-user token Circle issues after the email code is verified.
  */
 const BASE = "https://api.circle.com/v1/w3s";
-export const CIRCLE_BLOCKCHAIN = "ARC-TESTNET";
+
 
 async function circle(path: string, init: { method?: string; body?: unknown; userToken?: string } = {}) {
   const key = process.env["CIRCLE_API_KEY"];
@@ -75,12 +76,18 @@ export const circleSocialToken = createServerFn({ method: "POST" })
  * wallet so Nest does not silently change their onchain identity/address.
  */
 export const circleInitUser = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ userToken: token }).parse(d))
+  .inputValidator((d) =>
+    z.object({ userToken: token, environment: z.enum(["testnet", "mainnet"]) }).parse(d),
+  )
   .handler(async ({ data }) => {
     try {
       const r = await circle("/user/initialize", {
         userToken: data.userToken,
-        body: { idempotencyKey: crypto.randomUUID(), accountType: "SCA", blockchains: [CIRCLE_BLOCKCHAIN] },
+        body: {
+          idempotencyKey: crypto.randomUUID(),
+          accountType: "SCA",
+          blockchains: [circleBlockchainFor(data.environment)],
+        },
       });
       return { challengeId: r.challengeId as string };
     } catch (e) {
@@ -90,9 +97,14 @@ export const circleInitUser = createServerFn({ method: "POST" })
   });
 
 export const circleWallet = createServerFn({ method: "POST" })
-  .inputValidator((d) => z.object({ userToken: token }).parse(d))
+  .inputValidator((d) =>
+    z.object({ userToken: token, environment: z.enum(["testnet", "mainnet"]) }).parse(d),
+  )
   .handler(async ({ data }) => {
-    const r = await circle(`/wallets?blockchain=${CIRCLE_BLOCKCHAIN}`, { userToken: data.userToken });
+    const blockchain = circleBlockchainFor(data.environment);
+    const r = await circle(`/wallets?blockchain=${encodeURIComponent(blockchain)}`, {
+      userToken: data.userToken,
+    });
     const w = (r.wallets ?? [])[0];
     return w ? { walletId: w.id as string, address: w.address as string } : null;
   });

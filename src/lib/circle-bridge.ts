@@ -1,19 +1,48 @@
 import type { Address } from "viem";
 
 export type CircleBridgeChainName =
+  | "Arc"
   | "Arc_Testnet"
+  | "Ethereum"
   | "Ethereum_Sepolia"
+  | "Base"
   | "Base_Sepolia"
+  | "Avalanche"
   | "Avalanche_Fuji"
-  | "Arbitrum_Sepolia";
+  | "Arbitrum"
+  | "Arbitrum_Sepolia"
+  | "Optimism"
+  | "Optimism_Sepolia"
+  | "Polygon"
+  | "Polygon_Amoy_Testnet";
 
 const CHAIN_NAME_BY_ID: Record<number, CircleBridgeChainName> = {
+  5042: "Arc",
   5042002: "Arc_Testnet",
+  1: "Ethereum",
   11155111: "Ethereum_Sepolia",
+  8453: "Base",
   84532: "Base_Sepolia",
+  43114: "Avalanche",
   43113: "Avalanche_Fuji",
+  42161: "Arbitrum",
   421614: "Arbitrum_Sepolia",
+  10: "Optimism",
+  11155420: "Optimism_Sepolia",
+  137: "Polygon",
+  80002: "Polygon_Amoy_Testnet",
 };
+
+const MAINNET_CHAIN_IDS = new Set([1, 10, 137, 8453, 42161, 43114, 5042]);
+const TESTNET_CHAIN_IDS = new Set([
+  11155111,
+  11155420,
+  43113,
+  84532,
+  421614,
+  80002,
+  5042002,
+]);
 
 export type CircleBridgeStep = {
   name?: string;
@@ -42,11 +71,27 @@ export function circleBridgeChainName(chainId: number) {
   return CHAIN_NAME_BY_ID[chainId] ?? null;
 }
 
-export function isCircleArcTestnetBridgeRoute(fromChainId: number, toChainId: number) {
+export function isCircleArcBridgeRoute(fromChainId: number, toChainId: number) {
+  const sameNetwork =
+    (MAINNET_CHAIN_IDS.has(fromChainId) && MAINNET_CHAIN_IDS.has(toChainId)) ||
+    (TESTNET_CHAIN_IDS.has(fromChainId) && TESTNET_CHAIN_IDS.has(toChainId));
+
   return (
     fromChainId !== toChainId &&
+    sameNetwork &&
     Boolean(CHAIN_NAME_BY_ID[fromChainId]) &&
     Boolean(CHAIN_NAME_BY_ID[toChainId]) &&
+    (fromChainId === 5042 ||
+      toChainId === 5042 ||
+      fromChainId === 5042002 ||
+      toChainId === 5042002)
+  );
+}
+
+/** Backwards-compatible name for callers that only want the Testnet route. */
+export function isCircleArcTestnetBridgeRoute(fromChainId: number, toChainId: number) {
+  return (
+    isCircleArcBridgeRoute(fromChainId, toChainId) &&
     (fromChainId === 5042002 || toChainId === 5042002)
   );
 }
@@ -75,7 +120,7 @@ export async function estimateCircleBridge(params: {
 }) {
   const fromChain = circleBridgeChainName(params.fromChainId);
   const toChain = circleBridgeChainName(params.toChainId);
-  if (!fromChain || !toChain) throw new Error("Circle App Kit does not support this testnet route.");
+  if (!fromChain || !toChain) throw new Error("Circle App Kit does not support this Arc route.");
 
   const { kit, adapter } = await buildCircleBridge(params.provider);
   const to = params.recipient
@@ -88,8 +133,8 @@ export async function estimateCircleBridge(params: {
     amount: params.amount,
     token: "USDC",
     config: {
-      // Arc Testnet FAST transfers can cost around 1.4 USDC. SLOW avoids
-      // "Max fee must be less than amount" for small test transfers.
+      // SLOW avoids "Max fee must be less than amount" for small transfers on
+      // Arc while keeping the bridge usable for modest balances.
       transferSpeed: "SLOW",
     },
   } as never);
@@ -105,7 +150,7 @@ export async function executeCircleBridge(params: {
 }): Promise<CircleBridgeResult> {
   const fromChain = circleBridgeChainName(params.fromChainId);
   const toChain = circleBridgeChainName(params.toChainId);
-  if (!fromChain || !toChain) throw new Error("Circle App Kit does not support this testnet route.");
+  if (!fromChain || !toChain) throw new Error("Circle App Kit does not support this Arc route.");
 
   const { kit, adapter } = await buildCircleBridge(params.provider);
 
