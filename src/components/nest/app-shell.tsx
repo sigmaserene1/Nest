@@ -7,7 +7,6 @@ import {
   Activity,
   Users,
   PieChart,
-  Plus,
   ScrollText,
   Bot,
   Waypoints,
@@ -40,19 +39,20 @@ import {
 
 const primary = [
   { to: "/app", label: "Home", icon: Home, exact: true },
-  { to: "/app/treasury", label: "Treasury", icon: Vault },
-  { to: "/app/settle", label: "Settle", icon: ArrowLeftRight, center: true },
-  { to: "/app/activity", label: "Activity", icon: Activity },
   { to: "/app/expenses", label: "Expenses", icon: Receipt },
+  { to: "/app/settle", label: "Settle", icon: ArrowLeftRight },
+  { to: "/app/activity", label: "Activity", icon: Activity },
+  { to: "/app/analytics", label: "Insights", icon: PieChart },
 ] as const;
 
 const desktopExtra = [
   { to: "/app/members", label: "Members", icon: Users },
-  { to: "/app/analytics", label: "Insights", icon: PieChart },
   { to: "/app/agent", label: "Settlement assistant", icon: Bot },
   { to: "/app/bridge", label: "Bridge", icon: Waypoints },
   { to: "/app/syndicate", label: "Payouts", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
+  // Newer treasury tools stay after the reference navigation.
+  { to: "/app/treasury", label: "Treasury", icon: Vault },
 ] as const;
 
 const businessV2Configured = Boolean(
@@ -352,29 +352,10 @@ export function AppShell({
       <nav className="mobile-bottom-nav fixed left-1/2 z-40 w-[calc(100%-1rem)] max-w-[430px] -translate-x-1/2 lg:hidden">
         <div className="glass-strong relative flex min-h-[66px] items-center rounded-[26px] border-border/75 px-1.5 py-1.5 shadow-[0_16px_48px_rgba(15,23,42,0.16)]">
           <BottomTab to="/app" label="Home" icon={Home} exact />
-          <BottomTab to="/app/treasury" label="Treasury" icon={Vault} />
-          <div className="relative -mt-7 mx-0.5">
-            {onFabClick ? (
-              <button
-                onClick={onFabClick}
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition-all duration-200 ease-out hover:-translate-y-1 active:translate-y-0 active:scale-[0.95]"
-                aria-label="Quick action"
-              >
-                <Plus className="h-6 w-6" strokeWidth={2.5} />
-              </button>
-            ) : (
-              <Link
-                to="/app/settle"
-                preload="render"
-                className="grid h-14 w-14 place-items-center rounded-full btn-gradient ring-4 ring-background shadow-brand transition-all duration-200 ease-out hover:-translate-y-1 active:translate-y-0 active:scale-[0.95]"
-                aria-label="Settle up"
-              >
-                <ArrowLeftRight className="h-5 w-5" strokeWidth={2.4} />
-              </Link>
-            )}
-          </div>
-          <BottomTab to="/app/activity" label="Activity" icon={Activity} />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
+          <BottomTab to="/app/settle" label="Settle" icon={ArrowLeftRight} />
+          <BottomTab to="/app/activity" label="Activity" icon={Activity} />
+          <BottomTab to="/app/analytics" label="Insights" icon={PieChart} />
         </div>
       </nav>
 
