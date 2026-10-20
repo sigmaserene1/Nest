@@ -1,19 +1,24 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeftRight,
+  AtSign,
   BadgeCheck,
   Check,
   Copy,
   ExternalLink,
+  FileText,
   LockKeyhole,
+  Loader2,
   Network,
+  Pencil,
   Receipt,
   Send,
   ShieldCheck,
   Sparkles,
   UserPlus,
   Wallet,
+  X,
 } from "lucide-react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import {
@@ -22,13 +27,17 @@ import {
 } from "@/components/nest/avatar";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
+import { ViewportPortal } from "@/components/nest/viewport-portal";
 import { getMember, fmtUSD, fmtRelative } from "@/lib/nest-data";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { arcEnvironmentLabel, arcExplorerFor, useArcEnvironment } from "@/lib/arc-network";
 import {
   PROFILE_AVATARS,
+  saveProfileDetails,
   saveProfileAvatar,
+  useProfileDisplayName,
+  useProfileNote,
   useProfileAvatar,
   type ProfileAvatarId,
 } from "@/lib/profile-avatar";
@@ -61,11 +70,13 @@ function ProfilePage() {
   const environment = useArcEnvironment();
   const [tab, setTab] = useState<(typeof tabs)[number]>("All");
   const [copied, setCopied] = useState(false);
-  const [avatarSaved, setAvatarSaved] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
 
   const address = wallet.address ?? me ?? "";
   const member = getMember(me ?? address);
-  const name = myName ?? member.name;
+  const profileDisplayName = useProfileDisplayName(address);
+  const profileNote = useProfileNote(address);
+  const name = profileDisplayName || myName || member.name;
   const avatar = useProfileAvatar(address || member.id);
 
   const mine = useMemo(
@@ -117,14 +128,6 @@ function ProfilePage() {
     }
   };
 
-  const chooseAvatar = async (next: ProfileAvatarId) => {
-    if (!address) return;
-    setAvatarSaved(false);
-    await saveProfileAvatar(address, next);
-    setAvatarSaved(true);
-    window.setTimeout(() => setAvatarSaved(false), 1600);
-  };
-
   return (
     <AppShell
       greeting={
@@ -166,6 +169,12 @@ function ProfilePage() {
                   </span>
                 </div>
 
+                {profileNote ? (
+                  <p className="mt-2 max-w-lg text-xs leading-5 text-muted-foreground">
+                    {profileNote}
+                  </p>
+                ) : null}
+
                 <div className="mt-3 flex flex-wrap gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/70 px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
                     <Network className="h-3 w-3" />
@@ -181,6 +190,15 @@ function ProfilePage() {
             </div>
 
             <div className="flex shrink-0 gap-2">
+              <button
+                type="button"
+                onClick={() => setEditOpen(true)}
+                disabled={!address}
+                className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-brand/25 bg-brand/5 px-4 text-xs font-bold text-brand transition hover:border-brand/45 hover:bg-brand/10 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Edit profile
+              </button>
               <button
                 onClick={copy}
                 disabled={!address}
@@ -243,54 +261,6 @@ function ProfilePage() {
           </div>
         </div>
       </section>
-
-      <Card className="mt-4 !p-5 sm:!p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 text-sm font-bold">
-              <Sparkles className="h-4 w-4 text-brand" />
-              Profile avatar
-            </div>
-            <p className="mt-1 max-w-xl text-xs leading-5 text-muted-foreground">
-              Pick one of the Nest profile marks. It replaces placeholder initials everywhere your profile appears.
-            </p>
-          </div>
-          {avatarSaved ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-[10px] font-bold text-emerald-600">
-              <Check className="h-3 w-3" />
-              Saved
-            </span>
-          ) : null}
-        </div>
-
-        <div className="mt-5 grid grid-cols-5 gap-2.5 sm:grid-cols-10 sm:gap-3">
-          {PROFILE_AVATARS.map((option) => {
-            const selected = avatar === option.id;
-            return (
-              <button
-                key={option.id}
-                type="button"
-                onClick={() => void chooseAvatar(option.id)}
-                disabled={!address}
-                className={`group relative grid aspect-square place-items-center rounded-2xl border transition active:scale-[0.96] disabled:opacity-50 ${
-                  selected
-                    ? "border-brand bg-brand/5 ring-2 ring-brand/15"
-                    : "border-border/60 bg-muted/25 hover:-translate-y-0.5 hover:border-brand/30 hover:bg-muted/50"
-                }`}
-                title={option.label}
-                aria-label={`Use ${option.label} profile avatar`}
-              >
-                <ProfileAvatarGraphic avatarId={option.id} size={44} />
-                {selected ? (
-                  <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-brand text-white shadow-sm">
-                    <Check className="h-3 w-3" />
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      </Card>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
@@ -412,6 +382,238 @@ function ProfilePage() {
           />
         ) : null}
       </Card>
+
+      <EditProfileModal
+        open={editOpen}
+        onClose={() => setEditOpen(false)}
+        address={address}
+        initialName={name}
+        initialNote={profileNote}
+        initialAvatar={avatar}
+      />
     </AppShell>
+  );
+}
+
+function EditProfileModal({
+  open,
+  onClose,
+  address,
+  initialName,
+  initialNote,
+  initialAvatar,
+}: {
+  open: boolean;
+  onClose: () => void;
+  address: string;
+  initialName: string;
+  initialNote: string;
+  initialAvatar: ProfileAvatarId;
+}) {
+  const [name, setName] = useState(initialName);
+  const [note, setNote] = useState(initialNote);
+  const [avatar, setAvatar] = useState<ProfileAvatarId>(initialAvatar);
+  const [showAvatars, setShowAvatars] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    setName(initialName);
+    setNote(initialNote);
+    setAvatar(initialAvatar);
+    setShowAvatars(false);
+    setError("");
+  }, [open, initialAvatar, initialName, initialNote]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !busy) onClose();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [busy, onClose, open]);
+
+  if (!open) return null;
+
+  const selectedAvatar = PROFILE_AVATARS.find((option) => option.id === avatar);
+
+  const save = async () => {
+    const nextName = name.trim();
+    if (!nextName) {
+      setError("Add a display name before saving.");
+      return;
+    }
+    if (!address) {
+      setError("Connect your wallet before editing your profile.");
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+    try {
+      await saveProfileAvatar(address, avatar);
+      await saveProfileDetails(address, { displayName: nextName, note });
+      onClose();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not save your profile.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <ViewportPortal>
+      <div
+        className="nest-modal-backdrop fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-2 backdrop-blur-[6px] sm:items-center sm:p-4"
+        role="presentation"
+        onMouseDown={(event) => {
+          if (event.currentTarget === event.target && !busy) onClose();
+        }}
+      >
+        <div
+          className="nest-sheet-enter mobile-sheet glass-strong max-h-[min(760px,calc(100dvh-1rem))] w-full max-w-lg overflow-y-auto rounded-[30px] p-5 sm:max-h-[calc(100dvh-2rem)] sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-profile-title"
+        >
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
+                <Sparkles className="h-3.5 w-3.5" />
+                Your profile
+              </div>
+              <h3 id="edit-profile-title" className="mt-1 text-xl font-black tracking-[-0.03em]">
+                Edit profile
+              </h3>
+              <p className="mt-1.5 max-w-md text-xs leading-5 text-muted-foreground">
+                Change how Nest presents you. Your wallet and permanent onchain identity stay safe.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={busy}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-muted transition hover:bg-muted/80 disabled:opacity-50"
+              aria-label="Close edit profile"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="mt-5 grid gap-4">
+            <label className="grid gap-2">
+              <span className="flex items-center gap-2 text-xs font-bold">
+                <AtSign className="h-3.5 w-3.5 text-brand" />
+                Display name
+              </span>
+              <input
+                value={name}
+                onChange={(event) => setName(event.target.value.slice(0, 60))}
+                maxLength={60}
+                autoFocus
+                placeholder="Your Nest name"
+                className="min-h-12 w-full rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15"
+              />
+              <span className="text-[11px] leading-4 text-muted-foreground">
+                This editable label is shown in Nest. The onchain name remains permanent.
+              </span>
+            </label>
+
+            <label className="grid gap-2">
+              <span className="flex items-center gap-2 text-xs font-bold">
+                <FileText className="h-3.5 w-3.5 text-brand" />
+                Profile note <span className="font-normal text-muted-foreground">optional</span>
+              </span>
+              <textarea
+                value={note}
+                onChange={(event) => setNote(event.target.value.slice(0, 140))}
+                maxLength={140}
+                rows={2}
+                placeholder="e.g. Managing the shared treasury"
+                className="w-full resize-none rounded-2xl border border-border bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15"
+              />
+              <span className="text-right text-[10px] text-muted-foreground">{note.length}/140</span>
+            </label>
+
+            <div className="rounded-3xl border border-border/70 bg-muted/30 p-4">
+              <div className="flex items-center gap-3">
+                <ProfileAvatarGraphic avatarId={avatar} size={50} ring />
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold">Profile avatar</div>
+                  <div className="mt-0.5 text-[11px] text-muted-foreground">
+                    Current mark: {selectedAvatar?.label ?? "Nest"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAvatars((visible) => !visible)}
+                  className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-border bg-background/80 px-3 text-[11px] font-bold transition hover:border-brand/35 hover:text-brand"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                  {showAvatars ? "Hide" : "Change"}
+                </button>
+              </div>
+
+              {showAvatars ? (
+                <div className="mt-4 grid grid-cols-5 gap-2.5">
+                  {PROFILE_AVATARS.map((option) => {
+                    const selected = avatar === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        onClick={() => setAvatar(option.id)}
+                        className={`group relative grid aspect-square place-items-center rounded-2xl border transition active:scale-[0.96] ${
+                          selected
+                            ? "border-brand bg-brand/5 ring-2 ring-brand/15"
+                            : "border-border/60 bg-background/55 hover:-translate-y-0.5 hover:border-brand/30 hover:bg-background/80"
+                        }`}
+                        title={option.label}
+                        aria-label={`Use ${option.label} profile avatar`}
+                      >
+                        <ProfileAvatarGraphic avatarId={option.id} size={42} />
+                        {selected ? (
+                          <span className="absolute -right-1 -top-1 grid h-5 w-5 place-items-center rounded-full bg-brand text-white shadow-sm">
+                            <Check className="h-3 w-3" />
+                          </span>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {error ? (
+            <div className="mt-4 rounded-2xl bg-brand/10 p-3 text-xs font-semibold leading-5 text-brand">
+              {error}
+            </div>
+          ) : null}
+
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={busy}
+              className="min-h-11 rounded-2xl border border-border px-4 text-sm font-bold transition hover:bg-muted disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void save()}
+              disabled={busy || !name.trim()}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl btn-gradient px-5 text-sm font-bold disabled:opacity-50"
+            >
+              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+              Save changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </ViewportPortal>
   );
 }

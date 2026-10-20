@@ -17,7 +17,15 @@ export const PROFILE_AVATARS = [
 export type ProfileAvatarId = (typeof PROFILE_AVATARS)[number]["id"];
 
 const KEY = (wallet: string) => `nest.profile.avatar.${wallet.toLowerCase()}`;
+const DISPLAY_NAME_KEY = (wallet: string) => `nest.profile.display-name.${wallet.toLowerCase()}`;
+const PROFILE_NOTE_KEY = (wallet: string) => `nest.profile.note.${wallet.toLowerCase()}`;
 const EVENT = "nest:profile-avatar";
+const DETAILS_EVENT = "nest:profile-details";
+
+export type ProfileDetails = {
+  displayName: string;
+  note: string;
+};
 
 function hashAddress(value: string) {
   let h = 2166136261;
@@ -66,16 +74,87 @@ export async function restoreProfileAvatar(wallet: string) {
   return getProfileAvatar(wallet);
 }
 
+function cleanProfileText(value: unknown, maxLength: number) {
+  return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+export function getProfileDisplayName(wallet: string): string {
+  if (!wallet || typeof window === "undefined") return "";
+  return cleanProfileText(window.localStorage.getItem(DISPLAY_NAME_KEY(wallet)), 60);
+}
+
+export function getProfileNote(wallet: string): string {
+  if (!wallet || typeof window === "undefined") return "";
+  return cleanProfileText(window.localStorage.getItem(PROFILE_NOTE_KEY(wallet)), 140);
+}
+
+export function setProfileDetailsLocal(wallet: string, details: ProfileDetails) {
+  if (typeof window === "undefined" || !wallet) return;
+
+  const displayName = cleanProfileText(details.displayName, 60);
+  const note = cleanProfileText(details.note, 140);
+
+  if (displayName) window.localStorage.setItem(DISPLAY_NAME_KEY(wallet), displayName);
+  else window.localStorage.removeItem(DISPLAY_NAME_KEY(wallet));
+  if (note) window.localStorage.setItem(PROFILE_NOTE_KEY(wallet), note);
+  else window.localStorage.removeItem(PROFILE_NOTE_KEY(wallet));
+
+  window.dispatchEvent(
+    new CustomEvent(DETAILS_EVENT, { detail: { wallet: wallet.toLowerCase() } }),
+  );
+}
+
+export async function saveProfileDetails(wallet: string, details: ProfileDetails) {
+  setProfileDetailsLocal(wallet, details);
+  await pushAccountCache("global", {
+    preferences: {
+      profileDisplayName: cleanProfileText(details.displayName, 60) || null,
+      profileNote: cleanProfileText(details.note, 140) || null,
+    },
+  });
+}
+
+export async function restoreProfileDetails(wallet: string): Promise<ProfileDetails> {
+  const local = {
+    displayName: getProfileDisplayName(wallet),
+    note: getProfileNote(wallet),
+  };
+  if (!wallet) return local;
+
+  const cache = await pullAccountCache("global");
+  const preferences = cache?.preferences;
+  if (!preferences || typeof preferences !== "object") return local;
+
+  const remote = preferences as Record<string, unknown>;
+  const details = {
+    displayName: cleanProfileText(remote.profileDisplayName, 60),
+    note: cleanProfileText(remote.profileNote, 140),
+  };
+  if ("profileDisplayName" in remote || "profileNote" in remote) {
+    setProfileDetailsLocal(wallet, details);
+    return details;
+  }
+  return local;
+}
+
 function subscribe(listener: () => void) {
   if (typeof window === "undefined") return () => undefined;
   const onStorage = (event: StorageEvent) => {
-    if (event.key?.startsWith("nest.profile.avatar.")) listener();
+    if (
+      event.key?.startsWith("nest.profile.avatar.") ||
+      event.key?.startsWith("nest.profile.display-name.") ||
+      event.key?.startsWith("nest.profile.note.")
+    ) {
+      listener();
+    }
   };
   window.addEventListener("storage", onStorage);
   window.addEventListener(EVENT, listener);
+  window.addEventListener(DETAILS_EVENT, listener);
   return () => {
     window.removeEventListener("storage", onStorage);
     window.removeEventListener(EVENT, listener);
+    window.removeEventListener(DETAILS_EVENT, listener);
   };
 }
 
@@ -84,6 +163,22 @@ export function useProfileAvatar(wallet: string): ProfileAvatarId {
     subscribe,
     () => getProfileAvatar(wallet),
     () => defaultAvatarFor(wallet),
+  );
+}
+
+export function useProfileDisplayName(wallet: string): string {
+  return useSyncExternalStore(
+    subscribe,
+    () => getProfileDisplayName(wallet),
+    () => "",
+  );
+}
+
+export function useProfileNote(wallet: string): string {
+  return useSyncExternalStore(
+    subscribe,
+    () => getProfileNote(wallet),
+    () => "",
   );
 }
 

@@ -7,6 +7,7 @@ import { ActionModal, useActionModal, type ActionMode } from "@/components/nest/
 import { ArcBadge, UsdcBadge, UsdcMark, WalletChip, BlockTicker } from "@/components/nest/chain";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 import { getMember, fmtUSD, fmtRelative, categoryMeta } from "@/lib/nest-data";
+import { useProfileDisplayName } from "@/lib/profile-avatar";
 import {
   useExpenses,
   useComputedBalances,
@@ -51,10 +52,12 @@ export const Route = createFileRoute("/app/")({
 
 function Greeting() {
   const { me: myId, myName: displayName } = useNestChain();
-  const me = { ...getMember(myId ?? ""), name: displayName ?? "You" };
+  const profileDisplayName = useProfileDisplayName(myId ?? "");
+  const shownName = profileDisplayName || displayName || "You";
+  const me = { ...getMember(myId ?? ""), name: shownName };
   const hour = new Date().getHours();
   const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
-  const first = displayName ? displayName.split(" ")[0] : "there";
+  const first = shownName !== "You" ? shownName.split(" ")[0] : "there";
   return (
     <div className="flex items-center justify-between">
       <div className="min-w-0">

@@ -27,7 +27,11 @@ import { useNestChain } from "@/lib/chain/nest-chain";
 import { getMember } from "@/lib/nest-data";
 import { ProfileOnboarding } from "./profile-modal";
 import { RpcBanner } from "./rpc-banner";
-import { restoreProfileAvatar } from "@/lib/profile-avatar";
+import {
+  restoreProfileAvatar,
+  restoreProfileDetails,
+  useProfileDisplayName,
+} from "@/lib/profile-avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -210,11 +214,15 @@ export function AppShell({
   } = useNestChain();
   const me = getMember(myId ?? "");
   const wallet = useArcWallet();
-  const myName = displayName ?? "You";
+  const profileDisplayName = useProfileDisplayName(wallet.address ?? "");
+  const myName = profileDisplayName || displayName || "You";
 
   useEffect(() => {
     if (!wallet.address) return;
-    void restoreProfileAvatar(wallet.address);
+    void Promise.all([
+      restoreProfileAvatar(wallet.address),
+      restoreProfileDetails(wallet.address),
+    ]);
   }, [wallet.address]);
 
   return (
