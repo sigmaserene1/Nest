@@ -1,6 +1,6 @@
 
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { useAccount, usePublicClient, useReadContract, useWalletClient } from "wagmi";
 import { toast } from "sonner";
@@ -21,7 +21,17 @@ import { NEST_TREASURY_V3_ABI } from "@/contracts/nest-treasury-v3-artifact";
 import { ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
 
+const moduleKeys = ["deposit", "proposal", "recurring", "milestone", "budget"] as const;
+type Module = (typeof moduleKeys)[number];
+
+function isModule(value: unknown): value is Module {
+  return typeof value === "string" && moduleKeys.includes(value as Module);
+}
+
 export const Route = createFileRoute("/app/treasury")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    module: isModule(search.module) ? search.module : undefined,
+  }),
   component: TreasuryPage,
   head: () => ({
     meta: [
@@ -36,8 +46,6 @@ export const Route = createFileRoute("/app/treasury")({
     ],
   }),
 });
-
-type Module = "deposit" | "proposal" | "recurring" | "milestone" | "budget";
 
 const moduleMeta: Record<Module, { label: string; icon: typeof Vault; body: string }> = {
   deposit: {
@@ -68,6 +76,8 @@ const moduleMeta: Record<Module, { label: string; icon: typeof Vault; body: stri
 };
 
 function TreasuryPage() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { address, isConnected } = useAccount();
   const { data: walletClient } = useWalletClient();
   const arc = useArcWallet();
@@ -82,7 +92,7 @@ function TreasuryPage() {
   const treasuryAddress =
     configured && isAddress(configured) ? (configured as Address) : null;
 
-  const [module, setModule] = useState<Module>("deposit");
+  const [module, setModule] = useState<Module>(search.module ?? "deposit");
   const [busy, setBusy] = useState<string | null>(null);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceIdInput, setWorkspaceIdInput] = useState("");
@@ -96,6 +106,19 @@ function TreasuryPage() {
   const [spender, setSpender] = useState("");
   const [memberAddress, setMemberAddress] = useState("");
   const [periodDays, setPeriodDays] = useState("7");
+
+  useEffect(() => {
+    setModule(search.module ?? "deposit");
+    setAmount("");
+    setMemo("");
+  }, [search.module]);
+
+  const selectModule = (next: Module) => {
+    setModule(next);
+    setAmount("");
+    setMemo("");
+    void navigate({ search: { module: next } });
+  };
 
   const workspaceQuery = useReadContract({
     address: treasuryAddress ?? undefined,
@@ -527,11 +550,7 @@ function TreasuryPage() {
           return (
             <button
               key={key}
-              onClick={() => {
-                setModule(key);
-                setAmount("");
-                setMemo("");
-              }}
+              onClick={() => selectModule(key)}
               className={
                 "min-h-[86px] rounded-2xl border p-3 text-left transition active:scale-[0.98] " +
                 (active ? "border-brand/35 bg-brand/5" : "border-border bg-card")

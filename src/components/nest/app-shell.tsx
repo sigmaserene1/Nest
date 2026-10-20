@@ -13,6 +13,10 @@ import {
   Briefcase,
   Building2,
   Vault,
+  BadgeDollarSign,
+  CalendarClock,
+  CheckCheck,
+  Target,
   Ellipsis,
   ChevronRight,
 } from "lucide-react";
@@ -50,13 +54,20 @@ const primary = [
 ] as const;
 
 const desktopExtra = [
-  { to: "/app/members", label: "Members", icon: Users },
+  { to: "/app/members", label: "Groups", icon: Users },
   { to: "/app/agent", label: "Settlement assistant", icon: Bot },
   { to: "/app/bridge", label: "Bridge", icon: Waypoints },
   { to: "/app/syndicate", label: "Payouts", icon: Briefcase },
   { to: "/app/receipts", label: "Receipts", icon: ScrollText },
-  // Newer treasury tools stay after the reference navigation.
-  { to: "/app/treasury", label: "Treasury", icon: Vault },
+  { to: "/app/treasury", label: "Treasury Hub", icon: Vault },
+] as const;
+
+const treasuryModules = [
+  { to: "/app/treasury?module=deposit", label: "Shared treasury", icon: Vault },
+  { to: "/app/treasury?module=proposal", label: "Multi-approval pay", icon: CheckCheck },
+  { to: "/app/treasury?module=recurring", label: "Recurring payout", icon: CalendarClock },
+  { to: "/app/treasury?module=milestone", label: "Milestone escrow", icon: Target },
+  { to: "/app/treasury?module=budget", label: "Delegated budget", icon: BadgeDollarSign },
 ] as const;
 
 const businessV2Configured = Boolean(
@@ -66,11 +77,23 @@ const businessV2Configured = Boolean(
 const visibleDesktopExtra = businessV2Configured
   ? [...desktopExtra, { to: "/app/business", label: "Business", icon: Building2 }]
   : desktopExtra;
+const visibleTreasuryTools = [...visibleDesktopExtra, ...treasuryModules];
+
+function matchesNavItem(pathname: string, searchStr: string, to: string, exact = false) {
+  const [targetPath, targetSearch] = to.split("?");
+  const pathMatches = exact
+    ? pathname === targetPath
+    : pathname === targetPath || pathname.startsWith(targetPath + "/");
+  if (!pathMatches) return false;
+  if (targetSearch) return searchStr === `?${targetSearch}`;
+  return targetPath !== "/app/treasury" || !searchStr;
+}
 
 function useActive(path: string, exact = false) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  if (exact) return pathname === path;
-  return pathname === path || pathname.startsWith(path + "/");
+  const { pathname, searchStr } = useRouterState({
+    select: (s) => ({ pathname: s.location.pathname, searchStr: s.location.searchStr }),
+  });
+  return matchesNavItem(pathname, searchStr, path, exact);
 }
 
 function NavItem({
@@ -139,9 +162,11 @@ function BottomTab({
 }
 
 function MobileToolsMenu() {
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const activeItem = visibleDesktopExtra.find(
-    (item) => pathname === item.to || pathname.startsWith(item.to + "/"),
+  const { pathname, searchStr } = useRouterState({
+    select: (s) => ({ pathname: s.location.pathname, searchStr: s.location.searchStr }),
+  });
+  const activeItem = visibleTreasuryTools.find((item) =>
+    matchesNavItem(pathname, searchStr, item.to),
   );
 
   return (
@@ -165,8 +190,8 @@ function MobileToolsMenu() {
             More in Nest
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          {visibleDesktopExtra.map((item) => {
-            const active = pathname === item.to || pathname.startsWith(item.to + "/");
+          {visibleTreasuryTools.map((item) => {
+            const active = matchesNavItem(pathname, searchStr, item.to);
             const Icon = item.icon;
             return (
               <DropdownMenuItem key={item.to} asChild>
@@ -249,9 +274,21 @@ export function AppShell({
               />
             ))}
             <div className="mb-2 mt-6 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-              Treasury & tools
+              Treasury & Operations
             </div>
             {visibleDesktopExtra.map((item) => (
+              <NavItem
+                key={item.to}
+                to={item.to}
+                label={item.label}
+                icon={item.icon}
+                exact={false}
+              />
+            ))}
+            <div className="mb-2 mt-5 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
+              Treasury workflows
+            </div>
+            {treasuryModules.map((item) => (
               <NavItem
                 key={item.to}
                 to={item.to}
