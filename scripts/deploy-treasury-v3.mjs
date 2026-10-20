@@ -21,7 +21,7 @@ if (isMainnet && process.env.CONFIRM_MAINNET_DEPLOY !== "YES") {
 
 const RPC_URL =
   process.env.ARC_RPC_URL ||
-  (isMainnet ? "https://rpc.mainnet.arc.io" : "https://rpc.testnet.arc.network");
+  (isMainnet ? "https://rpc.mainnet.arc.io" : "https://rpc.testnet.arc.io");
 
 const rawPrivateKey = String(process.env.DEPLOYER_PRIVATE_KEY ?? "").trim();
 const privateKey = /^[0-9a-fA-F]{64}$/.test(rawPrivateKey)
