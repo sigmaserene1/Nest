@@ -11,7 +11,8 @@
  * No anonymous faucet: Privy JWT verification + linked-wallet lookup +
  * existing account-cache uniqueness + nonempty workspace check + reserve
  * budget. No new database migration or sponsor key is required.
- * Fail closed when Supabase, sponsor, or Privy are unconfigured.
+ * Fail closed for invalid auth or sponsor configuration; a missing cache migration
+ * falls back to the onchain balance guard so first workspace creation can continue.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -105,53 +106,64 @@ export const fundFirstWorkspaceGas = createServerFn({ method: "POST" })
     if (sponsorBalance < CREDIT + MIN_SPONSOR_RESERVE) {
       throw new Error("Nest's existing testnet gasless sponsor needs a refill. Use the Circle Faucet meanwhile.");
     }
-    if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error("One-time gas-credit tracking is not configured. Use the Circle Faucet.");
-    }
+    // Cache tracking is a durable anti-duplicate ledger, but it must not make
+    // first-workspace creation unavailable when a Lovable/Supabase deployment
+    // has not applied the existing account-cache migration yet. The onchain
+    // balance and empty-room checks below remain the fallback guard.
+    let cacheDb: SupabaseClient | null = null;
+    let claimKey: string | null = null;
+    let claimReserved = false;
+    let preferences: {
+      purpose: string;
+      status: string;
+      wallet: string;
+      amount: string;
+    } | null = null;
 
-    // Reuse the EXISTING nest_account_cache table (migration 202610080001),
-    // instead of requiring the new, undeployed onboarding-grants table.
-    // Privy identity keys have a distinct namespace from real 0x wallets,
-    // which are the only keys the regular Circle account-cache API can access.
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const db = supabaseAdmin as unknown as SupabaseClient;
-    const digest = await crypto.subtle.digest(
-      "SHA-256",
-      new TextEncoder().encode(`nest:arc-testnet:gas-once:${verified.user_id}`),
-    );
-    const claimKey = `privy-gas-${Array.from(new Uint8Array(digest), (b) =>
-      b.toString(16).padStart(2, "0")).join("")}`;
-    const preferences = {
-      purpose: "privy-first-workspace-gas",
-      status: "reserved",
-      wallet: walletAddress.toLowerCase(),
-      amount: "0.07",
-    };
+    if (process.env["SUPABASE_URL"] && process.env["SUPABASE_SERVICE_ROLE_KEY"]) {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const db = supabaseAdmin as unknown as SupabaseClient;
+      const digest = await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode("nest:arc-testnet:gas-once:" + verified.user_id),
+      );
+      claimKey = "privy-gas-" + Array.from(new Uint8Array(digest), (b) =>
+        b.toString(16).padStart(2, "0")).join("");
+      preferences = {
+        purpose: "privy-first-workspace-gas",
+        status: "reserved",
+        wallet: walletAddress.toLowerCase(),
+        amount: "0.07",
+      };
 
-    // Atomic INSERT into an already available composite primary key:
-    // unique (account_wallet, scope). Never upsert on a funding claim.
-    // This reserves the single grant before any USDC leaves the sponsor,
-    // including across concurrent serverless requests and browser retries.
-    const { error: claimError } = await db.from("nest_account_cache").insert({
-      account_wallet: claimKey,
-      scope: "global",
-      snapshot: null,
-      preferences,
-    });
-    if (claimError) {
-      if (claimError.code === "23505") {
-        throw new Error("Your first-workspace gas credit was already requested. Check your wallet balance or use the Circle Faucet.");
-      }
-      // Capture diagnostic details server-side without exposing auth secrets.
-      console.error("[Nest gas credit] claim storage unavailable", {
-        code: claimError.code,
-        message: claimError.message,
+      // Reserve before sending whenever the cache migration is available.
+      const { error: claimError } = await db.from("nest_account_cache").insert({
+        account_wallet: claimKey,
+        scope: "global",
+        snapshot: null,
+        preferences,
       });
-      if (claimError.code === "42P01" || claimError.code === "PGRST205" ||
-          claimError.code === "PGRST116") {
-        throw new Error("Nest cloud storage is not set up for gas credits. The operator must apply the existing account-cache migration.");
+      if (claimError) {
+        if (claimError.code === "23505") {
+          throw new Error("Your first-workspace gas credit was already requested. Check your wallet balance or use the Circle Faucet.");
+        }
+        const cacheMissing =
+          ["42P01", "PGRST205", "PGRST116"].includes(claimError.code) ||
+          /nest_account_cache|schema cache/i.test(claimError.message);
+        console.error("[Nest gas credit] claim storage check failed", {
+          code: claimError.code,
+          message: claimError.message,
+        });
+        if (!cacheMissing) {
+          throw new Error("Gas credit storage is unavailable. Use the Circle Faucet or try again later.");
+        }
+        console.warn("[Nest gas credit] account-cache migration is not applied; continuing with the onchain balance guard.");
+      } else {
+        cacheDb = db;
+        claimReserved = true;
       }
-      throw new Error("Gas credit storage is unavailable. Check the Nest server logs or use the Circle Faucet.");
+    } else {
+      console.warn("[Nest gas credit] Supabase cache is not configured; continuing with the onchain balance guard.");
     }
 
     const wallet = createWalletClient({ account, chain: arcTestnet, transport: rpcTransport });
@@ -159,15 +171,17 @@ export const fundFirstWorkspaceGas = createServerFn({ method: "POST" })
     // control of the recipient signing keys.
     const hash = await wallet.sendTransaction({ to: walletAddress, value: CREDIT });
 
-    // Save the submitted tx to the original cache row. A failed update
-    // does NOT create a new funding claim or send additional money.
-    const { error: updateError } = await db.from("nest_account_cache").update({
-      preferences: { ...preferences, status: "sent", txHash: hash },
-    }).eq("account_wallet", claimKey).eq("scope", "global");
-    if (updateError) {
-      console.error("[Nest gas credit] transaction record update failed", {
-        code: updateError.code, message: updateError.message,
-      });
+    if (cacheDb && claimReserved && claimKey && preferences) {
+      // Save the submitted tx to the original cache row. A failed update
+      // does NOT create a new funding claim or send additional money.
+      const { error: updateError } = await cacheDb.from("nest_account_cache").update({
+        preferences: { ...preferences, status: "sent", txHash: hash },
+      }).eq("account_wallet", claimKey).eq("scope", "global");
+      if (updateError) {
+        console.error("[Nest gas credit] transaction record update failed", {
+          code: updateError.code, message: updateError.message,
+        });
+      }
     }
     const receipt = await publicClient.waitForTransactionReceipt({ hash, timeout: 60_000 });
     if (receipt.status !== "success") throw new Error("The gas credit transfer did not succeed.");
