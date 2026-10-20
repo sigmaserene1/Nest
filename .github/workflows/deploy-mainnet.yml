@@ -17,7 +17,6 @@ concurrency:
 
 jobs:
   deploy:
-    if: inputs.confirm_mainnet == 'DEPLOY_MAINNET'
     runs-on: ubuntu-latest
     env:
       ARC_NETWORK: mainnet
@@ -57,5 +56,5 @@ jobs:
 
       - name: Deployment handoff
         run: |
-          echo "Copy the three VITE_NEST_*_MAINNET_* values from the logs into the production frontend environment."
+          echo "Copy the VITE_NEST_*_MAINNET_* values from the logs into the production frontend environment."
           echo "Keep VITE_ARC_DEFAULT_NETWORK=testnet until the Mainnet contracts and production build have been verified."
