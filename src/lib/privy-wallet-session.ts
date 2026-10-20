@@ -14,6 +14,7 @@ const empty: WalletSession = { ready: false, address: null, email: null, provide
 let session = empty;
 let logout: (() => Promise<void>) | undefined;
 let retry: (() => void) | undefined;
+let readToken: (() => Promise<string | null>) | undefined;
 const listeners = new Set<() => void>();
 export const getPrivyWalletSession = () => session;
 export const getServerPrivyWalletSession = () => empty;
@@ -25,9 +26,15 @@ export function updatePrivyWalletSession(next: Partial<WalletSession>) {
   session = { ...session, ...next };
   listeners.forEach((listener) => listener());
 }
-export function registerPrivyWalletActions(actions: { logout: () => Promise<void>; retry: () => void }) {
+export function registerPrivyWalletActions(actions: { logout: () => Promise<void>; retry: () => void; getAccessToken: () => Promise<string | null> }) {
   logout = actions.logout;
   retry = actions.retry;
+  readToken = actions.getAccessToken;
+}
+
+/** An access token is read on demand and never saved to localStorage. */
+export async function getPrivyGasGrantAccessToken() {
+  return readToken?.() ?? null;
 }
 export async function disconnectPrivyWallet() {
   await logout?.();

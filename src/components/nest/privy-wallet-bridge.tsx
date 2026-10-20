@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useCreateWallet, usePrivy, useWallets } from "@privy-io/react-auth";
+import { useCreateWallet, usePrivy, useToken, useWallets } from "@privy-io/react-auth";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import type { Address } from "viem";
 import { arcChainFor, getArcEnvironment } from "@/lib/arc-network";
@@ -9,6 +9,7 @@ import { shouldCreatePrivyWallet } from "@/lib/privy-wallet-policy";
 /** Runs only inside the lazy, browser-only Privy and wagmi providers. */
 export function PrivyWalletBridge() {
   const { ready, authenticated, user, logout } = usePrivy();
+  const { getAccessToken } = useToken();
   const { ready: walletsReady, wallets } = useWallets();
   const { createWallet } = useCreateWallet();
   const { connectors, connectAsync } = useConnect();
@@ -22,12 +23,12 @@ export function PrivyWalletBridge() {
   const wallet = wallets.find((item) => item.walletClientType === "privy");
 
   useEffect(() => {
-    registerPrivyWalletActions({ logout, retry: () => {
+    registerPrivyWalletActions({ logout, getAccessToken, retry: () => {
       failed.current = false;
       updatePrivyWalletSession({ error: null });
       setAttempt((value) => value + 1);
     } });
-  }, [logout]);
+  }, [logout, getAccessToken]);
 
   useEffect(() => {
     if (!ready) return;
