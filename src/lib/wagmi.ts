@@ -127,11 +127,11 @@ export function createWagmiConfig(connectors: CreateConnectorFn[] = []) {
     transports: {
     [arcMainnet.id]: fallback(
       ARC_MAINNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
-      { rank: false },
+      { rank: true },
     ),
     [arcTestnet.id]: fallback(
       ARC_TESTNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
-      { rank: false },
+      { rank: true },
     ),
     [sepolia.id]: http(),
     [avalancheFuji.id]: http(),

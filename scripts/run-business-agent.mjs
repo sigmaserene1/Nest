@@ -20,7 +20,7 @@ if (compilerErrors.length) {
 }
 const NEST_BUSINESS_V2_ABI = compilerOutput.contracts[sourcePath].NestBusinessV2.abi;
 
-const rpcUrl = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network";
+const rpcUrl = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io";
 const contractAddress = process.env.NEST_BUSINESS_V2_ADDRESS;
 const roomId = process.env.NEST_AGENT_ROOM_ID;
 const privateKey = process.env.NEST_AGENT_PRIVATE_KEY;

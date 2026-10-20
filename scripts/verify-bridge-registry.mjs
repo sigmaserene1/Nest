@@ -7,7 +7,7 @@ const ADDRESS = "0x2dd392fc3f6b10e5520c309164216351f4f7c27b";
 const SOURCE_PATH = "contracts/NestBridgeRegistry.sol";
 const CONTRACT_NAME = "NestBridgeRegistry";
 const COMPILER_VERSION = "v0.8.28+commit.7893614a";
-const RPC_URL = "https://rpc.testnet.arc.network";
+const RPC_URL = "https://rpc.testnet.arc.io";
 const EXPLORER_API = "https://explorer.testnet.arc.io/api";
 
 const source = fs.readFileSync(SOURCE_PATH, "utf8");

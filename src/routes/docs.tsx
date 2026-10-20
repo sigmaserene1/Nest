@@ -276,7 +276,7 @@ function DocsPage() {
               rows={[
                 ["Network name", "Arc Testnet"],
                 ["Chain ID", "5042002"],
-                ["RPC URL", "https://rpc.testnet.arc.network"],
+                ["RPC URL", "https://rpc.testnet.arc.io"],
                 ["Currency symbol", "USDC"],
                 ["Explorer", EXPLORER],
                 ["USDC address", USDC],
@@ -436,7 +436,7 @@ function DocsPage() {
             <Code>{`import { createPublicClient, http } from "viem";
 
 const client = createPublicClient({
-  transport: http("https://rpc.testnet.arc.network"),
+  transport: http("https://rpc.testnet.arc.io"),
 });
 
 const members = await client.readContract({

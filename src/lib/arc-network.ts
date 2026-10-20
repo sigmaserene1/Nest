@@ -6,13 +6,22 @@ export type ArcEnvironment = "testnet" | "mainnet";
 export const ARC_USDC_ADDRESS = "0x3600000000000000000000000000000000000000" as const;
 
 export const ARC_TESTNET_RPC_URLS = [
+  // Circle's official public endpoint.
   "https://rpc.testnet.arc.io",
-  "https://arc-testnet.drpc.org",
-  "https://5042002.rpc.thirdweb.com",
-  "https://rpc.testnet.arc.network",
+  // Official Arc-listed providers, kept as resilient fallbacks.
+  "https://rpc.drpc.testnet.arc.io",
+  "https://rpc.quicknode.testnet.arc.io",
+  "https://rpc.blockdaemon.testnet.arc.io",
 ] as const;
 
-export const ARC_MAINNET_RPC_URLS = ["https://rpc.mainnet.arc.io"] as const;
+export const ARC_MAINNET_RPC_URLS = [
+  // Circle's official public endpoint.
+  "https://rpc.mainnet.arc.io",
+  // Official Arc-listed providers, kept as resilient fallbacks.
+  "https://rpc.quicknode.mainnet.arc.io",
+  "https://rpc.drpc.mainnet.arc.io",
+  "https://rpc.blockdaemon.mainnet.arc.io",
+] as const;
 
 export const arcTestnet = defineChain({
   id: 5042002,

@@ -97,7 +97,7 @@ Treasury V3 and Bridge Registry are testnet contracts and are not represented as
 | Native gas asset      | `USDC`                                       |
 | USDC ERC-20 interface | `0x3600000000000000000000000000000000000000` |
 | CCTP domain           | `26`                                         |
-| Primary RPC           | `https://rpc.testnet.arc.network`            |
+| Primary RPC           | `https://rpc.testnet.arc.io`            |
 | Explorer              | `https://explorer.testnet.arc.io`           |
 
 All balances and transactions shown by the current deployment use testnet assets with no real-world monetary value.

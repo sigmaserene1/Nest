@@ -6,7 +6,7 @@ const ADDRESS = "0x1173776512ae96af2a480a8a1898df8582489425";
 const SOURCE_PATH = "contracts/NestTreasuryV3.sol";
 const CONTRACT_NAME = "NestTreasuryV3";
 const COMPILER_VERSION = "v0.8.28+commit.7893614a";
-const RPC_URL = "https://rpc.testnet.arc.network";
+const RPC_URL = "https://rpc.testnet.arc.io";
 const EXPLORER_API = "https://explorer.testnet.arc.io/api";
 const USDC = "0x3600000000000000000000000000000000000000";
 

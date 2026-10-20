@@ -31,7 +31,7 @@ const CONFIG = {
   license: 'mit',
   constructorArgs:
     '0000000000000000000000003600000000000000000000000000000000000000',
-  rpcUrl: 'https://rpc.testnet.arc.network',
+  rpcUrl: 'https://rpc.testnet.arc.io',
   explorerApi: 'https://testnet.arcscan.app/api',
   outDir: 'verification',
 };

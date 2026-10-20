@@ -4,7 +4,7 @@ import solc from "solc";
 import { createPublicClient, createWalletClient, defineChain, http, isAddress } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 
-const RPC_URL = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.network";
+const RPC_URL = process.env.ARC_RPC_URL || "https://rpc.testnet.arc.io";
 const USDC_ADDRESS = process.env.ARC_USDC_ADDRESS || "0x3600000000000000000000000000000000000000";
 const privateKey = process.env.DEPLOYER_PRIVATE_KEY;
 
