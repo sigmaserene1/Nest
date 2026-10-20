@@ -30,6 +30,7 @@ import { useAccount } from "wagmi";
 import { NEST_BRIDGE_REGISTRY_ABI } from "@/contracts/nest-bridge-registry-artifact";
 import {
   arcChainFor,
+  arcEnvironmentLabel,
   arcExplorerFor,
   useArcEnvironment,
 } from "@/lib/arc-network";
@@ -159,12 +160,19 @@ function BridgePage() {
   const destination = chains.find((chain) => chain.id === toChainId) ?? null;
   const sourceToken = source ? pickUsdcToken(tokensByChain[source.id]) : undefined;
   const destinationToken = destination ? pickUsdcToken(tokensByChain[destination.id]) : undefined;
+  const expectedMainnet = nestEnvironment === "mainnet";
+  const sourceMatchesEnvironment = Boolean(source && source.mainnet === expectedMainnet);
+  const destinationMatchesEnvironment = Boolean(
+    destination && destination.mainnet === expectedMainnet,
+  );
   const recipient = recipientInput.trim() || address || "";
   const value = Number(amount);
   const hasValidAmount = Number.isFinite(value) && value > 0;
   const useCircleAppKitBridge = Boolean(
     source &&
       destination &&
+      sourceMatchesEnvironment &&
+      destinationMatchesEnvironment &&
       isCircleArcBridgeRoute(source.id, destination.id),
   );
   const amountDecimals = useCircleAppKitBridge ? 6 : sourceToken?.decimals;
@@ -180,10 +188,12 @@ function BridgePage() {
   const routeSupported = Boolean(
     source &&
       destination &&
+      sourceMatchesEnvironment &&
+      destinationMatchesEnvironment &&
       source.id !== destination.id &&
       (useCircleAppKitBridge || (sourceToken && destinationToken)),
   );
-  const isMainnetRoute = Boolean(source?.mainnet || destination?.mainnet);
+  const isMainnetRoute = nestEnvironment === "mainnet" && Boolean(source && destination);
   const isBusy = !["idle", "complete", "error"].includes(state);
   const quoteCostUsd = quote ? lifiCostUsd(quote) : 0;
   const estimatedReceived =
@@ -206,13 +216,24 @@ function BridgePage() {
 
   useEffect(() => {
     let cancelled = false;
+    initializedChains.current = false;
+    setChains([]);
+    setTokensByChain({});
+    setFromChainId(null);
+    setToChainId(null);
+    setQuote(null);
+    setQuoteError("");
+    setQuoteAt(null);
+    setChainError("");
+    setState("loading");
+
     async function loadChains() {
       try {
-        const next = await getLifiChains();
+        const next = await getLifiChains(nestEnvironment);
         if (cancelled) return;
         setChains(next);
         setChainError("");
-        setState((current) => (current === "loading" ? "idle" : current));
+        setState("idle");
       } catch (caught) {
         if (cancelled) return;
         setChainError(getReadableError(caught));
@@ -223,7 +244,7 @@ function BridgePage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [nestEnvironment]);
 
   useEffect(() => {
     if (!chains.length || initializedChains.current) return;
@@ -231,16 +252,24 @@ function BridgePage() {
     const searchedFrom = chainIdFromSearch(search.from, chains);
     const currentWalletChain =
       chainId && chains.some((chain) => chain.id === chainId) ? chainId : undefined;
+    const preferredSourceIds =
+      nestEnvironment === "mainnet"
+        ? [5042, 8453, 1, 42161, 10, 137, 43114]
+        : [5042002, 84532, 11155111, 421614, 11155420, 80002, 43113];
+    const preferredDestinationIds =
+      nestEnvironment === "mainnet"
+        ? [8453, 5042, 42161, 10, 137, 1, 43114]
+        : [84532, 5042002, 421614, 11155420, 80002, 11155111, 43113];
     const fallbackFrom =
       searchedFrom ??
       currentWalletChain ??
-      preferredChain(chains, [5042, 8453, 1, 42161, 10, 137])?.id ??
+      preferredChain(chains, preferredSourceIds)?.id ??
       chains[0]?.id;
     const searchedTo = chainIdFromSearch(search.to, chains);
     const fallbackTo =
       searchedTo && searchedTo !== fallbackFrom
         ? searchedTo
-        : (preferredChain(chains, [8453, 5042, 42161, 10, 137, 1], fallbackFrom)?.id ??
+        : (preferredChain(chains, preferredDestinationIds, fallbackFrom)?.id ??
           chains.find((chain) => chain.id !== fallbackFrom)?.id);
 
     setFromChainId(fallbackFrom ?? null);
@@ -716,7 +745,8 @@ function BridgePage() {
                   Bridge USDC
                 </div>
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  All LI.FI EVM routes, with CCTP/native USDC preferred
+                  Arc {arcEnvironmentLabel(nestEnvironment)} only · LI.FI routes with CCTP/native
+                  USDC preferred
                 </p>
               </div>
               <span className="rounded-lg border border-brand/20 bg-brand-soft px-2.5 py-1 text-[10px] font-bold text-brand">

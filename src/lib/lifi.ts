@@ -155,17 +155,23 @@ async function lifiFetch<T>(
   return response.json() as Promise<T>;
 }
 
-export async function getLifiChains(): Promise<LifiChain[]> {
+export async function getLifiChains(
+  environment: "mainnet" | "testnet" = "testnet",
+): Promise<LifiChain[]> {
   const data = await lifiFetch<{ chains?: LifiChain[] }>("/chains", {
     chainTypes: "EVM",
   });
+  const wantMainnet = environment === "mainnet";
 
   return (data.chains ?? [])
-    .filter((chain) => chain.id && chain.name && chain.chainType !== "SVM")
-    .sort((a, b) => {
-      if (a.mainnet !== b.mainnet) return a.mainnet ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
+    .filter(
+      (chain) =>
+        chain.id &&
+        chain.name &&
+        chain.chainType !== "SVM" &&
+        chain.mainnet === wantMainnet,
+    )
+    .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export async function getLifiTokens(chainIds: number[]): Promise<Record<number, LifiToken[]>> {
