@@ -1,7 +1,7 @@
 import type { W3SSdk } from "@circle-fin/w3s-pw-web-sdk";
 import { decodeFunctionData, formatUnits } from "viem";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
-import { ARC_USDC_ADDRESS } from "@/lib/arc-network";
+import { ARC_USDC_ADDRESS, getArcEnvironment, type ArcEnvironment } from "@/lib/arc-network";
 import {
   circleConfig,
   circleEmailToken,
@@ -24,6 +24,7 @@ export type CircleSession = {
   address: `0x${string}`;
   email: string;
   createdAt: number;
+  environment: ArcEnvironment;
 };
 
 export function getCircleSession(): CircleSession | null {
@@ -31,8 +32,18 @@ export function getCircleSession(): CircleSession | null {
   try {
     const s = JSON.parse(window.localStorage.getItem(SESSION_KEY) ?? "null") as CircleSession | null;
     // Circle user tokens are short-lived; require a fresh login after ~55 min.
-    if (!s || Date.now() - s.createdAt > 55 * 60 * 1000) return null;
-    return s;
+    // A Circle wallet is network-specific, so never use a Testnet wallet for
+    // a Mainnet write (or the reverse).
+    const sessionEnvironment: ArcEnvironment =
+      s?.environment === "mainnet" ? "mainnet" : "testnet";
+    if (
+      !s ||
+      sessionEnvironment !== getArcEnvironment() ||
+      Date.now() - s.createdAt > 55 * 60 * 1000
+    ) {
+      return null;
+    }
+    return { ...s, environment: sessionEnvironment };
   } catch {
     return null;
   }
@@ -660,12 +671,15 @@ async function primeCachedAccountAfterLogin(session: CircleSession) {
 /** Shared steps after Circle confirms the sign-in: create/restore the wallet. */
 async function finishLogin(login: { userToken: string; encryptionKey: string }, email: string): Promise<CircleSession> {
   const s = await sdk();
-  const init = await circleInitUser({ data: { userToken: login.userToken } });
+  const environment = getArcEnvironment();
+  const init = await circleInitUser({ data: { userToken: login.userToken, environment } });
   if (init.challengeId) await runChallenge(s, login, init.challengeId);
 
   let wallet = null;
   for (let i = 0; i < 10 && !wallet; i++) {
-    wallet = await circleWallet({ data: { userToken: login.userToken } });
+    wallet = await circleWallet({
+      data: { userToken: login.userToken, environment },
+    });
     if (!wallet) await new Promise((r) => setTimeout(r, 1500));
   }
   if (!wallet) throw new Error("Your wallet is still being created. Try again in a moment.");
@@ -676,6 +690,7 @@ async function finishLogin(login: { userToken: string; encryptionKey: string }, 
     address: wallet.address as `0x${string}`,
     email,
     createdAt: Date.now(),
+    environment,
   };
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   window.dispatchEvent(new Event("nest-circle-session"));
@@ -693,7 +708,8 @@ export async function loginCircleWalletFromPrivy(
   accessToken: string,
   email: string,
 ): Promise<CircleSession> {
-  const auth = await circleSessionFromPrivy({ data: { accessToken } });
+  const environment = getArcEnvironment();
+  const auth = await circleSessionFromPrivy({ data: { accessToken, environment } });
   const s = await sdk();
 
   if (auth.challengeId) {
@@ -708,7 +724,9 @@ export async function loginCircleWalletFromPrivy(
 
   let wallet = null;
   for (let i = 0; i < 12 && !wallet; i++) {
-    wallet = await circleWallet({ data: { userToken: auth.userToken } });
+    wallet = await circleWallet({
+      data: { userToken: auth.userToken, environment },
+    });
     if (!wallet) await new Promise((resolve) => setTimeout(resolve, 1250));
   }
   if (!wallet) {
@@ -722,6 +740,7 @@ export async function loginCircleWalletFromPrivy(
     address: wallet.address as `0x${string}`,
     email,
     createdAt: Date.now(),
+    environment,
   };
 
   window.localStorage.setItem(SESSION_KEY, JSON.stringify(session));
