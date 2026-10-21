@@ -164,18 +164,20 @@ export function NestChainProvider({ children }: { children: ReactNode }) {
     ? liveRooms
     : (cachedSnapshot?.rooms ?? liveRooms);
 
-  // Room selections from a retired deployment may still exist in localStorage.
-  // Once the canonical contract responds, discard selections that do not belong
-  // to this wallet there and restore the wallet's first original room.
+  // Room selections from another Arc network may still exist in localStorage.
+  // A successful empty response is authoritative for this network: never carry
+  // a Testnet room ID into Mainnet when that room has not been created there.
   const storedRoomExists = storedRoom ? rooms.some((room) => room.id === storedRoom) : false;
   const cachedRoomExists = cachedSnapshot?.roomId
     ? rooms.some((room) => room.id === cachedSnapshot.roomId)
     : false;
-  const roomId = storedRoomExists
-    ? storedRoom
+  const roomId = roomsQ.isSuccess
+    ? storedRoomExists
+      ? storedRoom
+      : rooms[0]?.id ?? null
     : cachedRoomExists
       ? cachedSnapshot?.roomId ?? null
-      : rooms[0]?.id ?? storedRoom ?? null;
+      : storedRoom ?? null;
 
   useEffect(() => {
     if (!address || roomsQ.isLoading || rooms.length === 0) return;
