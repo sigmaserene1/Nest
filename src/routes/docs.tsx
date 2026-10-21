@@ -97,10 +97,10 @@ const allIds = nav.flatMap((g) => g.items.map(([id]) => id));
 
 function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-28 border-t border-border pt-10 first:border-0 first:pt-0">
+    <section id={id} className="scroll-mt-28 border-t border-border pt-8 first:border-0 first:pt-0 sm:pt-10">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">{eyebrow}</p>
       <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
-      <div className="mt-4 space-y-4 text-sm leading-7 text-muted-foreground">{children}</div>
+      <div className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground sm:leading-7">{children}</div>
     </section>
   );
 }
@@ -192,9 +192,36 @@ function DocsPage() {
 
   return (
     <PublicShell eyebrow="Documentation" title="Nest docs" description="Shared USDC money for homes and teams, built on Arc.">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:gap-10 sm:py-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-8">
         <aside className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto">
-          <nav className="flex gap-6 overflow-x-auto pb-2 lg:flex-col lg:gap-5">
+          <div className="lg:hidden">
+            <label htmlFor="docs-section" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+              On this page
+            </label>
+            <select
+              id="docs-section"
+              value={active}
+              onChange={(event) => {
+                const id = event.target.value;
+                setActive(id);
+                document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="mt-2 h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground shadow-sm outline-none"
+            >
+              {nav.flatMap((g) => [
+                <option key={`group-${g.group}`} disabled value={`group-${g.group}`}>
+                  {g.group}
+                </option>,
+                ...g.items.map(([id, label]) => (
+                  <option key={id} value={id}>
+                    {label}
+                  </option>
+                )),
+              ])}
+            </select>
+          </div>
+
+          <nav className="hidden gap-6 pb-2 lg:flex lg:flex-col lg:gap-5">
             {nav.map((g) => (
               <div key={g.group} className="shrink-0">
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{g.group}</p>
@@ -216,7 +243,7 @@ function DocsPage() {
           </nav>
         </aside>
 
-        <main className="min-w-0 max-w-3xl space-y-10">
+        <main className="min-w-0 max-w-3xl space-y-8 sm:space-y-10">
           <Section id="introduction" eyebrow="Getting started" title="What is Nest?">
             <p>
               Nest is a shared money app on Arc, Circle's Layer 1 where USDC is the gas token. Create a home, add the
