@@ -8,8 +8,11 @@ import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
 import { isAddress, resolveInvite, setContractAddress } from "@/lib/chain/config";
 import { readSignupDraft } from "@/lib/signup-draft";
+import { useArcEnvironment } from "@/lib/arc-network";
 
 function Panel({ children }: { children: React.ReactNode }) {
+  const environment = useArcEnvironment();
+
   return (
     <div className="min-h-screen px-4 py-10">
       <div
@@ -22,24 +25,26 @@ function Panel({ children }: { children: React.ReactNode }) {
           <ArcBadge />
         </div>
         <div className="glass-strong mt-6 rounded-[28px] p-6">{children}</div>
-        <div className="mt-3 rounded-2xl border border-border/70 bg-card/70 p-3 text-[11px] leading-5 text-muted-foreground">
-          <div className="flex items-start gap-2">
-            <Fuel className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
-            <span>
-              Testing with an external wallet on Arc Testnet?{" "}
-              <a
-                href="https://faucet.circle.com/"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 font-bold text-foreground hover:text-brand"
-              >
-                Get test USDC from Circle
-                <ExternalLink className="h-3 w-3" />
-              </a>
-              . Testnet assets have no real-world value.
-            </span>
+        {environment === "testnet" ? (
+          <div className="mt-3 rounded-2xl border border-border/70 bg-card/70 p-3 text-[11px] leading-5 text-muted-foreground">
+            <div className="flex items-start gap-2">
+              <Fuel className="mt-0.5 h-3.5 w-3.5 shrink-0 text-brand" />
+              <span>
+                Testing with an external wallet on Arc Testnet?{" "}
+                <a
+                  href="https://faucet.circle.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 font-bold text-foreground hover:text-brand"
+                >
+                  Get test USDC from Circle
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+                . Testnet assets have no real-world value.
+              </span>
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );
@@ -105,6 +110,8 @@ export function ContractSetup() {
  * pending invitation before the workspace gate.
  */
 export function RoomSetup() {
+  const environment = useArcEnvironment();
+  const isMainnet = environment === "mainnet";
   const { refresh } = useNestChain();
   const { createRoom } = useNestWrites();
   const signup = readSignupDraft();
@@ -133,12 +140,24 @@ export function RoomSetup() {
   return (
     <Panel>
       <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-brand">
-        First workspace
+        {isMainnet ? "Mainnet workspace" : "First workspace"}
       </div>
-      <h1 className="mt-1 text-2xl font-bold tracking-tight">Create your workspace</h1>
+      <h1 className="mt-1 text-2xl font-bold tracking-tight">
+        {isMainnet ? "Create your Mainnet workspace" : "Create your workspace"}
+      </h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        Start with one shared workspace. After it is created, you can invite members from the
-        Members page whenever you’re ready.
+        {isMainnet ? (
+          <>
+            Arc keeps Testnet and Mainnet workspaces separate. Your existing Testnet workspace
+            stays unchanged; create this Mainnet workspace explicitly to start recording new
+            onchain activity there. Previous expenses and balances are not copied between networks.
+          </>
+        ) : (
+          <>
+            Start with one shared workspace. After it is created, you can invite members from the
+            Members page whenever you’re ready.
+          </>
+        )}
       </p>
 
       <label className="mt-6 block">
