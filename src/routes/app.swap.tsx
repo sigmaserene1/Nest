@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { UsdcMark } from "@/components/nest/chain";
+import eurcLogo from "@/assets/tokens/eurc.svg";
+import cirbtcLogo from "@/assets/tokens/cirbtc.svg";
 import { Button } from "@/components/ui/button";
 import { ERC20_ABI, openExternal } from "@/lib/wagmi";
 import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
@@ -185,8 +187,9 @@ function SwapPage() {
   };
 
   const requestParams = (amount: string) => ({
-    tokenIn: inputToken.address,
-    tokenOut: outputToken.address,
+    // App Kit resolves Circle-supported token symbols to the correct per-network contracts.
+    tokenIn: inputToken.symbol,
+    tokenOut: outputToken.symbol,
     amountIn: amount,
     config: {
       slippageBps: 300,
@@ -503,7 +506,6 @@ function TokenPicker({
   return (
     <div className="mt-2 grid grid-cols-3 gap-2">
       {NEST_SWAP_TOKENS.map((symbol) => {
-        const token = swapTokenFor(environment, symbol);
         const active = value === symbol;
         return (
           <Button
@@ -517,7 +519,10 @@ function TokenPicker({
                 : "border-border bg-card text-muted-foreground hover:text-foreground"
             }`}
           >
-            {symbol === "USDC" ? <UsdcMark size={28} /> : token.symbol}
+            <span className="inline-flex items-center gap-1.5">
+              <SwapTokenLogo token={symbol} size={22} />
+              <span>{symbol}</span>
+            </span>
           </Button>
         );
       })}
@@ -525,19 +530,35 @@ function TokenPicker({
   );
 }
 
+function SwapTokenLogo({
+  token,
+  size,
+}: {
+  token: NestSwapToken;
+  size: number;
+}) {
+  if (token === "USDC") {
+    return <UsdcMark size={size} />;
+  }
+
+  const source = token === "EURC" ? eurcLogo : cirbtcLogo;
+  return (
+    <img
+      src={source}
+      alt=""
+      aria-hidden="true"
+      width={size}
+      height={size}
+      className="shrink-0 object-contain"
+    />
+  );
+}
+
 function TokenBadge({ token }: { token: NestSwapToken }) {
   return (
     <span className="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-black shadow-sm">
-      {token === "USDC" ? <UsdcMark size={36} /> : <span
-        className={`grid h-6 w-6 place-items-center rounded-full text-[9px] ${
-          token === "EURC"
-              ? "bg-indigo-500/12 text-indigo-600"
-              : "bg-amber-500/12 text-amber-700"
-        }`}
-      >
-        {token === "cirBTC" ? "₿" : token[0]}
-      </span>}
-      {token !== "USDC" && token}
+      <SwapTokenLogo token={token} size={36} />
+      <span>{token}</span>
     </span>
   );
 }
