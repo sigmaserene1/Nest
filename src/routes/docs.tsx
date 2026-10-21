@@ -97,17 +97,17 @@ const allIds = nav.flatMap((g) => g.items.map(([id]) => id));
 
 function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="scroll-mt-28 border-t border-border pt-8 first:border-0 first:pt-0 sm:pt-10">
+    <section id={id} className="min-w-0 scroll-mt-28 border-t border-border pt-8 first:border-0 first:pt-0 sm:pt-10">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">{eyebrow}</p>
       <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
-      <div className="mt-4 space-y-4 text-sm leading-6 text-muted-foreground sm:leading-7">{children}</div>
+      <div className="min-w-0 mt-4 space-y-4 text-sm leading-6 text-muted-foreground sm:leading-7">{children}</div>
     </section>
   );
 }
 
 function Card({ icon: Icon, title, children }: { icon: typeof Home; title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div className="min-w-0 rounded-2xl border border-border bg-card p-5">
       <span className="grid h-9 w-9 place-items-center rounded-xl bg-brand/10 text-brand">
         <Icon className="h-4 w-4" />
       </span>
@@ -119,11 +119,11 @@ function Card({ icon: Icon, title, children }: { icon: typeof Home; title: strin
 
 function Steps({ items }: { items: [string, string][] }) {
   return (
-    <ol className="overflow-hidden rounded-2xl border border-border bg-card">
+    <ol className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-card">
       {items.map(([t, b], i) => (
-        <li key={t} className={`flex gap-4 p-4 ${i ? "border-t border-border" : ""}`}>
+        <li key={t} className={`flex min-w-0 gap-4 p-4 ${i ? "border-t border-border" : ""}`}>
           <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-brand/10 text-xs font-black text-brand">{i + 1}</span>
-          <div>
+          <div className="min-w-0">
             <p className="text-sm font-bold text-foreground">{t}</p>
             <p className="text-sm leading-6 text-muted-foreground">{b}</p>
           </div>
@@ -135,11 +135,11 @@ function Steps({ items }: { items: [string, string][] }) {
 
 function KV({ rows }: { rows: [string, string][] }) {
   return (
-    <dl className="overflow-hidden rounded-2xl border border-border bg-card">
+    <dl className="min-w-0 max-w-full overflow-hidden rounded-2xl border border-border bg-card">
       {rows.map(([k, v], i) => (
-        <div key={k} className={`grid gap-1 p-4 sm:grid-cols-[180px_1fr] ${i ? "border-t border-border" : ""}`}>
+        <div key={k} className={`grid min-w-0 gap-1 p-4 sm:grid-cols-[180px_1fr] ${i ? "border-t border-border" : ""}`}>
           <dt className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{k}</dt>
-          <dd className="break-all font-mono text-xs text-foreground">{v}</dd>
+          <dd className="min-w-0 break-words font-mono text-xs text-foreground [overflow-wrap:anywhere]">{v}</dd>
         </div>
       ))}
     </dl>
@@ -148,14 +148,14 @@ function KV({ rows }: { rows: [string, string][] }) {
 
 function Code({ children }: { children: string }) {
   return (
-    <pre className="overflow-x-auto rounded-2xl border border-border bg-muted p-4 font-mono text-xs leading-6 text-foreground">
+    <pre className="min-w-0 max-w-full overflow-x-auto rounded-2xl border border-border bg-muted p-4 font-mono text-xs leading-6 text-foreground">
       <code>{children}</code>
     </pre>
   );
 }
 
 function Note({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-2xl border border-brand/25 bg-brand/5 p-4 text-sm leading-6 text-foreground">{children}</div>;
+  return <div className="min-w-0 rounded-2xl border border-brand/25 bg-brand/5 p-4 text-sm leading-6 text-foreground">{children}</div>;
 }
 
 const faqs: [string, string][] = [
@@ -192,8 +192,8 @@ function DocsPage() {
 
   return (
     <PublicShell eyebrow="Documentation" title="Nest docs" description="Shared USDC money for homes and teams, built on Arc.">
-      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-8 sm:gap-10 sm:py-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-8">
-        <aside className="lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto">
+      <div className="mx-auto grid w-full min-w-0 max-w-7xl gap-8 overflow-x-clip px-5 py-8 sm:gap-10 sm:py-10 lg:grid-cols-[220px_minmax(0,1fr)] lg:px-8">
+        <aside className="w-full min-w-0 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:self-start lg:overflow-y-auto">
           <div className="lg:hidden">
             <label htmlFor="docs-section" className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
               On this page
@@ -206,7 +206,7 @@ function DocsPage() {
                 setActive(id);
                 document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
-              className="mt-2 h-11 w-full rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground shadow-sm outline-none"
+              className="mt-2 block h-11 w-full max-w-full rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground shadow-sm outline-none"
             >
               {nav.flatMap((g) => [
                 <option key={`group-${g.group}`} disabled value={`group-${g.group}`}>
@@ -221,7 +221,7 @@ function DocsPage() {
             </select>
           </div>
 
-          <nav className="hidden gap-6 pb-2 lg:flex lg:flex-col lg:gap-5">
+          <nav className="hidden min-w-0 gap-6 pb-2 lg:flex lg:flex-col lg:gap-5">
             {nav.map((g) => (
               <div key={g.group} className="shrink-0">
                 <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">{g.group}</p>
@@ -243,7 +243,7 @@ function DocsPage() {
           </nav>
         </aside>
 
-        <main className="min-w-0 max-w-3xl space-y-8 sm:space-y-10">
+        <main className="w-full min-w-0 max-w-3xl space-y-8 sm:space-y-10">
           <Section id="introduction" eyebrow="Getting started" title="What is Nest?">
             <p>
               Nest is a shared money app on Arc, Circle's Layer 1 where USDC is the gas token. Create a home, add the
