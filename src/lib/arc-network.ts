@@ -1,4 +1,4 @@
-import { defineChain } from "viem";
+import { defineChain, fallback, http } from "viem";
 import { useSyncExternalStore } from "react";
 
 export type ArcEnvironment = "testnet" | "mainnet";
@@ -6,21 +6,21 @@ export type ArcEnvironment = "testnet" | "mainnet";
 export const ARC_USDC_ADDRESS = "0x3600000000000000000000000000000000000000" as const;
 
 export const ARC_TESTNET_RPC_URLS = [
-  // Circle's official public endpoint.
+  // Circle's current official public endpoint.
   "https://rpc.testnet.arc.io",
-  // Official Arc-listed providers, kept as resilient fallbacks.
+  // Current Arc-listed provider fallbacks.
+  "https://rpc.blockdaemon.testnet.arc.io",
   "https://rpc.drpc.testnet.arc.io",
   "https://rpc.quicknode.testnet.arc.io",
-  "https://rpc.blockdaemon.testnet.arc.io",
 ] as const;
 
 export const ARC_MAINNET_RPC_URLS = [
-  // Circle's official public endpoint.
+  // Circle's current official public endpoint.
   "https://rpc.mainnet.arc.io",
-  // Official Arc-listed providers, kept as resilient fallbacks.
-  "https://rpc.quicknode.mainnet.arc.io",
-  "https://rpc.drpc.mainnet.arc.io",
+  // Current Arc-listed provider fallbacks.
   "https://rpc.blockdaemon.mainnet.arc.io",
+  "https://rpc.drpc.mainnet.arc.io",
+  "https://rpc.quicknode.mainnet.arc.io",
 ] as const;
 
 export const arcTestnet = defineChain({
@@ -92,8 +92,27 @@ export function arcExplorerFor(environment: ArcEnvironment) {
   return arcChainFor(environment).blockExplorers.default.url;
 }
 
+export function arcRpcUrlsFor(environment: ArcEnvironment) {
+  return environment === "mainnet" ? ARC_MAINNET_RPC_URLS : ARC_TESTNET_RPC_URLS;
+}
+
+/**
+ * Current Arc public RPC transport used by wagmi and Circle App Kit.
+ * The explicit URLs prevent SDK chain defaults from falling back to the
+ * retired *.arc.network endpoints, while fallback keeps transient RPC
+ * failures from breaking quotes and gas reads.
+ */
+export function arcRpcTransportFor(environment: ArcEnvironment) {
+  return fallback(
+    arcRpcUrlsFor(environment).map((url) =>
+      http(url, { batch: true, retryCount: 2, timeout: 15_000 }),
+    ),
+    { rank: true },
+  );
+}
+
 export function arcRpcFor(environment: ArcEnvironment) {
-  return arcChainFor(environment).rpcUrls.default.http[0];
+  return arcRpcUrlsFor(environment)[0];
 }
 
 export function arcEnvironmentLabel(environment: ArcEnvironment) {
