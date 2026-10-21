@@ -14,9 +14,9 @@ export type NestSwapTokenConfig = {
 /**
  * Circle-issued assets used by Nest's Arc swap screen.
  *
- * App Kit accepts contract addresses as token identifiers. We use the exact
- * per-network contracts instead of assuming the same EURC/cirBTC address on
- * testnet and mainnet.
+ * App Kit swap requests use Circle's token symbols (USDC, EURC and cirBTC).
+ * These exact per-network contracts are kept here for Nest's balance reads and
+ * validation; App Kit resolves the symbol to the active Arc deployment.
  */
 const TOKENS: Record<ArcEnvironment, Record<NestSwapToken, NestSwapTokenConfig>> = {
   testnet: {

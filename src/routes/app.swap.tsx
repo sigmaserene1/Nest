@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAccount, useReadContract, useSwitchChain } from "wagmi";
-import { formatUnits, type EIP1193Provider } from "viem";
+import { createPublicClient, formatUnits, type EIP1193Provider } from "viem";
 import type { SwapEstimate, SwapResult } from "@circle-fin/app-kit";
 import {
   ArrowDown,
@@ -20,7 +20,7 @@ import eurcLogo from "@/assets/tokens/eurc.svg";
 import cirbtcLogo from "@/assets/tokens/cirbtc.svg";
 import { Button } from "@/components/ui/button";
 import { ERC20_ABI, openExternal } from "@/lib/wagmi";
-import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
+import { arcChainFor, arcRpcTransportFor, useArcEnvironment } from "@/lib/arc-network";
 import {
   NEST_SWAP_TOKENS,
   appKitArcChain,
@@ -89,6 +89,12 @@ function readableSwapError(error: unknown) {
   }
   if (/rejected|denied|cancel/i.test(message)) {
     return "The wallet approval was cancelled.";
+  }
+  if (/rpc\.(?:testnet\.)?arc\.network/i.test(message)) {
+    return "This session is still using Arc's retired RPC metadata. Refresh Nest, reconnect the wallet, and retry so the current Arc .io transport is loaded.";
+  }
+  if (/failed to fetch|http request failed/i.test(message) && /arc|eth_gasPrice/i.test(message)) {
+    return "Arc RPC is temporarily unavailable. Nest is retrying through the current Arc .io endpoints; please retry in a few seconds.";
   }
   return message || "The swap could not be completed.";
 }
@@ -183,7 +189,19 @@ function SwapPage() {
     const { createViemAdapterFromProvider } = await import(
       "@circle-fin/adapter-viem-v2"
     );
-    return createViemAdapterFromProvider({ provider });
+
+    // App Kit's built-in Arc chain metadata can lag behind Arc's current
+    // *.arc.io endpoints. Pin all public reads, gas-price calls and
+    // simulations to Nest's current resilient transport; the connected
+    // provider remains responsible for account access and signing.
+    return createViemAdapterFromProvider({
+      provider,
+      getPublicClient: ({ chain }) =>
+        createPublicClient({
+          chain,
+          transport: arcRpcTransportFor(environment),
+        }),
+    });
   };
 
   const requestParams = (amount: string) => ({

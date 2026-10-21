@@ -1,4 +1,3 @@
-import { fallback } from "viem";
 import {
   arbitrumSepolia,
   avalancheFuji,
@@ -9,10 +8,9 @@ import {
 } from "viem/chains";
 import { createConfig, http, type CreateConnectorFn } from "wagmi";
 import {
-  ARC_MAINNET_RPC_URLS,
-  ARC_TESTNET_RPC_URLS,
   ARC_USDC_ADDRESS,
   arcExplorerFor,
+  arcRpcTransportFor,
   arcMainnet,
   arcTestnet,
   getArcEnvironment,
@@ -125,14 +123,8 @@ export function createWagmiConfig(connectors: CreateConnectorFn[] = []) {
     chains: [arcMainnet, arcTestnet, sepolia, avalancheFuji, optimismSepolia, arbitrumSepolia, baseSepolia, polygonAmoy],
     connectors: [privyWalletConnector(), embeddedWalletConnector(), ...connectors],
     transports: {
-    [arcMainnet.id]: fallback(
-      ARC_MAINNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
-      { rank: true },
-    ),
-    [arcTestnet.id]: fallback(
-      ARC_TESTNET_RPC_URLS.map((url) => http(url, { batch: true, retryCount: 2, timeout: 15_000 })),
-      { rank: true },
-    ),
+      [arcMainnet.id]: arcRpcTransportFor("mainnet"),
+      [arcTestnet.id]: arcRpcTransportFor("testnet"),
     [sepolia.id]: http(),
     [avalancheFuji.id]: http(),
     [optimismSepolia.id]: http(),
