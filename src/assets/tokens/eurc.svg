@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
+  <title id="title">EURC</title>
+  <desc id="desc">Euro Coin token mark</desc>
+  <defs>
+    <linearGradient id="eurc-gradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6E3BDE"/>
+      <stop offset="1" stop-color="#3C7BDE"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="31" fill="url(#eurc-gradient)"/>
+  <circle cx="32" cy="32" r="25.5" fill="none" stroke="#fff" stroke-opacity=".28" stroke-width="2"/>
+  <path d="M43 23.5a13 13 0 1 0 0 17M22 28h17M22 36h14" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3"/>
+</svg>
