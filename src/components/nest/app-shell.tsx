@@ -394,8 +394,8 @@ export function AppShell({
 
 
       {/* Mobile bottom nav */}
-      <nav className="mobile-bottom-nav fixed left-1/2 z-40 w-[calc(100%-1rem)] max-w-[430px] -translate-x-1/2 lg:hidden">
-        <div className="glass-strong relative flex min-h-[66px] items-center rounded-[26px] border-border/75 px-1.5 py-1.5 shadow-[0_16px_48px_rgba(15,23,42,0.16)]">
+      <nav aria-label="Main navigation" className="mobile-bottom-nav fixed left-1/2 z-40 w-[calc(100%-1rem)] max-w-[430px] -translate-x-1/2 lg:hidden">
+        <div className="glass-strong relative flex min-h-[66px] items-center rounded-[26px] border-border/75 px-1.5 py-1.5 shadow-elevated">
           <BottomTab to="/app" label="Home" icon={Home} exact />
           <BottomTab to="/app/expenses" label="Expenses" icon={Receipt} />
           <BottomTab to="/app/settle" label="Settle" icon={ArrowLeftRight} />
