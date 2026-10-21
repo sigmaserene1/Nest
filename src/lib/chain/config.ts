@@ -18,10 +18,11 @@ export const TESTNET_EXPENSE_MANAGER_ADDRESS =
 export const TESTNET_EXPENSE_MANAGER_DEPLOYMENT_BLOCK = 54_971_156;
 
 const rawMainnetAddress = String(
-  import.meta.env.VITE_NEST_EXPENSE_MANAGER_MAINNET_ADDRESS ?? "",
+  import.meta.env.VITE_NEST_EXPENSE_MANAGER_MAINNET_ADDRESS ??
+    "0x709cbad88162b999882788155cde79ade46a6d42",
 ).trim();
 const rawMainnetBlock = Number(
-  import.meta.env.VITE_NEST_EXPENSE_MANAGER_MAINNET_BLOCK ?? 0,
+  import.meta.env.VITE_NEST_EXPENSE_MANAGER_MAINNET_BLOCK ?? 21_213_840,
 );
 
 export const MAINNET_EXPENSE_MANAGER_ADDRESS =

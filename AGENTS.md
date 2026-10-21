@@ -13,3 +13,5 @@
 - Build scripts set NODE_OPTIONS max-old-space-size and Privy loads browser-only (lazy) — the wallet/auth SDKs otherwise exhaust memory in the server build.
 - Native Privy email wallets are created/restored in the browser-only wallet bridge and exposed through an SSR-safe wagmi connector; legacy Circle access remains separate to preserve old wallet identities.
 - Email wallet creation decisions use a tested identity policy; linked EVM wallets restore instead of being replaced, and wagmi connections are serialized to avoid duplicate connection races.
+- Canonical ExpenseManager deployments have verified public defaults in chain config, with optional environment overrides; missing production variables must not hide an already-deployed contract.
+- Mobile primary navigation has an explicit viewport-bottom safe-area offset and matching content clearance so tabs remain reachable on long pages.
