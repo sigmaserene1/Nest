@@ -65,12 +65,15 @@ export function PrivyWalletBridge() {
         const connector = connectors.find((item) => item.id === PRIVY_CONNECTOR_ID);
         if (!connector) throw new Error("Email wallet connection is still loading. Please try again.");
         const connected = account.connector?.id === PRIVY_CONNECTOR_ID && account.address?.toLowerCase() === wallet.address.toLowerCase() && account.isConnected;
-        if (!connected) await wallet.switchChain(arcChainFor(getArcEnvironment()).id);
-        const provider = await wallet.getEthereumProvider();
+        const withTimeout = <T,>(promise: Promise<T>, ms: number) => Promise.race([promise, new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), ms))]);
+        // Switching network is best-effort: Privy can hang on custom chains.
+        if (!connected) await withTimeout(wallet.switchChain(arcChainFor(getArcEnvironment()).id), 8_000).catch(() => undefined);
+        const provider = await withTimeout(wallet.getEthereumProvider(), 20_000);
         if (currentGeneration !== generation.current) return;
-        updatePrivyWalletSession({ address: wallet.address as Address, provider, error: null });
-        if (!connected) await connectAsync({ connector });
-        if (currentGeneration === generation.current) updatePrivyWalletSession({ ready: true, connected: true });
+        // The wallet is usable as soon as its provider exists; enter Nest now
+        // and finish the wagmi link in the background.
+        updatePrivyWalletSession({ address: wallet.address as Address, provider, error: null, ready: true, connected: true });
+        if (!connected) await withTimeout(connectAsync({ connector }), 15_000).catch(() => undefined);
       } catch (error) {
         if (currentGeneration !== generation.current) return;
         failed.current = true;
