@@ -1,6 +1,8 @@
 # Roadmap
 
 ## Current
+- [ ] Restore viewport-anchored mobile bottom navigation and content clearance.
+- [ ] Verify and configure the existing Arc Mainnet ExpenseManager deployment.
 - [ ] Simplify email sign-in to Privy OTP and wallet only; match the popup and square PIN boxes to Nest.
 - [x] Replace the Privy-to-Circle email flow with native Privy EVM wallet creation and restoration.
 - [x] Verify the preview and sign-in dialog load without browser errors; resolve wallet connector type errors.
