@@ -221,14 +221,14 @@ function Gate() {
   const environment = useArcEnvironment();
   const { contractAddress, roomId, isLoading, isDemo } = useNestChain();
 
-  // Mainnet selection should preserve the existing Nest session/UI even before
-  // its contract/workspace has been deployed or migrated.
+  // Mainnet selection preserves the existing Nest session. If its contract
+  // has no workspace for this wallet yet, show the explicit creation flow
+  // without changing the Testnet workspace or auto-creating anything.
   if (environment === "mainnet" && !contractAddress) return <Outlet />;
   if (!contractAddress) return <ContractSetup />;
   // During an RPC outage we cannot read room membership — show the app in
   // read-only demo mode instead of bouncing people to the setup screen.
   if (isDemo) return <Outlet />;
-  if (environment === "mainnet" && !roomId) return <Outlet />;
   if (!roomId && !isLoading) return <RoomSetup />;
   if (!roomId) return null;
   return <Outlet />;
