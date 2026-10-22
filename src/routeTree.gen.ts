@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as ReceiptPreviewRouteImport } from './routes/receipt-preview'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as AppIndexRouteImport } from './routes/app.index'
@@ -49,6 +50,11 @@ const DocsRoute = DocsRouteImport.update({
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReceiptPreviewRoute = ReceiptPreviewRouteImport.update({
+  id: '/receipt-preview',
+  path: '/receipt-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SupportRoute = SupportRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/docs': typeof DocsRoute
   '/privacy': typeof PrivacyRoute
+  '/receipt-preview': typeof ReceiptPreviewRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/app/activity': typeof AppActivityRoute
@@ -164,6 +171,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/docs': typeof DocsRoute
   '/privacy': typeof PrivacyRoute
+  '/receipt-preview': typeof ReceiptPreviewRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/app/activity': typeof AppActivityRoute
@@ -188,6 +196,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/docs': typeof DocsRoute
   '/privacy': typeof PrivacyRoute
+  '/receipt-preview': typeof ReceiptPreviewRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
   '/app/activity': typeof AppActivityRoute
@@ -213,6 +222,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/docs'
     | '/privacy'
+    | '/receipt-preview'
     | '/support'
     | '/terms'
     | '/app/activity'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/'
     | '/docs'
     | '/privacy'
+    | '/receipt-preview'
     | '/support'
     | '/terms'
     | '/app/activity'
@@ -258,6 +269,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/docs'
     | '/privacy'
+    | '/receipt-preview'
     | '/support'
     | '/terms'
     | '/app/activity'
@@ -282,6 +294,7 @@ export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   DocsRoute: typeof DocsRoute
   PrivacyRoute: typeof PrivacyRoute
+  ReceiptPreviewRoute: typeof ReceiptPreviewRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
 }
@@ -314,6 +327,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy'
       fullPath: '/privacy'
       preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/receipt-preview': {
+      id: '/receipt-preview'
+      path: '/receipt-preview'
+      fullPath: '/receipt-preview'
+      preLoaderRoute: typeof ReceiptPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/support': {
@@ -481,6 +501,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   DocsRoute: DocsRoute,
   PrivacyRoute: PrivacyRoute,
+  ReceiptPreviewRoute: ReceiptPreviewRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
 }
