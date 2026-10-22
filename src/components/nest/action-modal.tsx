@@ -315,21 +315,29 @@ export function ActionModal({
           <div
 
 
-        className="fixed inset-0 z-50 flex items-end justify-center overscroll-contain bg-black/45 backdrop-blur-[6px] sm:items-center"
+        style={{
+          top: "var(--nest-viewport-offset-top, 0px)",
+          height: "var(--nest-viewport-height, 100dvh)",
+        }}
+        className="fixed inset-x-0 z-50 flex items-end justify-center overscroll-contain bg-black/45 py-1.5 backdrop-blur-[6px] sm:items-center sm:p-4"
         onClick={stageIsBusy ? undefined : onClose}
       >
         <div
           ref={sheetRef}
           onClick={(e) => e.stopPropagation()}
-          className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto overscroll-contain rounded-[30px] p-5 sm:max-h-[92vh] sm:w-full sm:p-6"
+          role="dialog"
+          aria-modal="true"
+          aria-label={meta.title}
+          className="mobile-sheet glass-strong max-h-[calc(100%-0.75rem)] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto overscroll-contain rounded-[30px] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-h-[92vh] sm:w-full sm:p-6"
         >
           {stage === "form" && (
             <>
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-bold">{meta.title}</h3>
                 <button
+                  type="button"
                   onClick={onClose}
-                  className="grid h-9 w-9 place-items-center rounded-full bg-muted"
+                  className="grid h-11 w-11 place-items-center rounded-full bg-muted transition active:scale-[0.96]"
                   aria-label="Close"
                 >
                   <X className="h-4 w-4" />

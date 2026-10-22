@@ -1,7 +1,8 @@
 // First-run workspace setup for Nest on Arc.
 
+import { Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ExternalLink, Fuel, Loader2, LinkIcon } from "lucide-react";
+import { ExternalLink, Fuel, Loader2, LinkIcon, X } from "lucide-react";
 import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
@@ -14,14 +15,23 @@ function Panel({ children }: { children: React.ReactNode }) {
   const environment = useArcEnvironment();
 
   return (
-    <div className="min-h-screen px-4 py-10">
+    <div className="min-h-[100dvh] px-4 py-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:py-10">
       <div
 
 
         className="mx-auto w-full max-w-md"
       >
         <div className="flex items-center justify-between">
-          <NestLogo />
+          <div className="flex min-w-0 items-center gap-2">
+            <Link
+              to="/"
+              aria-label="Close setup and return to welcome"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border/75 bg-card/85 text-muted-foreground shadow-sm transition hover:border-brand/30 hover:text-foreground active:scale-[0.96]"
+            >
+              <X className="h-4 w-4" />
+            </Link>
+            <NestLogo />
+          </div>
           <ArcBadge />
         </div>
         <div className="glass-strong mt-6 rounded-[28px] p-6">{children}</div>
@@ -84,7 +94,7 @@ export function ContractSetup() {
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Paste your invite link"
-          className="mt-1.5 w-full rounded-2xl bg-muted/60 px-4 py-3 text-xs outline-none focus:ring-2 focus:ring-brand"
+          className="mt-1.5 min-h-12 w-full rounded-2xl bg-muted/60 px-4 py-3 text-base outline-none focus:ring-2 focus:ring-brand sm:text-sm"
         />
 
         <button

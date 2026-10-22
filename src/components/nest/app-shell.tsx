@@ -4,6 +4,7 @@ import {
   Home,
   Receipt,
   ArrowLeftRight,
+  ArrowLeft,
   Activity,
   Users,
   PieChart,
@@ -239,6 +240,22 @@ export function AppShell({
   } = useNestChain();
   const me = getMember(myId ?? "");
   const wallet = useArcWallet();
+  const { pathname, searchStr } = useRouterState({
+    select: (state) => ({
+      pathname: state.location.pathname,
+      searchStr: state.location.searchStr,
+    }),
+  });
+  const isPrimaryMobileRoute = primary.some((item) =>
+    matchesNavItem(
+      pathname,
+      searchStr,
+      item.to,
+      "exact" in item ? item.exact : false,
+    ),
+  );
+  const routeHasInlineBack = pathname === "/app/profile" || pathname === "/app/swap";
+  const showMobileBack = !isPrimaryMobileRoute && !routeHasInlineBack;
   const profileDisplayName = useProfileDisplayName(wallet.address ?? "");
   const myName = profileDisplayName || displayName || "You";
 
@@ -325,6 +342,16 @@ export function AppShell({
         <header className="mobile-app-header sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-2xl">
           <div className="mx-auto grid min-h-14 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-2.5 sm:min-h-16 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center lg:hidden">
+              {showMobileBack ? (
+                <Link
+                  to="/app"
+                  preload="render"
+                  aria-label="Back to Nest home"
+                  className="mr-2 grid h-11 w-11 shrink-0 place-items-center rounded-full border border-border/75 bg-card/85 text-muted-foreground shadow-sm transition hover:border-brand/30 hover:text-foreground active:scale-[0.96]"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Link>
+              ) : null}
               <NestLogo />
             </div>
             <div className="hidden min-w-0 lg:block" />
