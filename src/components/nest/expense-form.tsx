@@ -46,6 +46,26 @@ export function ExpenseForm({
   const amt = parseFloat(amount) || 0;
   const canSave = !saving && !isDemo && title.trim().length > 0 && amt > 0 && selected.size > 0;
 
+  const keepFocusedFieldVisible = (element: HTMLElement) => {
+    const reveal = () => {
+      const viewport = window.visualViewport;
+      const viewportTop = viewport?.offsetTop ?? 0;
+      const viewportBottom = viewportTop + (viewport?.height ?? window.innerHeight);
+      const rect = element.getBoundingClientRect();
+      const breathingRoom = 72;
+
+      if (
+        rect.top < viewportTop + breathingRoom ||
+        rect.bottom > viewportBottom - breathingRoom
+      ) {
+        element.scrollIntoView({ block: "center", inline: "nearest", behavior: "smooth" });
+      }
+    };
+
+    window.requestAnimationFrame(reveal);
+    window.setTimeout(reveal, 240);
+  };
+
   const save = () => {
     if (!canSave) return;
     void onSave({
@@ -65,8 +85,9 @@ export function ExpenseForm({
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Trader Joe's"
-          autoFocus
-          className="min-h-12 w-full rounded-2xl border border-border bg-background/75 px-4 py-3 text-base outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
+          autoComplete="off"
+          onFocus={(event) => keepFocusedFieldVisible(event.currentTarget)}
+          className="min-h-12 w-full scroll-m-24 rounded-2xl border border-border bg-background/75 px-4 py-3 text-base outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
         />
       </Field>
 
@@ -79,7 +100,9 @@ export function ExpenseForm({
             type="number"
             inputMode="decimal"
             placeholder="0.00"
-            className="ml-2 w-full bg-transparent text-2xl font-bold tabular-nums outline-none"
+            autoComplete="off"
+            onFocus={(event) => keepFocusedFieldVisible(event.currentTarget)}
+            className="ml-2 w-full scroll-m-24 bg-transparent text-2xl font-bold tabular-nums outline-none"
           />
           <span className="text-xs font-semibold text-muted-foreground">USDC</span>
         </div>
@@ -92,6 +115,7 @@ export function ExpenseForm({
             return (
               <button
                 key={c}
+                type="button"
                 onClick={() => setCategory(c)}
                 className={`flex min-h-9 items-center gap-1.5 rounded-full py-2 pl-2.5 pr-3.5 text-xs font-semibold transition ${on ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
               >
@@ -108,6 +132,7 @@ export function ExpenseForm({
           {members.map((m) => (
             <button
               key={m.id}
+              type="button"
               onClick={() => setPayerId(m.id)}
               className={`flex min-h-9 items-center gap-2 rounded-full py-2 pl-2 pr-3.5 text-xs font-semibold transition ${payerId === m.id ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
             >
@@ -123,6 +148,7 @@ export function ExpenseForm({
           {members.map((m) => (
             <button
               key={m.id}
+              type="button"
               onClick={() => toggle(m.id)}
               className={`flex min-h-9 items-center gap-2 rounded-full py-2 pl-2 pr-3.5 text-xs font-semibold transition ${selected.has(m.id) ? "bg-foreground text-background" : "bg-muted/70 text-muted-foreground"}`}
             >
@@ -138,7 +164,9 @@ export function ExpenseForm({
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Add a note…"
-          className="min-h-12 w-full rounded-2xl border border-border bg-background/75 px-4 py-3 text-base outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
+          autoComplete="off"
+          onFocus={(event) => keepFocusedFieldVisible(event.currentTarget)}
+          className="min-h-12 w-full scroll-m-24 rounded-2xl border border-border bg-background/75 px-4 py-3 text-base outline-none transition focus:border-brand/40 focus:ring-2 focus:ring-brand/15 sm:text-sm"
         />
       </Field>
 
@@ -149,6 +177,7 @@ export function ExpenseForm({
       )}
 
       <button
+        type="button"
         onClick={save}
         disabled={!canSave}
         aria-busy={saving}
