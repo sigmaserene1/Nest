@@ -15,7 +15,13 @@ import {
   Hash,
   ChevronDown,
   ChevronUp,
+  Download,
 } from "lucide-react";
+import {
+  ReceiptPaper,
+  openReceiptPrint,
+  receiptRef,
+} from "@/components/nest/receipt-paper";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
@@ -89,9 +95,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function receiptRef(hash: string) {
-  return `ARC-${hash.slice(2, 8).toUpperCase()}-${hash.slice(-6).toUpperCase()}`;
-}
 
 function ReceiptsPage() {
   const environment = useArcEnvironment();
