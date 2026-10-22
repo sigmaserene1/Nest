@@ -778,5 +778,11 @@ html {
   .transfer-particle {
     display: none;
   }
+  .app-canvas::after {
+    animation: none;
+  }
+  .nest-page-transition {
+    animation: none;
+  }
 }
 
