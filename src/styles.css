@@ -217,6 +217,14 @@
   animation: nest-fade 0.18s ease-out both;
 }
 
+/* Instant press feedback for Tap-wrapped cards and buttons. */
+.nest-tap {
+  transition: transform 0.12s cubic-bezier(0.2, 0.9, 0.3, 1);
+}
+.nest-tap:active {
+  transform: scale(0.98);
+}
+
 .dark {
   --background: #080a10;
   --foreground: #f7f8fc;

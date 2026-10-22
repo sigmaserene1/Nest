@@ -15,7 +15,13 @@ import {
   Hash,
   ChevronDown,
   ChevronUp,
+  Download,
 } from "lucide-react";
+import {
+  ReceiptPaper,
+  openReceiptPrint,
+  receiptRef,
+} from "@/components/nest/receipt-paper";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { EmptyState } from "@/components/nest/feedback";
 import { Stagger, Item } from "@/components/nest/motion";
@@ -89,9 +95,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-function receiptRef(hash: string) {
-  return `ARC-${hash.slice(2, 8).toUpperCase()}-${hash.slice(-6).toUpperCase()}`;
-}
 
 function ReceiptsPage() {
   const environment = useArcEnvironment();
@@ -288,19 +291,49 @@ function ReceiptsPage() {
                         </div>
 
                         <div className="border-t border-border bg-card p-4">
-                          <a
-                            href={explorerTxUrl(r.hash)}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              openExplorerTx(r.hash);
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                openReceiptPrint(r, {
+                                  counterpartyName: counterparty.name,
+                                  direction: outgoing ? "sent" : "received",
+                                  networkLabel: arcEnvironmentLabel(environment),
+                                  explorerUrl: explorerTxUrl(r.hash),
+                                })
+                              }
+                              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl btn-gradient px-4 text-xs font-bold"
+                            >
+                              <Download className="h-3.5 w-3.5" />
+                              Download receipt
+                            </button>
+                            <a
+                              href={explorerTxUrl(r.hash)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                openExplorerTx(r.hash);
+                              }}
+                              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-xs font-bold text-background transition hover:opacity-90"
+                            >
+                              View transaction proof
+                              <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                          </div>
+                        </div>
+
+                        {/* Paper receipt preview */}
+                        <div className="border-t border-border bg-muted/40 p-4 sm:p-6">
+                          <ReceiptPaper
+                            receipt={r}
+                            meta={{
+                              counterpartyName: counterparty.name,
+                              direction: outgoing ? "sent" : "received",
+                              networkLabel: arcEnvironmentLabel(environment),
+                              explorerUrl: explorerTxUrl(r.hash),
                             }}
-                            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-foreground px-4 text-xs font-bold text-background transition hover:opacity-90"
-                          >
-                            View transaction proof
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
+                          />
                         </div>
                       </div>
                     ) : null}
