@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { AppShell, Card } from "@/components/nest/app-shell";
 import { MemberAvatar, AvatarStack } from "@/components/nest/avatar";
 import { UsdcBadge } from "@/components/nest/chain";
@@ -39,6 +39,71 @@ function Expenses() {
   const [modal, setModal] = useState<ModalState>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const sheetRef = useRef<HTMLDivElement | null>(null);
+  const modalOpen = modal !== null;
+
+  useLayoutEffect(() => {
+    if (!modalOpen || typeof window === "undefined") return;
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const root = document.documentElement;
+    const active = document.activeElement;
+
+    if (active instanceof HTMLElement) active.blur();
+
+    const previous = {
+      bodyPosition: body.style.position,
+      bodyTop: body.style.top,
+      bodyLeft: body.style.left,
+      bodyRight: body.style.right,
+      bodyWidth: body.style.width,
+      bodyOverflow: body.style.overflow,
+      bodyOverflowAnchor: body.style.overflowAnchor,
+      rootOverflow: root.style.overflow,
+      rootOverscrollBehavior: root.style.overscrollBehavior,
+      rootScrollBehavior: root.style.scrollBehavior,
+    };
+
+    root.style.scrollBehavior = "auto";
+    root.style.overflow = "hidden";
+    root.style.overscrollBehavior = "none";
+
+    Object.assign(body.style, {
+      position: "fixed",
+      top: `-${scrollY}px`,
+      left: `-${scrollX}px`,
+      right: "0",
+      width: "100%",
+      overflow: "hidden",
+      overflowAnchor: "none",
+    });
+
+    const frame = window.requestAnimationFrame(() => {
+      sheetRef.current?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      Object.assign(body.style, {
+        position: previous.bodyPosition,
+        top: previous.bodyTop,
+        left: previous.bodyLeft,
+        right: previous.bodyRight,
+        width: previous.bodyWidth,
+        overflow: previous.bodyOverflow,
+        overflowAnchor: previous.bodyOverflowAnchor,
+      });
+      root.style.overflow = previous.rootOverflow;
+      root.style.overscrollBehavior = previous.rootOverscrollBehavior;
+      root.style.scrollBehavior = "auto";
+      window.scrollTo({ left: scrollX, top: scrollY, behavior: "auto" });
+      window.requestAnimationFrame(() => {
+        root.style.scrollBehavior = previous.rootScrollBehavior;
+      });
+    };
+  }, [modalOpen]);
 
   const filtered = allExpenses
     .filter((e) => cat === "All" || e.category === cat)
@@ -174,15 +239,21 @@ function Expenses() {
 
 
 
-            onClick={close}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 backdrop-blur-[6px] sm:items-center"
+            onClick={saving ? undefined : close}
+            role="presentation"
+            style={{
+              top: "var(--nest-viewport-offset-top, 0px)",
+              height: "var(--nest-viewport-height, 100dvh)",
+            }}
+            className="fixed inset-x-0 z-50 flex items-end justify-center overscroll-contain bg-black/45 py-1.5 backdrop-blur-[6px] sm:items-center sm:p-4"
           >
             <div
-
-
-
+              ref={sheetRef}
               onClick={(e) => e.stopPropagation()}
-              className="mobile-sheet glass-strong max-h-[88dvh] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto rounded-[30px] p-5 sm:max-h-[90vh] sm:w-full sm:p-6"
+              role="dialog"
+              aria-modal="true"
+              aria-label={modal.mode === "detail" ? "Expense details" : modal.mode === "edit" ? "Edit expense" : "New expense"}
+              className="mobile-sheet glass-strong max-h-[calc(100%-0.75rem)] w-[calc(100%-0.75rem)] max-w-md overflow-y-auto overscroll-contain rounded-[30px] p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:max-h-[90vh] sm:w-full sm:p-6"
             >
               {modal.mode !== "detail" && (
                 <>
@@ -191,9 +262,10 @@ function Expenses() {
                       {modal.mode === "edit" ? "Edit expense" : "New expense"}
                     </h3>
                     <button
+                      type="button"
                       onClick={close}
                       disabled={saving}
-                      className="grid h-9 w-9 place-items-center rounded-full bg-muted disabled:opacity-40"
+                      className="grid h-11 w-11 place-items-center rounded-full bg-muted transition active:scale-[0.96] disabled:opacity-40"
                       aria-label="Close"
                     >
                       <X className="h-4 w-4" />
