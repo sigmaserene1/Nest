@@ -114,7 +114,7 @@ function NavItem({
     <Link
       to={to}
       preload={eager ? "render" : "intent"}
-      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-200 ease-out active:scale-[0.985] ${
+      className={`group flex items-center gap-3 rounded-2xl px-3.5 py-2.5 text-sm font-semibold transition-[background-color,color,transform,box-shadow] duration-150 ease-out active:scale-[0.985] ${
         active
           ? "bg-foreground text-background shadow-sm"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -145,12 +145,12 @@ function BottomTab({
     <Link
       to={to}
       preload="render"
-      className="group flex min-w-0 flex-1 flex-col items-center gap-1 py-1.5 transition-transform duration-200 ease-out active:scale-[0.96]"
+      className="group flex min-w-0 flex-1 flex-col items-center gap-1 py-1.5 transition-transform duration-150 ease-out active:scale-[0.96]"
     >
       <span
-        className={`grid h-9 w-11 place-items-center rounded-2xl transition-all duration-250 ease-out ${active ? "scale-105 bg-brand/10 text-brand shadow-sm" : "text-muted-foreground group-active:scale-95"}`}
+        className={`grid h-9 w-11 place-items-center rounded-2xl transition-all duration-150 ease-out ${active ? "scale-105 bg-brand/10 text-brand shadow-sm" : "text-muted-foreground group-active:scale-95"}`}
       >
-        <Icon className={`h-[19px] w-[19px] transition-transform duration-250 ease-out ${active ? "scale-105" : ""}`} strokeWidth={active ? 2.45 : 2} />
+        <Icon className={`h-[19px] w-[19px] transition-transform duration-150 ease-out ${active ? "scale-105" : ""}`} strokeWidth={active ? 2.45 : 2} />
       </span>
       <span
         className={`max-w-full truncate text-[11px] font-bold tracking-[-0.01em] transition-colors ${active ? "text-brand" : "text-muted-foreground"}`}

@@ -173,6 +173,48 @@
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
+
+  /*
+   * Feather-fast interactions: every tap responds within ~120ms.
+   * Global defaults keep generic transitions snappy; the long durations
+   * below override decorative classes that intentionally slow down.
+   */
+  .transition,
+  .transition-all,
+  .transition-colors,
+  .transition-transform,
+  .transition-shadow,
+  .transition-opacity {
+    transition-duration: 140ms;
+    transition-timing-function: cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+  .duration-150,
+  .duration-200,
+  .duration-250,
+  .duration-300,
+  .duration-500,
+  .duration-700,
+  .duration-1000 {
+    transition-duration: 140ms;
+  }
+  /* Intentional slow motion stays slow. */
+  .reveal,
+  .settlement-row,
+  .protocol-card,
+  .use-case-card {
+    transition-duration: 0.42s;
+  }
+
+  /* Instant press feedback on anything tappable. */
+  button:not(:disabled):active,
+  a[href]:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Page content primes once on first paint so a tap never waits on a layer. */
+.nest-page-transition {
+  animation: nest-fade 0.18s ease-out both;
 }
 
 .dark {
@@ -246,17 +288,17 @@
   box-shadow: var(--shadow-card);
   backdrop-filter: blur(16px);
   transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease;
+    transform 140ms cubic-bezier(0.2, 0.9, 0.3, 1),
+    border-color 140ms ease,
+    box-shadow 140ms ease;
 }
 
 @utility lift {
   border-radius: 1.25rem;
   transition:
-    transform 0.25s ease,
-    border-color 0.25s ease,
-    box-shadow 0.25s ease;
+    transform 0.16s cubic-bezier(0.2, 0.9, 0.3, 1),
+    border-color 0.16s ease,
+    box-shadow 0.16s ease;
   &:hover {
     transform: translateY(-3px);
     border-color: color-mix(in oklab, var(--brand) 38%, var(--border));
@@ -273,9 +315,9 @@
   color: #fff;
   box-shadow: var(--shadow-brand);
   transition:
-    transform 0.15s ease,
-    filter 0.15s ease,
-    opacity 0.15s ease;
+    transform 0.12s cubic-bezier(0.2, 0.9, 0.3, 1),
+    filter 0.12s ease,
+    opacity 0.12s ease;
   will-change: transform;
   &:hover {
     transform: translateY(-1px);
@@ -608,6 +650,67 @@
   isolation: isolate;
 }
 
+/*
+ * Ambient aurora behind the app: brand + indigo + emerald glows drifting
+ * slowly over a faint grid. Purely compositor animation (opacity/transform),
+ * pointer-transparent, and still under prefers-reduced-motion.
+ */
+.app-canvas::after {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(
+      42rem 30rem at 88% -6%,
+      color-mix(in oklab, var(--brand) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      36rem 28rem at -8% 34%,
+      rgb(99 102 241 / 0.1),
+      transparent 70%
+    ),
+    radial-gradient(
+      34rem 26rem at 62% 108%,
+      rgb(16 185 129 / 0.08),
+      transparent 70%
+    );
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+.dark .app-canvas::after {
+  background:
+    radial-gradient(
+      44rem 32rem at 86% -8%,
+      rgb(255 104 95 / 0.14),
+      transparent 70%
+    ),
+    radial-gradient(
+      38rem 30rem at -6% 30%,
+      rgb(99 102 241 / 0.12),
+      transparent 70%
+    ),
+    radial-gradient(
+      36rem 28rem at 60% 110%,
+      rgb(16 185 129 / 0.1),
+      transparent 70%
+    );
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: translate3d(-2.5rem, 1.5rem, 0) scale(1.06);
+    opacity: 1;
+  }
+}
+
 /* Keep the primary tabs visible above the device home indicator. */
 .mobile-bottom-nav {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
@@ -674,6 +777,12 @@ html {
   .obligation-line::after,
   .transfer-particle {
     display: none;
+  }
+  .app-canvas::after {
+    animation: none;
+  }
+  .nest-page-transition {
+    animation: none;
   }
 }
 
