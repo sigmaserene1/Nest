@@ -255,7 +255,7 @@ export function AppShell({
     ),
   );
   const routeHasInlineBack = pathname === "/app/profile" || pathname === "/app/swap";
-  const showMobileBack = !isPrimaryMobileRoute && !routeHasInlineBack;
+  const showPageBack = !isPrimaryMobileRoute && !routeHasInlineBack;
   const profileDisplayName = useProfileDisplayName(wallet.address ?? "");
   const myName = profileDisplayName || displayName || "You";
 
@@ -342,7 +342,7 @@ export function AppShell({
         <header className="mobile-app-header sticky top-0 z-30 border-b border-border/55 bg-background/82 backdrop-blur-2xl">
           <div className="mx-auto grid min-h-14 max-w-6xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-4 py-2.5 sm:min-h-16 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center lg:hidden">
-              {showMobileBack ? (
+              {showPageBack ? (
                 <Link
                   to="/app"
                   preload="render"
@@ -354,7 +354,19 @@ export function AppShell({
               ) : null}
               <NestLogo />
             </div>
-            <div className="hidden min-w-0 lg:block" />
+            <div className="hidden min-w-0 items-center lg:flex">
+              {showPageBack ? (
+                <Link
+                  to="/app"
+                  preload="render"
+                  aria-label="Back to Nest home"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border/75 bg-card/85 px-4 text-sm font-bold text-muted-foreground shadow-sm transition hover:border-brand/30 hover:text-foreground active:scale-[0.98]"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  Back
+                </Link>
+              ) : null}
+            </div>
             <div className="flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2">
               {wallet.environment === "testnet" ? (
                 <a
