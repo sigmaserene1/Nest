@@ -724,13 +724,15 @@
 
 .dark .app-canvas::before {
   background:
-    radial-gradient(ellipse 60rem 30rem at 50% -10%, rgb(255 255 255 / 0.04), transparent 70%),
-    var(--background);
+    radial-gradient(ellipse 60rem 30rem at 50% -10%, rgb(139 124 255 / 0.07), transparent 70%),
+    linear-gradient(125deg, #0e0d18 0%, #12101f 55%, #15122a 100%);
 }
 
 .dark .app-canvas::after {
   background:
-    radial-gradient(ellipse 40rem 28rem at 100% 0%, color-mix(in oklab, var(--brand) 7%, transparent), transparent 70%);
+    radial-gradient(ellipse 40rem 28rem at 100% 0%, color-mix(in oklab, var(--brand) 8%, transparent), transparent 70%),
+    radial-gradient(46rem 34rem at -8% 72%, rgb(139 124 255 / 0.09), transparent 72%),
+    radial-gradient(34rem 22rem at 70% 108%, rgb(99 102 241 / 0.07), transparent 74%);
 }
 
 /* Keep the primary tabs visible above the device home indicator. */
