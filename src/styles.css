@@ -226,40 +226,52 @@
 }
 
 .dark {
-  --background: #0b0c0f;
-  --foreground: #f2f3f5;
-  --surface: #141519;
-  --surface-muted: #181a1f;
-  --card: #141519;
-  --card-foreground: #f2f3f5;
-  --popover: #16171c;
-  --popover-foreground: #f2f3f5;
+  --background: #0e0d18;
+  --foreground: #f3f3fa;
+
+  --surface: #171529;
+  --surface-muted: #1d1b32;
+
+  --card: #171529;
+  --card-foreground: #f3f3fa;
+
+  --popover: #1b1930;
+  --popover-foreground: #f3f3fa;
+
   --brand: #ff6b63;
   --brand-foreground: #160606;
   --brand-soft: #2a1515;
-  --primary: #ff6b63;
-  --primary-foreground: #160606;
-  --secondary: #1c1e24;
-  --secondary-foreground: #f2f3f5;
-  --muted: #1c1e24;
-  --muted-foreground: #b3b8c4;
-  --accent: #22252c;
-  --accent-foreground: #f2f3f5;
+
+  --primary: #8b7cff;
+  --primary-foreground: #ffffff;
+
+  --secondary: #221f3d;
+  --secondary-foreground: #f3f3fa;
+
+  --muted: #221f3d;
+  --muted-foreground: #a9abc8;
+
+  --accent: #262347;
+  --accent-foreground: #f3f3fa;
+
   --destructive: #ff6b63;
   --destructive-foreground: #160606;
-  --border: #2a2d35;
-  --input: #30333c;
-  --ring: #ff6b63;
-  --sidebar: #101115;
-  --sidebar-foreground: #f2f3f5;
+
+  --border: #2c2950;
+  --input: #383462;
+  --ring: #8b7cff;
+
+  --sidebar: #131126;
+  --sidebar-foreground: #f3f3fa;
   --sidebar-primary: #ff6b63;
   --sidebar-primary-foreground: #160606;
-  --sidebar-accent: #1c1e24;
-  --sidebar-accent-foreground: #f2f3f5;
-  --sidebar-border: #24262d;
-  --sidebar-ring: #ff6b63;
-  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px rgb(0 0 0 / 0.35);
-  --shadow-elevated: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 20px 50px rgb(0 0 0 / 0.5);
+  --sidebar-accent: #221f3d;
+  --sidebar-accent-foreground: #f3f3fa;
+  --sidebar-border: #2c2950;
+  --sidebar-ring: #8b7cff;
+
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 8px 24px rgb(6 4 22 / 0.45);
+  --shadow-elevated: 0 1px 0 rgb(255 255 255 / 0.05) inset, 0 20px 50px rgb(6 4 22 / 0.6);
 }
 
 /* Dark mode readability: solid surfaces and legible status colors. */
