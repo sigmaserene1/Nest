@@ -226,50 +226,51 @@
 }
 
 .dark {
-  --background: #080a10;
-  --foreground: #f7f8fc;
-
-  --surface: rgb(16 19 29 / 0.82);
-  --surface-muted: #121622;
-
-  --card: rgb(16 19 29 / 0.78);
-  --card-foreground: #f5f7fb;
-
-  --popover: #0d0f15;
-  --popover-foreground: #f5f7fb;
-
-  --brand: #ff685f;
-  --brand-foreground: #140605;
-  --brand-soft: #301717;
-
-  --primary: #ff5a52;
-  --primary-foreground: #140605;
-
-  --secondary: #171b28;
-  --secondary-foreground: #f5f7fb;
-
-  --muted: #171b28;
-  --muted-foreground: #9da6ba;
-
-  --accent: #1b2030;
-  --accent-foreground: #f5f7fb;
-
-  --destructive: #ff5a52;
-  --destructive-foreground: #140605;
-
-  --border: #262c3b;
-  --input: #2a3040;
-  --ring: #ff5a52;
-
-  --sidebar: #10131d;
-  --sidebar-foreground: #f5f7fb;
-  --sidebar-primary: #ff5a52;
-  --sidebar-primary-foreground: #140605;
-  --sidebar-accent: #15181f;
-  --sidebar-accent-foreground: #f5f7fb;
-  --sidebar-border: #22262f;
-  --sidebar-ring: #ff5a52;
+  --background: #0b0c0f;
+  --foreground: #f2f3f5;
+  --surface: #141519;
+  --surface-muted: #181a1f;
+  --card: #141519;
+  --card-foreground: #f2f3f5;
+  --popover: #16171c;
+  --popover-foreground: #f2f3f5;
+  --brand: #ff6b63;
+  --brand-foreground: #160606;
+  --brand-soft: #2a1515;
+  --primary: #ff6b63;
+  --primary-foreground: #160606;
+  --secondary: #1c1e24;
+  --secondary-foreground: #f2f3f5;
+  --muted: #1c1e24;
+  --muted-foreground: #b3b8c4;
+  --accent: #22252c;
+  --accent-foreground: #f2f3f5;
+  --destructive: #ff6b63;
+  --destructive-foreground: #160606;
+  --border: #2a2d35;
+  --input: #30333c;
+  --ring: #ff6b63;
+  --sidebar: #101115;
+  --sidebar-foreground: #f2f3f5;
+  --sidebar-primary: #ff6b63;
+  --sidebar-primary-foreground: #160606;
+  --sidebar-accent: #1c1e24;
+  --sidebar-accent-foreground: #f2f3f5;
+  --sidebar-border: #24262d;
+  --sidebar-ring: #ff6b63;
+  --shadow-card: 0 1px 0 rgb(255 255 255 / 0.03) inset, 0 8px 24px rgb(0 0 0 / 0.35);
+  --shadow-elevated: 0 1px 0 rgb(255 255 255 / 0.04) inset, 0 20px 50px rgb(0 0 0 / 0.5);
 }
+
+/* Dark mode readability: solid surfaces and legible status colors. */
+.dark body { -webkit-font-smoothing: antialiased; }
+.dark .text-emerald-600, .dark .text-emerald-700 { color: #4ade80; }
+.dark .bg-emerald-50 { background-color: rgb(74 222 128 / 0.12); }
+.dark .bg-amber-50 { background-color: rgb(251 191 36 / 0.12); }
+.dark .text-amber-900, .dark .text-amber-800, .dark .text-amber-700 { color: #fcd34d; }
+.dark .text-red-600, .dark .text-red-700 { color: #f87171; }
+.dark .bg-red-50 { background-color: rgb(248 113 113 / 0.12); }
+
 
 @utility glass {
   background: color-mix(in oklab, var(--card) 91%, transparent);
@@ -711,34 +712,13 @@
 
 .dark .app-canvas::before {
   background:
-    radial-gradient(ellipse at 48% 0%, rgb(255 255 255 / 0.035), transparent 62%),
-    linear-gradient(125deg, #0d0f17 0%, var(--background) 55%, #0e121b 100%);
+    radial-gradient(ellipse 60rem 30rem at 50% -10%, rgb(255 255 255 / 0.04), transparent 70%),
+    var(--background);
 }
 
 .dark .app-canvas::after {
   background:
-    radial-gradient(
-      ellipse clamp(22rem, 50vw, 56rem) clamp(26rem, 60vh, 44rem) at 104% 8%,
-      color-mix(in oklab, var(--brand) 9%, transparent) 0%,
-      color-mix(in oklab, var(--brand) 3%, transparent) 38%,
-      transparent 74%
-    ),
-    radial-gradient(
-      42rem 36rem at -10% 64%,
-      rgb(116 130 176 / 0.11),
-      transparent 70%
-    ),
-    radial-gradient(
-      36rem 24rem at 64% 106%,
-      rgb(201 173 138 / 0.04),
-      transparent 72%
-    ),
-    linear-gradient(
-      118deg,
-      transparent 24%,
-      rgb(255 255 255 / 0.018) 46%,
-      transparent 67%
-    );
+    radial-gradient(ellipse 40rem 28rem at 100% 0%, color-mix(in oklab, var(--brand) 7%, transparent), transparent 70%);
 }
 
 /* Keep the primary tabs visible above the device home indicator. */
