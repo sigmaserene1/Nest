@@ -92,7 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#E41E26" },
-      { title: "Nest — Group finance and USDC settlement on Arc" },
+      { title: "Nest — Shared treasury and USDC settlement on Arc" },
       {
         property: "og:title",
         content: "Nest — One ledger. Clear every balance.",
@@ -101,7 +101,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "Programmable group finance on Arc: record shared obligations, resolve exact balances, and settle peer-to-peer in native USDC.",
+          "Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals, manage group obligations and settle payments in native USDC.",
       },
       {
         property: "og:description",
@@ -117,6 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
     ],
     links: [
+      { rel: "icon", href: "/favicon.ico" },
       { rel: "stylesheet", href: appCss },
       { rel: "stylesheet", href: rainbowKitCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
