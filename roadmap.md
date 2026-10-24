@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [x] Make light/dark changes atomic without color fades; give dark navigation white icons, labels and selected buttons.
 - [x] Restore viewport-anchored mobile bottom navigation and content clearance; checked fixed positioning while scrolling at phone width.
 - [x] Verify and configure the existing Arc Mainnet ExpenseManager deployment; chain 5042 code first appears at block 21213840 and configuration tests pass.
 - [ ] Simplify email sign-in to Privy OTP and wallet only; match the popup and square PIN boxes to Nest.
