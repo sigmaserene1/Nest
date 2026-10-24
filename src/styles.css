@@ -49,6 +49,9 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-info: var(--info);
+  --color-nav-active: var(--nav-active);
+  --color-nav-active-foreground: var(--nav-active-foreground);
+  --color-nav-foreground: var(--nav-foreground);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -71,6 +74,9 @@
 
   --background: #f7f8fc;
   --foreground: #0b1020;
+  --nav-active: #0b1020;
+  --nav-active-foreground: #f7f8fc;
+  --nav-foreground: #6b7280;
 
   --surface: rgb(255 255 255 / 0.82);
   --surface-muted: #f0f2f8;
@@ -228,6 +234,9 @@
 .dark {
   --background: #0e0d18;
   --foreground: #f3f3fa;
+  --nav-active: #ffffff;
+  --nav-active-foreground: #171529;
+  --nav-foreground: #f3f3fa;
 
   --surface: #171529;
   --surface-muted: #1d1b32;
@@ -275,6 +284,14 @@
 }
 
 /* Dark mode readability: solid surfaces and legible status colors. */
+/* Suppress transitions only during a theme commit, including pseudo-elements. */
+html.theme-switching,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
 .dark body { -webkit-font-smoothing: antialiased; }
 .dark .text-emerald-600, .dark .text-emerald-700 { color: #4ade80; }
 .dark .bg-emerald-50 { background-color: rgb(74 222 128 / 0.12); }
