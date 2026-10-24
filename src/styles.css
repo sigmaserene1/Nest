@@ -757,6 +757,16 @@ html.theme-switching *::after {
   bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
 }
 
+/* Dark mode: the tab bar sits on a near-identical background, so give it a
+   solid surface, a brighter edge and a soft glow to keep it unmistakable. */
+.dark .mobile-bottom-nav .glass-strong {
+  background: var(--surface);
+  border-color: color-mix(in oklab, #ffffff 16%, transparent);
+  box-shadow:
+    0 0 0 1px color-mix(in oklab, var(--primary) 12%, transparent),
+    0 18px 44px rgb(0 0 0 / 0.55);
+}
+
 @media (width < 64rem) {
   .mobile-safe-main {
     padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem);
