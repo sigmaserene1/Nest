@@ -634,6 +634,7 @@ function Landing() {
           <div className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-muted-foreground sm:justify-end">
             <button type="button" onClick={enter} className="hover:text-foreground">App</button>
             <Link to="/docs" className="hover:text-foreground">Docs</Link>
+            <Link to="/guides/split-expenses-with-friends" className="hover:text-foreground">Splitting guide</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
             <Link to="/support" className="hover:text-foreground">Support</Link>
