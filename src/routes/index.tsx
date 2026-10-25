@@ -306,12 +306,14 @@ function Landing() {
               </div>
 
               <h1
-                className="animate-float-in mt-7 font-display text-[2.4rem] leading-[1.02] tracking-[-0.05em] sm:text-6xl lg:text-[5.2rem]"
+                className="animate-float-in mt-7 font-display text-[3.1rem] font-semibold leading-[0.95] tracking-[-0.055em] sm:text-7xl sm:leading-[0.94] lg:text-[7rem] lg:leading-[0.92]"
                 style={{ animationDelay: "80ms" }}
               >
                 Shared treasury.
                 <br />
-                <span className="text-brand">Clear every balance.</span>
+                <span className="font-quote font-normal italic tracking-[-0.005em] text-brand">
+                  Clear every balance.
+                </span>
               </h1>
 
               <p
@@ -511,7 +513,8 @@ function Landing() {
                   Purpose-built for Arc
                 </span>
                 <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-5xl">
-                  The settlement layer is part of the product.
+                  The settlement layer is part of the{" "}
+                  <span className="font-quote font-normal italic text-brand">product.</span>
                 </h2>
                 <p className="mt-5 max-w-xl text-base leading-7 text-background/65">
                   Nest uses Arc because group settlement needs a stable unit, predictable execution
@@ -590,8 +593,11 @@ function Landing() {
                   <CircleDollarSign className="h-3.5 w-3.5" />
                   Group settlement, without the spreadsheet
                 </span>
-                <h2 className="mx-auto mt-6 max-w-3xl text-3xl leading-[1.08] tracking-[-0.04em] sm:text-6xl">
-                  Give shared money one source of truth.
+                <h2 className="mx-auto mt-6 max-w-3xl text-3xl leading-[1.06] tracking-[-0.04em] sm:text-6xl sm:leading-[1.02]">
+                  Give shared money one{" "}
+                  <span className="font-quote font-normal italic tracking-[-0.005em]">
+                    source of truth.
+                  </span>
                 </h2>
                 <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base">
                   Create a workspace, record obligations and complete your first native-USDC
