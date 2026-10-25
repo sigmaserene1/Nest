@@ -30,6 +30,7 @@ import { Route as AppSettleRouteImport } from './routes/app.settle'
 import { Route as AppSwapRouteImport } from './routes/app.swap'
 import { Route as AppSyndicateRouteImport } from './routes/app.syndicate'
 import { Route as AppTreasuryRouteImport } from './routes/app.treasury'
+import { Route as GuidesSplitExpensesWithFriendsRouteImport } from './routes/guides.split-expenses-with-friends'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -136,6 +137,12 @@ const AppTreasuryRoute = AppTreasuryRouteImport.update({
   path: '/treasury',
   getParentRoute: () => AppRoute,
 } as any)
+const GuidesSplitExpensesWithFriendsRoute =
+  GuidesSplitExpensesWithFriendsRouteImport.update({
+    id: '/guides/split-expenses-with-friends',
+    path: '/guides/split-expenses-with-friends',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -158,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
   '/app/treasury': typeof AppTreasuryRoute
+  '/guides/split-expenses-with-friends': typeof GuidesSplitExpensesWithFriendsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRoutesByTo {
@@ -180,6 +188,7 @@ export interface FileRoutesByTo {
   '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
   '/app/treasury': typeof AppTreasuryRoute
+  '/guides/split-expenses-with-friends': typeof GuidesSplitExpensesWithFriendsRoute
   '/app': typeof AppIndexRoute
 }
 export interface FileRoutesById {
@@ -204,6 +213,7 @@ export interface FileRoutesById {
   '/app/swap': typeof AppSwapRoute
   '/app/syndicate': typeof AppSyndicateRoute
   '/app/treasury': typeof AppTreasuryRoute
+  '/guides/split-expenses-with-friends': typeof GuidesSplitExpensesWithFriendsRoute
   '/app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
@@ -229,6 +239,7 @@ export interface FileRouteTypes {
     | '/app/swap'
     | '/app/syndicate'
     | '/app/treasury'
+    | '/guides/split-expenses-with-friends'
     | '/app/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/app/swap'
     | '/app/syndicate'
     | '/app/treasury'
+    | '/guides/split-expenses-with-friends'
     | '/app'
   id:
     | '__root__'
@@ -274,6 +286,7 @@ export interface FileRouteTypes {
     | '/app/swap'
     | '/app/syndicate'
     | '/app/treasury'
+    | '/guides/split-expenses-with-friends'
     | '/app/'
   fileRoutesById: FileRoutesById
 }
@@ -284,6 +297,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  GuidesSplitExpensesWithFriendsRoute: typeof GuidesSplitExpensesWithFriendsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -435,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTreasuryRouteImport
       parentRoute: typeof AppRoute
     }
+    '/guides/split-expenses-with-friends': {
+      id: '/guides/split-expenses-with-friends'
+      path: '/guides/split-expenses-with-friends'
+      fullPath: '/guides/split-expenses-with-friends'
+      preLoaderRoute: typeof GuidesSplitExpensesWithFriendsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -483,6 +504,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  GuidesSplitExpensesWithFriendsRoute: GuidesSplitExpensesWithFriendsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
