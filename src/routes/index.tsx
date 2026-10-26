@@ -236,7 +236,7 @@ function Landing() {
 
           <nav
             aria-label="Primary navigation"
-            className="hidden items-center gap-7 text-[13px] font-semibold text-muted-foreground lg:flex"
+            className="hidden items-center gap-7 text-sm font-semibold text-muted-foreground lg:flex"
           >
             {NAV_LINKS.map((item) => (
               <a
@@ -258,7 +258,7 @@ function Landing() {
             <button
               type="button"
               onClick={enter}
-              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-xs font-bold text-background transition-all hover:-translate-y-0.5 hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-sm font-bold text-background transition-all hover:-translate-y-0.5 hover:opacity-90"
             >
               {connecting ? "Connecting…" : "Launch app"} <ArrowRight className="h-3.5 w-3.5" />
             </button>
@@ -274,14 +274,14 @@ function Landing() {
               key={item.href}
               href={item.href}
               onClick={(event) => scrollToSection(event, item.href)}
-              className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
+              className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
             >
               {item.label}
             </a>
           ))}
           <Link
             to="/docs"
-            className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
+            className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
           >
             Docs
           </Link>
@@ -296,7 +296,7 @@ function Landing() {
           <div className="mx-auto grid min-h-[760px] max-w-7xl items-center gap-14 px-5 py-20 lg:grid-cols-[1.02fr_0.98fr] lg:px-8 lg:py-24">
             <div className="text-center lg:text-left">
               <div
-                className="animate-pop-in inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft/80 px-3.5 py-2 text-xs font-bold text-brand shadow-sm"
+                className="animate-pop-in inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft/80 px-3.5 py-2 text-sm font-bold text-brand shadow-sm"
                 style={{ animationDelay: "40ms" }}
               >
                 <span className="live-dot h-2 w-2 rounded-full bg-brand" />
@@ -317,7 +317,7 @@ function Landing() {
               </h1>
 
               <p
-                className="animate-float-in mx-auto mt-5 max-w-2xl text-[15px] leading-6 text-muted-foreground sm:text-lg sm:leading-7 lg:mx-0 lg:max-w-xl"
+                className="animate-float-in mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-xl sm:leading-8 lg:mx-0 lg:max-w-xl"
                 style={{ animationDelay: "130ms" }}
               >
                 Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals,
@@ -331,7 +331,7 @@ function Landing() {
                 <button
                   type="button"
                   onClick={enter}
-                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm"
+                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold sm:px-7 sm:py-4 sm:text-base"
                 >
                   {connecting ? "Connecting…" : "Open a workspace"}{" "}
                   <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -339,7 +339,7 @@ function Landing() {
                 <a
                   href="#protocol"
                   onClick={(event) => scrollToSection(event, "#protocol")}
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-[13px] font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-6 sm:py-3.5 sm:text-sm"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-6 py-3.5 text-sm font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-7 sm:py-4 sm:text-base"
                 >
                   Explore product <ArrowRight className="h-4 w-4" />
                 </a>
@@ -355,7 +355,7 @@ function Landing() {
               ) : null}
 
               <div
-                className="animate-float-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground lg:justify-start"
+                className="animate-float-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-semibold text-muted-foreground lg:justify-start"
                 style={{ animationDelay: "230ms" }}
               >
                 {["Non-custodial", "Contract-recorded state", "Circle CCTP v2"].map((item) => (
