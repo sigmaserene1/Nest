@@ -460,7 +460,7 @@ function Landing() {
                   title="Shared finance beyond the household"
                   body="The original roommate experience remains. The same obligation and settlement model also fits teams and project-based groups that need transparent shared balances."
                 />
-                <p className="max-w-xl text-sm leading-6 text-muted-foreground lg:justify-self-end">
+                <p className="max-w-xl text-[15px] leading-7 text-muted-foreground lg:justify-self-end">
                   Nest is not positioning unbuilt modules as live products. These are supported
                   workspace patterns built from the existing group ledger, balance views, direct
                   settlement, capped client-side assistance and syndicate distribution mode.
@@ -512,7 +512,7 @@ function Landing() {
                   <Zap className="h-3.5 w-3.5 text-brand" />
                   Purpose-built for Arc
                 </span>
-                <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-6xl sm:leading-[1.04]">
                   The settlement layer is part of the{" "}
                   <span className="font-quote font-normal italic text-brand">product.</span>
                 </h2>
@@ -553,7 +553,7 @@ function Landing() {
                 <h2 className="mt-6 text-3xl tracking-[-0.035em] sm:text-5xl">
                   Questions builders and users should ask
                 </h2>
-                <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
+                <p className="mt-5 max-w-md text-[15px] leading-7 text-muted-foreground">
                   No vague custody language and no pretending roadmap items already exist.
                 </p>
               </div>
