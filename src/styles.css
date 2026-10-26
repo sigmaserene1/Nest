@@ -776,14 +776,13 @@ html.theme-switching *::after {
 
 html {
   scroll-behavior: smooth;
-  /* Slightly larger base type, matching the scale of leading consumer sites. */
-  font-size: 104%;
 }
 
-/* Mobile: keep type readable but still app-like. */
+/* Mobile: slightly smaller root scale so type, buttons and spacing feel
+   app-like instead of blown-up desktop text. */
 @media (max-width: 640px) {
   html {
-    font-size: 100%;
+    font-size: 93.75%;
   }
 }
 
