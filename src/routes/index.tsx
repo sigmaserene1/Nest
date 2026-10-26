@@ -236,7 +236,7 @@ function Landing() {
 
           <nav
             aria-label="Primary navigation"
-            className="hidden items-center gap-7 text-[13px] font-semibold text-muted-foreground lg:flex"
+            className="hidden items-center gap-7 text-sm font-semibold text-muted-foreground lg:flex"
           >
             {NAV_LINKS.map((item) => (
               <a
@@ -258,7 +258,7 @@ function Landing() {
             <button
               type="button"
               onClick={enter}
-              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-xs font-bold text-background transition-all hover:-translate-y-0.5 hover:opacity-90"
+              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-sm font-bold text-background transition-all hover:-translate-y-0.5 hover:opacity-90"
             >
               {connecting ? "Connecting…" : "Launch app"} <ArrowRight className="h-3.5 w-3.5" />
             </button>
@@ -274,14 +274,14 @@ function Landing() {
               key={item.href}
               href={item.href}
               onClick={(event) => scrollToSection(event, item.href)}
-              className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
+              className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
             >
               {item.label}
             </a>
           ))}
           <Link
             to="/docs"
-            className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
+            className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-xs font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
           >
             Docs
           </Link>
@@ -296,7 +296,7 @@ function Landing() {
           <div className="mx-auto grid min-h-[760px] max-w-7xl items-center gap-14 px-5 py-20 lg:grid-cols-[1.02fr_0.98fr] lg:px-8 lg:py-24">
             <div className="text-center lg:text-left">
               <div
-                className="animate-pop-in inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft/80 px-3.5 py-2 text-xs font-bold text-brand shadow-sm"
+                className="animate-pop-in inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft/80 px-3.5 py-2 text-sm font-bold text-brand shadow-sm"
                 style={{ animationDelay: "40ms" }}
               >
                 <span className="live-dot h-2 w-2 rounded-full bg-brand" />
@@ -317,7 +317,7 @@ function Landing() {
               </h1>
 
               <p
-                className="animate-float-in mx-auto mt-5 max-w-2xl text-[15px] leading-6 text-muted-foreground sm:text-lg sm:leading-7 lg:mx-0 lg:max-w-xl"
+                className="animate-float-in mx-auto mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-xl sm:leading-8 lg:mx-0 lg:max-w-xl"
                 style={{ animationDelay: "130ms" }}
               >
                 Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals,
@@ -331,7 +331,7 @@ function Landing() {
                 <button
                   type="button"
                   onClick={enter}
-                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm"
+                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-sm font-bold sm:px-7 sm:py-4 sm:text-base"
                 >
                   {connecting ? "Connecting…" : "Open a workspace"}{" "}
                   <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -339,7 +339,7 @@ function Landing() {
                 <a
                   href="#protocol"
                   onClick={(event) => scrollToSection(event, "#protocol")}
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-[13px] font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-6 sm:py-3.5 sm:text-sm"
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-6 py-3.5 text-sm font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-7 sm:py-4 sm:text-base"
                 >
                   Explore product <ArrowRight className="h-4 w-4" />
                 </a>
@@ -355,7 +355,7 @@ function Landing() {
               ) : null}
 
               <div
-                className="animate-float-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground lg:justify-start"
+                className="animate-float-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm font-semibold text-muted-foreground lg:justify-start"
                 style={{ animationDelay: "230ms" }}
               >
                 {["Non-custodial", "Contract-recorded state", "Circle CCTP v2"].map((item) => (
@@ -375,10 +375,10 @@ function Landing() {
           <dl className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-border px-5 sm:grid-cols-4 sm:divide-y-0 lg:px-8">
             {PROOF.map((item) => (
               <div key={item.label} className="px-4 py-6 text-center">
-                <dt className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+                <dt className="text-[11px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
                   {item.label}
                 </dt>
-                <dd className="mt-2 font-display text-lg font-bold sm:text-xl">{item.value}</dd>
+                <dd className="mt-2 font-display text-xl font-bold sm:text-2xl">{item.value}</dd>
               </div>
             ))}
           </dl>
@@ -437,8 +437,8 @@ function Landing() {
                       <p className="mt-8 text-[10px] font-bold uppercase tracking-[0.18em] text-brand">
                         {step.label}
                       </p>
-                      <h3 className="mt-2 text-xl">{step.title}</h3>
-                      <p className="mt-3 text-sm leading-6 text-muted-foreground">{step.body}</p>
+                      <h3 className="mt-2 text-2xl">{step.title}</h3>
+                      <p className="mt-3 text-[15px] leading-7 text-muted-foreground">{step.body}</p>
                     </article>
                   </Reveal>
                 ))}
@@ -460,7 +460,7 @@ function Landing() {
                   title="Shared finance beyond the household"
                   body="The original roommate experience remains. The same obligation and settlement model also fits teams and project-based groups that need transparent shared balances."
                 />
-                <p className="max-w-xl text-sm leading-6 text-muted-foreground lg:justify-self-end">
+                <p className="max-w-xl text-[15px] leading-7 text-muted-foreground lg:justify-self-end">
                   Nest is not positioning unbuilt modules as live products. These are supported
                   workspace patterns built from the existing group ledger, balance views, direct
                   settlement, capped client-side assistance and syndicate distribution mode.
@@ -482,8 +482,8 @@ function Landing() {
                     <p className="relative mt-8 text-[10px] font-bold uppercase tracking-[0.18em] text-brand">
                       {useCase.kicker}
                     </p>
-                    <h3 className="relative mt-2 text-2xl">{useCase.title}</h3>
-                    <p className="relative mt-3 text-sm leading-6 text-muted-foreground">
+                    <h3 className="relative mt-2 text-3xl">{useCase.title}</h3>
+                    <p className="relative mt-3 text-[15px] leading-7 text-muted-foreground">
                       {useCase.body}
                     </p>
                     <ul className="relative mt-6 space-y-2.5">
@@ -512,7 +512,7 @@ function Landing() {
                   <Zap className="h-3.5 w-3.5 text-brand" />
                   Purpose-built for Arc
                 </span>
-                <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-6xl sm:leading-[1.04]">
                   The settlement layer is part of the{" "}
                   <span className="font-quote font-normal italic text-brand">product.</span>
                 </h2>
@@ -530,7 +530,7 @@ function Landing() {
                   <article className="h-full bg-foreground p-7 transition-colors hover:bg-background/[0.04]">
                     <reason.icon className="h-5 w-5 text-brand" />
                     <h3 className="mt-5 text-lg text-background">{reason.title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-background/60">{reason.body}</p>
+                    <p className="mt-2 text-[15px] leading-7 text-background/60">{reason.body}</p>
                   </article>
                 </Reveal>
               ))}
@@ -553,7 +553,7 @@ function Landing() {
                 <h2 className="mt-6 text-3xl tracking-[-0.035em] sm:text-5xl">
                   Questions builders and users should ask
                 </h2>
-                <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
+                <p className="mt-5 max-w-md text-[15px] leading-7 text-muted-foreground">
                   No vague custody language and no pretending roadmap items already exist.
                 </p>
               </div>
@@ -571,10 +571,10 @@ function Landing() {
                     value={`item-${index}`}
                     className="last:border-b-0"
                   >
-                    <AccordionTrigger className="py-6 text-left text-base font-bold hover:no-underline">
+                    <AccordionTrigger className="py-6 text-left text-lg font-bold hover:no-underline">
                       {item.question}
                     </AccordionTrigger>
-                    <AccordionContent className="max-w-2xl pb-6 text-sm leading-6 text-muted-foreground">
+                    <AccordionContent className="max-w-2xl pb-6 text-[15px] leading-7 text-muted-foreground">
                       {item.answer}
                     </AccordionContent>
                   </AccordionItem>
@@ -599,7 +599,7 @@ function Landing() {
                     source of truth.
                   </span>
                 </h2>
-                <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base">
+                <p className="mx-auto mt-5 max-w-xl text-base leading-7 text-white/80 sm:text-lg sm:leading-8">
                   Create a workspace, record obligations and complete your first native-USDC
                   settlement on Arc.
                 </p>
@@ -607,13 +607,13 @@ function Landing() {
                   <button
                     type="button"
                     onClick={enter}
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-brand transition-transform hover:-translate-y-0.5"
+                    className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3.5 text-sm font-bold sm:px-7 sm:py-4 sm:text-base text-brand transition-transform hover:-translate-y-0.5"
                   >
                     {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight className="h-4 w-4" />
                   </button>
                   <Link
                     to="/docs"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[13px] font-bold text-white transition-colors hover:bg-white/20 sm:px-6 sm:py-3.5 sm:text-sm"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-bold text-white transition-colors hover:bg-white/20 sm:px-7 sm:py-4 sm:text-base"
                   >
                     Docs <BookOpen className="h-4 w-4" />
                   </Link>
@@ -628,7 +628,7 @@ function Landing() {
         <div className="mx-auto grid max-w-7xl gap-8 px-5 sm:grid-cols-[1fr_auto] sm:items-end lg:px-8">
           <div>
             <NestLogo />
-            <p className="mt-3 max-w-lg text-xs leading-5 text-muted-foreground">
+            <p className="mt-3 max-w-lg text-sm leading-6 text-muted-foreground">
               Independent group-finance software built on Arc with native USDC settlement and Circle-powered wallet onboarding.
             </p>
             <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-muted-foreground">
@@ -800,8 +800,8 @@ function SectionHeading({
         <Sparkles className="h-3.5 w-3.5" />
         {eyebrow}
       </span>
-      <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.04em] sm:text-5xl">{title}</h2>
-      <p className="mt-5 text-base leading-7 text-muted-foreground">{body}</p>
+      <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.04em] sm:text-6xl sm:leading-[1.04]">{title}</h2>
+      <p className="mt-5 text-lg leading-8 text-muted-foreground">{body}</p>
     </div>
   );
 }
@@ -818,8 +818,8 @@ function FeatureCard({ feature, index }: { feature: Capability; index: number })
       <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110">
         <feature.icon className="h-5 w-5" />
       </span>
-      <h3 className="relative mt-6 text-xl">{feature.title}</h3>
-      <p className="relative mt-3 text-sm leading-6 text-muted-foreground">{feature.body}</p>
+      <h3 className="relative mt-6 text-2xl">{feature.title}</h3>
+      <p className="relative mt-3 text-[15px] leading-7 text-muted-foreground">{feature.body}</p>
       <div className="relative mt-6 flex items-center gap-2 text-[11px] font-bold text-foreground">
         <span className="h-px w-6 bg-brand" />
         {feature.proof}
