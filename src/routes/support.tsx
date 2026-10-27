@@ -9,11 +9,16 @@ export const Route = createFileRoute("/support")({
   component: SupportPage,
   head: () => ({
     meta: [
-      { title: "Support — Nest" },
+      { title: "Nest Support — Arc wallets and USDC payments" },
       {
         name: "description",
-        content: "Nest support, testnet funding, explorer links and issue reporting.",
+        content: "Get help with Nest's Arc wallets and USDC payments: contact support, find testnet funding, verify transactions in the explorer and report reproducible issues.",
       },
+      { property: "og:title", content: "Nest Support — Arc wallets and USDC payments" },
+      { property: "og:description", content: "Contact Nest support, fund an Arc test wallet, check onchain transactions and find documentation for shared expenses and USDC settlement." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://nestarc.xyz/support" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: "https://nestarc.xyz/support" }],
   }),

@@ -92,27 +92,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#E41E26" },
-      { title: "Nest — Shared treasury and USDC settlement on Arc" },
-      {
-        property: "og:title",
-        content: "Nest — One ledger. Clear every balance.",
-      },
-      { name: "twitter:title", content: "Nest — Group settlement on Arc" },
-      {
-        name: "description",
-        content:
-          "Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals, manage group obligations and settle payments in native USDC.",
-      },
-      {
-        property: "og:description",
-        content:
-          "Onchain obligations, transparent balances, native USDC settlement and transaction-linked receipts for teams and shared groups.",
-      },
-      {
-        name: "twitter:description",
-        content:
-          "Record shared obligations, resolve exact balances and settle peer-to-peer in native USDC on Arc.",
-      },
+      { property: "og:site_name", content: "Nest" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:type", content: "website" },
     ],

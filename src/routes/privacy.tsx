@@ -5,11 +5,16 @@ export const Route = createFileRoute("/privacy")({
   component: PrivacyPage,
   head: () => ({
     meta: [
-      { title: "Privacy — Nest" },
+      { title: "Privacy — Nest wallet and onchain data" },
       {
         name: "description",
-        content: "Privacy information for the Nest onchain group-finance application.",
+        content: "Learn how Nest handles wallet addresses, authentication, public Arc transactions and browser storage when you track shared expenses and settle payments in USDC.",
       },
+      { property: "og:title", content: "Privacy — Nest wallet and onchain data" },
+      { property: "og:description", content: "How Nest handles wallet, authentication, public blockchain and browser-local information for shared expenses and USDC payments." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://nestarc.xyz/privacy" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: "https://nestarc.xyz/privacy" }],
   }),
