@@ -42,6 +42,7 @@ export const Route = createFileRoute("/docs")({
         content: "Everything about Nest on Arc: setup, products, contracts, security and FAQ.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://nestarc.xyz/docs" },
       { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: "https://nestarc.xyz/docs" }],
