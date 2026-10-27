@@ -35,14 +35,16 @@ export const Route = createFileRoute("/app/treasury")({
   component: TreasuryPage,
   head: () => ({
     meta: [
-      { title: "Treasury · Nest" },
+      { title: "Shared USDC treasury and approvals — Nest" },
       {
         name: "description",
         content:
           "Shared USDC treasury, multi-approval payments, recurring payouts, milestone escrow and delegated budgets.",
       },
-      { property: "og:title", content: "Treasury · Nest" },
+      { property: "og:title", content: "Shared USDC treasury and approvals — Nest" },
       { property: "og:description", content: "Shared USDC treasury, multi-approval payments, recurring payouts, milestone escrow and delegated budgets." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

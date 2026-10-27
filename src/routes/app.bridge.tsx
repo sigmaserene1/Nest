@@ -107,13 +107,13 @@ export const Route = createFileRoute("/app/bridge")({
   component: BridgePage,
   head: () => ({
     meta: [
-      { title: "LiFi bridge · Nest" },
+      { title: "USDC bridge — Nest cross-chain transfers" },
       {
         name: "description",
         content:
           "Bridge USDC across LI.FI-supported EVM chains from Nest with CCTP-preferred routing.",
       },
-      { property: "og:title", content: "LiFi bridge · Nest" },
+      { property: "og:title", content: "USDC bridge — Nest cross-chain transfers" },
       {
         property: "og:description",
         content: "Move USDC across LI.FI-supported EVM chains with Circle-native routes preferred.",

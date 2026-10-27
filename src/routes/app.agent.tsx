@@ -17,12 +17,12 @@ export const Route = createFileRoute("/app/agent")({
   component: AgentPage,
   head: () => ({
     meta: [
-      { title: "Settlement assistant · Nest" },
+      { title: "Settlement assistant — Nest USDC on Arc" },
       {
         name: "description",
         content: "Review open household debts and submit wallet-confirmed USDC settlements on Arc.",
       },
-      { property: "og:title", content: "Settlement assistant · Nest" },
+      { property: "og:title", content: "Settlement assistant — Nest USDC on Arc" },
       {
         property: "og:description",
         content: "Non-custodial, wallet-confirmed USDC settlements on Arc.",

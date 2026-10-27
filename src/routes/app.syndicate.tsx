@@ -16,13 +16,13 @@ export const Route = createFileRoute("/app/syndicate")({
   component: SyndicatePage,
   head: () => ({
     meta: [
-      { title: "Syndicate mode · Nest" },
+      { title: "Project revenue splitting — Nest USDC syndicate" },
       {
         name: "description",
         content:
           "Switch Nest from household to project syndicate: track shared tooling costs and split client revenue in USDC on Arc.",
       },
-      { property: "og:title", content: "Syndicate mode · Nest" },
+      { property: "og:title", content: "Project revenue splitting — Nest USDC syndicate" },
       {
         property: "og:description",
         content: "Deduct shared project costs from client revenue, then pay out collaborators in USDC.",

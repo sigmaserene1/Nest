@@ -15,10 +15,12 @@ export const Route = createFileRoute("/app/expenses")({
   component: Expenses,
   head: () => ({
     meta: [
-      { title: "Expenses · Nest" },
+      { title: "Shared expense tracker — Nest on Arc" },
       { name: "description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
-      { property: "og:title", content: "Expenses · Nest" },
+      { property: "og:title", content: "Shared expense tracker — Nest on Arc" },
       { property: "og:description", content: "Browse, search and filter every shared household expense recorded onchain on Arc, with each roommate's USDC share." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

@@ -8,14 +8,16 @@ export const Route = createFileRoute("/app/lend")({
   component: LendPage,
   head: () => ({
     meta: [
-      { title: "Lending status · Nest" },
+      { title: "Lending availability — Nest shared finance" },
       {
         name: "description",
         content:
           "Lending is not enabled on Nest's current shared-expense ExpenseManager deployment.",
       },
-      { property: "og:title", content: "Lending status · Nest" },
+      { property: "og:title", content: "Lending availability — Nest shared finance" },
       { property: "og:description", content: "Lending is not enabled on Nest's current shared-expense ExpenseManager deployment." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });
