@@ -1,6 +1,8 @@
 # Roadmap
 
 ## Current
+- [ ] Resolve SEO metadata conflicts and incomplete page-specific search/share tags; verify rendered tags.
+- [ ] Resolve the missing share image — requires approval for a new branded image if no suitable existing image is available.
 - [x] Make light/dark changes atomic without color fades; give dark navigation white icons, labels and selected buttons.
 - [x] Restore viewport-anchored mobile bottom navigation and content clearance; checked fixed positioning while scrolling at phone width.
 - [x] Verify and configure the existing Arc Mainnet ExpenseManager deployment; chain 5042 code first appears at block 21213840 and configuration tests pass.

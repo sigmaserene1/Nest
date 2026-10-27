@@ -5,11 +5,16 @@ export const Route = createFileRoute("/terms")({
   component: TermsPage,
   head: () => ({
     meta: [
-      { title: "Terms — Nest" },
+      { title: "Terms of Use — Nest onchain group finance" },
       {
         name: "description",
-        content: "Terms for using the Nest onchain group-finance application.",
+        content: "Review Nest's terms for shared expenses and USDC settlement on Arc, including wallet responsibilities, testnet limitations, network risks and third-party services.",
       },
+      { property: "og:title", content: "Terms of Use — Nest onchain group finance" },
+      { property: "og:description", content: "Conditions for using Nest's shared-expense and USDC settlement tools, including wallet responsibilities, testnet limitations and onchain risks." },
+      { property: "og:type", content: "website" },
+      { property: "og:url", content: "https://nestarc.xyz/terms" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [{ rel: "canonical", href: "https://nestarc.xyz/terms" }],
   }),
