@@ -15,3 +15,4 @@
 - Email wallet creation decisions use a tested identity policy; linked EVM wallets restore instead of being replaced, and wagmi connections are serialized to avoid duplicate connection races.
 - Canonical ExpenseManager deployments have verified public defaults in chain config, with optional environment overrides; missing production variables must not hide an already-deployed contract.
 - Mobile primary navigation has an explicit viewport-bottom safe-area offset and matching content clearance so tabs remain reachable on long pages.
+- Keep page-specific search and sharing metadata on leaf routes; root metadata contains sitewide defaults only so pages never inherit conflicting titles or descriptions.
