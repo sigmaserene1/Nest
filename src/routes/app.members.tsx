@@ -13,10 +13,12 @@ export const Route = createFileRoute("/app/members")({
   component: MembersPage,
   head: () => ({
     meta: [
-      { title: "Members · Nest" },
+      { title: "Workspace members — Nest shared balances" },
       { name: "description", content: "Manage your Nest workspace members, share a workspace invite link and review each member's net balance." },
-      { property: "og:title", content: "Members · Nest" },
+      { property: "og:title", content: "Workspace members — Nest shared balances" },
       { property: "og:description", content: "Manage workspace members, share an invite link and review each member's net balance." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

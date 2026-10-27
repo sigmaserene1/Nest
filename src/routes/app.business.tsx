@@ -14,14 +14,16 @@ export const Route = createFileRoute("/app/business")({
   component: BusinessPage,
   head: () => ({
     meta: [
-      { title: "Business controls · Nest" },
+      { title: "Business controls — Nest USDC credit" },
       {
         name: "description",
         content:
           "Collateralized USDC credit and capped, revocable settlement-agent policies for Nest Business V2.",
       },
-      { property: "og:title", content: "Business controls · Nest" },
+      { property: "og:title", content: "Business controls — Nest USDC credit" },
       { property: "og:description", content: "Collateralized USDC credit and capped, revocable settlement-agent policies for Nest Business V2." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

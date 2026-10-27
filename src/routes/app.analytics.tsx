@@ -7,18 +7,19 @@ export const Route = createFileRoute("/app/analytics")({
   component: Analytics,
   head: () => ({
     meta: [
-      { title: "Insights · Nest" },
+      { title: "Spending insights — Nest shared expenses" },
       {
         name: "description",
         content:
           "See where your household money goes: spend by category, by roommate and over time, based on your real onchain Nest expenses.",
       },
-      { property: "og:title", content: "Insights · Nest" },
+      { property: "og:title", content: "Spending insights — Nest shared expenses" },
       {
         property: "og:description",
         content: "Category and per-roommate spending breakdowns for your shared household.",
       },
       { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
     ],
   }),
 });

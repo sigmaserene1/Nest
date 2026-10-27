@@ -34,18 +34,19 @@ export const Route = createFileRoute("/app/")({
   component: Dashboard,
   head: () => ({
     meta: [
-      { title: "Home · Nest" },
+      { title: "Home dashboard — Nest USDC settlement" },
       {
         name: "description",
         content:
           "Your Nest home dashboard: see what you owe, what you're owed, and settle shared costs in USDC on Arc.",
       },
-      { property: "og:title", content: "Home · Nest" },
+      { property: "og:title", content: "Home dashboard — Nest USDC settlement" },
       {
         property: "og:description",
         content: "Balances, recent shared expenses and one-tap USDC settlement for your household.",
       },
       { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
     ],
   }),
 });

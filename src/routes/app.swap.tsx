@@ -32,13 +32,15 @@ export const Route = createFileRoute("/app/swap")({
   component: SwapPage,
   head: () => ({
     meta: [
-      { title: "Swap · Nest" },
+      { title: "Swap USDC, EURC and cirBTC — Nest on Arc" },
       {
         name: "description",
         content: "Review and swap USDC, EURC and cirBTC on Arc through Circle App Kit.",
       },
-      { property: "og:title", content: "Swap · Nest" },
+      { property: "og:title", content: "Swap USDC, EURC and cirBTC — Nest on Arc" },
       { property: "og:description", content: "Review and swap USDC, EURC and cirBTC on Arc through Circle App Kit." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

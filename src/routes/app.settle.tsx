@@ -13,10 +13,12 @@ export const Route = createFileRoute("/app/settle")({
   component: Settle,
   head: () => ({
     meta: [
-      { title: "Settle up · Nest" },
+      { title: "Settle shared expenses in USDC — Nest on Arc" },
       { name: "description", content: "See exactly what you owe each roommate and settle your share peer-to-peer in native USDC on Arc." },
-      { property: "og:title", content: "Settle up · Nest" },
+      { property: "og:title", content: "Settle shared expenses in USDC — Nest on Arc" },
       { property: "og:description", content: "See exactly what you owe each roommate and settle your share peer-to-peer in native USDC on Arc." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

@@ -37,17 +37,19 @@ export const Route = createFileRoute("/app/receipts")({
   component: ReceiptsPage,
   head: () => ({
     meta: [
-      { title: "Payment History & Receipts · Nest" },
+      { title: "USDC payment history and receipts — Nest" },
       {
         name: "description",
         content:
           "Immutable receipts for every onchain USDC settlement — hash, timestamp, sender and amount, with an Arc explorer link.",
       },
-      { property: "og:title", content: "Payment History & Receipts · Nest" },
+      { property: "og:title", content: "USDC payment history and receipts — Nest" },
       {
         property: "og:description",
         content: "Immutable Arc receipts for every USDC settlement made in your workspace.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
 });

@@ -46,18 +46,19 @@ export const Route = createFileRoute("/app/profile")({
   component: ProfilePage,
   head: () => ({
     meta: [
-      { title: "Your profile · Nest" },
+      { title: "Wallet profile — Nest onchain activity" },
       {
         name: "description",
         content:
           "Your Nest identity, avatar, wallet and verified onchain activity on Arc.",
       },
-      { property: "og:title", content: "Your profile · Nest" },
+      { property: "og:title", content: "Wallet profile — Nest onchain activity" },
       {
         property: "og:description",
         content: "Manage your Nest profile and review the Arc activity tied to your wallet.",
       },
       { name: "twitter:card", content: "summary" },
+      { property: "og:type", content: "website" },
     ],
   }),
 });
