@@ -16,3 +16,4 @@
 - Canonical ExpenseManager deployments have verified public defaults in chain config, with optional environment overrides; missing production variables must not hide an already-deployed contract.
 - Mobile primary navigation has an explicit viewport-bottom safe-area offset and matching content clearance so tabs remain reachable on long pages.
 - Keep page-specific search and sharing metadata on leaf routes; root metadata contains sitewide defaults only so pages never inherit conflicting titles or descriptions.
+- Landing 3D imports Three.js only after mount, disposes GPU resources, and pauses offscreen/reduced-motion rendering; a bundled sculpture image preserves the page when WebGL is unavailable.
