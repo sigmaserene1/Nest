@@ -34,6 +34,7 @@ export function TreasuryScene() {
       const material = new THREE.MeshPhysicalMaterial({ color: css.getPropertyValue("--scene-coral").trim(), metalness: 0.25, roughness: 0.19, clearcoat: 1, clearcoatRoughness: 0.12 });
       const silver = new THREE.MeshStandardMaterial({ color: css.getPropertyValue("--scene-silver").trim(), metalness: 0.95, roughness: 0.21 });
       const group = new THREE.Group();
+      group.scale.setScalar(1.35);
       scene.add(group);
       const nest = new THREE.Group();
       group.add(nest);
