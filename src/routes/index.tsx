@@ -40,6 +40,8 @@ import { Reveal } from "@/components/nest/reveal";
 import { ThemeToggle } from "@/components/nest/theme-toggle";
 import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
+import { Button } from "@/components/ui/button";
+import { TreasuryScene } from "@/components/nest/treasury-scene";
 
 const NAV_LINKS = [
   { label: "How it works", href: "#flow" },
@@ -223,11 +225,11 @@ function Landing() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-background">
+    <div className="landing-page min-h-screen overflow-x-clip bg-background">
       {dialog}
       <header
         data-landing-header
-        className="sticky top-0 z-50 border-b border-border/70 bg-background/85 backdrop-blur-2xl"
+        className="sticky top-0 z-50 border-b border-border/70 bg-background/95 backdrop-blur-xl"
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5 lg:px-8">
           <a href="#" aria-label="Nest home" className="rounded-xl">
@@ -255,13 +257,9 @@ function Landing() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button
-              type="button"
-              onClick={enter}
-              className="inline-flex items-center gap-1.5 rounded-full bg-foreground px-4 py-2.5 text-xs font-bold text-background transition-all hover:-translate-y-0.5 hover:opacity-90"
-            >
-              {connecting ? "Connecting…" : "Launch app"} <ArrowRight className="h-3.5 w-3.5" />
-            </button>
+            <Button onClick={enter} className="h-10 rounded-full bg-foreground px-4 text-xs text-background hover:bg-foreground/90">
+              {connecting ? "Connecting…" : "Launch app"} <ArrowRight />
+            </Button>
           </div>
         </div>
 
@@ -289,85 +287,34 @@ function Landing() {
       </header>
 
       <main>
-        <section className="relative isolate overflow-hidden">
-          <div aria-hidden className="hero-grid absolute inset-0 -z-20" />
-          <div aria-hidden className="hero-aurora absolute inset-x-0 top-0 -z-10 h-[760px]" />
-
-          <div className="mx-auto grid min-h-[760px] max-w-7xl items-center gap-14 px-5 py-20 lg:grid-cols-[1.02fr_0.98fr] lg:px-8 lg:py-24">
-            <div className="text-center lg:text-left">
-              <div
-                className="animate-pop-in inline-flex items-center gap-2 rounded-full border border-brand/20 bg-brand-soft/80 px-3.5 py-2 text-xs font-bold text-brand shadow-sm"
-                style={{ animationDelay: "40ms" }}
-              >
-                <span className="live-dot h-2 w-2 rounded-full bg-brand" />
-                {environment === "mainnet" ? "Arc Mainnet" : "Arc Testnet"}
-                <span className="h-3 w-px bg-brand/25" />
-                Native USDC
-              </div>
-
-              <h1
-                className="animate-float-in mt-7 font-display text-[3.1rem] font-semibold leading-[0.95] tracking-[-0.055em] sm:text-7xl sm:leading-[0.94] lg:text-[7rem] lg:leading-[0.92]"
-                style={{ animationDelay: "80ms" }}
-              >
-                Shared treasury.
-                <br />
-                <span className="font-quote font-normal italic tracking-[-0.005em] text-brand">
-                  Clear every balance.
-                </span>
-              </h1>
-
-              <p
-                className="animate-float-in mx-auto mt-5 max-w-2xl text-[15px] leading-6 text-muted-foreground sm:text-lg sm:leading-7 lg:mx-0 lg:max-w-xl"
-                style={{ animationDelay: "130ms" }}
-              >
-                Nest is a shared USDC treasury and settlement app on Arc. Pool funds, coordinate approvals,
-                manage recurring payouts and delegated budgets, track group obligations, and settle in native USDC.
-              </p>
-
-              <div
-                className="animate-float-in mt-7 flex flex-wrap justify-center gap-2.5 lg:justify-start"
-                style={{ animationDelay: "180ms" }}
-              >
-                <button
-                  type="button"
-                  onClick={enter}
-                  className="btn-gradient inline-flex items-center gap-2 rounded-full px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm"
-                >
-                  {connecting ? "Connecting…" : "Open a workspace"}{" "}
-                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </button>
-                <a
-                  href="#protocol"
-                  onClick={(event) => scrollToSection(event, "#protocol")}
-                  className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-5 py-3 text-[13px] font-bold shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:border-brand/40 sm:px-6 sm:py-3.5 sm:text-sm"
-                >
-                  Explore product <ArrowRight className="h-4 w-4" />
-                </a>
-              </div>
-
-              {connectIssue ? (
-                <p
-                  role="alert"
-                  className="mx-auto mt-4 max-w-md rounded-2xl border border-brand/30 bg-brand-soft/70 px-4 py-2.5 text-xs font-semibold text-brand lg:mx-0"
-                >
-                  {connectIssue}
-                </p>
-              ) : null}
-
-              <div
-                className="animate-float-in mt-8 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs font-semibold text-muted-foreground lg:justify-start"
-                style={{ animationDelay: "230ms" }}
-              >
-                {["Non-custodial", "Contract-recorded state", "Circle CCTP v2"].map((item) => (
-                  <span key={item} className="inline-flex items-center gap-1.5">
-                    <Check className="h-3.5 w-3.5 text-success" />
-                    {item}
-                  </span>
-                ))}
-              </div>
+        <section className="landing-hero relative isolate overflow-hidden">
+          <div className="relative z-10 mx-auto max-w-5xl px-5 pt-12 text-center sm:pt-16 lg:pt-20">
+            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-success" />
+              Built on Arc <span className="mx-1 text-border">/</span>
+              {environment === "mainnet" ? "Mainnet" : "Testnet"}
+            </p>
+            <h1 className="landing-headline mt-5 font-display font-semibold">
+              Shared treasury.<br />
+              <span className="font-quote font-normal italic text-brand">Clear every balance.</span>
+            </h1>
+            <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
+              Shared money, beautifully in sync. Track expenses and settle together in USDC on Arc.
+            </p>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Button onClick={enter} className="h-12 rounded-full bg-brand px-6 text-brand-foreground shadow-brand hover:bg-brand/90">
+                {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight />
+              </Button>
+              <Button asChild variant="outline" className="h-12 rounded-full bg-background/80 px-5">
+                <Link to="/docs"><BookOpen /> Explore docs</Link>
+              </Button>
             </div>
-
-            <SettlementVisual />
+            {connectIssue && <p role="alert" className="mx-auto mt-3 max-w-lg text-xs font-semibold text-brand">{connectIssue}</p>}
+          </div>
+          <TreasuryScene />
+          <div className="hero-caption relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 pb-6 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-xs">
+            <span className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" /> Your wallet. Your money.</span>
+            <span className="flex items-center gap-2"><CircleDollarSign className="h-3.5 w-3.5 text-info" /> Native USDC</span>
           </div>
         </section>
 
@@ -384,7 +331,7 @@ function Landing() {
           </dl>
         </section>
 
-        <section id="protocol" className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8">
+        <section id="protocol" className="scroll-mt-32 px-5 py-16 sm:scroll-mt-24 sm:py-24 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <SectionHeading
@@ -406,7 +353,7 @@ function Landing() {
 
         <section
           id="flow"
-          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:scroll-mt-24 sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-16 sm:scroll-mt-24 sm:py-24"
         >
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <Reveal>
@@ -425,7 +372,7 @@ function Landing() {
               <ol className="grid gap-5 md:grid-cols-4">
                 {FLOW.map((step, index) => (
                   <Reveal key={step.title} delay={index * 70} as="li">
-                    <article className="group relative h-full rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/35">
+                    <article className="group relative h-full rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/35">
                       <div className="relative z-10 flex items-center justify-between">
                         <span className="grid h-12 w-12 place-items-center rounded-2xl bg-foreground text-background shadow-sm transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105">
                           <step.icon className="h-5 w-5" />
@@ -449,7 +396,7 @@ function Landing() {
 
         <section
           id="use-cases"
-          className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8"
+          className="scroll-mt-32 px-5 py-16 sm:scroll-mt-24 sm:py-24 lg:px-8"
         >
           <div className="mx-auto max-w-7xl">
             <Reveal>
@@ -471,11 +418,7 @@ function Landing() {
             <div className="mt-14 grid gap-5 lg:grid-cols-3">
               {USE_CASES.map((useCase, index) => (
                 <Reveal key={useCase.title} delay={index * 70}>
-                  <article className="use-case-card group relative h-full overflow-hidden rounded-3xl border border-border bg-card p-8">
-                    <div
-                      aria-hidden
-                      className="absolute right-0 top-0 h-32 w-32 rounded-full bg-brand/10 blur-3xl transition-transform duration-500 group-hover:scale-150"
-                    />
+                  <article className="use-case-card group relative h-full overflow-hidden rounded-lg border border-border bg-card p-8">
                     <span className="relative grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand">
                       <useCase.icon className="h-5 w-5" />
                     </span>
@@ -512,7 +455,7 @@ function Landing() {
                   <Zap className="h-3.5 w-3.5 text-brand" />
                   Purpose-built for Arc
                 </span>
-                <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.035em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl leading-[1.08] tracking-normal sm:text-5xl">
                   The settlement layer is part of the{" "}
                   <span className="font-quote font-normal italic text-brand">product.</span>
                 </h2>
@@ -541,7 +484,7 @@ function Landing() {
 
         <section
           id="faq"
-          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:scroll-mt-24 sm:py-32"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-16 sm:scroll-mt-24 sm:py-24"
         >
           <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
             <Reveal>
@@ -550,7 +493,7 @@ function Landing() {
                   <Sparkles className="h-3.5 w-3.5" />
                   Clear answers
                 </span>
-                <h2 className="mt-6 text-3xl tracking-[-0.035em] sm:text-5xl">
+                <h2 className="mt-6 text-3xl tracking-normal sm:text-5xl">
                   Questions builders and users should ask
                 </h2>
                 <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
@@ -584,39 +527,31 @@ function Landing() {
           </div>
         </section>
 
-        <section className="px-5 py-24 sm:py-32 lg:px-8">
+        <section className="px-5 py-16 sm:py-24 lg:px-8">
           <Reveal>
-            <div className="cta-panel relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-brand px-7 py-16 text-center text-white sm:px-12 sm:py-20">
-              <div aria-hidden className="cta-orbit absolute inset-0" />
+            <div className="relative mx-auto max-w-6xl px-7 py-8 text-center text-foreground sm:px-12 sm:py-12">
               <div className="relative">
-                <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-3 py-1.5 text-xs font-bold">
+                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5 text-xs font-bold">
                   <CircleDollarSign className="h-3.5 w-3.5" />
                   Group settlement, without the spreadsheet
                 </span>
-                <h2 className="mx-auto mt-6 max-w-3xl text-3xl leading-[1.06] tracking-[-0.04em] sm:text-6xl sm:leading-[1.02]">
+                <h2 className="mx-auto mt-6 max-w-3xl text-3xl leading-[1.06] tracking-normal sm:text-6xl sm:leading-[1.02]">
                   Give shared money one{" "}
-                  <span className="font-quote font-normal italic tracking-[-0.005em]">
+                  <span className="font-quote font-normal italic tracking-normal">
                     source of truth.
                   </span>
                 </h2>
-                <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-white/75 sm:text-base">
+                <p className="mx-auto mt-5 max-w-xl text-sm leading-6 text-muted-foreground sm:text-base">
                   Create a workspace, record obligations and complete your first native-USDC
                   settlement on Arc.
                 </p>
                 <div className="mt-9 flex flex-wrap justify-center gap-3">
-                  <button
-                    type="button"
-                    onClick={enter}
-                    className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-[13px] font-bold sm:px-6 sm:py-3.5 sm:text-sm text-brand transition-transform hover:-translate-y-0.5"
-                  >
-                    {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight className="h-4 w-4" />
-                  </button>
-                  <Link
-                    to="/docs"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/10 px-5 py-3 text-[13px] font-bold text-white transition-colors hover:bg-white/20 sm:px-6 sm:py-3.5 sm:text-sm"
-                  >
-                    Docs <BookOpen className="h-4 w-4" />
-                  </Link>
+                  <Button onClick={enter} size="lg" className="rounded-full bg-brand text-brand-foreground hover:bg-brand/90">
+                    {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight />
+                  </Button>
+                  <Button asChild size="lg" variant="outline" className="rounded-full">
+                    <Link to="/docs">Docs <BookOpen /></Link>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -638,7 +573,7 @@ function Landing() {
             </div>
           </div>
           <div className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-muted-foreground sm:justify-end">
-            <button type="button" onClick={enter} className="hover:text-foreground">App</button>
+            <Button variant="link" onClick={enter} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">App</Button>
             <Link to="/docs" className="hover:text-foreground">Docs</Link>
             <Link to="/guides/split-expenses-with-friends" className="hover:text-foreground">Splitting guide</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
@@ -654,131 +589,6 @@ function Landing() {
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-function SettlementVisual() {
-  return (
-    <div
-      className="animate-float-in relative mx-auto w-full max-w-xl"
-      style={{ animationDelay: "150ms" }}
-    >
-      <div aria-hidden className="absolute -inset-8 -z-10 rounded-[3rem] bg-brand/10 blur-3xl" />
-      <div className="settlement-panel overflow-hidden rounded-[1.75rem] border border-border/80 bg-card/90 shadow-2xl shadow-foreground/10 backdrop-blur-xl">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4 sm:px-6">
-          <div>
-            <p className="text-xs font-bold">August settlement</p>
-            <p className="mt-0.5 text-[10px] text-muted-foreground">
-              Distributed studio · 6 members
-            </p>
-          </div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-success/10 px-2.5 py-1 text-[10px] font-bold text-success">
-            <span className="live-dot h-1.5 w-1.5 rounded-full bg-success" />
-            Ready
-          </span>
-        </div>
-
-        <div className="grid gap-4 p-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:p-6">
-          <div className="rounded-2xl border border-border bg-background/70 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                Before
-              </span>
-              <span className="font-mono text-[10px] text-muted-foreground">12 open shares</span>
-            </div>
-            <div className="relative mt-5 h-40">
-              <div className="absolute inset-0">
-                {BEFORE_LINES.map((line) => (
-                  <span
-                    key={line.className}
-                    aria-hidden
-                    className={`obligation-line ${line.className}`}
-                  />
-                ))}
-              </div>
-              {BEFORE_NODES.map((node) => (
-                <span
-                  key={node.name}
-                  className={`absolute grid h-9 w-9 place-items-center rounded-full border-2 border-card text-[10px] font-bold text-white shadow-md ${node.className} ${node.position}`}
-                  title={node.name}
-                >
-                  {node.initials}
-                </span>
-              ))}
-              <span className="absolute left-1/2 top-1/2 grid h-12 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-2xl bg-foreground text-background shadow-lg">
-                <Network className="h-5 w-5" />
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center sm:flex-col">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-brand text-white shadow-lg shadow-brand/20">
-              <Combine className="h-4 w-4" />
-            </span>
-            <span className="ml-3 text-[10px] font-bold uppercase tracking-[0.12em] text-brand sm:ml-0 sm:mt-2">
-              Group
-            </span>
-          </div>
-
-          <div className="rounded-2xl border border-brand/20 bg-brand-soft/45 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-brand">
-                After
-              </span>
-              <span className="font-mono text-[10px] text-brand">3 counterparties</span>
-            </div>
-            <div className="mt-5 space-y-3">
-              {SETTLEMENTS.map((settlement, index) => (
-                <div
-                  key={settlement.from + settlement.to}
-                  className="settlement-row flex items-center gap-2 rounded-xl border border-brand/10 bg-card/80 p-2.5"
-                  style={{ animationDelay: `${900 + index * 240}ms` }}
-                >
-                  <span
-                    className={`grid h-7 w-7 place-items-center rounded-full text-[9px] font-bold text-white ${settlement.fromColor}`}
-                  >
-                    {settlement.from}
-                  </span>
-                  <span className="transfer-track relative h-px flex-1 bg-brand/20">
-                    <span className="transfer-particle absolute -top-1 h-2 w-2 rounded-full bg-brand" />
-                  </span>
-                  <span
-                    className={`grid h-7 w-7 place-items-center rounded-full text-[9px] font-bold text-white ${settlement.toColor}`}
-                  >
-                    {settlement.to}
-                  </span>
-                  <span className="min-w-14 text-right font-mono text-[9px] font-bold">
-                    {settlement.amount}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 flex items-center justify-between rounded-xl bg-success/10 px-3 py-2.5">
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-success">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                Grouped for settlement
-              </span>
-              <span className="font-mono text-[10px] font-bold">48.20 USDC</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border bg-muted/35 px-5 py-4 text-[10px] font-semibold text-muted-foreground sm:px-6">
-          <span className="inline-flex items-center gap-1.5">
-            <LockKeyhole className="h-3.5 w-3.5" />
-            Wallet-to-wallet
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-brand" />
-            Arc finality · ~1 second
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <FileCheck2 className="h-3.5 w-3.5" />
-            Receipt on completion
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
@@ -800,7 +610,7 @@ function SectionHeading({
         <Sparkles className="h-3.5 w-3.5" />
         {eyebrow}
       </span>
-      <h2 className="mt-6 text-3xl leading-[1.08] tracking-[-0.04em] sm:text-5xl">{title}</h2>
+      <h2 className="mt-6 text-3xl leading-[1.08] tracking-normal sm:text-5xl">{title}</h2>
       <p className="mt-5 text-base leading-7 text-muted-foreground">{body}</p>
     </div>
   );
@@ -808,7 +618,7 @@ function SectionHeading({
 
 function FeatureCard({ feature, index }: { feature: Capability; index: number }) {
   return (
-    <article className="protocol-card group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-7 shadow-sm">
+    <article className="protocol-card group relative h-full overflow-hidden rounded-lg border border-border bg-card p-7 shadow-sm">
       <div
         aria-hidden
         className="absolute right-5 top-4 font-display text-5xl font-bold text-muted/60 transition-colors group-hover:text-brand-soft"
@@ -1013,22 +823,3 @@ const FAQS = [
   },
 ];
 
-const BEFORE_NODES = [
-  { name: "Maya", initials: "MA", className: "bg-indigo-500", position: "left-0 top-2" },
-  { name: "Noah", initials: "NO", className: "bg-sky-500", position: "right-0 top-3" },
-  { name: "Lina", initials: "LI", className: "bg-amber-500", position: "bottom-0 left-5" },
-  { name: "Ari", initials: "AR", className: "bg-emerald-500", position: "bottom-1 right-4" },
-];
-
-const BEFORE_LINES = [
-  { className: "left-[18%] top-[24%] w-[62%] rotate-[4deg]" },
-  { className: "left-[20%] top-[58%] w-[58%] -rotate-[7deg]" },
-  { className: "left-[22%] top-[45%] w-[28%] rotate-[55deg]" },
-  { className: "right-[18%] top-[48%] w-[30%] -rotate-[57deg]" },
-];
-
-const SETTLEMENTS = [
-  { from: "MA", to: "NO", amount: "21.40", fromColor: "bg-indigo-500", toColor: "bg-sky-500" },
-  { from: "LI", to: "AR", amount: "17.60", fromColor: "bg-amber-500", toColor: "bg-emerald-500" },
-  { from: "MA", to: "AR", amount: "9.20", fromColor: "bg-indigo-500", toColor: "bg-emerald-500" },
-];
