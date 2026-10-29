@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [x] Refresh the landing with full-width interactive 3D Nest artwork and polished typography; desktop/mobile/light/dark rendering, launch popup and docs link verified.
 - [x] Resolve SEO metadata conflicts and incomplete page-specific search/share tags; verified all 21 content routes and rendered public-page metadata.
 - [ ] Resolve the missing share image — deferred at the user's request; no suitable existing cover image is available.
 - [x] Make light/dark changes atomic without color fades; give dark navigation white icons, labels and selected buttons.
