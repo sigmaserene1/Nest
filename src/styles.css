@@ -842,7 +842,7 @@ html {
 
 
 /* Landing showcase: tilt, marquee, range — transform/opacity only */
-.tilt-stage { perspective: 1200px; }
+.tilt-stage { perspective: 1200px; height: 100%; }
 .tilt-card {
   position: relative; overflow: hidden;
   transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));

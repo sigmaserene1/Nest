@@ -630,6 +630,7 @@ function SectionHeading({
 
 function FeatureCard({ feature, index }: { feature: Capability; index: number }) {
   return (
+    <TiltCard className="h-full rounded-lg">
     <article className="protocol-card group relative h-full overflow-hidden rounded-lg border border-border bg-card p-7 shadow-sm">
       <div
         aria-hidden
@@ -647,6 +648,7 @@ function FeatureCard({ feature, index }: { feature: Capability; index: number })
         {feature.proof}
       </div>
     </article>
+    </TiltCard>
   );
 }
 
