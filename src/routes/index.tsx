@@ -42,8 +42,10 @@ import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
 import { TreasuryScene } from "@/components/nest/treasury-scene";
+import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
 
 const NAV_LINKS = [
+  { label: "Try it", href: "#try" },
   { label: "How it works", href: "#flow" },
   { label: "Use cases", href: "#use-cases" },
   { label: "FAQ", href: "#faq" },
@@ -329,6 +331,16 @@ function Landing() {
               </div>
             ))}
           </dl>
+        </section>
+
+        <TokenMarquee />
+
+        <section id="try" className="scroll-mt-32 px-5 py-16 sm:scroll-mt-24 sm:py-24 lg:px-8">
+          <div className="mx-auto max-w-7xl">
+            <Reveal>
+              <SplitPlayground onLaunch={enter} />
+            </Reveal>
+          </div>
         </section>
 
         <section id="protocol" className="scroll-mt-32 px-5 py-16 sm:scroll-mt-24 sm:py-24 lg:px-8">
@@ -618,6 +630,7 @@ function SectionHeading({
 
 function FeatureCard({ feature, index }: { feature: Capability; index: number }) {
   return (
+    <TiltCard className="h-full rounded-lg">
     <article className="protocol-card group relative h-full overflow-hidden rounded-lg border border-border bg-card p-7 shadow-sm">
       <div
         aria-hidden
@@ -635,6 +648,7 @@ function FeatureCard({ feature, index }: { feature: Capability; index: number })
         {feature.proof}
       </div>
     </article>
+    </TiltCard>
   );
 }
 
