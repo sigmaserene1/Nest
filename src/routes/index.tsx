@@ -42,7 +42,7 @@ import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
 import { TreasuryScene } from "@/components/nest/treasury-scene";
-import { SplitPlayground, TokenMarquee } from "@/components/nest/landing-showcase";
+import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
 
 const NAV_LINKS = [
   { label: "Try it", href: "#try" },
