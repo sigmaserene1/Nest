@@ -41,7 +41,6 @@ import { ThemeToggle } from "@/components/nest/theme-toggle";
 import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
-import { TreasuryScene } from "@/components/nest/treasury-scene";
 import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
 import lightRibbons from "@/assets/landing-light-ribbons.jpg";
 
@@ -318,7 +317,7 @@ function Landing() {
             </div>
             {connectIssue && <p role="alert" className="mx-auto mt-3 max-w-lg text-xs font-semibold text-brand">{connectIssue}</p>}
           </div>
-          <div className="hero-sculpture"><TreasuryScene /></div>
+          <div aria-hidden="true" className="h-44 sm:h-60" />
           <div className="hero-caption relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 pb-6 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-xs">
             <span className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" /> Your wallet. Your money.</span>
             <span className="flex items-center gap-2"><CircleDollarSign className="h-3.5 w-3.5 text-info" /> Native USDC</span>
