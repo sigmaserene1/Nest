@@ -30,7 +30,7 @@ export function TreasuryScene() {
       const environment = pmrem.fromScene(room, 0.04);
       scene.environment = environment.texture;
       room.dispose();
-      const css = getComputedStyle(document.documentElement);
+      const css = getComputedStyle(element);
       const material = new THREE.MeshPhysicalMaterial({ color: css.getPropertyValue("--scene-coral").trim(), metalness: 0.25, roughness: 0.19, clearcoat: 1, clearcoatRoughness: 0.12 });
       const silver = new THREE.MeshStandardMaterial({ color: css.getPropertyValue("--scene-silver").trim(), metalness: 0.95, roughness: 0.21 });
       const group = new THREE.Group();
@@ -39,8 +39,11 @@ export function TreasuryScene() {
       const nest = new THREE.Group();
       group.add(nest);
       const ringGeometry = new THREE.TorusGeometry(1.8, 0.49, 24, 96);
+      const mint = material.clone(); mint.color.set(css.getPropertyValue("--scene-mint").trim());
+      const gold = material.clone(); gold.color.set(css.getPropertyValue("--scene-gold").trim());
+      const ringMaterials = [material, mint, gold];
       for (let i = 0; i < 3; i++) {
-        const ring = new THREE.Mesh(ringGeometry, material);
+        const ring = new THREE.Mesh(ringGeometry, ringMaterials[i]);
         ring.rotation.set(Math.PI / 3, i * Math.PI * 2 / 3, i * 0.6);
         nest.add(ring);
       }
@@ -92,8 +95,9 @@ export function TreasuryScene() {
         if (disposed) return;
         const t = time / 1000;
         if (!motion.matches) {
-          nest.rotation.y = 0.2 + Math.sin(t * 0.2) * 0.16;
-          coins.forEach((coin, i) => { coin.group.position.y = coin.y + Math.sin(t * 0.8 + i * 2) * 0.13; });
+          nest.rotation.y = 0.2 + Math.sin(t * 0.32) * 0.3;
+          nest.rotation.z = -0.15 + Math.sin(t * 0.24) * 0.08;
+          coins.forEach((coin, i) => { coin.group.position.y = coin.y + Math.sin(t * 1.1 + i * 2) * 0.22; });
           group.rotation.y += (pointerX * 0.16 - group.rotation.y) * 0.035;
           group.rotation.x += (pointerY * 0.06 - group.rotation.x) * 0.035;
         }
@@ -120,7 +124,7 @@ export function TreasuryScene() {
       cleanup = () => {
         cancelAnimationFrame(frame); observer.disconnect(); sizeObserver.disconnect();
         element.removeEventListener("pointermove", pointer); motion.removeEventListener("change", resume);
-        ringGeometry.dispose(); cylinder.dispose(); disc.dispose(); material.dispose(); silver.dispose(); face.dispose(); texture.dispose();
+        ringGeometry.dispose(); cylinder.dispose(); disc.dispose(); material.dispose(); mint.dispose(); gold.dispose(); silver.dispose(); face.dispose(); texture.dispose();
         environment.dispose(); pmrem.dispose(); renderer.dispose(); renderer.domElement.remove();
       };
       resize(); draw(0); setReady(true);
@@ -132,7 +136,7 @@ export function TreasuryScene() {
   }, []);
 
   return (
-    <div className="treasury-art" aria-label="A sculptural Nest surrounded by USDC coins" role="img">
+    <div className="treasury-art" data-scene-ready={ready ? "true" : undefined} aria-label="A sculptural Nest surrounded by USDC coins" role="img">
       {!ready && <img className="treasury-art-fallback" src={sculpture} alt="" width={1536} height={1024} fetchPriority="high" />}
       <div ref={host} className="treasury-canvas" aria-hidden="true" />
     </div>

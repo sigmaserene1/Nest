@@ -43,6 +43,7 @@ import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
 import { TreasuryScene } from "@/components/nest/treasury-scene";
 import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
+import lightRibbons from "@/assets/landing-light-ribbons.jpg";
 
 const NAV_LINKS = [
   { label: "Try it", href: "#try" },
@@ -290,30 +291,34 @@ function Landing() {
 
       <main>
         <section className="landing-hero relative isolate overflow-hidden">
-          <div className="relative z-10 mx-auto max-w-5xl px-5 pt-12 text-center sm:pt-16 lg:pt-20">
+          <div className="landing-lights" aria-hidden="true">
+            <img src={lightRibbons} alt="" width={1536} height={1024} fetchPriority="high" />
+          </div>
+          <div className="landing-light-trails" aria-hidden="true"><span /><span /><span /></div>
+          <div className="hero-copy relative z-10 mx-auto max-w-5xl px-5 pt-12 text-center sm:pt-16 lg:pt-16">
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Built on Arc <span className="mx-1 text-border">/</span>
               {environment === "mainnet" ? "Mainnet" : "Testnet"}
             </p>
-            <h1 className="landing-headline mt-5 font-display font-semibold">
+            <h1 className="landing-headline mt-5 font-display font-semibold text-foreground">
               Shared treasury.<br />
               <span className="font-quote font-normal italic text-brand">Clear every balance.</span>
             </h1>
             <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
               Shared money, beautifully in sync. Track expenses and settle together in USDC on Arc.
             </p>
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <Button onClick={enter} className="h-12 rounded-full bg-brand px-6 text-brand-foreground shadow-brand hover:bg-brand/90">
+            <div className="hero-actions mt-6 flex flex-wrap items-center justify-center gap-3">
+              <Button onClick={enter} className="hero-launch h-12 rounded-full bg-brand px-6 text-brand-foreground shadow-brand hover:bg-brand/90">
                 {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight />
               </Button>
-              <Button asChild variant="outline" className="h-12 rounded-full bg-background/80 px-5">
+              <Button asChild variant="outline" className="h-12 rounded-full border-border bg-background/80 px-5 text-foreground hover:bg-card hover:text-foreground">
                 <Link to="/docs"><BookOpen /> Explore docs</Link>
               </Button>
             </div>
             {connectIssue && <p role="alert" className="mx-auto mt-3 max-w-lg text-xs font-semibold text-brand">{connectIssue}</p>}
           </div>
-          <TreasuryScene />
+          <div className="hero-sculpture"><TreasuryScene /></div>
           <div className="hero-caption relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 pb-6 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-xs">
             <span className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" /> Your wallet. Your money.</span>
             <span className="flex items-center gap-2"><CircleDollarSign className="h-3.5 w-3.5 text-info" /> Native USDC</span>
@@ -348,8 +353,8 @@ function Landing() {
             <Reveal>
               <SectionHeading
                 eyebrow="The protocol"
-                title="One shared state for money between people"
-                body="Nest turns informal IOUs into explicit onchain obligations. Every member resolves the same rooms, participants, balances and settlement history from ExpenseManager."
+                title="Good company. Clear balances."
+                body="A shared view of every expense, every share, and every payment. Less chasing. More living."
               />
             </Reveal>
 
@@ -371,8 +376,8 @@ function Landing() {
             <Reveal>
               <SectionHeading
                 eyebrow="Settlement flow"
-                title="From many open shares to a clear settlement queue"
-                body="The ledger and balance logic stay connected from the first obligation to the final receipt, so a workspace does not have to reconcile multiple sources of truth."
+                title="Together, from split to settled."
+                body="Add an expense, see what everyone owes, and settle directly in USDC."
               />
             </Reveal>
 
@@ -416,14 +421,9 @@ function Landing() {
                 <SectionHeading
                   align="left"
                   eyebrow="One engine, multiple groups"
-                  title="Shared finance beyond the household"
-                  body="The original roommate experience remains. The same obligation and settlement model also fits teams and project-based groups that need transparent shared balances."
+                  title="For the people you build with."
+                  body="Your housemates, your team, your next big project. One place for the money you share."
                 />
-                <p className="max-w-xl text-sm leading-6 text-muted-foreground lg:justify-self-end">
-                  Nest is not positioning unbuilt modules as live products. These are supported
-                  workspace patterns built from the existing group ledger, balance views, direct
-                  settlement, capped client-side assistance and syndicate distribution mode.
-                </p>
               </div>
             </Reveal>
 
@@ -506,10 +506,10 @@ function Landing() {
                   Clear answers
                 </span>
                 <h2 className="mt-6 text-3xl tracking-normal sm:text-5xl">
-                  Questions builders and users should ask
+                  A little clarity.
                 </h2>
                 <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
-                  No vague custody language and no pretending roadmap items already exist.
+                  The essentials, before you get started.
                 </p>
               </div>
             </Reveal>
