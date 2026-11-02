@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [x] Replace the landing background picture with continuously flowing live light ribbons; verified changing frames, reduced-motion pause, phone layout and sign-in popup.
 - [x] Refresh only the landing with colorful flowing lights, richer motion and a cleaner composition; phone/desktop artwork, motion, reduced-motion and launch popup verified. Real-device frame rate remains unverified.
 - [x] Refresh the landing with full-width interactive 3D Nest artwork and polished typography; desktop/mobile/light/dark rendering, launch popup and docs link verified.
 - [x] Resolve SEO metadata conflicts and incomplete page-specific search/share tags; verified all 21 content routes and rendered public-page metadata.
