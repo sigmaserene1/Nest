@@ -882,9 +882,8 @@ html {
   color: var(--foreground);
 }
 .landing-lights { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.landing-lights img {
-  width: 100%; height: 100%; object-fit: cover; object-position: center 65%;
-  animation: ribbon-drift 16s ease-in-out infinite alternate;
+.landing-motion {
+  display: block; width: 100%; height: 100%;
 }
 .landing-lights::after {
   content: ""; position: absolute; inset: 0;
@@ -928,7 +927,7 @@ html {
 @media (max-width: 640px) {
   .landing-headline { font-size: 3.1rem; line-height: 1.08; }
   .hero-sculpture .treasury-art { height: 235px; margin-top: 6px; }
-  .landing-lights img { width: 160%; max-width: none; margin-left: -30%; object-position: center bottom; }
+  .landing-motion { width: 100%; height: 100%; }
   .landing-page [aria-label="Landing page sections"] a { border: 0; background: transparent; box-shadow: none; padding: 6px 10px; }
   .landing-page [aria-label="Landing page sections"] { padding-bottom: 8px; gap: 8px; }
 }

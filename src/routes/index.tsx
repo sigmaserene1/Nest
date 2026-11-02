@@ -42,7 +42,7 @@ import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
 import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
-import lightRibbons from "@/assets/landing-light-ribbons.jpg";
+import { LandingMotion } from "@/components/nest/landing-motion";
 
 const NAV_LINKS = [
   { label: "Try it", href: "#try" },
@@ -291,7 +291,7 @@ function Landing() {
       <main>
         <section className="landing-hero relative isolate overflow-hidden">
           <div className="landing-lights" aria-hidden="true">
-            <img src={lightRibbons} alt="" width={1536} height={1024} fetchPriority="high" />
+            <LandingMotion />
           </div>
           <div className="landing-light-trails" aria-hidden="true"><span /><span /><span /></div>
           <div className="hero-copy relative z-10 mx-auto max-w-5xl px-5 pt-12 text-center sm:pt-16 lg:pt-16">
