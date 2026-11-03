@@ -18,7 +18,7 @@ export function privyWalletConnector() {
       id: PRIVY_CONNECTOR_ID,
       name: "Email Wallet (Privy)",
       type: "embedded",
-      async connect({ withCapabilities } = {}) {
+      async connect({ withCapabilities }: { chainId?: number; isReconnecting?: boolean; withCapabilities?: boolean } = {}) {
         const accounts = await getAccounts();
         if (!accounts.length) throw new Error("Your email wallet is not ready yet.");
         return { accounts: (withCapabilities ? accounts.map((address) => ({ address, capabilities: {} })) : accounts) as never, chainId: await getChainId() };
