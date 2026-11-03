@@ -10,10 +10,16 @@ export function LandingMotion() {
     const ctx = canvas.getContext("2d", { alpha: true });
     if (!ctx) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const colors = getComputedStyle(canvas);
-    const palette = ["--light-mint", "--light-pink", "--light-gold", "--brand"].map(
-      (token) => colors.getPropertyValue(token).trim(),
-    );
+    let lightMode = !document.documentElement.classList.contains("dark");
+    let palette: string[] = [];
+    const updatePalette = () => {
+      lightMode = !document.documentElement.classList.contains("dark");
+      const colors = getComputedStyle(canvas);
+      palette = ["--light-mint", "--light-pink", "--light-gold", "--brand"].map(
+        (token) => colors.getPropertyValue(token).trim(),
+      );
+    };
+    updatePalette();
     let width = 0;
     let height = 0;
     let frame = 0;
@@ -24,7 +30,7 @@ export function LandingMotion() {
     const draw = () => {
       ctx.clearRect(0, 0, width, height);
       const time = elapsed / 1000;
-      ctx.globalCompositeOperation = "lighter";
+      ctx.globalCompositeOperation = lightMode ? "source-over" : "lighter";
       for (let ribbon = 0; ribbon < 8; ribbon++) {
         const phase = ribbon * 0.79;
         const path = new Path2D();
@@ -84,12 +90,18 @@ export function LandingMotion() {
     });
     resize.observe(canvas);
     intersection.observe(canvas);
+    const themeObserver = new MutationObserver(() => {
+      updatePalette();
+      draw();
+    });
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
     reduced.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
       cancelAnimationFrame(frame);
       resize.disconnect();
       intersection.disconnect();
+      themeObserver.disconnect();
       reduced.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
     };
