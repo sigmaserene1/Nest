@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useAccount, useConnect } from "wagmi";
+import { HeroProduct } from "@/components/nest/hero-product";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { LucideIcon } from "lucide-react";
 import {
