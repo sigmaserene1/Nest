@@ -981,3 +981,16 @@ html {
 @keyframes hero-bar { from { width: 38%; } to { width: 86%; } }
 @keyframes hero-row { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .hero-product, .hero-chip, .hero-product-glow, .hero-product-bar span, .hero-pending { animation: none; } .hero-product-row { opacity: 1; animation: none; } }
+
+/* Landing typographic system (landing-only) */
+.landing-h2 { font-family: var(--font-display); font-weight: 600; font-size: clamp(2.25rem, 4.6vw, 3.75rem); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance; }
+.landing-h2-xl { font-size: clamp(2.5rem, 6vw, 4.75rem); }
+.landing-eyebrow { display: inline-flex; align-items: center; gap: .6rem; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em; color: var(--brand); }
+.landing-eyebrow::before { content: ""; width: 1.5rem; height: 1px; background: currentColor; opacity: .6; }
+.landing-card { transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms, border-color 260ms;
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 4%, transparent), 0 20px 40px -32px color-mix(in oklab, var(--foreground) 30%, transparent); }
+.landing-card:hover { transform: translateY(-4px); border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
+  box-shadow: 0 30px 60px -36px color-mix(in oklab, var(--brand) 45%, transparent); }
+.landing-card h3 { letter-spacing: -0.02em; font-weight: 600; }
+.landing-headline { letter-spacing: -0.045em; }
+@media (prefers-reduced-motion: reduce) { .landing-card, .landing-card:hover { transition: none; transform: none; } }
