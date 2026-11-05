@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { useAccount, useConnect } from "wagmi";
+import { HeroProduct } from "@/components/nest/hero-product";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import type { LucideIcon } from "lucide-react";
 import {
@@ -317,7 +318,7 @@ function Landing() {
             </div>
             {connectIssue && <p role="alert" className="mx-auto mt-3 max-w-lg text-xs font-semibold text-brand">{connectIssue}</p>}
           </div>
-          <div aria-hidden="true" className="h-44 sm:h-60" />
+          <div className="relative z-10 mx-auto mt-14 max-w-5xl px-5 sm:mt-16"><HeroProduct /></div>
           <div className="hero-caption relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 pb-6 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-xs">
             <span className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" /> Your wallet. Your money.</span>
             <span className="flex items-center gap-2"><CircleDollarSign className="h-3.5 w-3.5 text-info" /> Native USDC</span>
