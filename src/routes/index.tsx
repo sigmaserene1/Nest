@@ -618,12 +618,11 @@ function SectionHeading({
 }) {
   return (
     <div className={align === "center" ? "mx-auto max-w-3xl text-center" : "max-w-2xl"}>
-      <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand">
-        <Sparkles className="h-3.5 w-3.5" />
+      <span className={`landing-eyebrow ${align === "center" ? "justify-center" : ""}`}>
         {eyebrow}
       </span>
-      <h2 className="landing-h2 mt-6">{title}</h2>
-      <p className="mt-5 text-base leading-7 text-muted-foreground">{body}</p>
+      <h2 className="landing-h2 mt-5">{title}</h2>
+      <p className={`mt-6 max-w-xl text-lg leading-8 text-muted-foreground ${align === "center" ? "mx-auto" : ""}`}>{body}</p>
     </div>
   );
 }
