@@ -340,7 +340,7 @@ function Landing() {
 
         <TokenMarquee />
 
-        <section id="try" className="scroll-mt-32 px-5 py-16 sm:scroll-mt-24 sm:py-24 lg:px-8">
+        <section id="try" className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <SplitPlayground onLaunch={enter} />
@@ -348,7 +348,7 @@ function Landing() {
           </div>
         </section>
 
-        <section id="protocol" className="scroll-mt-32 px-5 py-16 sm:scroll-mt-24 sm:py-24 lg:px-8">
+        <section id="protocol" className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Reveal>
               <SectionHeading
@@ -370,7 +370,7 @@ function Landing() {
 
         <section
           id="flow"
-          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-16 sm:scroll-mt-24 sm:py-24"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:scroll-mt-24 sm:py-32"
         >
           <div className="mx-auto max-w-7xl px-5 lg:px-8">
             <Reveal>
@@ -389,7 +389,7 @@ function Landing() {
               <ol className="grid gap-5 md:grid-cols-4">
                 {FLOW.map((step, index) => (
                   <Reveal key={step.title} delay={index * 70} as="li">
-                    <article className="group relative h-full rounded-lg border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/35">
+                    <article className="group relative h-full landing-card rounded-2xl border border-border bg-card p-7 transition-all duration-300 hover:-translate-y-1 hover:border-brand/35">
                       <div className="relative z-10 flex items-center justify-between">
                         <span className="grid h-12 w-12 place-items-center rounded-2xl bg-foreground text-background shadow-sm transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105">
                           <step.icon className="h-5 w-5" />
@@ -413,7 +413,7 @@ function Landing() {
 
         <section
           id="use-cases"
-          className="scroll-mt-32 px-5 py-16 sm:scroll-mt-24 sm:py-24 lg:px-8"
+          className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8"
         >
           <div className="mx-auto max-w-7xl">
             <Reveal>
@@ -430,7 +430,7 @@ function Landing() {
             <div className="mt-14 grid gap-5 lg:grid-cols-3">
               {USE_CASES.map((useCase, index) => (
                 <Reveal key={useCase.title} delay={index * 70}>
-                  <article className="use-case-card group relative h-full overflow-hidden rounded-lg border border-border bg-card p-8">
+                  <article className="use-case-card landing-card group relative h-full overflow-hidden rounded-2xl border border-border bg-card p-8">
                     <span className="relative grid h-12 w-12 place-items-center rounded-2xl bg-brand-soft text-brand">
                       <useCase.icon className="h-5 w-5" />
                     </span>
@@ -467,7 +467,7 @@ function Landing() {
                   <Zap className="h-3.5 w-3.5 text-brand" />
                   Purpose-built for Arc
                 </span>
-                <h2 className="mt-6 text-3xl leading-[1.08] tracking-normal sm:text-5xl">
+                <h2 className="landing-h2 mt-6">
                   The settlement layer is part of the{" "}
                   <span className="font-quote font-normal italic text-brand">product.</span>
                 </h2>
@@ -496,7 +496,7 @@ function Landing() {
 
         <section
           id="faq"
-          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-16 sm:scroll-mt-24 sm:py-24"
+          className="scroll-mt-32 border-y border-border bg-surface-muted/60 py-24 sm:scroll-mt-24 sm:py-32"
         >
           <div className="mx-auto grid max-w-6xl gap-12 px-5 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
             <Reveal>
@@ -505,7 +505,7 @@ function Landing() {
                   <Sparkles className="h-3.5 w-3.5" />
                   Clear answers
                 </span>
-                <h2 className="mt-6 text-3xl tracking-normal sm:text-5xl">
+                <h2 className="landing-h2 mt-6">
                   A little clarity.
                 </h2>
                 <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground">
@@ -539,7 +539,7 @@ function Landing() {
           </div>
         </section>
 
-        <section className="px-5 py-16 sm:py-24 lg:px-8">
+        <section className="px-5 py-24 sm:py-32 lg:px-8">
           <Reveal>
             <div className="relative mx-auto max-w-6xl px-7 py-8 text-center text-foreground sm:px-12 sm:py-12">
               <div className="relative">
@@ -547,7 +547,7 @@ function Landing() {
                   <CircleDollarSign className="h-3.5 w-3.5" />
                   Group settlement, without the spreadsheet
                 </span>
-                <h2 className="mx-auto mt-6 max-w-3xl text-3xl leading-[1.06] tracking-normal sm:text-6xl sm:leading-[1.02]">
+                <h2 className="landing-h2 landing-h2-xl mx-auto mt-6 max-w-3xl">
                   Give shared money one{" "}
                   <span className="font-quote font-normal italic tracking-normal">
                     source of truth.
@@ -622,7 +622,7 @@ function SectionHeading({
         <Sparkles className="h-3.5 w-3.5" />
         {eyebrow}
       </span>
-      <h2 className="mt-6 text-3xl leading-[1.08] tracking-normal sm:text-5xl">{title}</h2>
+      <h2 className="landing-h2 mt-6">{title}</h2>
       <p className="mt-5 text-base leading-7 text-muted-foreground">{body}</p>
     </div>
   );
