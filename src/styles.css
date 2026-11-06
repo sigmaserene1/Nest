@@ -1007,3 +1007,8 @@ html {
 .landing-page section + section { border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent); }
 .landing-page .landing-headline .font-quote { font-weight: 400; letter-spacing: -0.01em; }
 .landing-page ::selection { background: color-mix(in oklab, var(--brand) 30%, transparent); }
+
+@media (max-width: 1023px) {
+  .docs-page:not([data-current]) { display: none; }
+  .docs-page[data-current] { border-top: 0; padding-top: 0; }
+}
