@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+const ActiveCtx = createContext("introduction");
 import {
   ArrowRight,
   BookOpen,
@@ -98,7 +99,7 @@ const allIds = nav.flatMap((g) => g.items.map(([id]) => id));
 
 function Section({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children: React.ReactNode }) {
   return (
-    <section id={id} className="min-w-0 scroll-mt-28 border-t border-border pt-8 first:border-0 first:pt-0 sm:pt-10">
+    <section id={id} data-current={useContext(ActiveCtx) === id || undefined} className="docs-page min-w-0 scroll-mt-28 border-t border-border pt-8 first:border-0 first:pt-0 sm:pt-10">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand">{eyebrow}</p>
       <h2 className="mt-2 text-2xl font-black tracking-tight sm:text-3xl">{title}</h2>
       <div className="min-w-0 mt-4 space-y-4 text-sm leading-6 text-muted-foreground sm:leading-7">{children}</div>
@@ -205,7 +206,7 @@ function DocsPage() {
               onChange={(event) => {
                 const id = event.target.value;
                 setActive(id);
-                document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                window.scrollTo({ top: 0 });
               }}
               className="mt-2 block h-11 w-full max-w-full rounded-xl border border-border bg-card px-3 text-sm font-semibold text-foreground shadow-sm outline-none"
             >
@@ -244,6 +245,7 @@ function DocsPage() {
           </nav>
         </aside>
 
+        <ActiveCtx.Provider value={active}>
         <main className="w-full min-w-0 max-w-3xl space-y-8 sm:space-y-10">
           <Section id="introduction" eyebrow="Getting started" title="What is Nest?">
             <p>
@@ -571,8 +573,43 @@ const members = await client.readContract({
               </Link>
             </div>
           </Section>
+          <DocsPager active={active} go={(id) => { setActive(id); window.scrollTo({ top: 0 }); }} />
         </main>
+        </ActiveCtx.Provider>
       </div>
     </PublicShell>
+  );
+}
+
+const labels = Object.fromEntries(nav.flatMap((g) => g.items.map(([id, l]) => [id, [l, g.group]]))) as Record<string, [string, string]>;
+
+function DocsPager({ active, go }: { active: string; go: (id: string) => void }) {
+  const i = Math.max(0, allIds.indexOf(active as (typeof allIds)[number]));
+  const prev = allIds[i - 1];
+  const next = allIds[i + 1];
+  return (
+    <div className="lg:hidden">
+      <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
+        {i + 1} of {allIds.length} · What's next
+      </p>
+      {next && (
+        <button type="button" onClick={() => go(next)} className="flex w-full items-center justify-between gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-5 text-left active:scale-[0.99]">
+          <span className="min-w-0">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-brand">Next · {labels[next][1]}</span>
+            <span className="mt-1 block text-lg font-black text-foreground">{labels[next][0]}</span>
+          </span>
+          <span className="text-2xl text-brand">→</span>
+        </button>
+      )}
+      {prev && (
+        <button type="button" onClick={() => go(prev)} className="mt-3 flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left active:scale-[0.99]">
+          <span className="text-lg text-muted-foreground">←</span>
+          <span className="min-w-0">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">Previous</span>
+            <span className="block text-sm font-bold text-foreground">{labels[prev][0]}</span>
+          </span>
+        </button>
+      )}
+    </div>
   );
 }
