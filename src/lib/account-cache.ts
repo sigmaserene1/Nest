@@ -1,4 +1,4 @@
-import { getCircleSession } from "@/lib/circle-sdk";
+import { getCircleSession } from "@/lib/circle-session";
 import {
   patchNestAccountCache,
   readNestAccountCache,
