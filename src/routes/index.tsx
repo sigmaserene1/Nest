@@ -294,8 +294,7 @@ function Landing() {
           <div className="landing-lights" aria-hidden="true">
             <LandingMotion />
           </div>
-          <div className="landing-light-trails" aria-hidden="true"><span /><span /><span /></div>
-          <div className="hero-copy relative z-10 mx-auto max-w-5xl px-5 pt-12 text-center sm:pt-16 lg:pt-16">
+          <div className="hero-copy relative z-10 mx-auto max-w-6xl px-5 pt-10 text-center sm:pt-12 lg:pt-14">
             <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Built on Arc <span className="mx-1 text-border">/</span>
@@ -318,8 +317,8 @@ function Landing() {
             </div>
             {connectIssue && <p role="alert" className="mx-auto mt-3 max-w-lg text-xs font-semibold text-brand">{connectIssue}</p>}
           </div>
-          <div className="relative z-10 mx-auto mt-14 max-w-5xl px-5 sm:mt-16"><HeroProduct /></div>
-          <div className="hero-caption relative z-10 mx-auto flex max-w-5xl items-center justify-between px-6 pb-6 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground sm:text-xs">
+          <div className="relative z-10 mx-auto mt-9 max-w-4xl px-5"><HeroProduct /></div>
+          <div className="hero-caption relative z-10 mx-auto mt-6 flex max-w-4xl items-center justify-between px-6 pb-7 text-[10px] font-medium text-muted-foreground sm:text-xs">
             <span className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" /> Your wallet. Your money.</span>
             <span className="flex items-center gap-2"><CircleDollarSign className="h-3.5 w-3.5 text-info" /> Native USDC</span>
           </div>
@@ -576,12 +575,11 @@ function Landing() {
           <div>
             <NestLogo />
             <p className="mt-3 max-w-lg text-xs leading-5 text-muted-foreground">
-              Independent group-finance software built on Arc with native USDC settlement and Circle-powered wallet onboarding.
+              Shared money, clear balances. Built on Arc with native USDC settlement.
             </p>
             <div className="mt-3 flex flex-wrap gap-2 text-[10px] font-bold text-muted-foreground">
               <span className="rounded-full border border-border bg-card px-2.5 py-1">Built on Arc</span>
               <span className="rounded-full border border-border bg-card px-2.5 py-1">Native USDC</span>
-              <span className="rounded-full border border-border bg-card px-2.5 py-1">Circle Wallets</span>
             </div>
           </div>
           <div className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-muted-foreground sm:justify-end">

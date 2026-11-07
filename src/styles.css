@@ -982,31 +982,56 @@ html {
 @keyframes hero-row { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .hero-product, .hero-chip, .hero-product-glow, .hero-product-bar span, .hero-pending { animation: none; } .hero-product-row { opacity: 1; animation: none; } }
 
-/* Landing typographic system (landing-only) */
-.landing-h2 { font-family: var(--font-display); font-weight: 600; font-size: clamp(2.25rem, 4.6vw, 3.75rem); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance; }
-.landing-h2-xl { font-size: clamp(2.5rem, 6vw, 4.75rem); }
-.landing-eyebrow { display: inline-flex; align-items: center; gap: .6rem; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .2em; color: var(--brand); }
-.landing-eyebrow::before { content: ""; width: 1.5rem; height: 1px; background: currentColor; opacity: .6; }
-.landing-card { transition: transform 260ms cubic-bezier(.2,.8,.2,1), box-shadow 260ms, border-color 260ms;
-  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 4%, transparent), 0 20px 40px -32px color-mix(in oklab, var(--foreground) 30%, transparent); }
-.landing-card:hover { transform: translateY(-4px); border-color: color-mix(in oklab, var(--brand) 35%, var(--border));
-  box-shadow: 0 30px 60px -36px color-mix(in oklab, var(--brand) 45%, transparent); }
-.landing-card h3 { letter-spacing: -0.02em; font-weight: 600; }
-.landing-headline { letter-spacing: -0.045em; }
-@media (prefers-reduced-motion: reduce) { .landing-card, .landing-card:hover { transition: none; transform: none; } }
-
-/* Classic editorial layer — landing only */
-.landing-page { position: relative; }
-.landing-page::after { content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 60; opacity: .05; mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-.landing-page .landing-h2 { font-family: var(--font-quote); font-weight: 400; font-size: clamp(2.6rem, 5.4vw, 4.6rem); line-height: 1; letter-spacing: -0.02em; }
-.landing-page .landing-h2-xl { font-size: clamp(3rem, 7.5vw, 6rem); }
-.landing-page .landing-eyebrow { font-family: var(--font-display); letter-spacing: .32em; font-weight: 600; }
-.landing-page .landing-eyebrow::after { content: ""; width: 1.5rem; height: 1px; background: currentColor; opacity: .6; }
-.landing-page .landing-card { border-radius: 1.25rem; background: linear-gradient(180deg, color-mix(in oklab, var(--card) 92%, var(--brand) 8%), var(--card)); box-shadow: inset 0 1px 0 color-mix(in oklab, var(--foreground) 8%, transparent), 0 20px 40px -28px color-mix(in oklab, var(--foreground) 40%, transparent); }
-.landing-page section + section { border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent); }
-.landing-page .landing-headline .font-quote { font-weight: 400; letter-spacing: -0.01em; }
+/* Unified editorial system: scoped to the landing, not financial screens. */
+.landing-page {
+  position: relative;
+  --landing-panel-shadow: 0 20px 55px -35px color-mix(in oklab, var(--foreground) 30%, transparent);
+}
+.landing-page h1, .landing-page h2, .landing-page h3 { letter-spacing: 0; }
+.landing-page .landing-headline { font-size: 5.5rem; line-height: 1.04; text-wrap: balance; }
+.landing-page .landing-headline .font-quote { font-weight: 400; letter-spacing: 0; }
+.landing-page .landing-h2 { font-family: var(--font-quote); font-size: 3.75rem; font-weight: 400; line-height: 1.08; text-wrap: balance; }
+.landing-page .landing-h2-xl { font-size: 4.5rem; }
+.landing-eyebrow { display: inline-flex; align-items: center; gap: .75rem; font-family: var(--font-display); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0; color: var(--brand); }
+.landing-eyebrow::before { content: ""; width: 1.5rem; height: 1px; background: currentColor; }
+.landing-page .landing-card { border-radius: 8px; background: var(--card); box-shadow: none; transition: transform 180ms ease, border-color 180ms ease; }
+.landing-page .landing-card:hover { transform: translateY(-3px); border-color: var(--brand); }
+.landing-page .landing-card h3 { font-weight: 600; }
+.landing-page section + section { border-top: 1px solid var(--border); }
 .landing-page ::selection { background: color-mix(in oklab, var(--brand) 30%, transparent); }
+.landing-page .hero-product-stage { max-width: 44rem; perspective: none; }
+.landing-page .hero-product {
+  padding: 0; border-radius: 8px; animation: none; transform: none;
+  background: color-mix(in oklab, var(--card) 94%, transparent);
+  backdrop-filter: blur(12px); box-shadow: var(--landing-panel-shadow);
+}
+.hero-product-heading { padding: 1rem 1.4rem; border-bottom: 1px solid var(--border); }
+.hero-product-ledger { display: grid; grid-template-columns: .85fr 1.15fr; }
+.hero-product-balance { padding: 1.7rem 1.4rem; border-right: 1px solid var(--border); align-self: center; }
+.hero-product-entries { padding: .6rem; }
+.landing-page .hero-product-row { border-radius: 0; background: transparent; padding: .6rem; border-bottom: 1px solid var(--border); }
+.landing-page .hero-product-row:last-child { border-bottom: 0; }
+.landing-page .hero-product-row:nth-child(2) { animation-delay: 100ms; }
+.landing-page .hero-product-row:nth-child(3) { animation-delay: 200ms; }
+.landing-page [aria-label="Landing page sections"] a { border: 0; background: transparent; box-shadow: none; padding: 6px 10px; border-radius: 0; }
+.landing-page [aria-label="Landing page sections"] { padding-bottom: 8px; gap: 8px; }
+@media (min-width: 1024px) {
+  .landing-page .landing-headline { font-size: 6rem; }
+}
+@media (max-width: 767px) {
+  .landing-page .landing-headline { font-size: 3.65rem; }
+  .landing-page .landing-h2 { font-size: 3rem; }
+  .landing-page .landing-h2-xl { font-size: 3.5rem; }
+}
+@media (max-width: 479px) {
+  .landing-page .landing-headline { font-size: 2.75rem; }
+  .landing-page .landing-h2, .landing-page .landing-h2-xl { font-size: 2.6rem; }
+  .hero-product-ledger { grid-template-columns: 1fr; }
+  .hero-product-balance { border-right: 0; border-bottom: 1px solid var(--border); padding: 1.1rem 1.4rem; }
+  .hero-product-entries { padding: .3rem .6rem; }
+  .landing-page .hero-product-total { font-size: 2rem; }
+}
+@media (prefers-reduced-motion: reduce) { .landing-page .landing-card, .landing-page .landing-card:hover { transition: none; transform: none; } }
 
 @media (max-width: 1023px) {
   .docs-page:not([data-current]) { display: none; }

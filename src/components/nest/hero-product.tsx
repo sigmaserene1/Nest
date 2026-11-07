@@ -1,4 +1,4 @@
-import { CheckCircle2, ArrowUpRight, Users, Zap } from "lucide-react";
+import { CheckCircle2, ReceiptText } from "lucide-react";
 
 const ROWS = [
   { name: "Maya", note: "Groceries", amount: "+24.50", ok: true },
@@ -6,27 +6,29 @@ const ROWS = [
   { name: "Ava", note: "Dinner split", amount: "+18.75", ok: false },
 ];
 
-/** Floating glass product preview for the landing hero (pure CSS motion). */
+/** Illustrative ledger, isolated from live wallet balances. */
 export function HeroProduct() {
   return (
     <div className="hero-product-stage" aria-hidden="true">
-      <div className="hero-product-glow" />
       <div className="hero-product">
-        <div className="flex items-center justify-between">
+        <div className="hero-product-heading flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-brand" />
-            <span className="text-xs font-semibold text-muted-foreground">Room · Apartment 4B</span>
+            <ReceiptText className="h-4 w-4 text-brand" />
+            <span className="text-xs font-semibold text-foreground">Apartment 4B</span>
           </div>
-          <span className="rounded-full border border-border px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-success">Live</span>
+          <span className="text-[10px] font-medium text-muted-foreground">Example workspace</span>
         </div>
-        <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Shared balance</p>
-        <p className="hero-product-total mt-1 font-display text-4xl font-bold text-foreground sm:text-5xl">
-          2,480.<span className="text-muted-foreground">00</span> <span className="text-base font-semibold text-info">USDC</span>
+        <div className="hero-product-ledger">
+        <div className="hero-product-balance">
+        <p className="text-[11px] font-medium text-muted-foreground">Shared balance</p>
+        <p className="hero-product-total mt-2 font-display text-4xl font-semibold text-foreground">
+          2,480.<span className="text-muted-foreground">00</span>
         </p>
-        <div className="hero-product-bar mt-4"><span /></div>
-        <ul className="mt-5 space-y-2">
-          {ROWS.map((r, i) => (
-            <li key={r.name} className="hero-product-row" style={{ animationDelay: `${0.4 + i * 0.25}s` }}>
+        <p className="mt-2 text-xs font-medium text-muted-foreground">USDC · On Arc</p>
+        </div>
+        <ul className="hero-product-entries">
+          {ROWS.map((r) => (
+            <li key={r.name} className="hero-product-row">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-bold text-foreground">{r.name[0]}</span>
               <span className="min-w-0 flex-1">
                 <span className="block text-sm font-semibold text-foreground">{r.name}</span>
@@ -37,10 +39,8 @@ export function HeroProduct() {
             </li>
           ))}
         </ul>
+        </div>
       </div>
-      <div className="hero-chip hero-chip-a"><Zap className="h-3.5 w-3.5 text-brand" /> Settled in 0.4s</div>
-      <div className="hero-chip hero-chip-b"><Users className="h-3.5 w-3.5 text-info" /> 4 roommates</div>
-      <div className="hero-chip hero-chip-c"><ArrowUpRight className="h-3.5 w-3.5 text-success" /> Gasless pay</div>
     </div>
   );
 }
