@@ -59,7 +59,7 @@ export function SplitPlayground({ onLaunch }: { onLaunch: () => void }) {
   const owed = Math.round((amount - share) * 100) / 100;
 
   return (
-    <div className="grid items-center gap-10 lg:grid-cols-2">
+    <div className="landing-playground grid items-center gap-10 lg:grid-cols-2">
       <div>
         <span className="inline-flex items-center gap-2 rounded-full bg-brand-soft px-3 py-1.5 text-xs font-bold text-brand">
           <Sparkles className="h-3.5 w-3.5" /> Try it live
@@ -72,7 +72,7 @@ export function SplitPlayground({ onLaunch }: { onLaunch: () => void }) {
           Drag the amount, add friends, and watch every share update instantly — the same math Nest settles onchain in USDC.
         </p>
 
-        <div className="mt-8 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="landing-split-controls mt-8 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <label className="block">
             <span className="flex justify-between text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">
               Bill amount <span className="font-mono text-foreground">{amount} USDC</span>
