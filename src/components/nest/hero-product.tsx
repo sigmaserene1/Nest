@@ -27,7 +27,7 @@ export function HeroProduct() {
         <p className="mt-2 text-xs font-medium text-muted-foreground">USDC · On Arc</p>
         </div>
         <ul className="hero-product-entries">
-          {ROWS.map((r, i) => (
+          {ROWS.map((r) => (
             <li key={r.name} className="hero-product-row">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-bold text-foreground">{r.name[0]}</span>
               <span className="min-w-0 flex-1">
