@@ -1033,6 +1033,56 @@ html {
 }
 @media (prefers-reduced-motion: reduce) { .landing-page .landing-card, .landing-page .landing-card:hover { transition: none; transform: none; } }
 
+/* Compact phone composition: retain content and touch targets, remove excess space. */
+@media (max-width: 639px) {
+  .landing-page [data-landing-header] > div { padding-block: .6rem; }
+  .landing-page [data-landing-header] .h-10 { height: 2.5rem; font-size: .7rem; padding-inline: .85rem; }
+  .landing-page [aria-label="Landing page sections"] { gap: .35rem; padding-bottom: .4rem; }
+  .landing-page [aria-label="Landing page sections"] a { font-size: .68rem; padding: .45rem .55rem; }
+  .landing-page .hero-copy { padding-top: 1.5rem; }
+  .landing-page .landing-headline { font-size: 2.5rem; margin-top: .85rem; line-height: 1.06; }
+  .landing-page .hero-copy > p:not(:first-child) { font-size: .8rem; line-height: 1.5; margin-top: .85rem; }
+  .landing-page .hero-actions { gap: .6rem; margin-top: 1rem; }
+  .landing-page .hero-actions a, .landing-page .hero-actions button { height: 2.75rem; font-size: .8rem; padding-inline: 1.15rem; }
+  .landing-page .landing-hero > div:has(> .hero-product-stage) { margin-top: 1.3rem; }
+  .landing-page .hero-product-heading { padding: .7rem 1rem; }
+  .landing-page .hero-product-heading > span { font-size: .6rem; }
+  .landing-page .hero-product-balance { padding: .7rem 1rem; }
+  .landing-page .hero-product-total { font-size: 1.85rem; margin-top: .3rem; }
+  .landing-page .hero-product-balance > p:last-child { margin-top: .3rem; font-size: .7rem; }
+  .landing-page .hero-product-row { padding: .4rem; gap: .55rem; }
+  .landing-page .hero-product-row > span:first-child { width: 1.7rem; height: 1.7rem; flex-shrink: 0; }
+  .landing-page .hero-product-row .text-sm { font-size: .78rem; }
+  .landing-page .hero-product-row .text-xs { font-size: .68rem; }
+  .landing-page .hero-caption { margin-top: .85rem; padding-bottom: 1rem; font-size: .62rem; }
+  .landing-page main > section:not(.landing-hero):not([aria-label="Protocol facts"]) { padding-top: 2.5rem; padding-bottom: 2.5rem; }
+  .landing-page [aria-label="Protocol facts"] dl > div { padding: .85rem .5rem; }
+  .landing-page [aria-label="Protocol facts"] dd { font-size: .95rem; margin-top: .3rem; }
+  .landing-page [aria-label="Protocol facts"] dt { font-size: .58rem; letter-spacing: 0; }
+  .landing-page .landing-h2, .landing-page .landing-h2-xl { font-size: 2.1rem; }
+  .landing-page .landing-eyebrow { font-size: .65rem; }
+  .landing-page .landing-h2 + p { font-size: .85rem; line-height: 1.6; margin-top: .85rem; }
+  .landing-page .mt-14, .landing-page .mt-16 { margin-top: 1.5rem; }
+  .landing-page .landing-card, .landing-page .protocol-card { padding: 1rem; }
+  .landing-page .landing-card h3, .landing-page .protocol-card h3 { margin-top: .9rem; font-size: 1.1rem; }
+  .landing-page .landing-card p, .landing-page .protocol-card p, .landing-page .landing-card li { font-size: .8rem; line-height: 1.55; }
+  .landing-page .landing-card .mt-8, .landing-page .landing-card .mt-6, .landing-page .protocol-card .mt-6 { margin-top: .9rem; }
+  .landing-page .landing-card .h-12, .landing-page .protocol-card .h-11 { width: 2.25rem; height: 2.25rem; border-radius: .5rem; }
+  .landing-page .landing-playground { gap: 1.25rem; }
+  .landing-page .landing-playground h2 { font-size: 2rem; margin-top: 1rem; }
+  .landing-page .landing-playground p { font-size: .8rem; line-height: 1.55; }
+  .landing-page .landing-split-controls { margin-top: 1rem; padding: 1rem; border-radius: .5rem; }
+  .landing-page .landing-split-controls > :not(:last-child) { margin-bottom: .85rem; }
+  .landing-page .landing-split-controls button { min-height: 2.75rem; font-size: .78rem; }
+  .landing-page .landing-playground .tilt-card { padding: 1rem; border-radius: .5rem; }
+  .landing-page .landing-playground .text-5xl { font-size: 2rem; }
+  .landing-page .landing-playground ul { margin-top: 1rem; }
+  .landing-page .split-row { padding: .5rem .6rem; border-radius: .5rem; }
+  .landing-page .split-row > span { min-width: 0; font-size: .75rem; gap: .4rem; }
+  .landing-page .split-row .h-8 { width: 1.65rem; height: 1.65rem; flex-shrink: 0; }
+  .landing-page #faq [data-slot="accordion-trigger"] { padding-block: 1rem; font-size: .85rem; }
+}
+
 @media (max-width: 1023px) {
   .docs-page:not([data-current]) { display: none; }
   .docs-page[data-current] { border-top: 0; padding-top: 0; }
