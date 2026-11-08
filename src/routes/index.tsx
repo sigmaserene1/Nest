@@ -44,6 +44,7 @@ import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
 import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
 import { LandingMotion } from "@/components/nest/landing-motion";
+import { LandingHeadline } from "@/components/nest/landing-headline";
 
 const NAV_LINKS = [
   { label: "Try it", href: "#try" },
@@ -300,10 +301,7 @@ function Landing() {
               Built on Arc <span className="mx-1 text-border">/</span>
               {environment === "mainnet" ? "Mainnet" : "Testnet"}
             </p>
-            <h1 className="landing-headline mt-5 font-display font-semibold text-foreground">
-              <span className="headline-primary"><span>Shared</span>{" "}<span>treasury.</span></span>
-              <span className="headline-signature font-quote font-normal italic text-brand"><span>Clear</span>{" "}<span>every</span>{" "}<span className="headline-finish">balance.</span></span>
-            </h1>
+            <LandingHeadline />
             <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
               Shared money, beautifully in sync. Track expenses and settle together in USDC on Arc.
             </p>
