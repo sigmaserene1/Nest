@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 
-/** Live light ribbons: browser-only, bounded resolution and paused offscreen. */
+/** Broad moving color washes: bounded resolution and paused offscreen. */
 export function LandingMotion() {
   const ref = useRef<HTMLCanvasElement>(null);
 
@@ -31,31 +31,18 @@ export function LandingMotion() {
       ctx.clearRect(0, 0, width, height);
       const time = elapsed / 1000;
       ctx.globalCompositeOperation = lightMode ? "source-over" : "lighter";
-      for (let ribbon = 0; ribbon < 8; ribbon++) {
-        const phase = ribbon * 0.79;
-        const path = new Path2D();
-        for (let step = 0; step <= 90; step++) {
-          const x = (step / 90) * (width + 120) - 60;
-          const progress = x / width;
-          const y = height * (0.73 + Math.sin(progress * 4.2 + time * 0.85 + phase) * 0.13)
-            + Math.cos(progress * 7 - time * 0.6 + phase) * height * 0.05
-            + (ribbon - 3.5) * 10;
-          if (step === 0) path.moveTo(x, y);
-          else path.lineTo(x, y);
-        }
-        ctx.strokeStyle = palette[ribbon % palette.length];
-        for (const [lineWidth, opacity] of [[28, 0.025], [12, 0.07], [3, 0.4], [1, 0.8]]) {
-          ctx.lineWidth = lineWidth;
-          ctx.globalAlpha = opacity;
-          ctx.stroke(path);
-        }
-        // Traveling highlights make the flow apparent even at a glance.
-        ctx.lineWidth = 2.5;
-        ctx.globalAlpha = 0.9;
-        ctx.setLineDash([24, 140, 5, 210]);
-        ctx.lineDashOffset = -time * (65 + ribbon * 8);
-        ctx.stroke(path);
-        ctx.setLineDash([]);
+      if (!width || !height) return;
+      for (let wash = 0; wash < 4; wash++) {
+        const phase = wash * 1.57;
+        const center = width * (.5 + Math.sin(time * .35 + phase) * .45);
+        const tilt = Math.cos(time * .25 + phase) * width * .3;
+        const gradient = ctx.createLinearGradient(center - width * .55, 0, center + width * .55 + tilt, height);
+        gradient.addColorStop(0, "transparent");
+        gradient.addColorStop(.5, palette[wash]);
+        gradient.addColorStop(1, "transparent");
+        ctx.globalAlpha = (lightMode ? .13 : .19) + Math.sin(time * .5 + phase) * .035;
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
       }
       ctx.globalAlpha = 1;
     };
