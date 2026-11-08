@@ -19,3 +19,4 @@
 - Landing 3D imports Three.js only after mount, disposes GPU resources, and pauses offscreen/reduced-motion rendering; a bundled sculpture image preserves the page when WebGL is unavailable.
 - Expressive landing lighting and hero color overrides are scoped under `.landing-page`/`.landing-hero`; shared app tokens remain untouched to isolate marketing presentation from financial screens.
 - Live landing ribbons use a browser-mounted canvas with capped pixel density and frame rate, pausing offscreen, in hidden tabs and for reduced motion to keep sign-in responsive.
+- Landing headline pointer and touch effects stay in a dedicated browser-safe component; animate only lettering, not page wrappers, to preserve viewport overlays.
