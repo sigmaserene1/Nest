@@ -301,8 +301,8 @@ function Landing() {
               {environment === "mainnet" ? "Mainnet" : "Testnet"}
             </p>
             <h1 className="landing-headline mt-5 font-display font-semibold text-foreground">
-              Shared treasury.<br />
-              <span className="font-quote font-normal italic text-brand">Clear every balance.</span>
+              <span className="headline-primary"><span>Shared</span>{" "}<span>treasury.</span></span>
+              <span className="headline-signature font-quote font-normal italic text-brand"><span>Clear</span>{" "}<span>every</span>{" "}<span className="headline-finish">balance.</span></span>
             </h1>
             <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
               Shared money, beautifully in sync. Track expenses and settle together in USDC on Arc.
