@@ -45,6 +45,7 @@ import { Button } from "@/components/ui/button";
 import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
 import { LandingMotion } from "@/components/nest/landing-motion";
 import { LandingHeadline } from "@/components/nest/landing-headline";
+import { LandingFlow } from "@/components/nest/landing-flow";
 
 const NAV_LINKS = [
   { label: "Try it", href: "#try" },
@@ -302,6 +303,7 @@ function Landing() {
               {environment === "mainnet" ? "Mainnet" : "Testnet"}
             </p>
             <LandingHeadline />
+            <LandingFlow />
             <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
               Shared money, beautifully in sync. Track expenses and settle together in USDC on Arc.
             </p>
