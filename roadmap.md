@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [ ] Modernize the landing composition, typography and product preview; verify both themes, mobile and launch popup.
 - [x] Restyle the landing headline with staggered typography and a flowing accent underline; verified phone and desktop in both themes, reduced motion and launch popup.
 - [x] Refine landing hierarchy and simplify its illustrative ledger; verified phone, tablet and desktop in both themes, no overflow or browser errors, and launch popup opens.
 - [x] Replace the landing background picture with continuously flowing live light ribbons; verified changing frames, reduced-motion pause, phone layout and sign-in popup.
