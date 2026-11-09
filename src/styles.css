@@ -1076,6 +1076,46 @@ html {
 }
 
 /* A compact, touchable narrative beneath the landing headline. */
+.landing-page .hero-experience { max-width: 49rem; }
+.landing-page .hero-example-tabs button { border-radius: 6px; height: 2.25rem; font-size: 11px; padding-inline: .75rem; color: var(--muted-foreground); }
+.landing-page .hero-example-tabs button[aria-pressed="true"] { background: var(--foreground); color: var(--background); }
+.hero-example-body { display: grid; grid-template-columns: .85fr 1.15fr; min-height: 12.5rem; }
+.hero-example-amount { padding: 1.25rem; text-align: center; border-right: 1px solid var(--border); }
+.hero-example-total { font-size: 3rem; line-height: 1.25; margin-block: .3rem; }
+.hero-example-total > span { color: var(--muted-foreground); }
+.hero-example-people { display: flex; justify-content: center; margin-top: 1rem; }
+.hero-example-people > span { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid var(--card); background: var(--brand); color: var(--brand-foreground); font-size: 10px; margin-left: -.3rem; }
+.hero-example-people > span:nth-child(2) { background: var(--light-mint); color: var(--background); }
+.hero-example-people > span:nth-child(3) { background: var(--light-pink); }
+.hero-example-result { display: grid; align-items: center; padding: 1.1rem 1.3rem; }
+.hero-example-shares li { display: flex; gap: .5rem; align-items: center; justify-content: space-between; padding: .75rem 0; border-bottom: 1px solid var(--border); font-size: 12px; animation: example-share-in 400ms ease both; }
+.hero-example-shares li:nth-child(2) { animation-delay: 90ms; }
+.hero-example-shares li:nth-child(3) { animation-delay: 180ms; border-bottom: 0; }
+.hero-share-avatar { width: 1.6rem; height: 1.6rem; display: grid; place-items: center; background: var(--muted); border-radius: 50%; font-size: 10px; }
+.hero-example-footer { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border-top: 1px solid var(--border); }
+.hero-example-footer > button { flex-shrink: 0; height: 2.75rem; font-size: 12px; }
+.hero-example-progress { display: flex; gap: 1rem; color: var(--muted-foreground); font-size: 10px; }
+.hero-example-progress > span { display: flex; gap: .3rem; }
+.hero-example-progress > span[data-active="true"] { color: var(--brand); font-weight: 700; }
+.hero-mini-receipt { font-family: ui-monospace, monospace; animation: receipt-reveal 550ms cubic-bezier(.2,.8,.2,1) both; }
+.hero-receipt-stamp { display: flex; align-items: center; gap: .4rem; color: var(--light-mint); font-size: 10px; }
+.hero-product[data-stage="receipt"] { border-color: var(--light-mint); }
+@keyframes example-share-in { from { opacity: 0; transform: translateX(12px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes receipt-reveal { from { opacity: 0; transform: translateY(15px) rotate(-3deg); } to { opacity: 1; transform: translateY(0) rotate(0deg); } }
+@media (max-width: 479px) {
+  .landing-page .hero-experience .hero-product-heading { padding: .6rem; gap: .4rem; }
+  .landing-page .hero-example-tabs button { font-size: 10px; padding-inline: .5rem; gap: .3rem; }
+  .hero-example-body { grid-template-columns: 1fr; min-height: 22rem; }
+  .hero-example-amount { border-right: 0; border-bottom: 1px solid var(--border); padding: 1rem; }
+  .hero-example-total { font-size: 2.7rem; }
+  .hero-example-people { margin-top: .65rem; }
+  .hero-example-result { padding: .65rem 1rem; min-height: 10rem; }
+  .hero-example-shares li { padding-block: .6rem; }
+  .hero-example-footer { flex-direction: column; gap: .85rem; padding: 1rem; }
+  .hero-example-footer > button { width: 100%; }
+  .hero-example-progress { gap: 1.2rem; }
+}
+@media (prefers-reduced-motion: reduce) { .hero-example-shares li, .hero-mini-receipt { animation: none; } }
 .landing-page .landing-flow { display: flex; justify-content: center; margin: 1rem auto 0; }
 .landing-page .landing-flow-step { display: flex; align-items: center; }
 .landing-page .landing-flow-control {

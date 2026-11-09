@@ -1,45 +1,56 @@
-import { CheckCircle2, ReceiptText } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Check, CheckCircle2, ReceiptText, RotateCcw, Utensils, House, Plane } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import usdcLogo from "@/assets/tokens/usdc.png.asset.json";
 
-const ROWS = [
-  { name: "Maya", note: "Groceries", amount: "+24.50", ok: true },
-  { name: "Leo", note: "Rent · Nov", amount: "-412.00", ok: true },
-  { name: "Ava", note: "Dinner split", amount: "+18.75", ok: false },
+const EXAMPLES = [
+  { label: "Dinner", total: 120, icon: Utensils },
+  { label: "Rent", total: 1800, icon: House },
+  { label: "Trip", total: 480, icon: Plane },
 ];
 
-/** Illustrative ledger, isolated from live wallet balances. */
+/** Interactive illustration only — never writes wallet or contract state. */
 export function HeroProduct() {
+  const [example, setExample] = useState(0);
+  const [stage, setStage] = useState<"bill" | "split" | "receipt">("bill");
+  const selected = EXAMPLES[example];
+  const share = selected.total / 3;
   return (
-    <div className="hero-product-stage" aria-hidden="true">
-      <div className="hero-product">
-        <div className="hero-product-heading flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ReceiptText className="h-4 w-4 text-brand" />
-            <span className="text-xs font-semibold text-foreground">Apartment 4B</span>
+    <div className="hero-product-stage hero-experience" aria-label="Interactive settlement example">
+      <div className="hero-product" data-stage={stage}>
+        <div className="hero-product-heading flex items-center justify-between gap-3">
+          <div className="hero-example-tabs flex gap-1" aria-label="Example expenses">
+            {EXAMPLES.map((item, index) => <Button key={item.label} variant="ghost" size="sm" aria-pressed={example === index} onClick={() => { setExample(index); setStage("bill"); }}><item.icon className="h-3.5 w-3.5" />{item.label}</Button>)}
           </div>
-          <span className="text-[10px] font-medium text-muted-foreground">Example workspace</span>
+          <span className="text-[10px] font-medium text-muted-foreground">Interactive example</span>
         </div>
-        <div className="hero-product-ledger">
-        <div className="hero-product-balance">
-        <p className="text-[11px] font-medium text-muted-foreground">Shared balance</p>
-        <p className="hero-product-total mt-2 font-display text-4xl font-semibold text-foreground">
-          2,480.<span className="text-muted-foreground">00</span>
-        </p>
-        <p className="hero-product-asset mt-2 flex items-center gap-2 text-xs font-medium text-muted-foreground"><img src={usdcLogo.url} alt="" className="h-6 w-6" /> USDC <span className="text-border">/</span> On Arc</p>
+        <div className="hero-example-body">
+          <div className="hero-example-amount">
+            <p className="text-xs text-muted-foreground">{stage === "receipt" ? "Everyone’s square" : `${selected.label} for three`}</p>
+            <p className="hero-example-total font-display font-semibold tabular-nums">{selected.total.toLocaleString()}<span>.00</span></p>
+            <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground"><img src={usdcLogo.url} alt="USDC" className="h-6 w-6" /> USDC</p>
+            <div className="hero-example-people" aria-hidden="true"><span>Y</span><span>M</span><span>L</span></div>
+          </div>
+          <div className="hero-example-result" aria-live="polite">
+            {stage === "receipt" ? <div className="hero-mini-receipt" key="receipt">
+              <div className="flex items-center justify-between"><ReceiptText className="h-5 w-5" /><span className="hero-receipt-stamp"><CheckCircle2 className="h-4 w-4" /> ALL SQUARE</span></div>
+              <p className="mt-4 font-display text-lg font-semibold">Good times. No loose ends.</p>
+              <div className="mt-4 flex justify-between border-t border-dashed border-border pt-3 text-xs"><span>3 people · {selected.label}</span><span>{selected.total}.00 USDC</span></div>
+              <p className="mt-3 text-[10px] text-muted-foreground">Example receipt · No funds moved</p>
+            </div> : <ul className="hero-example-shares" key={stage}>
+              {["You", "Maya", "Leo"].map((name, index) => <li key={name}>
+                <span className="flex items-center gap-2"><span className="hero-share-avatar">{name[0]}</span>{name}</span>
+                <span className="font-display font-semibold tabular-nums">{stage === "bill" ? (index === 0 ? `${selected.total}.00 paid` : "—") : `${share.toFixed(2)} USDC`}</span>
+                {stage === "split" && <Check className="h-4 w-4 text-success" />}
+              </li>)}
+            </ul>}
+          </div>
         </div>
-        <ul className="hero-product-entries">
-          {ROWS.map((r) => (
-            <li key={r.name} className="hero-product-row">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-muted text-xs font-bold text-foreground">{r.name[0]}</span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-semibold text-foreground">{r.name}</span>
-                <span className="block text-xs text-muted-foreground">{r.note}</span>
-              </span>
-              <span className="font-display text-sm font-bold text-foreground">{r.amount}</span>
-              {r.ok ? <CheckCircle2 className="h-4 w-4 text-success" /> : <span className="hero-pending" />}
-            </li>
-          ))}
-        </ul>
+        <div className="hero-example-footer">
+          <div className="hero-example-progress" aria-label={`Step ${stage === "bill" ? 1 : stage === "split" ? 2 : 3} of 3`}><span data-active={stage === "bill"}>01 <span>One bill</span></span><span data-active={stage === "split"}>02 <span>Fair shares</span></span><span data-active={stage === "receipt"}>03 <span>All square</span></span></div>
+          <Button className="rounded-full bg-foreground text-background hover:bg-foreground/90" onClick={() => setStage(stage === "bill" ? "split" : stage === "split" ? "receipt" : "bill")}>
+            {stage === "bill" ? "Split this bill" : stage === "split" ? "Preview settlement" : "Try again"}{stage === "receipt" ? <RotateCcw /> : <ArrowRight />}
+          </Button>
         </div>
       </div>
     </div>
