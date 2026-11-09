@@ -1,4 +1,5 @@
 import { CheckCircle2, ReceiptText } from "lucide-react";
+import usdcLogo from "@/assets/tokens/usdc.png.asset.json";
 
 const ROWS = [
   { name: "Maya", note: "Groceries", amount: "+24.50", ok: true },
@@ -24,7 +25,7 @@ export function HeroProduct() {
         <p className="hero-product-total mt-2 font-display text-4xl font-semibold text-foreground">
           2,480.<span className="text-muted-foreground">00</span>
         </p>
-        <p className="mt-2 text-xs font-medium text-muted-foreground">USDC · On Arc</p>
+        <p className="hero-product-asset mt-2 flex items-center gap-2 text-xs font-medium text-muted-foreground"><img src={usdcLogo.url} alt="" className="h-6 w-6" /> USDC <span className="text-border">/</span> On Arc</p>
         </div>
         <ul className="hero-product-entries">
           {ROWS.map((r) => (

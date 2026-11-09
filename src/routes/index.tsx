@@ -22,12 +22,14 @@ import {
   Layers3,
   Link2,
   LockKeyhole,
+  Menu,
   Network,
   ReceiptText,
   Route as RouteIcon,
   Sparkles,
   Users,
   WalletCards,
+  X,
   Zap,
 } from "lucide-react";
 import {
@@ -42,7 +44,7 @@ import { ThemeToggle } from "@/components/nest/theme-toggle";
 import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
-import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
+import { SplitPlayground, TiltCard } from "@/components/nest/landing-showcase";
 import { LandingMotion } from "@/components/nest/landing-motion";
 import { LandingHeadline } from "@/components/nest/landing-headline";
 import { LandingFlow } from "@/components/nest/landing-flow";
@@ -193,6 +195,7 @@ function useEnterApp() {
 
 function Landing() {
   const environment = useArcEnvironment();
+  const [menuOpen, setMenuOpen] = useState(false);
   const { enter, error: connectIssue, pending: connecting, dialog } = useEnterApp();
 
   useEffect(() => {
@@ -217,6 +220,7 @@ function Landing() {
     if (!target) return;
 
     event.preventDefault();
+    setMenuOpen(false);
 
     const header = document.querySelector<HTMLElement>("[data-landing-header]");
     const headerHeight = Math.ceil(header?.getBoundingClientRect().height ?? 0);
@@ -262,6 +266,9 @@ function Landing() {
 
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Button variant="ghost" size="icon" className="lg:hidden" aria-label={menuOpen ? "Close navigation" : "Open navigation"} aria-expanded={menuOpen} aria-controls="landing-mobile-menu" onClick={() => setMenuOpen(!menuOpen)}>
+              {menuOpen ? <X /> : <Menu />}
+            </Button>
             <Button onClick={enter} className="h-10 rounded-full bg-foreground px-4 text-xs text-background hover:bg-foreground/90">
               {connecting ? "Connecting…" : "Launch app"} <ArrowRight />
             </Button>
@@ -269,8 +276,9 @@ function Landing() {
         </div>
 
         <nav
+          id="landing-mobile-menu"
           aria-label="Landing page sections"
-          className="mx-auto flex max-w-7xl snap-x gap-2 overflow-x-auto px-5 pb-3 lg:hidden lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className={`${menuOpen ? "flex" : "hidden"} mx-auto max-w-7xl flex-wrap gap-2 px-5 pb-4 lg:hidden`}
         >
           {NAV_LINKS.map((item) => (
             <a
@@ -296,14 +304,13 @@ function Landing() {
           <div className="landing-lights" aria-hidden="true">
             <LandingMotion />
           </div>
-          <div className="hero-copy relative z-10 mx-auto max-w-6xl px-5 pt-10 text-center sm:pt-12 lg:pt-14">
-            <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+          <div className="hero-copy relative z-10 mx-auto max-w-6xl px-5 text-center">
+            <p className="hero-network inline-flex items-center gap-2 text-[11px] font-semibold text-muted-foreground">
               <span className="h-1.5 w-1.5 rounded-full bg-success" />
               Built on Arc <span className="mx-1 text-border">/</span>
               {environment === "mainnet" ? "Mainnet" : "Testnet"}
             </p>
             <LandingHeadline />
-            <LandingFlow />
             <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-muted-foreground sm:text-base">
               Shared money, beautifully in sync. Track expenses and settle together in USDC on Arc.
             </p>
@@ -317,7 +324,7 @@ function Landing() {
             </div>
             {connectIssue && <p role="alert" className="mx-auto mt-3 max-w-lg text-xs font-semibold text-brand">{connectIssue}</p>}
           </div>
-          <div className="relative z-10 mx-auto mt-9 max-w-4xl px-5"><HeroProduct /></div>
+          <div className="hero-preview relative z-10 mx-auto max-w-4xl px-5"><HeroProduct /></div>
           <div className="hero-caption relative z-10 mx-auto mt-6 flex max-w-4xl items-center justify-between px-6 pb-7 text-[10px] font-medium text-muted-foreground sm:text-xs">
             <span className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" /> Your wallet. Your money.</span>
             <span className="flex items-center gap-2"><CircleDollarSign className="h-3.5 w-3.5 text-info" /> Native USDC</span>
@@ -337,8 +344,6 @@ function Landing() {
           </dl>
         </section>
 
-        <TokenMarquee />
-
         <section id="try" className="scroll-mt-32 px-5 py-24 sm:scroll-mt-24 sm:py-32 lg:px-8">
           <div className="mx-auto max-w-7xl">
             <Reveal>
@@ -355,6 +360,7 @@ function Landing() {
                 title="Good company. Clear balances."
                 body="A shared view of every expense, every share, and every payment. Less chasing. More living."
               />
+              <LandingFlow />
             </Reveal>
 
             <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">

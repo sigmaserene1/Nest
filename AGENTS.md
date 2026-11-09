@@ -20,3 +20,4 @@
 - Expressive landing lighting and hero color overrides are scoped under `.landing-page`/`.landing-hero`; shared app tokens remain untouched to isolate marketing presentation from financial screens.
 - Live landing color washes use a browser-mounted canvas with capped pixel density and frame rate, pausing offscreen, in hidden tabs and for reduced motion to keep sign-in responsive.
 - Landing headline pointer and touch effects stay in a dedicated browser-safe component; animate only lettering, not page wrappers, to preserve viewport overlays.
+- Landing phone navigation uses an accessible expandable menu to preserve first-screen space; all section links remain available without changing app navigation.
