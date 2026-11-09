@@ -44,7 +44,7 @@ import { ThemeToggle } from "@/components/nest/theme-toggle";
 import { useArcEnvironment } from "@/lib/arc-network";
 import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { Button } from "@/components/ui/button";
-import { SplitPlayground, TiltCard, TokenMarquee } from "@/components/nest/landing-showcase";
+import { SplitPlayground, TiltCard } from "@/components/nest/landing-showcase";
 import { LandingMotion } from "@/components/nest/landing-motion";
 import { LandingHeadline } from "@/components/nest/landing-headline";
 import { LandingFlow } from "@/components/nest/landing-flow";
