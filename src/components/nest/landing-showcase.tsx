@@ -1,5 +1,6 @@
 import { useRef, useState, type PointerEvent, type ReactNode } from "react";
 import { Check, Minus, Plus, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 /** Pointer-driven 3D tilt. Transforms only — GPU composited, no React re-render per move. */
 export function TiltCard({ children, className = "" }: { children: ReactNode; className?: string }) {
@@ -69,7 +70,7 @@ export function SplitPlayground({ onLaunch }: { onLaunch: () => void }) {
           <span className="font-quote font-normal italic text-brand">seconds.</span>
         </h2>
         <p className="mt-5 max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
-          Drag the amount, add friends, and watch every share update instantly — the same math Nest settles onchain in USDC.
+          From dinner plans to shared rent. One bill, fair shares, everyone square.
         </p>
 
         <div className="landing-split-controls mt-8 space-y-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
@@ -86,21 +87,21 @@ export function SplitPlayground({ onLaunch }: { onLaunch: () => void }) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-muted-foreground">People</span>
             <div className="flex items-center gap-3">
-              <button aria-label="Remove person" onClick={() => { setPeople((p) => Math.max(2, p - 1)); setSettled(false); }} className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background transition active:scale-90 hover:border-brand/40"><Minus className="h-4 w-4" /></button>
+              <Button variant="outline" size="icon" disabled={people === 2} aria-label="Remove person" onClick={() => { setPeople((p) => Math.max(2, p - 1)); setSettled(false); }} className="h-11 w-11 rounded-full"><Minus className="h-4 w-4" /></Button>
               <span className="w-6 text-center font-mono text-lg font-bold">{people}</span>
-              <button aria-label="Add person" onClick={() => { setPeople((p) => Math.min(6, p + 1)); setSettled(false); }} className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background transition active:scale-90 hover:border-brand/40"><Plus className="h-4 w-4" /></button>
+              <Button variant="outline" size="icon" disabled={people === 6} aria-label="Add person" onClick={() => { setPeople((p) => Math.min(6, p + 1)); setSettled(false); }} className="h-11 w-11 rounded-full"><Plus className="h-4 w-4" /></Button>
             </div>
           </div>
-          <button
+          <Button
             onClick={() => setSettled(true)}
             className="w-full rounded-full bg-foreground py-3 text-sm font-bold text-background transition active:scale-[0.98] hover:bg-foreground/90"
           >
             {settled ? "Settled ✓ — now do it for real" : "Simulate settle"}
-          </button>
+          </Button>
           {settled && (
-            <button onClick={onLaunch} className="w-full text-center text-xs font-bold text-brand hover:underline">
+            <Button variant="link" onClick={onLaunch} className="w-full text-center text-xs font-bold text-brand hover:underline">
               Launch Nest and settle on Arc →
-            </button>
+            </Button>
           )}
         </div>
       </div>
