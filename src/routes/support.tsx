@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Fuel, LifeBuoy, SearchCheck } from "lucide-react";
 import { PublicShell } from "@/components/nest/public-shell";
 
@@ -75,9 +75,9 @@ function SupportPage() {
         </section>
 
         <div className="mt-6 flex flex-wrap gap-2">
-          <Link to="/docs" className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold hover:bg-muted">
+          <a href="https://docs.nestarc.xyz/" className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold hover:bg-muted">
             Read Nest docs
-          </Link>
+          </a>
         </div>
       </main>
     </PublicShell>

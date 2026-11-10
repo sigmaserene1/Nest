@@ -22,9 +22,9 @@ export function PublicShell({
             <NestLogo />
           </Link>
           <nav className="hidden items-center gap-6 text-xs font-semibold text-muted-foreground sm:flex">
-            <Link to="/docs" className="transition-colors hover:text-foreground">
+            <a href="https://docs.nestarc.xyz/" className="transition-colors hover:text-foreground">
               Docs
-            </Link>
+            </a>
             <Link to="/support" className="transition-colors hover:text-foreground">
               Support
             </Link>
@@ -70,7 +70,7 @@ export function PublicShell({
             </div>
           </div>
           <div className="flex max-w-lg flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-muted-foreground sm:justify-end">
-            <Link to="/docs" className="hover:text-foreground">Docs</Link>
+            <a href="https://docs.nestarc.xyz/" className="hover:text-foreground">Docs</a>
             <Link to="/guides/split-expenses-with-friends" className="hover:text-foreground">Splitting guide</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>

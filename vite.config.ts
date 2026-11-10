@@ -18,6 +18,7 @@ export default defineConfig({
     server: { entry: "server" },
   },
   vite: {
+    server: { allowedHosts: ["docs.nestarc.xyz", "nestarc.xyz", "www.nestarc.xyz"] },
     // Circle App Kit includes Solana-capable dependencies even when Nest is
     // using only an EVM Arc adapter. Cloudflare/TanStack SSR does not provide
     // rpc-websockets' "browser"/"node" export conditions, so resolve that
