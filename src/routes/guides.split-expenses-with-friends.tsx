@@ -234,12 +234,12 @@ function SplitExpensesGuide() {
             >
               Launch Nest <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link
-              to="/docs"
+            <a
+              href="https://docs.nestarc.xyz/"
               className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-6 py-3 text-sm font-bold transition-colors hover:bg-muted"
             >
               Read the docs
-            </Link>
+            </a>
           </div>
         </section>
       </article>

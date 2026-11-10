@@ -259,9 +259,9 @@ function Landing() {
                 {item.label}
               </a>
             ))}
-            <Link to="/docs" className="transition-colors hover:text-foreground">
+            <a href="https://docs.nestarc.xyz/" className="transition-colors hover:text-foreground">
               Docs
-            </Link>
+            </a>
           </nav>
 
           <div className="flex items-center gap-2">
@@ -290,12 +290,12 @@ function Landing() {
               {item.label}
             </a>
           ))}
-          <Link
-            to="/docs"
+          <a
+            href="https://docs.nestarc.xyz/"
             className="shrink-0 snap-start rounded-full border border-border bg-card/80 px-3.5 py-2 text-[11px] font-bold text-muted-foreground shadow-sm transition-colors hover:border-brand/35 hover:text-foreground"
           >
             Docs
-          </Link>
+          </a>
         </nav>
       </header>
 
@@ -319,7 +319,7 @@ function Landing() {
                 {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight />
               </Button>
               <Button asChild variant="outline" className="h-12 rounded-full border-border bg-background/80 px-5 text-foreground hover:bg-card hover:text-foreground">
-                <Link to="/docs"><BookOpen /> Explore docs</Link>
+                <a href="https://docs.nestarc.xyz/"><BookOpen /> Explore docs</a>
               </Button>
             </div>
             {connectIssue && <p role="alert" className="mx-auto mt-3 max-w-lg text-xs font-semibold text-brand">{connectIssue}</p>}
@@ -567,7 +567,7 @@ function Landing() {
                     {connecting ? "Connecting…" : "Launch Nest"} <ArrowRight />
                   </Button>
                   <Button asChild size="lg" variant="outline" className="rounded-full">
-                    <Link to="/docs">Docs <BookOpen /></Link>
+                    <a href="https://docs.nestarc.xyz/">Docs <BookOpen /></a>
                   </Button>
                 </div>
               </div>
@@ -590,7 +590,7 @@ function Landing() {
           </div>
           <div className="flex max-w-xl flex-wrap gap-x-5 gap-y-3 text-xs font-semibold text-muted-foreground sm:justify-end">
             <Button variant="link" onClick={enter} className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground">App</Button>
-            <Link to="/docs" className="hover:text-foreground">Docs</Link>
+            <a href="https://docs.nestarc.xyz/" className="hover:text-foreground">Docs</a>
             <Link to="/guides/split-expenses-with-friends" className="hover:text-foreground">Splitting guide</Link>
             <Link to="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link to="/terms" className="hover:text-foreground">Terms</Link>
