@@ -21,4 +21,4 @@
 - Live landing color washes use a browser-mounted canvas with capped pixel density and frame rate, pausing offscreen, in hidden tabs and for reduced motion to keep sign-in responsive.
 - Landing headline pointer and touch effects stay in a dedicated browser-safe component; animate only lettering, not page wrappers, to preserve viewport overlays.
 - Landing phone navigation uses an accessible expandable menu to preserve first-screen space; all section links remain available without changing app navigation.
-- Docs uses hostname-aware router input/output rewrites and permanent legacy-address redirects; this keeps one documentation implementation at the subdomain root with consistent SSR and browser navigation.
+- Documentation lives in a separate project; use external Docs links and keep /docs redirect-only with permanent server redirects and browser navigation fallback, never hostname router rewrites.

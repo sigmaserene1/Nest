@@ -1,18 +1,18 @@
 import { describe, expect, test } from "bun:test";
-import { docsInputUrl, docsOutputUrl, docsRedirectUrl } from "./docs-domain.ts";
+import { docsRedirectUrl } from "./docs-domain.ts";
 
 describe("Docs subdomain", () => {
-  test("serves Docs at docs.nestarc.xyz without changing the main homepage", () => {
-    expect(docsInputUrl(new URL("https://docs.nestarc.xyz/"))?.pathname).toBe("/docs");
-    expect(docsInputUrl(new URL("https://nestarc.xyz/"))).toBeUndefined();
-  });
   test("replaces the old Docs address while retaining topic links", () => {
     expect(docsRedirectUrl(new URL("https://nestarc.xyz/docs?topic=pay#pay"))).toBe("https://docs.nestarc.xyz/?topic=pay#pay");
     expect(docsRedirectUrl(new URL("https://www.nestarc.xyz/docs/"))).toBe("https://docs.nestarc.xyz/");
-    expect(docsRedirectUrl(new URL("http://localhost:8080/docs"))).toBeUndefined();
   });
-  test("keeps Docs navigation at the root and sends app links to the main site", () => {
-    expect(docsOutputUrl(new URL("https://docs.nestarc.xyz/docs#network"))?.href).toBe("https://docs.nestarc.xyz/#network");
-    expect(docsOutputUrl(new URL("https://docs.nestarc.xyz/app"))?.href).toBe("https://nestarc.xyz/app");
+  test("redirects preview and local Docs addresses to the separate project", () => {
+    expect(docsRedirectUrl(new URL("http://localhost:8080/docs"))).toBe("https://docs.nestarc.xyz/");
+    expect(docsRedirectUrl(new URL("https://id-preview--96ea8a7a-fdb1-4f39-8c43-82fb861fc17e.lovable.app/docs#network"))).toBe("https://docs.nestarc.xyz/#network");
+  });
+  test("leaves the homepage and app untouched and does not loop at the Docs root", () => {
+    for (const url of ["https://nestarc.xyz/", "https://nestarc.xyz/app", "https://docs.nestarc.xyz/"]) {
+      expect(docsRedirectUrl(new URL(url))).toBeUndefined();
+    }
   });
 });

@@ -2,7 +2,8 @@
 
 ## Current
 - [x] Prepare Docs at docs.nestarc.xyz, update links and permanently redirect the old address; three tests and phone/desktop subdomain checks pass.
-- [ ] Activate the Docs subdomain publicly — blocked until the owner selects Unset as primary in Settings → Domains and publishes.
+- [x] Move Docs to a separate project — owner confirmed the move; the subdomain is no longer connected here.
+- [x] Remove local Docs content and hostname rewrites; first-tap external navigation, permanent legacy redirect and three regression tests pass.
 - [x] Modernize landing typography, composition and product preview; verified phone/tablet/desktop in both themes, navigation, live/reduced motion and bill-preview-to-sign-in flow.
 - [x] Restyle the landing headline with staggered typography and a flowing accent underline; verified phone and desktop in both themes, reduced motion and launch popup.
 - [x] Refine landing hierarchy and simplify its illustrative ledger; verified phone, tablet and desktop in both themes, no overflow or browser errors, and launch popup opens.
