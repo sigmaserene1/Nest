@@ -48,6 +48,7 @@ import { SplitPlayground, TiltCard } from "@/components/nest/landing-showcase";
 import { LandingMotion } from "@/components/nest/landing-motion";
 import { LandingHeadline } from "@/components/nest/landing-headline";
 import { LandingFlow } from "@/components/nest/landing-flow";
+import { FeatureVisual } from "@/components/nest/feature-visuals";
 
 const NAV_LINKS = [
   { label: "Try it", href: "#try" },
@@ -334,11 +335,11 @@ function Landing() {
         <section aria-label="Protocol facts" className="border-y border-border bg-card/60">
           <dl className="mx-auto grid max-w-7xl grid-cols-2 divide-x divide-y divide-border px-5 sm:grid-cols-4 sm:divide-y-0 lg:px-8">
             {PROOF.map((item) => (
-              <div key={item.label} className="px-4 py-6 text-center">
+              <div key={item.label} className="stat-cell px-4 py-8 text-center">
                 <dt className="text-[10px] font-bold uppercase tracking-[0.18em] text-muted-foreground">
                   {item.label}
                 </dt>
-                <dd className="mt-2 font-display text-lg font-bold sm:text-xl">{item.value}</dd>
+                <dd className="stat-value mt-2 font-display text-2xl font-bold tracking-tight sm:text-4xl">{item.value}</dd>
               </div>
             ))}
           </dl>
@@ -363,9 +364,9 @@ function Landing() {
               <LandingFlow />
             </Reveal>
 
-            <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-6">
               {CAPABILITIES.map((feature, index) => (
-                <Reveal key={feature.title} delay={(index % 3) * 60}>
+                <Reveal key={feature.title} delay={(index % 3) * 60} className={BENTO[index]}>
                   <FeatureCard feature={feature} index={index + 1} />
                 </Reveal>
               ))}
@@ -631,23 +632,27 @@ function SectionHeading({
   );
 }
 
+const BENTO = ["lg:col-span-4", "lg:col-span-2", "lg:col-span-2", "lg:col-span-4", "lg:col-span-3", "lg:col-span-3"];
+
 function FeatureCard({ feature, index }: { feature: Capability; index: number }) {
   return (
-    <TiltCard className="h-full rounded-lg">
-    <article className="protocol-card landing-card group relative flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card p-7">
-      <div className="feature-card-heading">
-      <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110">
-        <feature.icon className="h-5 w-5" />
-      </span>
-      <span aria-hidden className="font-mono text-xs text-muted-foreground">{String(index).padStart(2, "0")}</span>
-      </div>
-      <h3 className="relative mt-6 text-xl">{feature.title}</h3>
-      <p className="relative mt-3 text-sm leading-6 text-muted-foreground">{feature.body}</p>
-      <div className="feature-card-proof relative flex items-center gap-2 text-xs font-medium text-muted-foreground">
-        <Check className="h-3.5 w-3.5 shrink-0 text-brand" />
-        {feature.proof}
-      </div>
-    </article>
+    <TiltCard className="h-full rounded-2xl">
+      <article className="bento-card group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card p-6 sm:p-7">
+        <div className="bento-visual relative mb-6 rounded-xl border border-border p-4">
+          <FeatureVisual index={index - 1} />
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand transition-transform duration-300 group-hover:scale-110">
+            <feature.icon className="h-4 w-4" />
+          </span>
+          <h3 className="text-lg font-semibold sm:text-xl">{feature.title}</h3>
+        </div>
+        <p className="mt-3 text-sm leading-6 text-muted-foreground">{feature.body}</p>
+        <div className="mt-auto flex items-center gap-2 pt-5 text-xs font-semibold text-foreground/80">
+          <Check className="h-3.5 w-3.5 shrink-0 text-success" />
+          {feature.proof}
+        </div>
+      </article>
     </TiltCard>
   );
 }
