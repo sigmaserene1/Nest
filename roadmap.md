@@ -1,6 +1,7 @@
 # Roadmap
 
 ## Current
+- [x] Modernize landing example tables and cards with aligned amounts, clearer member rows and consistent surfaces; phone/tablet/desktop checks pass in both themes, including receipt previews and launch popup.
 - [x] Prepare Docs at docs.nestarc.xyz, update links and permanently redirect the old address; three tests and phone/desktop subdomain checks pass.
 - [x] Move Docs to a separate project — owner confirmed the move; the subdomain is no longer connected here.
 - [x] Remove local Docs content and hostname rewrites; first-tap external navigation, permanent legacy redirect and three regression tests pass.

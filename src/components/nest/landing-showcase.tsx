@@ -106,15 +106,17 @@ export function SplitPlayground({ onLaunch }: { onLaunch: () => void }) {
         </div>
       </div>
 
-      <TiltCard className="rounded-3xl border border-border bg-card p-7 shadow-elevated">
+      <TiltCard className="landing-ledger rounded-lg border border-border bg-card p-7 shadow-elevated">
         <div className="flex items-center justify-between">
-          <p className="font-mono text-[11px] font-bold uppercase tracking-[0.16em] text-muted-foreground">Dinner · Room #42</p>
-          <span className="rounded-full bg-success/15 px-2.5 py-1 text-[10px] font-bold text-success">Arc</span>
+          <p className="text-sm font-semibold">Dinner with friends</p>
+          <span className="ledger-status" data-settled={settled}><span />{settled ? "Example settled" : "Split preview"}</span>
         </div>
+        <p className="mt-6 text-xs text-muted-foreground">Total expense</p>
         <p className="mt-5 font-display text-5xl font-bold tabular-nums">{amount.toFixed(2)}<span className="ml-2 text-lg text-muted-foreground">USDC</span></p>
-        <ul className="mt-7 space-y-2.5">
+        <div className="ledger-columns"><span>Member</span><span>Net balance · USDC</span></div>
+        <ul className="ledger-rows">
           {NAMES.slice(0, people).map((n, i) => (
-            <li key={n} className="split-row flex items-center justify-between rounded-xl border border-border bg-background/70 px-4 py-3" style={{ animationDelay: `${i * 40}ms` }}>
+            <li key={n} className="split-row flex items-center justify-between gap-2" style={{ animationDelay: `${i * 40}ms` }}>
               <span className="flex items-center gap-3 text-sm font-semibold">
                 <span className="grid h-8 w-8 place-items-center rounded-full bg-brand-soft text-xs font-bold text-brand">{n[0]}</span>
                 {n}{i === 0 && <span className="text-[10px] font-bold uppercase text-muted-foreground">paid</span>}
@@ -126,7 +128,7 @@ export function SplitPlayground({ onLaunch }: { onLaunch: () => void }) {
             </li>
           ))}
         </ul>
-        <div className="mt-6 flex items-center justify-between border-t border-dashed border-border pt-4 text-xs font-semibold text-muted-foreground">
+        <div className="ledger-summary flex items-center justify-between text-xs font-semibold text-muted-foreground">
           <span>Each share</span>
           <span className="font-mono text-base font-bold text-foreground">{share.toFixed(2)} USDC</span>
         </div>

@@ -22,14 +22,14 @@ export function HeroProduct() {
           <div className="hero-example-tabs flex gap-1" aria-label="Example expenses">
             {EXAMPLES.map((item, index) => <Button key={item.label} variant="ghost" size="sm" aria-pressed={example === index} onClick={() => { setExample(index); setStage("bill"); }}><item.icon className="h-3.5 w-3.5" />{item.label}</Button>)}
           </div>
-          <span className="text-[10px] font-medium text-muted-foreground">Interactive example</span>
+          <span className="hero-example-label"><span />Example workspace</span>
         </div>
         <div className="hero-example-body">
           <div className="hero-example-amount">
             <p className="text-xs text-muted-foreground">{stage === "receipt" ? "Everyone’s square" : `${selected.label} for three`}</p>
             <p className="hero-example-total font-display font-semibold tabular-nums">{selected.total.toLocaleString()}<span>.00</span></p>
             <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground"><img src={usdcLogo.url} alt="USDC" className="h-6 w-6" /> USDC</p>
-            <div className="hero-example-people" aria-hidden="true"><span>Y</span><span>M</span><span>L</span></div>
+            <p className="hero-example-members"><span className="hero-example-people" aria-hidden="true"><span>Y</span><span>M</span><span>L</span></span>3 members</p>
           </div>
           <div className="hero-example-result" aria-live="polite">
             {stage === "receipt" ? <div className="hero-mini-receipt" key="receipt">
@@ -37,13 +37,14 @@ export function HeroProduct() {
               <p className="mt-4 font-display text-lg font-semibold">Good times. No loose ends.</p>
               <div className="mt-4 flex justify-between border-t border-dashed border-border pt-3 text-xs"><span>3 people · {selected.label}</span><span>{selected.total}.00 USDC</span></div>
               <p className="mt-3 text-[10px] text-muted-foreground">Example receipt · No funds moved</p>
-            </div> : <ul className="hero-example-shares" key={stage}>
-              {["You", "Maya", "Leo"].map((name, index) => <li key={name}>
-                <span className="flex items-center gap-2"><span className="hero-share-avatar">{name[0]}</span>{name}</span>
-                <span className="font-display font-semibold tabular-nums">{stage === "bill" ? (index === 0 ? `${selected.total}.00 paid` : "—") : `${share.toFixed(2)} USDC`}</span>
-                {stage === "split" && <Check className="h-4 w-4 text-success" />}
-              </li>)}
-            </ul>}
+            </div> : <table className="hero-example-shares" key={stage}>
+              <caption className="sr-only">{selected.label} example member allocations in USDC</caption>
+              <thead><tr><th scope="col">Member</th><th scope="col">{stage === "bill" ? "Paid · USDC" : "Share · USDC"}</th></tr></thead>
+              <tbody>{["You", "Maya", "Leo"].map((name, index) => <tr key={name}>
+                <th scope="row"><span className="hero-member"><span className="hero-share-avatar">{name[0]}</span><span>{name}<small>{index === 0 ? "Expense payer" : "Member"}</small></span></span></th>
+                <td><span className="hero-share-value">{stage === "bill" ? (index === 0 ? selected.total.toFixed(2) : "—") : share.toFixed(2)}{stage === "split" && <Check className="h-3.5 w-3.5 text-success" />}</span></td>
+              </tr>)}</tbody>
+            </table>}
           </div>
         </div>
         <div className="hero-example-footer">

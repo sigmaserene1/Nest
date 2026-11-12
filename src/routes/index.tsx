@@ -634,20 +634,17 @@ function SectionHeading({
 function FeatureCard({ feature, index }: { feature: Capability; index: number }) {
   return (
     <TiltCard className="h-full rounded-lg">
-    <article className="protocol-card group relative h-full overflow-hidden rounded-lg border border-border bg-card p-7 shadow-sm">
-      <div
-        aria-hidden
-        className="absolute right-5 top-4 font-display text-5xl font-bold text-muted/60 transition-colors group-hover:text-brand-soft"
-      >
-        {String(index).padStart(2, "0")}
-      </div>
+    <article className="protocol-card landing-card group relative flex h-full flex-col overflow-hidden rounded-lg border border-border bg-card p-7">
+      <div className="feature-card-heading">
       <span className="relative grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-110">
         <feature.icon className="h-5 w-5" />
       </span>
+      <span aria-hidden className="font-mono text-xs text-muted-foreground">{String(index).padStart(2, "0")}</span>
+      </div>
       <h3 className="relative mt-6 text-xl">{feature.title}</h3>
       <p className="relative mt-3 text-sm leading-6 text-muted-foreground">{feature.body}</p>
-      <div className="relative mt-6 flex items-center gap-2 text-[11px] font-bold text-foreground">
-        <span className="h-px w-6 bg-brand" />
+      <div className="feature-card-proof relative flex items-center gap-2 text-xs font-medium text-muted-foreground">
+        <Check className="h-3.5 w-3.5 shrink-0 text-brand" />
         {feature.proof}
       </div>
     </article>
