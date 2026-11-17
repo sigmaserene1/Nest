@@ -1,6 +1,10 @@
 # Roadmap
 
 ## Current
+- [ ] Audit Arc Mainnet/Testnet contracts, wallet services and every financial flow; record evidence and blockers.
+- [ ] Implement safe network-isolation, transaction-confirmation and sponsorship fixes with regression tests.
+- [ ] Prepare production deployment instructions and final verification report; run available checks.
+- [ ] Verify funded Mainnet writes and hosted Circle sponsorship — requires authorized transactions and provider-policy access.
 - [x] Modernize landing example tables and cards with aligned amounts, clearer member rows and consistent surfaces; phone/tablet/desktop checks pass in both themes, including receipt previews and launch popup.
 - [x] Prepare Docs at docs.nestarc.xyz, update links and permanently redirect the old address; three tests and phone/desktop subdomain checks pass.
 - [x] Move Docs to a separate project — owner confirmed the move; the subdomain is no longer connected here.

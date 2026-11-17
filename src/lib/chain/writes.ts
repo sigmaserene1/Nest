@@ -11,6 +11,7 @@ import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
 import { useNestChain } from "./nest-chain";
 import { PRIVY_CONNECTOR_ID, getPrivyGasGrantAccessToken } from "@/lib/privy-wallet-session";
 import { fundFirstWorkspaceGas } from "@/lib/onboarding-gas.functions";
+import { assertContractDeployment, assertSelectedWalletNetwork } from "./transaction-safety";
 
 export type TxStep = (label: string) => void;
 
@@ -42,7 +43,9 @@ export function useNestWrites() {
     async (functionName: string, args: readonly unknown[]) => {
       const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
-      const hash = await walletClient.writeContract({
+      await assertSelectedWalletNetwork(walletClient, environment);
+      await assertContractDeployment(publicClient, environment, contract);
+      const simulation = await publicClient.simulateContract({
         address: contract,
         abi: EXPENSE_MANAGER_ABI,
         functionName: functionName as never,
@@ -50,12 +53,13 @@ export function useNestWrites() {
         account: address,
         chain: arcChain,
       });
+      const hash = await walletClient.writeContract({ ...simulation.request, chain: arcChain });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Transaction reverted onchain.");
       await refresh();
       return hash;
     },
-    [requireEnv, requireContract, refresh],
+    [requireEnv, requireContract, refresh, environment, arcChain],
   );
 
   /** Approves the ExpenseManager to move `needed` USDC base units, when the allowance is short. */
@@ -63,6 +67,8 @@ export function useNestWrites() {
     async (needed: bigint, onStep?: TxStep) => {
       const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
+      await assertSelectedWalletNetwork(walletClient, environment);
+      await assertContractDeployment(publicClient, environment, contract);
       const blockNumber = await publicClient.getBlockNumber();
       const current = (await publicClient.readContract({
         address: USDC_ADDRESS,
@@ -97,7 +103,7 @@ export function useNestWrites() {
         throw new Error("USDC approval has not finalized yet. Please try settlement again.");
       }
     },
-    [requireEnv, requireContract],
+    [requireEnv, requireContract, environment, arcChain],
   );
 
   const ensureAllowance = useCallback(
@@ -140,6 +146,9 @@ export function useNestWrites() {
   const addExpense = useCallback(
     (input: { title: string; category: string; amount: number; participants: string[] }) => {
       if (!roomId) throw new Error("No active home.");
+      if (!Number.isFinite(input.amount) || input.amount <= 0 || input.participants.length === 0) {
+        throw new Error("Enter a positive expense amount and at least one participant.");
+      }
       const total = toUnits(input.amount);
       const n = BigInt(input.participants.length);
       const base = total / n;
@@ -162,6 +171,8 @@ export function useNestWrites() {
       if (!roomId) throw new Error("No active home.");
       const { walletClient, address, publicClient } = requireEnv();
       const contract = requireContract();
+      await assertSelectedWalletNetwork(walletClient, environment);
+      await assertContractDeployment(publicClient, environment, contract);
       // settleWith clears *every* open share, so the contract moves the exact
       // base-unit total from owedBetween — never the rounded UI number.
       const blockNumber = await publicClient.getBlockNumber();
@@ -186,13 +197,14 @@ export function useNestWrites() {
       });
 
       onStep?.("Sending USDC…");
-      const hash = await walletClient.writeContract(simulation.request);
+      await assertSelectedWalletNetwork(walletClient, environment);
+      const hash = await walletClient.writeContract({ ...simulation.request, chain: arcChain });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Settlement reverted onchain.");
       await refresh();
       return hash;
     },
-    [roomId, ensureAllowanceUnits, requireEnv, requireContract, refresh],
+    [roomId, ensureAllowanceUnits, requireEnv, requireContract, refresh, environment, arcChain],
   );
 
   /** Settles one specific expense share. */

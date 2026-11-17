@@ -20,6 +20,7 @@ import { AppShell, Card } from "@/components/nest/app-shell";
 import { NEST_TREASURY_V3_ABI } from "@/contracts/nest-treasury-v3-artifact";
 import { ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
+import { assertContractDeployment, assertSelectedWalletNetwork } from "@/lib/chain/transaction-safety";
 
 const moduleKeys = ["deposit", "proposal", "recurring", "milestone", "budget"] as const;
 type Module = (typeof moduleKeys)[number];
@@ -158,21 +159,24 @@ function TreasuryPage() {
     if (!treasuryAddress) throw new Error("Treasury V3 is not deployed for this Arc network yet.");
     if (!address || !walletClient || !publicClient) throw new Error("Connect your Arc wallet first.");
     if (!selectedId) throw new Error("Create or select a Treasury workspace first.");
-    return { account: address, walletClient, publicClient, workspaceId: selectedId };
+    return { account: address, walletClient, publicClient, workspaceId: selectedId, treasuryAddress };
   };
 
   const waitWrite = async (label: string, functionName: string, args: readonly unknown[]) => {
     const ctx = requireWrite();
     setBusy(label);
     try {
-      const hash = await ctx.walletClient.writeContract({
-        address: treasuryAddress!,
+      await assertSelectedWalletNetwork(ctx.walletClient, arc.environment);
+      await assertContractDeployment(ctx.publicClient, arc.environment, ctx.treasuryAddress);
+      const simulation = await ctx.publicClient.simulateContract({
+        address: ctx.treasuryAddress,
         abi: NEST_TREASURY_V3_ABI,
         functionName: functionName as never,
         args: args as never,
         account: ctx.account,
         chain: arc.arcChain,
       });
+      const hash = await ctx.walletClient.writeContract({ ...simulation.request, chain: arc.arcChain });
       const receipt = await ctx.publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Transaction reverted on Arc.");
       await workspaceQuery.refetch();
@@ -191,7 +195,9 @@ function TreasuryPage() {
     }
     try {
       setBusy("Creating treasury…");
-      const hash = await walletClient.writeContract({
+      await assertSelectedWalletNetwork(walletClient, arc.environment);
+      await assertContractDeployment(publicClient, arc.environment, treasuryAddress);
+      const simulation = await publicClient.simulateContract({
         address: treasuryAddress,
         abi: NEST_TREASURY_V3_ABI,
         functionName: "createWorkspace",
@@ -199,6 +205,7 @@ function TreasuryPage() {
         account: address,
         chain: arc.arcChain,
       });
+      const hash = await walletClient.writeContract({ ...simulation.request, chain: arc.arcChain });
       const receipt = await publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Workspace creation reverted.");
       setWorkspaceName("");
@@ -216,12 +223,14 @@ function TreasuryPage() {
     if (!Number.isFinite(number) || number <= 0) return toast.error("Enter a positive USDC amount.");
     try {
       const ctx = requireWrite();
+      await assertSelectedWalletNetwork(ctx.walletClient, arc.environment);
+      await assertContractDeployment(ctx.publicClient, arc.environment, ctx.treasuryAddress);
       const units = parseUnits(number.toFixed(6), 6);
       const allowance = (await ctx.publicClient.readContract({
         address: USDC_ADDRESS,
         abi: ERC20_ABI,
         functionName: "allowance",
-        args: [ctx.account, treasuryAddress!],
+        args: [ctx.account, ctx.treasuryAddress],
       })) as bigint;
 
       if (allowance < units) {
@@ -230,11 +239,12 @@ function TreasuryPage() {
           address: USDC_ADDRESS,
           abi: ERC20_ABI,
           functionName: "approve",
-          args: [treasuryAddress!, units],
+          args: [ctx.treasuryAddress, units],
           account: ctx.account,
           chain: arc.arcChain,
         });
-        await ctx.publicClient.waitForTransactionReceipt({ hash: approveHash });
+        const approvalReceipt = await ctx.publicClient.waitForTransactionReceipt({ hash: approveHash });
+        if (approvalReceipt.status !== "success") throw new Error("USDC approval reverted on Arc.");
       }
 
       await waitWrite("Depositing treasury USDC…", "deposit", [ctx.workspaceId, units]);
