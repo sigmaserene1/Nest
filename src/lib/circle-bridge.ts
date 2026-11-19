@@ -120,7 +120,7 @@ export async function estimateCircleBridge(params: {
 }) {
   const fromChain = circleBridgeChainName(params.fromChainId);
   const toChain = circleBridgeChainName(params.toChainId);
-  if (!fromChain || !toChain) throw new Error("Circle App Kit does not support this Arc route.");
+  if (!fromChain || !toChain || !isCircleArcBridgeRoute(params.fromChainId, params.toChainId)) throw new Error("Circle App Kit does not support this Arc route.");
 
   const { kit, adapter } = await buildCircleBridge(params.provider);
   const to = params.recipient
@@ -150,7 +150,7 @@ export async function executeCircleBridge(params: {
 }): Promise<CircleBridgeResult> {
   const fromChain = circleBridgeChainName(params.fromChainId);
   const toChain = circleBridgeChainName(params.toChainId);
-  if (!fromChain || !toChain) throw new Error("Circle App Kit does not support this Arc route.");
+  if (!fromChain || !toChain || !isCircleArcBridgeRoute(params.fromChainId, params.toChainId)) throw new Error("Circle App Kit does not support this Arc route.");
 
   const { kit, adapter } = await buildCircleBridge(params.provider);
 
@@ -183,7 +183,12 @@ export async function executeCircleBridge(params: {
     },
   } as never);
 
-  return result as CircleBridgeResult;
+  const completed = result as CircleBridgeResult;
+  const hashes = circleBridgeHashes(completed);
+  if (String(completed.state).toLowerCase() !== "success" || !hashes.sourceHash || !hashes.destinationHash || completed.steps?.some((step) => String(step.state).toLowerCase() === "error")) {
+    throw new Error("Circle has not confirmed both burn and mint. Check the transfer before retrying.");
+  }
+  return completed;
 }
 
 export function circleBridgeHashes(result: CircleBridgeResult) {
@@ -193,7 +198,7 @@ export function circleBridgeHashes(result: CircleBridgeResult) {
     steps.find((step) => names.includes(String(step.name ?? "").toLowerCase()))?.data?.txHash;
 
   return {
-    sourceHash: hashOf(["burn"]) ?? hashOf(["approve"]),
+    sourceHash: hashOf(["burn"]),
     destinationHash: hashOf(["mint"]),
   };
 }

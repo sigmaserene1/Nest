@@ -22,3 +22,7 @@
 - Landing headline pointer and touch effects stay in a dedicated browser-safe component; animate only lettering, not page wrappers, to preserve viewport overlays.
 - Landing phone navigation uses an accessible expandable menu to preserve first-screen space; all section links remain available without changing app navigation.
 - Documentation lives in a separate project; use external Docs links and keep /docs redirect-only with permanent server redirects and browser navigation fallback, never hostname router rewrites.
+- Financial write boundaries verify the provider's chain and deployed code and simulate before broadcasting; selected-network changes invalidate the prepared action to prevent cross-network writes.
+- Invitation payloads and bridge caches carry the network identity; legacy unversioned invites resolve only to Testnet because both ExpenseManager deployments share a numeric address.
+- Relayer sponsorship uses separate per-network keys, explicit recipient/value/gas policies and defaults off; never reuse the deployment key for a public gas relay.
+- Bridge success requires completed destination delivery evidence; refunded, partial, pending and approval-only results must not become completed receipts.

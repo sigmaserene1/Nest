@@ -19,11 +19,12 @@ const PENDING_INVITE = "nest.invite.pending";
 type PendingInvite = {
   address: `0x${string}`;
   roomId: number;
+  environment?: "testnet" | "mainnet";
 };
 
 function useInviteRoomName(invite: PendingInvite | null) {
   const environment = useArcEnvironment();
-  const chain = arcChainFor(environment);
+  const chain = arcChainFor(invite?.environment ?? environment);
   const query = useReadContract({
     address: invite?.address,
     abi: EXPENSE_MANAGER_ABI,

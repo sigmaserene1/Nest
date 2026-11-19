@@ -7,6 +7,11 @@ on:
         description: "Type DEPLOY_MAINNET to authorize a real Arc Mainnet deployment"
         required: true
         type: string
+      deploy_expense_manager_replacement:
+        description: "Deploy a NEW ExpenseManager (does not migrate existing rooms); normally leave false"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -46,6 +51,7 @@ jobs:
       - run: bun install --frozen-lockfile
 
       - name: Deploy ExpenseManager to Arc Mainnet
+        if: ${{ inputs.deploy_expense_manager_replacement }}
         run: bun scripts/deploy-expense-manager.mjs
 
       - name: Deploy NestBridgeRegistry to Arc Mainnet

@@ -8,6 +8,7 @@ import { z } from "zod";
 import { createPublicClient, createWalletClient, http, formatUnits, parseSignature } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { arcChainFor, ARC_USDC_ADDRESS, type ArcEnvironment } from "@/lib/arc-network";
+import { assertSponsorshipAuthorization, sponsorshipPolicy } from "./gasless-policy";
 
 const TRANSFER_WITH_AUTHORIZATION_ABI = [
   {
@@ -33,8 +34,8 @@ const hex = (len: number) => z.string().regex(new RegExp(`^0x[a-fA-F0-9]{${len}}
 
 const environmentSchema = z.enum(["testnet", "mainnet"]);
 
-function relayerAccount() {
-  const key = (process.env["DEPLOYER_PRIVATE_KEY"] ?? "").trim();
+function relayerAccount(rawKey: string | undefined) {
+  const key = (rawKey ?? "").trim();
   if (!key) return null;
   const normalized = (key.startsWith("0x") ? key : `0x${key}`) as `0x${string}`;
   if (!/^0x[a-fA-F0-9]{64}$/.test(normalized)) return null;
@@ -57,7 +58,9 @@ export const getGaslessStatus = createServerFn({ method: "GET" })
     z.object({ environment: environmentSchema }).parse(data),
   )
   .handler(async ({ data }) => {
-    const account = relayerAccount();
+    const policy = sponsorshipPolicy(data.environment, process.env);
+    if (!policy.enabled) return { available: false as const, reason: "policy-disabled" as const };
+    const account = relayerAccount(data.environment === "mainnet" ? process.env["GASLESS_MAINNET_PRIVATE_KEY"] : process.env["GASLESS_TESTNET_PRIVATE_KEY"]);
     if (!account) return { available: false as const, reason: "not-configured" as const };
     try {
       const { publicClient } = clients(data.environment);
@@ -92,10 +95,13 @@ export const relayGaslessTransfer = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data }) => {
-    const account = relayerAccount();
+    const policy = sponsorshipPolicy(data.environment, process.env);
+    assertSponsorshipAuthorization(policy, data, BigInt(Math.floor(Date.now() / 1000)));
+    const account = relayerAccount(data.environment === "mainnet" ? process.env["GASLESS_MAINNET_PRIVATE_KEY"] : process.env["GASLESS_TESTNET_PRIVATE_KEY"]);
     if (!account) throw new Error("Gas sponsorship is not configured.");
 
     const { chain, publicClient, transport } = clients(data.environment);
+    if ((await publicClient.getChainId()) !== chain.id) throw new Error("Sponsorship RPC network mismatch.");
     const walletClient = createWalletClient({ account, chain, transport });
     const { v, r, s } = parseSignature(data.signature as `0x${string}`);
 
@@ -120,7 +126,9 @@ export const relayGaslessTransfer = createServerFn({ method: "POST" })
       account,
     });
 
-    const hash = await walletClient.writeContract(request);
+    const gas = await publicClient.estimateContractGas(request);
+    if (gas > policy.maxGas) throw new Error("This transaction exceeds the sponsorship gas policy.");
+    const hash = await walletClient.writeContract({ ...request, gas });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success") throw new Error("Sponsored transfer reverted onchain.");
     return { hash, sponsor: account.address };

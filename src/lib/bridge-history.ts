@@ -3,8 +3,9 @@ import type { Address, Hex } from "viem";
 import { useReadContract } from "wagmi";
 import { pullAccountCache, pushAccountCache } from "@/lib/account-cache";
 import { NEST_BRIDGE_REGISTRY_ABI } from "@/contracts/nest-bridge-registry-artifact";
-import { arcChainFor, useArcEnvironment } from "@/lib/arc-network";
+import { arcChainFor, useArcEnvironment, type ArcEnvironment } from "@/lib/arc-network";
 import { useBridgeRegistryAddress } from "@/lib/bridge-registry";
+import { belongsToBridgeEnvironment, bridgeHistoryStorageKey } from "./bridge-history-scope";
 
 export type BridgeHistoryStatus = "pending" | "complete" | "error";
 
@@ -33,29 +34,25 @@ const LEGACY_STORAGE_KEY = "nest.bridge.history";
 const STORAGE_PREFIX = "nest.bridge.history.";
 const MAX_ENTRIES = 100;
 
-function storageKey(owner?: string | null) {
-  return owner ? `${STORAGE_PREFIX}${owner.toLowerCase()}` : null;
-}
-
-function readHistory(owner?: string | null): BridgeHistoryEntry[] {
+function readHistory(owner: string | null | undefined, environment: ArcEnvironment): BridgeHistoryEntry[] {
   if (typeof window === "undefined") return [];
-  const key = storageKey(owner);
+  const key = bridgeHistoryStorageKey(owner, environment);
   if (!key) return [];
   try {
-    const raw = window.localStorage.getItem(key);
+    const raw = window.localStorage.getItem(key) ?? (owner ? window.localStorage.getItem(`${STORAGE_PREFIX}${owner.toLowerCase()}`) : null);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.filter((entry) => belongsToBridgeEnvironment(entry, environment)) : [];
   } catch {
     return [];
   }
 }
 
-function writeHistory(entries: BridgeHistoryEntry[], owner?: string | null) {
+function writeHistory(entries: BridgeHistoryEntry[], owner: string | null | undefined, environment: ArcEnvironment) {
   if (typeof window === "undefined") return;
-  const key = storageKey(owner);
+  const key = bridgeHistoryStorageKey(owner, environment);
   if (!key) return;
-  window.localStorage.setItem(key, JSON.stringify(entries.slice(0, MAX_ENTRIES)));
+  window.localStorage.setItem(key, JSON.stringify(entries.filter((entry) => belongsToBridgeEnvironment(entry, environment)).slice(0, MAX_ENTRIES)));
 }
 
 function mergeHistory(
@@ -168,18 +165,18 @@ export function useBridgeHistory(owner?: string | null) {
   useEffect(() => {
     // Remove the old shared history so wallets never see each other's transfers.
     if (typeof window !== "undefined") window.localStorage.removeItem(LEGACY_STORAGE_KEY);
-    const local = readHistory(owner);
+    const local = readHistory(owner, environment);
     setEntries(local);
     if (!owner) return;
 
     let cancelled = false;
-    void pullAccountCache("global").then((cache) => {
+    void pullAccountCache(environment).then((cache) => {
       if (cancelled || !cache || !Array.isArray(cache.bridgeHistory)) return;
-      const remote = cache.bridgeHistory as BridgeHistoryEntry[];
+      const remote = (cache.bridgeHistory as BridgeHistoryEntry[]).filter((entry) => belongsToBridgeEnvironment(entry, environment));
       setEntries((current) => {
         const next = mergeHistory(current, remote);
-        writeHistory(next, owner);
-        void pushAccountCache("global", { bridgeHistory: next });
+        writeHistory(next, owner, environment);
+        void pushAccountCache(environment, { bridgeHistory: next });
         return next;
       });
     });
@@ -187,47 +184,47 @@ export function useBridgeHistory(owner?: string | null) {
     return () => {
       cancelled = true;
     };
-  }, [owner]);
+  }, [owner, environment]);
 
   useEffect(() => {
     if (!owner || onchainEntries.length === 0) return;
     setEntries((current) => {
       const next = mergeHistory(current, onchainEntries);
-      writeHistory(next, owner);
-      void pushAccountCache("global", { bridgeHistory: next });
+      writeHistory(next, owner, environment);
+      void pushAccountCache(environment, { bridgeHistory: next });
       return next;
     });
-  }, [onchainEntries, owner]);
+  }, [onchainEntries, owner, environment]);
 
   const addEntry = useCallback(
     (entry: BridgeHistoryEntry) => {
       setEntries((previous) => {
         const next = [entry, ...previous].slice(0, MAX_ENTRIES);
-        writeHistory(next, owner);
-        void pushAccountCache("global", { bridgeHistory: next });
+        writeHistory(next, owner, environment);
+        void pushAccountCache(environment, { bridgeHistory: next });
         return next;
       });
     },
-    [owner],
+    [owner, environment],
   );
 
   const updateEntry = useCallback(
     (id: string, patch: Partial<BridgeHistoryEntry>) => {
       setEntries((previous) => {
         const next = previous.map((item) => (item.id === id ? { ...item, ...patch } : item));
-        writeHistory(next, owner);
-        void pushAccountCache("global", { bridgeHistory: next });
+        writeHistory(next, owner, environment);
+        void pushAccountCache(environment, { bridgeHistory: next });
         return next;
       });
     },
-    [owner],
+    [owner, environment],
   );
 
   const clearHistory = useCallback(() => {
-    writeHistory([], owner);
+    writeHistory([], owner, environment);
     setEntries([]);
-    void pushAccountCache("global", { bridgeHistory: [] });
-  }, [owner]);
+    void pushAccountCache(environment, { bridgeHistory: [] });
+  }, [owner, environment]);
 
-  return { entries, addEntry, updateEntry, clearHistory };
+  return { entries: entries.filter((entry) => belongsToBridgeEnvironment(entry, environment)), addEntry, updateEntry, clearHistory };
 }

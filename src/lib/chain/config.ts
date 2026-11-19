@@ -15,7 +15,7 @@ const NETWORK_ROOM_KEY = (environment: ArcEnvironment, w: string) =>
 
 function parseRoomId(value: string | null): number | null {
   const room = value ? Number(value) : NaN;
-  return Number.isFinite(room) && room > 0 ? room : null;
+  return Number.isSafeInteger(room) && room > 0 ? room : null;
 }
 
 function readRoomForEnvironment(
@@ -155,14 +155,19 @@ export function useActiveRoom(wallet?: string | null) {
 }
 
 /** Internal join code: `<contract>-<roomId>` — never shown to users. */
-export function buildJoinCode(address: string, roomId: number) {
-  return `${address}-${roomId}`;
+export function buildJoinCode(address: string, roomId: number, environment = getArcEnvironment()) {
+  return `${environment}:${address}-${roomId}`;
 }
 
-export function parseJoinCode(code: string): { address: `0x${string}`; roomId: number } | null {
-  const m = code.trim().match(/^(0x[a-fA-F0-9]{40})[-:](\d+)$/);
+export type NetworkInvite = { address: `0x${string}`; roomId: number; environment: ArcEnvironment };
+
+export function parseJoinCode(code: string): NetworkInvite | null {
+  const m = code.trim().match(/^(?:(testnet|mainnet):)?(0x[a-fA-F0-9]{40})[-:](\d+)$/);
   if (!m) return null;
-  return { address: m[1] as `0x${string}`, roomId: Number(m[2]) };
+  const roomId = Number(m[3]);
+  if (!Number.isSafeInteger(roomId) || roomId <= 0) return null;
+  // Unversioned historic invitations were issued by the original Testnet app.
+  return { address: m[2] as `0x${string}`, roomId, environment: m[1] === "mainnet" ? "mainnet" : "testnet" };
 }
 
 const b64url = {
@@ -187,7 +192,7 @@ export function buildInviteLink(address: string, roomId: number) {
   return `${origin}/app?invite=${encodeInvite(address, roomId)}`;
 }
 
-export function resolveInvite(input: string): { address: `0x${string}`; roomId: number } | null {
+export function resolveInvite(input: string): NetworkInvite | null {
   const raw = input.trim();
   if (!raw) return null;
   const fromUrl = raw.match(/[?&]invite=([A-Za-z0-9\-_]+)/);
@@ -197,8 +202,11 @@ export function resolveInvite(input: string): { address: `0x${string}`; roomId: 
 
 export function applyInvite(
   wallet: string | null | undefined,
-  invite: { address: string; roomId: number },
+  invite: { address: string; roomId: number; environment?: ArcEnvironment },
 ) {
+  if ((invite.environment ?? "testnet") !== getArcEnvironment()) {
+    throw new Error(`This invitation belongs to Arc ${invite.environment === "mainnet" ? "Mainnet" : "Testnet"}. Switch networks before joining.`);
+  }
   setContractAddress(invite.address);
   if (wallet) setActiveRoom(wallet, invite.roomId);
 }

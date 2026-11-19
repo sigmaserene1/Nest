@@ -8,6 +8,7 @@ import { parseUnits } from "viem";
 import { useServerFn } from "@tanstack/react-start";
 import { getGaslessStatus, relayGaslessTransfer } from "@/lib/gasless.functions";
 import { arcChainFor, ARC_USDC_ADDRESS, useArcEnvironment } from "@/lib/arc-network";
+import { assertSelectedWalletNetwork } from "./transaction-safety";
 
 const AUTHORIZATION_TYPES = {
   TransferWithAuthorization: [
@@ -54,6 +55,7 @@ export function useGaslessTransfer() {
   return useCallback(
     async (to: `0x${string}`, amount: number, onStep?: (label: string) => void) => {
       if (!walletClient || !address) throw new Error("Connect your wallet first.");
+      await assertSelectedWalletNetwork(walletClient, environment);
       const value = parseUnits(amount.toFixed(6), 6);
       const now = Math.floor(Date.now() / 1000);
       const validAfter = 0n;

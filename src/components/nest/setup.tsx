@@ -7,7 +7,7 @@ import { NestLogo } from "./logo";
 import { ArcBadge } from "./chain";
 import { useNestChain } from "@/lib/chain/nest-chain";
 import { useNestWrites } from "@/lib/chain/writes";
-import { isAddress, resolveInvite, setContractAddress } from "@/lib/chain/config";
+import { applyInvite, isAddress, resolveInvite, setContractAddress } from "@/lib/chain/config";
 import { readSignupDraft } from "@/lib/signup-draft";
 import { useArcEnvironment } from "@/lib/arc-network";
 
@@ -68,7 +68,11 @@ export function ContractSetup() {
     setError("");
     const parsed = resolveInvite(code);
     if (parsed) {
-      setContractAddress(parsed.address);
+      try {
+        applyInvite(undefined, parsed);
+      } catch (caught) {
+        setError(caught instanceof Error ? caught.message : "Invalid invitation.");
+      }
       return;
     }
     if (isAddress(code.trim())) {
