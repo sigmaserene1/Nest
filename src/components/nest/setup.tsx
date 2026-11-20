@@ -16,11 +16,7 @@ function Panel({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-[100dvh] px-4 py-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] sm:py-10">
-      <div
-
-
-        className="mx-auto w-full max-w-md"
-      >
+      <div className="mx-auto w-full max-w-md">
         <div className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-2">
             <Link
@@ -162,9 +158,9 @@ export function RoomSetup() {
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         {isMainnet ? (
           <>
-            Arc keeps Testnet and Mainnet workspaces separate. Your existing Testnet workspace
-            stays unchanged; create this Mainnet workspace explicitly to start recording new
-            onchain activity there. Previous expenses and balances are not copied between networks.
+            Arc keeps Testnet and Mainnet workspaces separate. Your existing Testnet workspace stays
+            unchanged; create this Mainnet workspace explicitly to start recording new onchain
+            activity there. Previous expenses and balances are not copied between networks.
           </>
         ) : (
           <>

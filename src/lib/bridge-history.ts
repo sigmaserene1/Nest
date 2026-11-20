@@ -34,31 +34,46 @@ const LEGACY_STORAGE_KEY = "nest.bridge.history";
 const STORAGE_PREFIX = "nest.bridge.history.";
 const MAX_ENTRIES = 100;
 
-function readHistory(owner: string | null | undefined, environment: ArcEnvironment): BridgeHistoryEntry[] {
+function readHistory(
+  owner: string | null | undefined,
+  environment: ArcEnvironment,
+): BridgeHistoryEntry[] {
   if (typeof window === "undefined") return [];
   const key = bridgeHistoryStorageKey(owner, environment);
   if (!key) return [];
   try {
-    const raw = window.localStorage.getItem(key) ?? (owner ? window.localStorage.getItem(`${STORAGE_PREFIX}${owner.toLowerCase()}`) : null);
+    const raw =
+      window.localStorage.getItem(key) ??
+      (owner ? window.localStorage.getItem(`${STORAGE_PREFIX}${owner.toLowerCase()}`) : null);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.filter((entry) => belongsToBridgeEnvironment(entry, environment)) : [];
+    return Array.isArray(parsed)
+      ? parsed.filter((entry) => belongsToBridgeEnvironment(entry, environment))
+      : [];
   } catch {
     return [];
   }
 }
 
-function writeHistory(entries: BridgeHistoryEntry[], owner: string | null | undefined, environment: ArcEnvironment) {
+function writeHistory(
+  entries: BridgeHistoryEntry[],
+  owner: string | null | undefined,
+  environment: ArcEnvironment,
+) {
   if (typeof window === "undefined") return;
   const key = bridgeHistoryStorageKey(owner, environment);
   if (!key) return;
-  window.localStorage.setItem(key, JSON.stringify(entries.filter((entry) => belongsToBridgeEnvironment(entry, environment)).slice(0, MAX_ENTRIES)));
+  window.localStorage.setItem(
+    key,
+    JSON.stringify(
+      entries
+        .filter((entry) => belongsToBridgeEnvironment(entry, environment))
+        .slice(0, MAX_ENTRIES),
+    ),
+  );
 }
 
-function mergeHistory(
-  local: BridgeHistoryEntry[],
-  remote: BridgeHistoryEntry[],
-) {
+function mergeHistory(local: BridgeHistoryEntry[], remote: BridgeHistoryEntry[]) {
   const byId = new Map<string, BridgeHistoryEntry>();
   for (const entry of [...remote, ...local]) {
     const key =
@@ -68,9 +83,7 @@ function mergeHistory(
     const previous = byId.get(key);
     byId.set(key, previous ? { ...entry, ...previous } : entry);
   }
-  return [...byId.values()]
-    .sort((a, b) => b.startedAt - a.startedAt)
-    .slice(0, MAX_ENTRIES);
+  return [...byId.values()].sort((a, b) => b.startedAt - a.startedAt).slice(0, MAX_ENTRIES);
 }
 
 function explorerForChainId(chainId: number) {
@@ -143,10 +156,7 @@ export function useBridgeHistory(owner?: string | null) {
     address: registryAddress ?? undefined,
     abi: NEST_BRIDGE_REGISTRY_ABI,
     functionName: "getUserBridges",
-    args:
-      registryAddress && owner
-        ? [owner as Address, 100n]
-        : undefined,
+    args: registryAddress && owner ? [owner as Address, 100n] : undefined,
     chainId: arcChain.id,
     query: {
       enabled: Boolean(registryAddress && owner),
@@ -156,9 +166,7 @@ export function useBridgeHistory(owner?: string | null) {
 
   const onchainEntries = useMemo(
     () =>
-      ((registryQuery.data as readonly OnchainBridge[] | undefined) ?? []).map(
-        fromOnchainBridge,
-      ),
+      ((registryQuery.data as readonly OnchainBridge[] | undefined) ?? []).map(fromOnchainBridge),
     [registryQuery.data],
   );
 
@@ -172,7 +180,9 @@ export function useBridgeHistory(owner?: string | null) {
     let cancelled = false;
     void pullAccountCache(environment).then((cache) => {
       if (cancelled || !cache || !Array.isArray(cache.bridgeHistory)) return;
-      const remote = (cache.bridgeHistory as BridgeHistoryEntry[]).filter((entry) => belongsToBridgeEnvironment(entry, environment));
+      const remote = (cache.bridgeHistory as BridgeHistoryEntry[]).filter((entry) =>
+        belongsToBridgeEnvironment(entry, environment),
+      );
       setEntries((current) => {
         const next = mergeHistory(current, remote);
         writeHistory(next, owner, environment);
@@ -226,5 +236,10 @@ export function useBridgeHistory(owner?: string | null) {
     void pushAccountCache(environment, { bridgeHistory: [] });
   }, [owner, environment]);
 
-  return { entries: entries.filter((entry) => belongsToBridgeEnvironment(entry, environment)), addEntry, updateEntry, clearHistory };
+  return {
+    entries: entries.filter((entry) => belongsToBridgeEnvironment(entry, environment)),
+    addEntry,
+    updateEntry,
+    clearHistory,
+  };
 }

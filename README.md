@@ -6,7 +6,9 @@ The original household expense experience remains supported. Treasury V3 adds a 
 
 **Live application:** [nestarc.xyz](https://nestarc.xyz)
 
-## What works today
+## Implemented capabilities (not a Mainnet verification claim)
+
+See [production audit](docs/arc-production-audit.md) and [deployment handoff](docs/arc-mainnet-deployment.md). ExpenseManager Mainnet code and reads are verified; funded write flows are not. Treasury V3 and Bridge Registry currently have Testnet deployments, not configured Mainnet deployments.
 
 - Create group workspaces and invite wallet addresses.
 - Pool USDC into a shared Treasury V3 workspace balance.
@@ -21,19 +23,19 @@ The original household expense experience remains supported. Treasury V3 adds a 
 - Settle wallet-to-wallet through the USDC ERC-20 interface on the selected Arc network when that environment is configured.
 - Bridge USDC through LI.FI with Circle CCTP/native-USDC routes preferred where available.
 - Persist completed Arc-involved bridge receipts in the Nest Bridge Registry after user confirmation.
-- Provision new Circle email/social wallets as Arc SCAs on the selected network for Circle Gas Station sponsorship when a matching policy is enabled in Circle Console. Existing legacy EOA wallets are preserved.
+- Create/restore Privy embedded EVM wallets for new email sign-ins; preserve the separate recovery flow for legacy Circle wallets. Circle sponsorship requires a matching hosted policy and is not proven by installing App Kit.
 - Retain transaction-linked receipts and inspect activity on the selected Arc explorer.
 
 Nest does not claim a global minimum-transfer algorithm, autonomous custody, an independent security audit, or a production SDK. Gas Station sponsorship depends on a matching policy being enabled in Circle Console.
 
 ## Arc Mainnet activation
 
-The Mainnet toggle is wired in the frontend, wagmi transports, Circle Wallets, Circle App Kit bridge routing, and CCTP helpers. Mainnet financial writes stay unavailable until the production contract addresses are configured.
+The Mainnet toggle is wired into network-aware services. ExpenseManager is already deployed at `0x709cbad88162b999882788155cde79ade46a6d42` on chain `5042` (creation block `21213840`). Reads were independently checked; writes still require funded end-to-end verification. Treasury and bridge-index writes require their own verified Mainnet deployments.
 
 To activate Mainnet:
 
 1. Add `DEPLOYER_PRIVATE_KEY` to GitHub Actions secrets and optionally add `ARC_MAINNET_RPC_URL`.
-2. Run **Actions → Deploy Nest contracts to Arc Mainnet** and type `DEPLOY_MAINNET`.
+2. Review the contract permission caveats in the audit before deployment. Run **Actions → Deploy Nest contracts to Arc Mainnet** and type `DEPLOY_MAINNET`; leave ExpenseManager replacement **false** to preserve the existing deployment.
 3. Copy the emitted values into the production frontend environment:
 
    - `VITE_NEST_EXPENSE_MANAGER_MAINNET_ADDRESS`
@@ -43,7 +45,7 @@ To activate Mainnet:
 
 4. Redeploy the production frontend. Keep `VITE_ARC_DEFAULT_NETWORK=testnet` until the Mainnet deployment has been tested with a small amount of real USDC.
 
-The repository intentionally does not commit Mainnet contract addresses or private keys.
+Public verified deployment addresses are configuration, not secrets; private keys are never committed. A new contract deployment does not migrate old workspaces.
 
 ## Live Arc Testnet contracts
 
@@ -100,7 +102,17 @@ Treasury V3 and Bridge Registry are testnet contracts and are not represented as
 | Primary RPC           | `https://rpc.testnet.arc.io`            |
 | Explorer              | `https://explorer.testnet.arc.io`           |
 
-All balances and transactions shown by the current deployment use testnet assets with no real-world monetary value.
+Testnet assets have no real-world monetary value. Mainnet uses real USDC; balances, rooms and events are separate even where addresses match.
+
+## Arc Mainnet configuration
+
+| Property | Value |
+| --- | --- |
+| Chain ID | `5042` |
+| Native gas asset | USDC, 18 decimals |
+| USDC ERC-20 interface | `0x3600000000000000000000000000000000000000`, 6 decimals |
+| Primary RPC | `https://rpc.mainnet.arc.io` |
+| Explorer | `https://explorer.arc.io` |
 
 ## Stack
 
@@ -121,7 +133,7 @@ Nest separates its core financial responsibilities across dedicated onchain comp
 - **ExpenseManager** remains the canonical ledger for shared expenses, membership, balances and settlement activity.
 - **NestTreasuryV3** manages pooled USDC, approval-controlled payments, recurring payouts, milestone escrow and delegated spending policies.
 - **NestBridgeRegistry** records completed Arc-involved bridge receipts while the underlying source and destination chain transactions remain the execution truth.
-- **Circle User-Controlled Wallets** provide email OTP and Google-based wallet access, with SCA initialization for new users.
+- **Privy** provides the current new-email embedded EVM wallet path; **Circle User-Controlled Wallets** remain available for older identities.
 - **Circle App Kit and CCTP-preferred routing** support swap and cross-chain USDC flows where available.
 - **LI.FI** provides broader bridge routing with Circle-native paths preferred when supported.
 
@@ -133,7 +145,7 @@ Nest is non-custodial at the account layer and relies on onchain contracts for f
 
 The optional account cache is used only to improve loading speed and cross-device continuity. It does not replace onchain state, hold wallet private keys or act as the financial ledger.
 
-Treasury V3 and Bridge Registry are deployed on Arc Testnet. Bridge Registry and Treasury V3 are verified on the Arc Testnet explorer. These contracts are not represented as independently audited production contracts, and the current deployment uses testnet assets only.
+Treasury V3 and Bridge Registry are deployed on Arc Testnet, not independently audited production contracts. Mainnet ExpenseManager exists, but no funded Mainnet flow was exercised by this audit. Treasury owner withdrawals, single-manager recurring/budget creation and historical approval counting require explicit governance review before production use.
 
 ## Fast account restore and cross-device cache
 

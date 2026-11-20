@@ -34,15 +34,7 @@ const CHAIN_NAME_BY_ID: Record<number, CircleBridgeChainName> = {
 };
 
 const MAINNET_CHAIN_IDS = new Set([1, 10, 137, 8453, 42161, 43114, 5042]);
-const TESTNET_CHAIN_IDS = new Set([
-  11155111,
-  11155420,
-  43113,
-  84532,
-  421614,
-  80002,
-  5042002,
-]);
+const TESTNET_CHAIN_IDS = new Set([11155111, 11155420, 43113, 84532, 421614, 80002, 5042002]);
 
 export type CircleBridgeStep = {
   name?: string;
@@ -81,10 +73,7 @@ export function isCircleArcBridgeRoute(fromChainId: number, toChainId: number) {
     sameNetwork &&
     Boolean(CHAIN_NAME_BY_ID[fromChainId]) &&
     Boolean(CHAIN_NAME_BY_ID[toChainId]) &&
-    (fromChainId === 5042 ||
-      toChainId === 5042 ||
-      fromChainId === 5042002 ||
-      toChainId === 5042002)
+    (fromChainId === 5042 || toChainId === 5042 || fromChainId === 5042002 || toChainId === 5042002)
   );
 }
 
@@ -120,7 +109,8 @@ export async function estimateCircleBridge(params: {
 }) {
   const fromChain = circleBridgeChainName(params.fromChainId);
   const toChain = circleBridgeChainName(params.toChainId);
-  if (!fromChain || !toChain || !isCircleArcBridgeRoute(params.fromChainId, params.toChainId)) throw new Error("Circle App Kit does not support this Arc route.");
+  if (!fromChain || !toChain || !isCircleArcBridgeRoute(params.fromChainId, params.toChainId))
+    throw new Error("Circle App Kit does not support this Arc route.");
 
   const { kit, adapter } = await buildCircleBridge(params.provider);
   const to = params.recipient
@@ -150,7 +140,8 @@ export async function executeCircleBridge(params: {
 }): Promise<CircleBridgeResult> {
   const fromChain = circleBridgeChainName(params.fromChainId);
   const toChain = circleBridgeChainName(params.toChainId);
-  if (!fromChain || !toChain || !isCircleArcBridgeRoute(params.fromChainId, params.toChainId)) throw new Error("Circle App Kit does not support this Arc route.");
+  if (!fromChain || !toChain || !isCircleArcBridgeRoute(params.fromChainId, params.toChainId))
+    throw new Error("Circle App Kit does not support this Arc route.");
 
   const { kit, adapter } = await buildCircleBridge(params.provider);
 
@@ -163,10 +154,13 @@ export async function executeCircleBridge(params: {
   ] as const;
 
   for (const [eventName, label] of events) {
-    kit.on(eventName as never, ((event: unknown) => {
-      const values = (event as { values?: { txHash?: string } })?.values;
-      params.onProgress?.(label, values?.txHash);
-    }) as never);
+    kit.on(
+      eventName as never,
+      ((event: unknown) => {
+        const values = (event as { values?: { txHash?: string } })?.values;
+        params.onProgress?.(label, values?.txHash);
+      }) as never,
+    );
   }
 
   const to = params.recipient
@@ -185,8 +179,15 @@ export async function executeCircleBridge(params: {
 
   const completed = result as CircleBridgeResult;
   const hashes = circleBridgeHashes(completed);
-  if (String(completed.state).toLowerCase() !== "success" || !hashes.sourceHash || !hashes.destinationHash || completed.steps?.some((step) => String(step.state).toLowerCase() === "error")) {
-    throw new Error("Circle has not confirmed both burn and mint. Check the transfer before retrying.");
+  if (
+    String(completed.state).toLowerCase() !== "success" ||
+    !hashes.sourceHash ||
+    !hashes.destinationHash ||
+    completed.steps?.some((step) => String(step.state).toLowerCase() === "error")
+  ) {
+    throw new Error(
+      "Circle has not confirmed both burn and mint. Check the transfer before retrying.",
+    );
   }
   return completed;
 }

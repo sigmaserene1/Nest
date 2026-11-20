@@ -166,10 +166,7 @@ export async function getLifiChains(
   return (data.chains ?? [])
     .filter(
       (chain) =>
-        chain.id &&
-        chain.name &&
-        chain.chainType !== "SVM" &&
-        chain.mainnet === wantMainnet,
+        chain.id && chain.name && chain.chainType !== "SVM" && chain.mainnet === wantMainnet,
     )
     .sort((a, b) => a.name.localeCompare(b.name));
 }
@@ -290,8 +287,15 @@ export function getLifiApprovalAddress(quote: LifiQuote): Address | undefined {
 }
 
 export function assertLifiDelivery(status: LifiStatus) {
-  if (status.status !== "DONE" || status.substatus !== "COMPLETED" || !/^0x[\da-fA-F]{64}$/.test(status.receiving?.txHash ?? "")) {
-    throw new Error(status.substatusMessage || "Destination delivery is not confirmed. A refund or partial delivery is not a successful bridge.");
+  if (
+    status.status !== "DONE" ||
+    status.substatus !== "COMPLETED" ||
+    !/^0x[\da-fA-F]{64}$/.test(status.receiving?.txHash ?? "")
+  ) {
+    throw new Error(
+      status.substatusMessage ||
+        "Destination delivery is not confirmed. A refund or partial delivery is not a successful bridge.",
+    );
   }
 }
 
@@ -300,11 +304,25 @@ export function assertExecutableQuote(quote: LifiQuote, requested?: LifiQuotePar
     throw new Error("LI.FI returned a route without an executable transaction.");
   }
 
-  if (quote.transactionRequest.chainId && quote.transactionRequest.chainId !== quote.action.fromChainId) {
+  if (
+    quote.transactionRequest.chainId &&
+    quote.transactionRequest.chainId !== quote.action.fromChainId
+  ) {
     throw new Error("LI.FI returned a transaction for a different source chain.");
   }
 
-  if (requested && (quote.action.fromChainId !== requested.fromChain || quote.action.toChainId !== requested.toChain || quote.action.fromToken.chainId !== requested.fromChain || quote.action.toToken.chainId !== requested.toChain || quote.action.fromToken.address.toLowerCase() !== requested.fromToken.toLowerCase() || quote.action.toToken.address.toLowerCase() !== requested.toToken.toLowerCase() || quote.action.fromAmount !== requested.fromAmount || (quote.transactionRequest.from && quote.transactionRequest.from.toLowerCase() !== requested.fromAddress.toLowerCase()))) {
+  if (
+    requested &&
+    (quote.action.fromChainId !== requested.fromChain ||
+      quote.action.toChainId !== requested.toChain ||
+      quote.action.fromToken.chainId !== requested.fromChain ||
+      quote.action.toToken.chainId !== requested.toChain ||
+      quote.action.fromToken.address.toLowerCase() !== requested.fromToken.toLowerCase() ||
+      quote.action.toToken.address.toLowerCase() !== requested.toToken.toLowerCase() ||
+      quote.action.fromAmount !== requested.fromAmount ||
+      (quote.transactionRequest.from &&
+        quote.transactionRequest.from.toLowerCase() !== requested.fromAddress.toLowerCase()))
+  ) {
     throw new Error("LI.FI quote does not match the requested network, token, wallet or amount.");
   }
 

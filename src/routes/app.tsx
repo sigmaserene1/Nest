@@ -13,7 +13,6 @@ import { SignInDialog } from "@/components/nest/sign-in-dialog";
 import { NestLogo } from "@/components/nest/logo";
 import { EXPENSE_MANAGER_ABI } from "@/contracts/expense-manager-artifact";
 
-
 const PENDING_INVITE = "nest.invite.pending";
 
 type PendingInvite = {
@@ -38,9 +37,7 @@ function useInviteRoomName(invite: PendingInvite | null) {
     | { id: bigint; name: string; creator: string; createdAt: bigint }
     | undefined;
 
-  return room?.id && room.id > 0n && room.name?.trim()
-    ? room.name.trim()
-    : "this shared workspace";
+  return room?.id && room.id > 0n && room.name?.trim() ? room.name.trim() : "this shared workspace";
 }
 
 function InviteEntry({
@@ -157,8 +154,8 @@ function InviteAcceptance({
           </div>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">Join {roomName}?</h1>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            Joining adds your connected wallet to this existing workspace on Arc. It does not
-            create a new workspace.
+            Joining adds your connected wallet to this existing workspace on Arc. It does not create
+            a new workspace.
           </p>
         </div>
 
@@ -197,7 +194,11 @@ function InviteAcceptance({
             disabled={joining}
             className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl btn-gradient px-5 text-sm font-bold disabled:opacity-50"
           >
-            {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
+            {joining ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
             {joining ? "Joining onchain…" : "Join workspace"}
           </button>
           <button
@@ -336,13 +337,7 @@ function AppLayout() {
 
   const wasOpen = useRef(false);
   useEffect(() => {
-    if (
-      wasOpen.current &&
-      !connectModalOpen &&
-      !isConnected &&
-      !isBusy &&
-      !pendingInvite
-    ) {
+    if (wasOpen.current && !connectModalOpen && !isConnected && !isBusy && !pendingInvite) {
       void navigate({ to: "/" });
     }
     wasOpen.current = connectModalOpen;
@@ -394,5 +389,4 @@ function AppLayout() {
   }
 
   return <Gate />;
-
 }

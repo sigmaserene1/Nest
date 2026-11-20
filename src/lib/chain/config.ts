@@ -3,11 +3,7 @@
 // workspace selection because onchain workspaces are separate per network.
 
 import { useCallback, useSyncExternalStore } from "react";
-import {
-  getArcEnvironment,
-  useArcEnvironment,
-  type ArcEnvironment,
-} from "@/lib/arc-network";
+import { getArcEnvironment, useArcEnvironment, type ArcEnvironment } from "@/lib/arc-network";
 
 const ROOM_KEY = (w: string) => `nest.room.${w.toLowerCase()}`;
 const NETWORK_ROOM_KEY = (environment: ArcEnvironment, w: string) =>
@@ -18,15 +14,10 @@ function parseRoomId(value: string | null): number | null {
   return Number.isSafeInteger(room) && room > 0 ? room : null;
 }
 
-function readRoomForEnvironment(
-  environment: ArcEnvironment,
-  wallet: string,
-): number | null {
+function readRoomForEnvironment(environment: ArcEnvironment, wallet: string): number | null {
   if (typeof window === "undefined") return null;
 
-  const networkRoom = parseRoomId(
-    localStorage.getItem(NETWORK_ROOM_KEY(environment, wallet)),
-  );
+  const networkRoom = parseRoomId(localStorage.getItem(NETWORK_ROOM_KEY(environment, wallet)));
   if (networkRoom) return networkRoom;
 
   // Older builds stored one shared room key. Import it only for Testnet,
@@ -52,10 +43,9 @@ const rawMainnetBlock = Number(
   import.meta.env.VITE_NEST_EXPENSE_MANAGER_MAINNET_BLOCK ?? 21_213_840,
 );
 
-export const MAINNET_EXPENSE_MANAGER_ADDRESS =
-  /^0x[a-fA-F0-9]{40}$/.test(rawMainnetAddress)
-    ? (rawMainnetAddress.toLowerCase() as `0x${string}`)
-    : null;
+export const MAINNET_EXPENSE_MANAGER_ADDRESS = /^0x[a-fA-F0-9]{40}$/.test(rawMainnetAddress)
+  ? (rawMainnetAddress.toLowerCase() as `0x${string}`)
+  : null;
 
 export const MAINNET_EXPENSE_MANAGER_DEPLOYMENT_BLOCK =
   Number.isSafeInteger(rawMainnetBlock) && rawMainnetBlock > 0 ? rawMainnetBlock : 0;
@@ -167,7 +157,11 @@ export function parseJoinCode(code: string): NetworkInvite | null {
   const roomId = Number(m[3]);
   if (!Number.isSafeInteger(roomId) || roomId <= 0) return null;
   // Unversioned historic invitations were issued by the original Testnet app.
-  return { address: m[2] as `0x${string}`, roomId, environment: m[1] === "mainnet" ? "mainnet" : "testnet" };
+  return {
+    address: m[2] as `0x${string}`,
+    roomId,
+    environment: m[1] === "mainnet" ? "mainnet" : "testnet",
+  };
 }
 
 const b64url = {
@@ -205,7 +199,9 @@ export function applyInvite(
   invite: { address: string; roomId: number; environment?: ArcEnvironment },
 ) {
   if ((invite.environment ?? "testnet") !== getArcEnvironment()) {
-    throw new Error(`This invitation belongs to Arc ${invite.environment === "mainnet" ? "Mainnet" : "Testnet"}. Switch networks before joining.`);
+    throw new Error(
+      `This invitation belongs to Arc ${invite.environment === "mainnet" ? "Mainnet" : "Testnet"}. Switch networks before joining.`,
+    );
   }
   setContractAddress(invite.address);
   if (wallet) setActiveRoom(wallet, invite.roomId);

@@ -1,9 +1,10 @@
 # Roadmap
 
 ## Current
-- [ ] Audit Arc Mainnet/Testnet contracts, wallet services and every financial flow; record evidence and blockers.
-- [ ] Implement safe network-isolation, transaction-confirmation and sponsorship fixes with regression tests.
-- [ ] Prepare production deployment instructions and final verification report; run available checks.
+- [x] Record network/contract/read evidence and identified financial blockers in the production audit; no transaction-certification claim.
+- [x] Implement network isolation, invite/bridge confirmation and explicit sponsorship-policy fixes; 34 tests and targeted library lint pass.
+- [x] Prepare deployment instructions, read-only audit script and final verification report; platform build OK, repository lint still fails.
+- [ ] Complete exhaustive financial write/cached-receipt and governance acceptance — needs agreed treasury policies, authorized wallets and deployed Mainnet V3/Registry.
 - [ ] Verify funded Mainnet writes and hosted Circle sponsorship — requires authorized transactions and provider-policy access.
 - [x] Modernize landing example tables and cards with aligned amounts, clearer member rows and consistent surfaces; phone/tablet/desktop checks pass in both themes, including receipt previews and launch popup.
 - [x] Prepare Docs at docs.nestarc.xyz, update links and permanently redirect the old address; three tests and phone/desktop subdomain checks pass.

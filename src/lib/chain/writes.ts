@@ -114,25 +114,30 @@ export function useNestWrites() {
   // Only the *first workspace create* of a zero-balance Privy email wallet
   // can receive a tiny testnet gas stipend. No other transaction is changed.
   // Privy EOA gas fees are paid in Arc native USDC, not ERC-20 decimals.
-  const createRoom = useCallback(async (name: string) => {
-    if (environment === "testnet" && connector?.id === PRIVY_CONNECTOR_ID) {
-      const { address: wallet, publicClient } = requireEnv();
-      const balance = await publicClient.getBalance({ address: wallet });
-      if (balance < parseEther("0.35")) {
-        const accessToken = await getPrivyGasGrantAccessToken();
-        if (!accessToken) {
-          throw new Error("Your email session expired. Sign in again or use the Circle Faucet to get Arc Testnet USDC.");
+  const createRoom = useCallback(
+    async (name: string) => {
+      if (environment === "testnet" && connector?.id === PRIVY_CONNECTOR_ID) {
+        const { address: wallet, publicClient } = requireEnv();
+        const balance = await publicClient.getBalance({ address: wallet });
+        if (balance < parseEther("0.35")) {
+          const accessToken = await getPrivyGasGrantAccessToken();
+          if (!accessToken) {
+            throw new Error(
+              "Your email session expired. Sign in again or use the Circle Faucet to get Arc Testnet USDC.",
+            );
+          }
+          // The server verifies ownership and enforces one per Privy user AND
+          // recipient wallet. If funding is disabled, fail transparently instead
+          // of opening the doomed 0-USDC Privy approval popup.
+          await firstWorkspaceGas({
+            data: { accessToken, walletAddress: wallet, workspaceName: name },
+          });
         }
-        // The server verifies ownership and enforces one per Privy user AND
-        // recipient wallet. If funding is disabled, fail transparently instead
-        // of opening the doomed 0-USDC Privy approval popup.
-        await firstWorkspaceGas({
-          data: { accessToken, walletAddress: wallet, workspaceName: name },
-        });
       }
-    }
-    return send("createRoom", [name]);
-  }, [environment, connector?.id, requireEnv, firstWorkspaceGas, send]);
+      return send("createRoom", [name]);
+    },
+    [environment, connector?.id, requireEnv, firstWorkspaceGas, send],
+  );
   const joinRoom = useCallback((id: number) => send("joinRoom", [BigInt(id)]), [send]);
   const inviteMember = useCallback(
     (member: `0x${string}`) => {

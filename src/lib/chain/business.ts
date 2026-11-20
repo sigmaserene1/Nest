@@ -11,7 +11,7 @@ import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { NEST_BUSINESS_V2_ABI } from "@/contracts/nest-business-v2-artifact";
 import { ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
-import { arcTestnet } from "@/lib/arc-network";
+import { arcChainFor, getArcEnvironment, useArcEnvironment } from "@/lib/arc-network";
 
 const raw = import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS as string | undefined;
 
@@ -30,24 +30,35 @@ export const POLL_MS = 15_000;
 export const toUsdc = (value: bigint | undefined | null) => Number(formatUnits(value ?? 0n, 6));
 export const toUnits = (value: number) => parseUnits(value.toFixed(6), 6);
 
-export const explorerTx = (hash: string) => `${arcTestnet.blockExplorers.default.url}/tx/${hash}`;
+export const explorerTx = (hash: string) =>
+  `${arcChainFor(getArcEnvironment()).blockExplorers.default.url}/tx/${hash}`;
 export const explorerAddress = (address: string) =>
-  `${arcTestnet.blockExplorers.default.url}/address/${address}`;
+  `${arcChainFor(getArcEnvironment()).blockExplorers.default.url}/address/${address}`;
 
 export const shortAddress = (value: string) =>
   value ? `${value.slice(0, 6)}…${value.slice(-4)}` : "";
 
-const base = {
-  address: BUSINESS_V2_ADDRESS ?? undefined,
-  abi: NEST_BUSINESS_V2_ABI,
-  chainId: arcTestnet.id,
-} as const;
+function useBusinessNetwork() {
+  const environment = useArcEnvironment();
+  const rawAddress =
+    environment === "mainnet"
+      ? import.meta.env.VITE_NEST_BUSINESS_V2_MAINNET_ADDRESS
+      : import.meta.env.VITE_NEST_BUSINESS_V2_ADDRESS;
+  const address =
+    typeof rawAddress === "string" && isAddress(rawAddress.trim())
+      ? (rawAddress.trim() as Address)
+      : undefined;
+  return {
+    base: { address, abi: NEST_BUSINESS_V2_ABI, chainId: arcChainFor(environment).id },
+    isBusinessV2Enabled: Boolean(address),
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /* Workspace selection (UI preference only)                            */
 /* ------------------------------------------------------------------ */
 
-const KEY = (wallet: string) => `nest.v2.workspace.${wallet.toLowerCase()}`;
+const KEY = (wallet: string) => `nest.v2.workspace.${getArcEnvironment()}.${wallet.toLowerCase()}`;
 const listeners = new Set<() => void>();
 const notify = () => listeners.forEach((listener) => listener());
 
@@ -128,6 +139,7 @@ type RawExpense = {
 };
 
 export function useWorkspaces() {
+  const { base, isBusinessV2Enabled } = useBusinessNetwork();
   const { address } = useAccount();
   const query = useReadContract({
     ...base,
@@ -167,6 +179,7 @@ export function useWorkspaces() {
 }
 
 export function useWorkspaceDetail(roomId: number | null) {
+  const { base, isBusinessV2Enabled } = useBusinessNetwork();
   const args = roomId ? ([BigInt(roomId)] as const) : undefined;
   const query = useReadContracts({
     contracts: [
@@ -220,13 +233,17 @@ export function useWorkspaceDetail(roomId: number | null) {
 }
 
 export function useManagerFlags(roomId: number | null, members: string[]) {
+  const { base, isBusinessV2Enabled } = useBusinessNetwork();
   const query = useReadContracts({
     contracts: members.map((member) => ({
       ...base,
       functionName: "isManager" as const,
       args: roomId ? ([BigInt(roomId), member as Address] as const) : undefined,
     })),
-    query: { enabled: isBusinessV2Enabled && !!roomId && members.length > 0, refetchInterval: POLL_MS },
+    query: {
+      enabled: isBusinessV2Enabled && !!roomId && members.length > 0,
+      refetchInterval: POLL_MS,
+    },
   });
 
   return useMemo(() => {
@@ -240,6 +257,7 @@ export function useManagerFlags(roomId: number | null, members: string[]) {
 
 /** Exact open amount the connected wallet owes each other member, straight from the contract. */
 export function useOwedTo(roomId: number | null, debtor: string | null, creditors: string[]) {
+  const { base, isBusinessV2Enabled } = useBusinessNetwork();
   const query = useReadContracts({
     contracts: creditors.map((creditor) => ({
       ...base,
@@ -267,6 +285,7 @@ export function useOwedTo(roomId: number | null, debtor: string | null, creditor
 }
 
 export function useCreditPosition(account?: string | null) {
+  const { base, isBusinessV2Enabled } = useBusinessNetwork();
   const query = useReadContract({
     ...base,
     functionName: "getCreditPosition",
@@ -301,13 +320,17 @@ export function useCreditPosition(account?: string | null) {
   return { position, isLoading: query.isLoading, isError: query.isError, refetch: query.refetch };
 }
 
-export function useAgentPolicy(roomId: number | null, owner?: string | null, agent?: string | null) {
-  const enabled =
-    isBusinessV2Enabled && !!roomId && !!owner && !!agent && isAddress(agent ?? "");
+export function useAgentPolicy(
+  roomId: number | null,
+  owner?: string | null,
+  agent?: string | null,
+) {
+  const { base, isBusinessV2Enabled } = useBusinessNetwork();
+  const enabled = isBusinessV2Enabled && !!roomId && !!owner && !!agent && isAddress(agent ?? "");
   const query = useReadContract({
     ...base,
     functionName: "getAgentPolicy",
-    args: enabled ? [BigInt(roomId!), owner as Address, agent as Address] : undefined,
+    args: enabled ? [BigInt(roomId ?? 0), owner as Address, agent as Address] : undefined,
     query: { enabled, refetchInterval: POLL_MS },
   });
 
@@ -343,10 +366,11 @@ export function useAgentPolicy(roomId: number | null, owner?: string | null, age
 }
 
 export function useUsdcBalance(account?: string | null) {
+  const environment = useArcEnvironment();
   const query = useReadContract({
     address: USDC_ADDRESS,
     abi: ERC20_ABI,
-    chainId: arcTestnet.id,
+    chainId: arcChainFor(environment).id,
     functionName: "balanceOf",
     args: account ? [account as Address] : undefined,
     query: { enabled: !!account, refetchInterval: POLL_MS },

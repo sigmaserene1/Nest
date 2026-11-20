@@ -1,4 +1,3 @@
-
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
@@ -20,7 +19,10 @@ import { AppShell, Card } from "@/components/nest/app-shell";
 import { NEST_TREASURY_V3_ABI } from "@/contracts/nest-treasury-v3-artifact";
 import { ERC20_ABI, USDC_ADDRESS } from "@/lib/wagmi";
 import { useArcWallet } from "@/hooks/use-arc-wallet";
-import { assertContractDeployment, assertSelectedWalletNetwork } from "@/lib/chain/transaction-safety";
+import {
+  assertContractDeployment,
+  assertSelectedWalletNetwork,
+} from "@/lib/chain/transaction-safety";
 
 const moduleKeys = ["deposit", "proposal", "recurring", "milestone", "budget"] as const;
 type Module = (typeof moduleKeys)[number];
@@ -43,7 +45,11 @@ export const Route = createFileRoute("/app/treasury")({
           "Shared USDC treasury, multi-approval payments, recurring payouts, milestone escrow and delegated budgets.",
       },
       { property: "og:title", content: "Shared USDC treasury and approvals — Nest" },
-      { property: "og:description", content: "Shared USDC treasury, multi-approval payments, recurring payouts, milestone escrow and delegated budgets." },
+      {
+        property: "og:description",
+        content:
+          "Shared USDC treasury, multi-approval payments, recurring payouts, milestone escrow and delegated budgets.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -92,8 +98,7 @@ function TreasuryPage() {
       : ((import.meta.env.VITE_NEST_TREASURY_V3_ADDRESS as string | undefined) ??
         "0x1173776512ae96af2a480a8a1898df8582489425");
 
-  const treasuryAddress =
-    configured && isAddress(configured) ? (configured as Address) : null;
+  const treasuryAddress = configured && isAddress(configured) ? (configured as Address) : null;
 
   const [module, setModule] = useState<Module>(search.module ?? "deposit");
   const [busy, setBusy] = useState<string | null>(null);
@@ -152,14 +157,20 @@ function TreasuryPage() {
     return workspaces[0]?.id ?? null;
   }, [workspaceIdInput, workspaces]);
 
-  const activeWorkspace =
-    workspaces.find((w) => w.id === selectedId) ?? workspaces[0] ?? null;
+  const activeWorkspace = workspaces.find((w) => w.id === selectedId) ?? workspaces[0] ?? null;
 
   const requireWrite = () => {
     if (!treasuryAddress) throw new Error("Treasury V3 is not deployed for this Arc network yet.");
-    if (!address || !walletClient || !publicClient) throw new Error("Connect your Arc wallet first.");
+    if (!address || !walletClient || !publicClient)
+      throw new Error("Connect your Arc wallet first.");
     if (!selectedId) throw new Error("Create or select a Treasury workspace first.");
-    return { account: address, walletClient, publicClient, workspaceId: selectedId, treasuryAddress };
+    return {
+      account: address,
+      walletClient,
+      publicClient,
+      workspaceId: selectedId,
+      treasuryAddress,
+    };
   };
 
   const waitWrite = async (label: string, functionName: string, args: readonly unknown[]) => {
@@ -176,7 +187,10 @@ function TreasuryPage() {
         account: ctx.account,
         chain: arc.arcChain,
       });
-      const hash = await ctx.walletClient.writeContract({ ...simulation.request, chain: arc.arcChain });
+      const hash = await ctx.walletClient.writeContract({
+        ...simulation.request,
+        chain: arc.arcChain,
+      });
       const receipt = await ctx.publicClient.waitForTransactionReceipt({ hash });
       if (receipt.status !== "success") throw new Error("Transaction reverted on Arc.");
       await workspaceQuery.refetch();
@@ -220,7 +234,8 @@ function TreasuryPage() {
 
   const deposit = async () => {
     const number = Number(amount);
-    if (!Number.isFinite(number) || number <= 0) return toast.error("Enter a positive USDC amount.");
+    if (!Number.isFinite(number) || number <= 0)
+      return toast.error("Enter a positive USDC amount.");
     try {
       const ctx = requireWrite();
       await assertSelectedWalletNetwork(ctx.walletClient, arc.environment);
@@ -243,7 +258,9 @@ function TreasuryPage() {
           account: ctx.account,
           chain: arc.arcChain,
         });
-        const approvalReceipt = await ctx.publicClient.waitForTransactionReceipt({ hash: approveHash });
+        const approvalReceipt = await ctx.publicClient.waitForTransactionReceipt({
+          hash: approveHash,
+        });
         if (approvalReceipt.status !== "success") throw new Error("USDC approval reverted on Arc.");
       }
 
@@ -462,7 +479,8 @@ function TreasuryPage() {
               <div>
                 <h2 className="text-base font-bold">Treasury V3 contract is ready to deploy</h2>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                  The app and onchain modules are present, but this Arc environment does not have a configured Treasury V3 address yet.
+                  The app and onchain modules are present, but this Arc environment does not have a
+                  configured Treasury V3 address yet.
                 </p>
                 <code className="mt-3 block rounded-xl bg-muted p-3 text-xs">
                   {arc.environment === "mainnet"
@@ -485,7 +503,9 @@ function TreasuryPage() {
     <AppShell
       greeting={
         <div>
-          <div className="text-sm font-medium text-muted-foreground">Programmable money controls</div>
+          <div className="text-sm font-medium text-muted-foreground">
+            Programmable money controls
+          </div>
           <h1 className="text-2xl font-bold tracking-tight sm:text-[28px]">Treasury</h1>
         </div>
       }
@@ -505,14 +525,19 @@ function TreasuryPage() {
                   <div className="mt-1 text-xs text-muted-foreground">Available treasury USDC</div>
                 </div>
                 <div className="rounded-2xl bg-muted/60 px-4 py-3 text-right">
-                  <div className="text-[10px] font-bold uppercase text-muted-foreground">Reserved</div>
+                  <div className="text-[10px] font-bold uppercase text-muted-foreground">
+                    Reserved
+                  </div>
                   <div className="mt-1 text-sm font-bold">
                     {"$" + reserved.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                   </div>
                 </div>
               </div>
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <Stat label="Approvals required" value={String(activeWorkspace.approvalThreshold)} />
+                <Stat
+                  label="Approvals required"
+                  value={String(activeWorkspace.approvalThreshold)}
+                />
                 <Stat label="Managers" value={String(activeWorkspace.managerCount)} />
               </div>
             </>
@@ -520,7 +545,8 @@ function TreasuryPage() {
             <div>
               <div className="text-base font-bold">Create your first treasury workspace</div>
               <p className="mt-1 text-sm text-muted-foreground">
-                Treasury V3 is separate from legacy expense rooms so advanced custody rules cannot change old homes.
+                Treasury V3 is separate from legacy expense rooms so advanced custody rules cannot
+                change old homes.
               </p>
             </div>
           )}
@@ -539,7 +565,11 @@ function TreasuryPage() {
             disabled={!isConnected || !!busy}
             className="mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-4 text-sm font-bold text-background disabled:opacity-50"
           >
-            {busy === "Creating treasury…" ? <Loader2 className="h-4 w-4 animate-spin" /> : <UsersRound className="h-4 w-4" />}
+            {busy === "Creating treasury…" ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UsersRound className="h-4 w-4" />
+            )}
             Create workspace
           </button>
           {workspaces.length > 1 ? (
@@ -583,14 +613,21 @@ function TreasuryPage() {
           })()}
           <div>
             <h2 className="text-base font-bold">{moduleMeta[module].label}</h2>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">{moduleMeta[module].body}</p>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {moduleMeta[module].body}
+            </p>
           </div>
         </div>
 
         {module === "deposit" ? (
           <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
             <AmountInput value={amount} onChange={setAmount} />
-            <ActionButton busy={busy} label="Deposit USDC" icon={HandCoins} onClick={() => void deposit()} />
+            <ActionButton
+              busy={busy}
+              label="Deposit USDC"
+              icon={HandCoins}
+              onClick={() => void deposit()}
+            />
           </div>
         ) : null}
 
@@ -599,7 +636,12 @@ function TreasuryPage() {
             <RecipientInput value={recipient} onChange={setRecipient} />
             <AmountInput value={amount} onChange={setAmount} />
             <MemoInput value={memo} onChange={setMemo} placeholder="e.g. Q4 contractor payment" />
-            <ActionButton busy={busy} label="Create approval request" icon={CheckCheck} onClick={() => void createProposal()} />
+            <ActionButton
+              busy={busy}
+              label="Create approval request"
+              icon={CheckCheck}
+              onClick={() => void createProposal()}
+            />
           </div>
         ) : null}
 
@@ -609,10 +651,19 @@ function TreasuryPage() {
             <AmountInput value={amount} onChange={setAmount} />
             <div className="grid gap-3 sm:grid-cols-2">
               <NumberInput label="Every N days" value={intervalDays} onChange={setIntervalDays} />
-              <NumberInput label="Executions · 0 = unlimited" value={executions} onChange={setExecutions} />
+              <NumberInput
+                label="Executions · 0 = unlimited"
+                value={executions}
+                onChange={setExecutions}
+              />
             </div>
             <MemoInput value={memo} onChange={setMemo} placeholder="e.g. Monthly retainer" />
-            <ActionButton busy={busy} label="Create recurring payment" icon={CalendarClock} onClick={() => void createRecurring()} />
+            <ActionButton
+              busy={busy}
+              label="Create recurring payment"
+              icon={CalendarClock}
+              onClick={() => void createRecurring()}
+            />
           </div>
         ) : null}
 
@@ -620,8 +671,17 @@ function TreasuryPage() {
           <div className="mt-5 space-y-3">
             <RecipientInput value={recipient} onChange={setRecipient} />
             <AmountInput value={amount} onChange={setAmount} />
-            <MemoInput value={memo} onChange={setMemo} placeholder="e.g. Release after production launch" />
-            <ActionButton busy={busy} label="Lock milestone funds" icon={Target} onClick={() => void createMilestone()} />
+            <MemoInput
+              value={memo}
+              onChange={setMemo}
+              placeholder="e.g. Release after production launch"
+            />
+            <ActionButton
+              busy={busy}
+              label="Lock milestone funds"
+              icon={Target}
+              onClick={() => void createMilestone()}
+            />
           </div>
         ) : null}
 
@@ -636,19 +696,38 @@ function TreasuryPage() {
                 className="mt-1.5 min-h-12 w-full rounded-2xl border bg-background px-4 text-base outline-none focus:border-brand/40 sm:text-sm"
               />
             </label>
-            <AmountInput value={amount} onChange={setAmount} label="Period limit / spend amount (USDC)" />
+            <AmountInput
+              value={amount}
+              onChange={setAmount}
+              label="Period limit / spend amount (USDC)"
+            />
             <NumberInput label="Period length (days)" value={periodDays} onChange={setPeriodDays} />
-            <ActionButton busy={busy} label="Activate budget policy" icon={ShieldCheck} onClick={() => void setBudget()} />
+            <ActionButton
+              busy={busy}
+              label="Activate budget policy"
+              icon={ShieldCheck}
+              onClick={() => void setBudget()}
+            />
             <div className="mt-4 border-t border-border pt-4">
               <div className="text-xs font-bold">Spend from your active delegated budget</div>
               <p className="mt-1 text-[11px] leading-5 text-muted-foreground">
-                The connected member can pay within the onchain period cap without taking control of the whole treasury.
+                The connected member can pay within the onchain period cap without taking control of
+                the whole treasury.
               </p>
               <div className="mt-3 space-y-3">
                 <RecipientInput value={recipient} onChange={setRecipient} />
-                <MemoInput value={memo} onChange={setMemo} placeholder="e.g. Approved team software" />
+                <MemoInput
+                  value={memo}
+                  onChange={setMemo}
+                  placeholder="e.g. Approved team software"
+                />
                 <div className="grid gap-2 sm:grid-cols-2">
-                  <ActionButton busy={busy} label="Spend budget" icon={HandCoins} onClick={() => void spendDelegatedBudget()} />
+                  <ActionButton
+                    busy={busy}
+                    label="Spend budget"
+                    icon={HandCoins}
+                    onClick={() => void spendDelegatedBudget()}
+                  />
                   <button
                     onClick={() => void revokeBudget()}
                     disabled={!!busy || !isAddress(spender)}
@@ -669,7 +748,8 @@ function TreasuryPage() {
             <UsersRound className="h-4 w-4 text-brand" /> Members & managers
           </div>
           <p className="mt-1 text-xs leading-5 text-muted-foreground">
-            Add a treasury member, then promote trusted members to managers who can create controlled treasury actions.
+            Add a treasury member, then promote trusted members to managers who can create
+            controlled treasury actions.
           </p>
           <input
             value={memberAddress}
@@ -725,11 +805,23 @@ function TreasuryPage() {
           <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-3">
             <MiniAction label="Approve payment" onClick={() => void actOnId("approveProposal")} />
             <MiniAction label="Execute payment" onClick={() => void actOnId("executeProposal")} />
-            <MiniAction label="Approve milestone" onClick={() => void actOnId("approveMilestone")} />
-            <MiniAction label="Release milestone" onClick={() => void actOnId("releaseMilestone")} />
-            <MiniAction label="Run recurring" onClick={() => void actOnId("executeRecurringPayment")} />
+            <MiniAction
+              label="Approve milestone"
+              onClick={() => void actOnId("approveMilestone")}
+            />
+            <MiniAction
+              label="Release milestone"
+              onClick={() => void actOnId("releaseMilestone")}
+            />
+            <MiniAction
+              label="Run recurring"
+              onClick={() => void actOnId("executeRecurringPayment")}
+            />
             <MiniAction label="Cancel payment" onClick={() => void actOnId("cancelProposal")} />
-            <MiniAction label="Cancel recurring" onClick={() => void actOnId("cancelRecurringPayment")} />
+            <MiniAction
+              label="Cancel recurring"
+              onClick={() => void actOnId("cancelRecurringPayment")}
+            />
             <MiniAction label="Cancel milestone" onClick={() => void actOnId("cancelMilestone")} />
           </div>
         </Card>

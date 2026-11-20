@@ -54,13 +54,15 @@ function clients(environment: ArcEnvironment) {
 
 /** Reports whether gas sponsorship is live and funded for the given network. */
 export const getGaslessStatus = createServerFn({ method: "GET" })
-  .inputValidator((data: unknown) =>
-    z.object({ environment: environmentSchema }).parse(data),
-  )
+  .inputValidator((data: unknown) => z.object({ environment: environmentSchema }).parse(data))
   .handler(async ({ data }) => {
     const policy = sponsorshipPolicy(data.environment, process.env);
     if (!policy.enabled) return { available: false as const, reason: "policy-disabled" as const };
-    const account = relayerAccount(data.environment === "mainnet" ? process.env["GASLESS_MAINNET_PRIVATE_KEY"] : process.env["GASLESS_TESTNET_PRIVATE_KEY"]);
+    const account = relayerAccount(
+      data.environment === "mainnet"
+        ? process.env["GASLESS_MAINNET_PRIVATE_KEY"]
+        : process.env["GASLESS_TESTNET_PRIVATE_KEY"],
+    );
     if (!account) return { available: false as const, reason: "not-configured" as const };
     try {
       const { publicClient } = clients(data.environment);
@@ -97,11 +99,16 @@ export const relayGaslessTransfer = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const policy = sponsorshipPolicy(data.environment, process.env);
     assertSponsorshipAuthorization(policy, data, BigInt(Math.floor(Date.now() / 1000)));
-    const account = relayerAccount(data.environment === "mainnet" ? process.env["GASLESS_MAINNET_PRIVATE_KEY"] : process.env["GASLESS_TESTNET_PRIVATE_KEY"]);
+    const account = relayerAccount(
+      data.environment === "mainnet"
+        ? process.env["GASLESS_MAINNET_PRIVATE_KEY"]
+        : process.env["GASLESS_TESTNET_PRIVATE_KEY"],
+    );
     if (!account) throw new Error("Gas sponsorship is not configured.");
 
     const { chain, publicClient, transport } = clients(data.environment);
-    if ((await publicClient.getChainId()) !== chain.id) throw new Error("Sponsorship RPC network mismatch.");
+    if ((await publicClient.getChainId()) !== chain.id)
+      throw new Error("Sponsorship RPC network mismatch.");
     const walletClient = createWalletClient({ account, chain, transport });
     const { v, r, s } = parseSignature(data.signature as `0x${string}`);
 
@@ -127,7 +134,8 @@ export const relayGaslessTransfer = createServerFn({ method: "POST" })
     });
 
     const gas = await publicClient.estimateContractGas(request);
-    if (gas > policy.maxGas) throw new Error("This transaction exceeds the sponsorship gas policy.");
+    if (gas > policy.maxGas)
+      throw new Error("This transaction exceeds the sponsorship gas policy.");
     const hash = await walletClient.writeContract({ ...request, gas });
     const receipt = await publicClient.waitForTransactionReceipt({ hash });
     if (receipt.status !== "success") throw new Error("Sponsored transfer reverted onchain.");

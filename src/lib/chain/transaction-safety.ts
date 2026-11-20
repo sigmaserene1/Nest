@@ -15,7 +15,10 @@ export async function assertSelectedWalletNetwork(
 }
 
 export async function assertContractDeployment(
-  client: { getChainId: () => Promise<number>; getCode: (args: { address: `0x${string}` }) => Promise<string | undefined> },
+  client: {
+    getChainId: () => Promise<number>;
+    getCode: (args: { address: `0x${string}` }) => Promise<string | undefined>;
+  },
   environment: ArcEnvironment,
   address: `0x${string}`,
 ) {
