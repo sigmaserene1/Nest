@@ -1,166 +1,257 @@
-# Nest
+<div align="center">
 
-Nest is a shared USDC treasury and settlement app with Arc Testnet and guarded Arc Mainnet support. Workspaces can pool USDC, coordinate approval-controlled payments, manage recurring payouts and delegated budgets, record shared obligations, and settle balances onchain.
+<img src=".github/assets/nest-readme.svg" alt="Nest — Shared treasury. Clear every balance. USDC-native coordination on Arc." width="100%">
 
-The original household expense experience remains supported. Treasury V3 adds a separate programmable shared-treasury layer for teams, collectives, and project groups without migrating or mutating legacy ExpenseManager state.
+<br>
 
-**Live application:** [nestarc.xyz](https://nestarc.xyz)
+**[Live App](https://nestarc.xyz)** · **[Docs](https://docs.nestarc.xyz/)** · **[The Product](#the-product)** · **[Architecture](#architecture)** · **[Quickstart](#quickstart)** · **[Contracts](#deployed-contracts)**
 
-## Implemented capabilities (not a Mainnet verification claim)
+<br>
 
-See [production audit](docs/arc-production-audit.md) and [deployment handoff](docs/arc-mainnet-deployment.md). ExpenseManager Mainnet code and reads are verified; funded write flows are not. Treasury V3 and Bridge Registry currently have Testnet deployments, not configured Mainnet deployments.
+[![Arc](https://img.shields.io/badge/Arc-Mainnet_%2B_Testnet-8b7cff?style=flat-square)](https://docs.arc.io)
+[![USDC](https://img.shields.io/badge/Settlement-USDC-2775ca?style=flat-square)](./contracts/ExpenseManager.sol)
+[![TanStack Start](https://img.shields.io/badge/TanStack-Start-e85b67?style=flat-square)](./src/routes)
+[![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square)](./package.json)
+[![Solidity](https://img.shields.io/badge/Contracts-Solidity-8b7cff?style=flat-square)](./contracts)
+[![Readiness](https://img.shields.io/badge/Production-readiness_under_review-f4c46b?style=flat-square)](./docs/arc-production-audit.md)
 
-- Create group workspaces and invite wallet addresses.
-- Pool USDC into a shared Treasury V3 workspace balance.
-- Create N-of-M approval-controlled treasury payments.
-- Configure recurring payouts for retainers, subscriptions, payroll-style flows, or other scheduled payments.
-- Reserve treasury funds in milestone escrow and release them after the configured approval threshold is met.
-- Delegate capped member spending budgets with onchain period limits and revocation.
-- Add treasury members, promote or remove managers, and configure approval thresholds.
-- Record recurring or one-off shared expenses with equal or custom member allocations.
-- Resolve each member's net position from the shared onchain ledger.
-- Clear open shares owed to one counterparty with `settleWith`.
-- Settle wallet-to-wallet through the USDC ERC-20 interface on the selected Arc network when that environment is configured.
-- Bridge USDC through LI.FI with Circle CCTP/native-USDC routes preferred where available.
-- Persist completed Arc-involved bridge receipts in the Nest Bridge Registry after user confirmation.
-- Create/restore Privy embedded EVM wallets for new email sign-ins; preserve the separate recovery flow for legacy Circle wallets. Circle sponsorship requires a matching hosted policy and is not proven by installing App Kit.
-- Retain transaction-linked receipts and inspect activity on the selected Arc explorer.
+</div>
 
-Nest does not claim a global minimum-transfer algorithm, autonomous custody, an independent security audit, or a production SDK. Gas Station sponsorship depends on a matching policy being enabled in Circle Console.
+<br>
 
-## Arc Mainnet activation
+> Shared money should come with a shared picture. **Nest brings expenses, USDC settlement and treasury coordination into one Arc-native workspace** — with wallet-owned accounts, onchain financial state and transaction-linked receipts.
 
-The Mainnet toggle is wired into network-aware services. ExpenseManager is already deployed at `0x709cbad88162b999882788155cde79ade46a6d42` on chain `5042` (creation block `21213840`). Reads were independently checked; writes still require funded end-to-end verification. Treasury and bridge-index writes require their own verified Mainnet deployments.
+The original household ledger stays intact. A separate treasury layer extends Nest to teams, collectives and project groups without silently migrating existing rooms.
 
-To activate Mainnet:
+**Read the status before using real funds:** Mainnet ExpenseManager code and reads have been checked; funded Mainnet flows remain unverified. Treasury V3 and Bridge Registry have Testnet deployments, but no configured Mainnet deployments. Nest is **not production-certified or independently audited**.
 
-1. Add `DEPLOYER_PRIVATE_KEY` to GitHub Actions secrets and optionally add `ARC_MAINNET_RPC_URL`.
-2. Review the contract permission caveats in the audit before deployment. Run **Actions → Deploy Nest contracts to Arc Mainnet** and type `DEPLOY_MAINNET`; leave ExpenseManager replacement **false** to preserve the existing deployment.
-3. Copy the emitted values into the production frontend environment:
+---
 
-   - `VITE_NEST_EXPENSE_MANAGER_MAINNET_ADDRESS`
-   - `VITE_NEST_EXPENSE_MANAGER_MAINNET_BLOCK`
-   - `VITE_NEST_BRIDGE_REGISTRY_MAINNET_ADDRESS`
-   - `VITE_NEST_TREASURY_V3_MAINNET_ADDRESS`
+## The Product
 
-4. Redeploy the production frontend. Keep `VITE_ARC_DEFAULT_NETWORK=testnet` until the Mainnet deployment has been tested with a small amount of real USDC.
+| Shared expenses | Treasury coordination | Cross-chain USDC |
+| :--- | :--- | :--- |
+| Rooms, wallet invitations and member shares | Pooled deposits and payment proposals | LI.FI routing and Circle App Kit |
+| Equal or custom expense allocations | Manager approval thresholds | CCTP/native-USDC routes where available |
+| Net balances and counterparty settlement | Recurring payouts, milestones and budgets | Source and destination delivery evidence |
+| **ExpenseManager · both Arc networks** | **Treasury V3 · Testnet deployment** | **Provider-dependent routes** |
 
-Public verified deployment addresses are configuration, not secrets; private keys are never committed. A new contract deployment does not migrate old workspaces.
+### Shared expenses — a ledger everyone can inspect
 
-## Live Arc Testnet contracts
+Create a room, invite wallet addresses and record who paid what. ExpenseManager stores members, obligations, shares and settlement activity on Arc. `settleWith` clears open shares owed to one counterparty; approved USDC moves from the caller to the expense payer rather than entering a pooled Nest balance.
 
-| Contract | Address | Explorer status | Purpose |
-| --- | --- | --- | --- |
-| `ExpenseManager` | `0x709cbAd88162b999882788155cde79aDe46A6D42` | Live | Legacy/shared-expense rooms, members, obligations, balances, settlements and activity |
-| `NestBridgeRegistry` | `0x2dd392fc3f6b10e5520c309164216351f4f7c27b` | Verified | Permanent Nest-side index of completed Arc-involved cross-chain bridge receipts |
-| `NestTreasuryV3` | `0x1173776512ae96af2a480a8a1898df8582489425` | Fully verified | Shared USDC treasury, N-of-M payments, recurring payouts, milestone escrow and delegated budgets |
+- Equal or custom member allocations.
+- Onchain net positions and settlement events.
+- Network-tagged invitations; legacy invitations resolve only to Testnet.
+- Transaction-linked receipts and selected-network explorer links.
 
-### ExpenseManager
+**Source:** [`contracts/ExpenseManager.sol`](./contracts/ExpenseManager.sol) · [`src/lib/chain`](./src/lib/chain)
 
-[Open ExpenseManager on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x709cbAd88162b999882788155cde79aDe46A6D42).
+### Treasury — pooled funds with explicit permissions
 
-ExpenseManager remains the canonical contract for existing Nest expense rooms. It stores rooms, membership, expenses, member shares, settlement status and activity. Expense settlement does not require Nest to pool customer funds: approved USDC moves from the caller to the expense payer.
+Treasury V3 adds shared deposits, N-of-M payment proposals, recurring payouts, milestone escrow and revocable member budgets. It is separate from the legacy expense ledger.
 
-### NestBridgeRegistry
+**Important governance limits:** the owner can withdraw available funds through an emergency path; individual managers can create recurring payments and budget policies; historical approvals require governance review. These controls are not a promise that every outflow requires multiple approvals. Recurring execution needs a caller, not an autonomous timer.
 
-[Open the verified Bridge Registry on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x2dd392fc3f6b10e5520c309164216351f4f7c27b).
+**Source:** [`contracts/NestTreasuryV3.sol`](./contracts/NestTreasuryV3.sol) · [`src/routes/app.treasury.tsx`](./src/routes/app.treasury.tsx)
 
-Deployment transaction:
+### Bridge — delivery, not just a source transaction
 
-```text
-0xe811d4e8aee5a656ad4b0c65b1dfc9cf1cc2a53ce103eaadcdc3e09e9ec6c723
+Nest integrates LI.FI and Circle App Kit for supported USDC routes. Quotes are checked against the requested chains, tokens and amount. Refunded, partial, pending and approval-only outcomes must not become completed receipts.
+
+Circle results require successful burn and mint evidence; LI.FI completion requires a completed destination transfer. Availability depends on the provider, selected environment and chain pair — there is no guarantee that every chain or displayed token can be bridged.
+
+Bridge history is wallet- and environment-scoped. NestBridgeRegistry stores caller-submitted transfer metadata; **it does not independently prove execution on another chain**. Historic registry entries are not independently certified delivery evidence.
+
+**Source:** [`src/lib/lifi.ts`](./src/lib/lifi.ts) · [`src/lib/circle-bridge.ts`](./src/lib/circle-bridge.ts) · [`contracts/NestBridgeRegistry.sol`](./contracts/NestBridgeRegistry.sol)
+
+### Accounts — connect a wallet or continue with email
+
+External wallets connect through RainbowKit/Wagmi. New email sign-ins authenticate with **Privy**, creating or restoring an embedded EVM wallet directly. Legacy Circle wallet recovery remains separate to preserve older identities.
+
+Real OTP completion, restoration and authenticated financial flows still require end-to-end acceptance checks. Installing a wallet SDK does not establish that hosted provider settings are correct.
+
+---
+
+## Architecture
+
+```mermaid
+flowchart TB
+    Users[Wallet and email users] --> App[Nest · TanStack Start / React]
+    Privy[Privy embedded EVM wallet] --> App
+    Legacy[Legacy Circle wallet recovery] --> App
+    App --> Reads[Selected-network Arc reads and events]
+    App --> Guard[Chain checks · deployed code · simulation]
+    Guard --> Expenses[ExpenseManager · expenses and settlement]
+    Guard --> Treasury[Treasury V3 · pooled funds and permissions]
+    App --> Bridge[LI.FI / Circle App Kit]
+    Bridge --> Remote[Source and destination chains]
+    App -.-> Registry[Bridge Registry · submitted transfer index]
+    App -.-> Cache[Optional rebuildable account cache]
 ```
 
-Deployment block: `66079022`.
+**The state rule:** Arc contract state and transaction events are the financial ledger. Optional Lovable Cloud account caches improve loading and cross-device continuity; they do not hold wallet private keys or replace onchain balances. A bridge index row is not a substitute for source and destination execution evidence.
 
-The registry stores the Nest-side record for completed Arc-involved bridge transfers, including source/destination chain IDs, source/destination transaction hashes, amount, recipient and provider metadata. The external source and destination chain transactions remain the execution truth; the registry does not independently prove another chain's state.
+| Layer | Technology |
+| :--- | :--- |
+| Application | TanStack Start v1, TanStack Router, React 19, TypeScript |
+| Interface | Tailwind CSS 4, Radix UI, Lucide |
+| Wallet connections | Wagmi, Viem, RainbowKit |
+| Email wallet | Privy; separate legacy Circle path |
+| Bridge transport | Circle App Kit, CCTP-preferred routes, LI.FI |
+| Contracts | Solidity; ExpenseManager verification uses solc 0.8.28 |
+| Tooling | Vite, Bun, ESLint, Solidity test suites |
 
-### NestTreasuryV3
-
-[Open the fully verified Treasury V3 contract on the Arc Testnet explorer](https://explorer.testnet.arc.io/address/0x1173776512ae96af2a480a8a1898df8582489425).
-
-Deployment transaction:
+## Repository Map
 
 ```text
-0x0dda929f9f6af4317c921ca01e913567cc2dc4c6bbb52fdb3f51e7fffe5bf720
+Nest/
+├── contracts/             Solidity ledgers, treasury and registry
+├── src/
+│   ├── routes/            Landing, app screens and server routes
+│   ├── components/        Nest interface and wallet bridges
+│   ├── lib/               Chain reads/writes, bridge and safety policies
+│   └── integrations/      Generated service integrations
+├── scripts/               Deployment, verification and read-only audit
+├── test/contracts/        Solidity contract tests
+├── docs/                  Production audit and deployment handoff
+└── .github/workflows/     Operator-triggered deployment workflow
 ```
 
-Deployment block: `66613152`.
+---
 
-Treasury V3 is separate from ExpenseManager so legacy workspaces are not migrated implicitly. It provides shared USDC deposits, configurable manager approval thresholds, payment proposals, recurring payments, milestone escrow and delegated period-based spending budgets.
+## Quickstart
 
-Treasury V3 and Bridge Registry are testnet contracts and are not represented as independently audited production contracts.
+**Use Nest:** open [nestarc.xyz](https://nestarc.xyz), connect a wallet or continue with email, and choose the intended Arc environment. Start with **Testnet**; its assets have no real-world monetary value.
 
-## Arc Testnet configuration
+### Run locally
 
-| Property              | Value                                        |
-| --------------------- | -------------------------------------------- |
-| Chain ID              | `5042002`                                    |
-| Native gas asset      | `USDC`                                       |
-| USDC ERC-20 interface | `0x3600000000000000000000000000000000000000` |
-| CCTP domain           | `26`                                         |
-| Primary RPC           | `https://rpc.testnet.arc.io`            |
-| Explorer              | `https://explorer.testnet.arc.io`           |
+From a checkout of this repository:
 
-Testnet assets have no real-world monetary value. Mainnet uses real USDC; balances, rooms and events are separate even where addresses match.
+```bash
+bun install
+bun run dev
+```
 
-## Arc Mainnet configuration
+Use the local URL printed by Vite. Wallet providers and optional services need their own configuration; never commit private keys or server credentials. The full network/deployment configuration is in the [deployment handoff](./docs/arc-mainnet-deployment.md).
 
-| Property | Value |
-| --- | --- |
-| Chain ID | `5042` |
-| Native gas asset | USDC, 18 decimals |
-| USDC ERC-20 interface | `0x3600000000000000000000000000000000000000`, 6 decimals |
-| Primary RPC | `https://rpc.mainnet.arc.io` |
-| Explorer | `https://explorer.arc.io` |
+<details>
+<summary><b>Safety regression tests</b></summary>
 
-## Stack
+```bash
+bun test src/lib/chain/*.test.js \
+  src/lib/lifi.test.js \
+  src/lib/bridge-history-scope.test.js \
+  src/lib/circle-bridge.test.js \
+  src/lib/gasless-policy.test.js \
+  src/lib/privy-wallet-policy.test.js \
+  src/lib/docs-domain.test.js
+```
 
-| Layer                | Technology                                |
-| -------------------- | ----------------------------------------- |
-| Application          | TanStack Start, TanStack Router, React 19 |
-| Language             | TypeScript                                |
-| UI                   | Tailwind CSS 4, Radix UI, Lucide          |
-| Wallets              | Wagmi, Viem, RainbowKit                   |
-| Contracts            | Solidity 0.8.24 / solc 0.8.28            |
-| Circle               | User-Controlled Wallets, App Kit and CCTP-preferred routing |
-| Build/runtime        | Vite, Nitro, Cloudflare module output     |
+The 2026-11-20 audit recorded **34 passing tests across 9 files**. This covers selected safety rules, not every wallet, contract or funded transfer. Solidity suites live in `test/contracts` and require their own compatible toolchain and execution.
 
-## Product architecture
+</details>
 
-Nest separates its core financial responsibilities across dedicated onchain components:
+<details>
+<summary><b>Read-only network audit</b></summary>
 
-- **ExpenseManager** remains the canonical ledger for shared expenses, membership, balances and settlement activity.
-- **NestTreasuryV3** manages pooled USDC, approval-controlled payments, recurring payouts, milestone escrow and delegated spending policies.
-- **NestBridgeRegistry** records completed Arc-involved bridge receipts while the underlying source and destination chain transactions remain the execution truth.
-- **Privy** provides the current new-email embedded EVM wallet path; **Circle User-Controlled Wallets** remain available for older identities.
-- **Circle App Kit and CCTP-preferred routing** support swap and cross-chain USDC flows where available.
-- **LI.FI** provides broader bridge routing with Circle-native paths preferred when supported.
+```bash
+bun scripts/audit-arc-networks.mjs
+```
 
-This separation keeps legacy shared-expense state intact while allowing treasury and cross-chain capabilities to evolve independently.
+Checks chain identity, deployed code, USDC decimals and selected contract reads. It does not sign, deploy or move funds. Missing Mainnet Treasury/Registry configuration produces a non-zero exit instead of a readiness claim.
 
-## Security and state model
+</details>
 
-Nest is non-custodial at the account layer and relies on onchain contracts for financial state. Treasury actions are constrained by contract-level membership, manager permissions, approval thresholds and delegated spending limits.
+<details>
+<summary><b>Deployment and verification</b></summary>
 
-The optional account cache is used only to improve loading speed and cross-device continuity. It does not replace onchain state, hold wallet private keys or act as the financial ledger.
+Follow the [Mainnet deployment instructions](./docs/arc-mainnet-deployment.md). The workflow deliberately skips redeploying ExpenseManager unless an operator explicitly requests a replacement. **A replacement does not migrate old rooms.**
 
-Treasury V3 and Bridge Registry are deployed on Arc Testnet, not independently audited production contracts. Mainnet ExpenseManager exists, but no funded Mainnet flow was exercised by this audit. Treasury owner withdrawals, single-manager recurring/budget creation and historical approval counting require explicit governance review before production use.
+Server-side sponsor keys must be separate from the deployment key. Keep Mainnet sponsorship disabled until recipient/value/gas policies, operational controls and funded acceptance checks are in place.
 
-## Fast account restore and cross-device cache
+</details>
 
-Arc remains the source of truth for rooms, members, expenses, balances and settlements. The optional Supabase layer stores only rebuildable app/index data such as verified snapshots, bridge history, receipt history, preferences and agent settings.
+---
 
-It does **not** store wallet private keys or replace onchain financial state. Server functions validate the current short-lived Circle user token and resolve that user's Circle wallet before reading or updating the matching cache row.
+## Deployed Contracts
 
-If Supabase is not configured, Nest continues to work from Arc and local verified snapshots; only cross-device cache restore is unavailable.
+Addresses below reflect the [read-only audit on 2026-11-20](./docs/arc-production-audit.md). Code presence and successful reads are not an independent security audit or verification of funded writes.
 
-## Business V2
+### Arc Mainnet · `5042`
 
-`NestBusinessV2.sol` remains an experimental contract path for business-oriented workspaces. It is intentionally separate from the live core contracts and does not modify existing ExpenseManager workspaces.
+| Contract | Address | Status |
+| :--- | :--- | :--- |
+| ExpenseManager | [`0x709cbad88162b999882788155cde79ade46a6d42`](https://explorer.arc.io/address/0x709cbad88162b999882788155cde79ade46a6d42) | Code/read checks passed; funded writes unverified |
+| NestTreasuryV3 | Not configured | Mainnet activation blocked |
+| NestBridgeRegistry | Not configured | Mainnet indexing blocked |
 
-The design includes a USDC-collateral credit model and revocable session-key settlement policies with expiry, per-run limits and period caps. It is not part of the primary Nest product positioning and should be treated as experimental until independently reviewed and explicitly deployed.
+ExpenseManager creation block: **21,213,840**. The numeric address also exists on Testnet; the state is not shared.
+
+### Arc Testnet · `5042002`
+
+| Contract | Address | Purpose |
+| :--- | :--- | :--- |
+| ExpenseManager | [`0x709cbad88162b999882788155cde79ade46a6d42`](https://explorer.testnet.arc.io/address/0x709cbad88162b999882788155cde79ade46a6d42) | Rooms, members, obligations and settlement |
+| NestTreasuryV3 | [`0x1173776512ae96af2a480a8a1898df8582489425`](https://explorer.testnet.arc.io/address/0x1173776512ae96af2a480a8a1898df8582489425) | Shared deposits, proposals, milestones and budgets |
+| NestBridgeRegistry | [`0x2dd392fc3f6b10e5520c309164216351f4f7c27b`](https://explorer.testnet.arc.io/address/0x2dd392fc3f6b10e5520c309164216351f4f7c27b) | Submitted cross-chain transfer index |
+
+<details>
+<summary><b>Testnet deployment evidence</b></summary>
+
+| Contract | Block | Deployment transaction |
+| :--- | ---: | :--- |
+| Treasury V3 | 66,613,152 | `0x0dda929f9f6af4317c921ca01e913567cc2dc4c6bbb52fdb3f51e7fffe5bf720` |
+| Bridge Registry | 66,079,022 | `0xe811d4e8aee5a656ad4b0c65b1dfc9cf1cc2a53ce103eaadcdc3e09e9ec6c723` |
+
+Read checks do not certify explorer-source equivalence. Compiler artifact matching and independent contract review remain acceptance work.
+
+</details>
+
+## Network Configuration
+
+| Property | Arc Mainnet | Arc Testnet |
+| :--- | :--- | :--- |
+| Chain ID | `5042` | `5042002` |
+| RPC | `https://rpc.mainnet.arc.io` | `https://rpc.testnet.arc.io` |
+| Explorer | [explorer.arc.io](https://explorer.arc.io) | [explorer.testnet.arc.io](https://explorer.testnet.arc.io) |
+| USDC ERC-20 | `0x3600000000000000000000000000000000000000` | Same address, separate state |
+| ERC-20 decimals | **6** | **6** |
+| Native gas accounting | USDC, **18 decimals** | USDC, **18 decimals** |
+| Asset value | Real funds | Test assets only |
+
+The ERC-20 interface and native gas accounting use different decimal scales. Matching addresses never imply shared balances, room IDs or transaction history.
+
+---
+
+## Security & Readiness
+
+**What is hardened:** selected-chain checks, deployed-code checks and simulation at core write boundaries; network-tagged invites and bridge caches; strict bridge completion classification; isolated, opt-in sponsorship policies.
+
+**What is not certified:** every business write path or cache, historic bridge registry receipts, full wallet restoration, real Mainnet payment delivery, provider sponsorship, treasury governance or independent contract security.
+
+- Treasury custody has explicit owner and manager powers; review them before depositing real funds.
+- Gasless authorization does not make all contract settlements free. Sponsorship defaults off and has no certified production rate limiter or daily gas budget.
+- Mainnet Treasury/Registry deployment and funded acceptance testing remain outstanding.
+- The 2026-11-20 platform build and targeted financial-library lint passed; full-repository lint failed. See the report for exact scope and remaining blockers.
+- `NestBusinessV2.sol` remains an **experimental** credit/session-policy path, separate from the primary product and legacy ledger.
+
+**Full evidence:** [Production audit](./docs/arc-production-audit.md) · [Deployment and acceptance checklist](./docs/arc-mainnet-deployment.md)
+
+## Contributing
+
+Keep financial changes small and testable. Preserve legacy wallet identities and room state, include the selected network in financial data, and never replace transaction evidence with demo values or optimistic completion labels. Include a regression test when changing a safety rule.
 
 ## License
 
-MIT
+MIT, as previously stated by this repository. A standalone license file is not currently included; review licensing before redistribution.
+
+---
+
+<div align="center">
+
+**Shared treasury. Clear every balance.**
+
+[Open Nest](https://nestarc.xyz) · [Read the Docs](https://docs.nestarc.xyz/) · [Review the Audit](./docs/arc-production-audit.md)
+
+</div>
